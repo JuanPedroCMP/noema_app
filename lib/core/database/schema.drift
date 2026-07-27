@@ -1,0 +1,456 @@
+-- =====================================================================
+-- KDAS (Noema) — schema.drift
+-- Adaptado de schema_kdas_sqlite.sql para uso com @DriftDatabase(include: {...})
+--
+-- Mudanças em relação ao .sql original:
+--   * PRAGMA foreign_keys removido (não suportado em arquivos .drift;
+--     reative via `customStatement('PRAGMA foreign_keys = ON')` no
+--     `beforeOpen` da MigrationStrategy do seu AppDatabase).
+--   * Colunas 0/1 (ex.: soft_deleted, is_active, ai_generated) trocadas
+--     de INTEGER para BOOLEAN, para que o Drift gere `bool` no Dart em
+--     vez de `int`. O CHECK (col IN (0,1)) foi mantido como reforço.
+--   * Colunas de timestamp (ex.: created_at, updated_at, answered_at)
+--     trocadas de TEXT para DATETIME, para que o Drift gere `DateTime`
+--     no Dart em vez de `String`.
+--   * Para que o Drift leia/grave essas DATETIME como TEXT ISO-8601
+--     (igual ao DEFAULT strftime(...) usado aqui) em vez do padrão
+--     (unix millis em INTEGER), adicione no build.yaml:
+--       targets:
+--         $default:
+--           builders:
+--             drift_dev:
+--               options:
+--                 store_date_time_values_as_text: true
+-- =====================================================================
+
+CREATE TABLE user (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    remote_id           TEXT NOT NULL,
+    user_name           TEXT NOT NULL,
+    display_name        TEXT NOT NULL,
+    primary_email       TEXT NOT NULL,
+    last_seen_at         DATETIME NOT NULL,
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME,
+    is_active           BOOLEAN NOT NULL DEFAULT 1 CHECK (is_active IN (0,1))
+);
+
+CREATE TABLE color_theme (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    name                TEXT NOT NULL,
+    seed_color          INTEGER NOT NULL,
+    overrides_json      TEXT,
+    system_default      BOOLEAN NOT NULL DEFAULT 0 CHECK (system_default IN (0,1)),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT color_theme_name_uq UNIQUE (name, user_id)
+);
+
+CREATE TABLE typography_theme (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    name                TEXT NOT NULL,
+    display_font        TEXT,
+    body_font           TEXT,
+    mono_font           TEXT,
+    font_scale          INTEGER NOT NULL,
+    overrides_json      TEXT,
+    system_default      BOOLEAN NOT NULL DEFAULT 0 CHECK (system_default IN (0,1)),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT typography_theme_name_uq UNIQUE (name, user_id)
+);
+
+CREATE TABLE config (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    color_theme_id      TEXT NOT NULL REFERENCES color_theme(id) ON DELETE RESTRICT,
+    typography_theme_id TEXT NOT NULL REFERENCES typography_theme(id) ON DELETE RESTRICT,
+    preferences         TEXT NOT NULL CHECK (json_valid(preferences)),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    last_sync           DATETIME,
+    auto_sync           BOOLEAN NOT NULL DEFAULT 1 CHECK (auto_sync IN (0,1)),
+    device_fingerprint  TEXT NOT NULL,
+    CONSTRAINT config_user_uq UNIQUE (user_id)
+);
+
+CREATE TABLE knowledge_graph (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    title               TEXT NOT NULL,
+    description         TEXT,
+    is_archived         BOOLEAN NOT NULL DEFAULT 0 CHECK (is_archived IN (0,1)),
+    synced              BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME
+);
+
+CREATE TABLE graph_version (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
+    version_number      INTEGER NOT NULL,
+    snapshot_json       TEXT NOT NULL CHECK (json_valid(snapshot_json)),
+    change_summary      TEXT,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE graph_node (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
+    parent_id           TEXT REFERENCES graph_node(id) ON DELETE CASCADE,
+    type                TEXT NOT NULL CHECK (type IN ('AREA','TOPIC','CONCEPT','SUBCONCEPT')),
+    title               TEXT NOT NULL,
+    description         TEXT,
+    mastery_score       REAL,
+    is_skipped          BOOLEAN NOT NULL DEFAULT 0 CHECK (is_skipped IN (0,1)),
+    position_x          REAL NOT NULL,
+    position_y          REAL NOT NULL,
+    ai_synthesis        TEXT,
+    synthesis_edited    BOOLEAN NOT NULL DEFAULT 0 CHECK (synthesis_edited IN (0,1)),
+    fsrs_rating         INTEGER,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME
+);
+
+CREATE TABLE graph_edge (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
+    source_node_id      TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    target_node_id      TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    type                TEXT NOT NULL CHECK (type IN
+                            ('STRONG_PREREQUISITE','WEAK_PREREQUISITE','RELATED',
+                             'APPLIES','GENERALIZES','INSTANTIATES')),
+    is_bidirectional    BOOLEAN NOT NULL DEFAULT 0 CHECK (is_bidirectional IN (0,1)),
+    weight              REAL,
+    synced              BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
+    CONSTRAINT graph_edge_uq UNIQUE (source_node_id, target_node_id, graph_id)
+);
+
+CREATE TABLE node_skill (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    description         TEXT NOT NULL,
+    type                TEXT NOT NULL CHECK (type IN ('MEMORIZE','APPLY','ANALYZE','CREATE')),
+    ai_generated        BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
+    user_edited         BOOLEAN NOT NULL DEFAULT 0 CHECK (user_edited IN (0,1)),
+    display_order       INTEGER NOT NULL,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE learning_resource (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    category            TEXT NOT NULL CHECK (category IN
+                            ('BOOK','ACADEMIC_ARTICLE','DOCUMENTATION','COURSE','VIDEO',
+                             'WEB_ARTICLE','TOOL','EXERCISE','PODCAST')),
+    title               TEXT NOT NULL,
+    author              TEXT,
+    url                 TEXT,
+    tier                TEXT NOT NULL CHECK (tier IN ('TIER_1','TIER_2','TIER_3')),
+    rationale           TEXT NOT NULL,
+    relevance_score     REAL NOT NULL,
+    reputation_score    REAL NOT NULL,
+    ai_generated        BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
+    user_edited         BOOLEAN NOT NULL DEFAULT 0 CHECK (user_edited IN (0,1)),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME
+);
+
+CREATE TABLE note (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    title               TEXT NOT NULL,
+    content_quill_json  TEXT NOT NULL CHECK (json_valid(content_quill_json)),
+    current_version     INTEGER NOT NULL,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME,
+    CONSTRAINT title_uq UNIQUE (title, user_id)
+);
+
+CREATE TABLE note_version (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    note_id             TEXT NOT NULL REFERENCES note(id) ON DELETE CASCADE,
+    version_number      INTEGER NOT NULL,
+    content_quill_json  TEXT NOT NULL CHECK (json_valid(content_quill_json)),
+    change_description  TEXT,
+    author              TEXT NOT NULL CHECK (author IN ('USER','AI')),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE note_node (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    note_id             TEXT NOT NULL REFERENCES note(id) ON DELETE CASCADE,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    CONSTRAINT note_node_uq UNIQUE (node_id, note_id)
+);
+
+CREATE TABLE study_session (
+    id                      TEXT NOT NULL PRIMARY KEY,
+    user_id                 TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    status                  TEXT NOT NULL CHECK (status IN
+                                ('CONFIGURING','IN_PROGRESS','COMPLETED','ABANDONED')),
+    target_duration_min     INTEGER NOT NULL,
+    actual_duration_min     INTEGER,
+    interleaving_enabled    BOOLEAN NOT NULL DEFAULT 0 CHECK (interleaving_enabled IN (0,1)),
+    diagnostic_focus        BOOLEAN NOT NULL DEFAULT 0 CHECK (diagnostic_focus IN (0,1)),
+    total_activities        INTEGER NOT NULL DEFAULT 0,
+    completed_activities    INTEGER NOT NULL DEFAULT 0,
+    synced                  BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
+    soft_deleted            BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at         DATETIME,
+    started_at              DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    ended_at                DATETIME
+);
+
+CREATE TABLE study_session_use_knowledge_graph (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
+    study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT graph_session_uq UNIQUE (graph_id, study_session_id)
+);
+
+CREATE TABLE session_node (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    display_order       INTEGER NOT NULL,
+    CONSTRAINT node_session_uq UNIQUE (node_id, study_session_id)
+);
+
+CREATE TABLE flashcard (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    title               TEXT NOT NULL,
+    statement           TEXT NOT NULL,
+    target_skill        TEXT,
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE flashcard_group (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    name                TEXT NOT NULL,
+    description         TEXT,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted_at     DATETIME,
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE flashcard_belongs_group (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    flashcard_id        TEXT NOT NULL REFERENCES flashcard(id) ON DELETE CASCADE,
+    flashcard_group_id  TEXT NOT NULL REFERENCES flashcard_group(id) ON DELETE CASCADE,
+    CONSTRAINT flashcard_belongs_group_uq UNIQUE (flashcard_id, flashcard_group_id)
+);
+
+CREATE TABLE flashcard_response_log (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    flashcard_id        TEXT NOT NULL REFERENCES flashcard(id) ON DELETE CASCADE,
+    flashcard_snapshot  TEXT NOT NULL CHECK (json_valid(flashcard_snapshot)),
+    answer              TEXT NOT NULL,
+    answered_at         DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE multiple_choice (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    title               TEXT NOT NULL,
+    statement           TEXT NOT NULL,
+    ai_generated        BOOLEAN CHECK (ai_generated IN (0,1)),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at     DATETIME
+);
+
+CREATE TABLE choice (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    multiple_choice_id  TEXT NOT NULL REFERENCES multiple_choice(id) ON DELETE CASCADE,
+    is_correct          BOOLEAN NOT NULL CHECK (is_correct IN (0,1)),
+    explanation         TEXT,
+    weight              INTEGER,
+    ai_generated        BOOLEAN CHECK (ai_generated IN (0,1)),
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE multiple_choice_response_log (
+    id                          TEXT NOT NULL PRIMARY KEY,
+    multiple_choice_id          TEXT NOT NULL REFERENCES multiple_choice(id) ON DELETE CASCADE,
+    question_choice_snapshot    TEXT NOT NULL CHECK (json_valid(question_choice_snapshot)),
+    selected_choice_ids         TEXT NOT NULL CHECK (json_valid(selected_choice_ids)),
+    total_correct_option        INTEGER NOT NULL,
+    correct_selected            INTEGER NOT NULL,
+    wrong_selected               INTEGER NOT NULL,
+    partial_score                REAL NOT NULL,
+    ai_feedback                  TEXT,
+    user_notes                   TEXT,
+    score                         REAL,
+    answered_at                   DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE activity_has_multiple_choice_question (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    multiple_choice_id  TEXT REFERENCES multiple_choice(id) ON DELETE CASCADE,
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT activity_multiple_choice_uq UNIQUE (study_session_id, multiple_choice_id)
+);
+
+CREATE TABLE open_ended (
+    id                          TEXT NOT NULL PRIMARY KEY,
+    node_id                     TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    title                       TEXT NOT NULL,
+    statement                   TEXT NOT NULL,
+    type                        TEXT NOT NULL CHECK (type IN ('ESSAY','FEYNMAN')),
+    reference_correct_answer    TEXT,
+    ai_generated                BOOLEAN CHECK (ai_generated IN (0,1)),
+    updated_at                  DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at                  DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    soft_deleted                BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
+    soft_deleted_at             DATETIME
+);
+
+CREATE TABLE open_ended_response_log (
+    id                      TEXT NOT NULL PRIMARY KEY,
+    open_ended_id           TEXT NOT NULL REFERENCES open_ended(id) ON DELETE CASCADE,
+    question_snapshot       TEXT NOT NULL CHECK (json_valid(question_snapshot)),
+    user_answer             TEXT,
+    ai_feedback             TEXT,
+    weight                  INTEGER,
+    user_notes              TEXT,
+    is_correct              BOOLEAN CHECK (is_correct IN (0,1)),
+    mastery_demonstrated    TEXT CHECK (mastery_demonstrated IN ('WEAK','PARTIAL','ADEQUATE','STRONG')),
+    score                    REAL,
+    answered_at              DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE activity_has_open_ended_question (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    open_ended_id        TEXT REFERENCES open_ended(id) ON DELETE CASCADE,
+    created_at            DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT activity_open_ended_uq UNIQUE (study_session_id, open_ended_id)
+);
+
+CREATE TABLE fsrs_state (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    card_state          TEXT NOT NULL CHECK (card_state IN ('NEW','LEARNING','REVIEW','RELEARNING')),
+    difficulty          REAL NOT NULL,
+    stability           REAL NOT NULL,
+    retrievability      REAL NOT NULL,
+    elapsed_days        INTEGER NOT NULL DEFAULT 0,
+    scheduled_days      INTEGER NOT NULL DEFAULT 0,
+    total_reviews       INTEGER NOT NULL DEFAULT 0,
+    last_rating         INTEGER,
+    last_review_at      DATETIME,
+    next_review_at      DATETIME NOT NULL,
+    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT fsrs_state_node_uq UNIQUE (node_id)
+);
+
+CREATE TABLE fsrs_review_log (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    fsrs_state_id       TEXT NOT NULL REFERENCES fsrs_state(id) ON DELETE CASCADE,
+    rating              INTEGER NOT NULL,
+    state_before        TEXT NOT NULL CHECK (state_before IN ('NEW','LEARNING','REVIEW','RELEARNING')),
+    state_after         TEXT NOT NULL CHECK (state_after IN ('NEW','LEARNING','REVIEW','RELEARNING')),
+    stability_before    REAL NOT NULL,
+    difficulty_before   REAL NOT NULL,
+    elapsed_days        INTEGER NOT NULL,
+    scheduled_days      INTEGER NOT NULL,
+    reviewed_at         DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE domain_log (
+    id                      TEXT NOT NULL PRIMARY KEY,
+    node_id                 TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+    score_before            REAL NOT NULL,
+    score_after             REAL NOT NULL,
+    level_before            TEXT CHECK (level_before IN ('WEAK','PARTIAL','ADEQUATE','STRONG')),
+    level_after             TEXT CHECK (level_after IN ('WEAK','PARTIAL','ADEQUATE','STRONG')),
+    event_origin            TEXT NOT NULL CHECK (event_origin IN
+                                ('STUDY_SESSION','REVISION','AI_RECOMMENDATION','MANUAL')),
+    source_activity_type    TEXT CHECK (source_activity_type IN
+                                ('FLASHCARD','MULTIPLE_CHOICE','ELABORATIVE_INTERROGATION',
+                                 'FEYNMAN','ESSAY','DIAGNOSTIC')),
+    logged_at               DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE generic_log (
+    id                  TEXT NOT NULL PRIMARY KEY,
+    user_id             TEXT REFERENCES user(id) ON DELETE SET NULL,
+    type                TEXT NOT NULL,
+    payload             TEXT NOT NULL CHECK (json_valid(payload)),
+    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+-- NOTA IMPORTANTE: "PRAGMA foreign_keys = ON;" e uma configuracao POR CONEXAO,
+-- nao fica gravada no arquivo .db. O PRAGMA do topo deste script so vale para
+-- a conexao que executou este schema. O aplicativo (Drift, sqlite3, etc.)
+-- precisa reexecutar "PRAGMA foreign_keys = ON;" toda vez que abrir uma nova
+-- conexao com o banco, ou os ON DELETE CASCADE/RESTRICT deixam de ser
+-- aplicados silenciosamente (sem lancar erro).
+
+CREATE INDEX idx_color_theme_user_id            ON color_theme(user_id);
+CREATE INDEX idx_typography_theme_user_id        ON typography_theme(user_id);
+CREATE INDEX idx_config_color_theme_id           ON config(color_theme_id);
+CREATE INDEX idx_config_typography_theme_id      ON config(typography_theme_id);
+
+CREATE INDEX idx_knowledge_graph_user_id         ON knowledge_graph(user_id);
+CREATE INDEX idx_graph_version_graph_id          ON graph_version(graph_id);
+CREATE INDEX idx_graph_node_graph_id             ON graph_node(graph_id);
+CREATE INDEX idx_graph_node_parent_id            ON graph_node(parent_id);
+CREATE INDEX idx_graph_edge_graph_id             ON graph_edge(graph_id);
+CREATE INDEX idx_graph_edge_source_node_id       ON graph_edge(source_node_id);
+CREATE INDEX idx_graph_edge_target_node_id       ON graph_edge(target_node_id);
+CREATE INDEX idx_node_skill_node_id              ON node_skill(node_id);
+CREATE INDEX idx_learning_resource_node_id       ON learning_resource(node_id);
+
+CREATE INDEX idx_note_user_id                    ON note(user_id);
+CREATE INDEX idx_note_version_note_id            ON note_version(note_id);
+CREATE INDEX idx_note_node_note_id               ON note_node(note_id);
+CREATE INDEX idx_note_node_node_id               ON note_node(node_id);
+
+CREATE INDEX idx_study_session_user_id           ON study_session(user_id);
+CREATE INDEX idx_ssukg_graph_id                  ON study_session_use_knowledge_graph(graph_id);
+CREATE INDEX idx_ssukg_study_session_id          ON study_session_use_knowledge_graph(study_session_id);
+CREATE INDEX idx_session_node_study_session_id   ON session_node(study_session_id);
+CREATE INDEX idx_session_node_node_id            ON session_node(node_id);
+
+CREATE INDEX idx_flashcard_node_id               ON flashcard(node_id);
+CREATE INDEX idx_flashcard_group_node_id         ON flashcard_group(node_id);
+CREATE INDEX idx_fbg_flashcard_id                ON flashcard_belongs_group(flashcard_id);
+CREATE INDEX idx_fbg_flashcard_group_id          ON flashcard_belongs_group(flashcard_group_id);
+CREATE INDEX idx_flashcard_response_log_fc_id    ON flashcard_response_log(flashcard_id);
+
+CREATE INDEX idx_multiple_choice_node_id         ON multiple_choice(node_id);
+CREATE INDEX idx_choice_multiple_choice_id       ON choice(multiple_choice_id);
+CREATE INDEX idx_mc_response_log_mc_id           ON multiple_choice_response_log(multiple_choice_id);
+CREATE INDEX idx_ahmcq_study_session_id          ON activity_has_multiple_choice_question(study_session_id);
+CREATE INDEX idx_ahmcq_multiple_choice_id        ON activity_has_multiple_choice_question(multiple_choice_id);
+
+CREATE INDEX idx_open_ended_node_id              ON open_ended(node_id);
+CREATE INDEX idx_oe_response_log_oe_id           ON open_ended_response_log(open_ended_id);
+CREATE INDEX idx_ahoeq_study_session_id          ON activity_has_open_ended_question(study_session_id);
+CREATE INDEX idx_ahoeq_open_ended_id             ON activity_has_open_ended_question(open_ended_id);
+
+CREATE INDEX idx_fsrs_state_node_id              ON fsrs_state(node_id);
+CREATE INDEX idx_fsrs_review_log_state_id        ON fsrs_review_log(fsrs_state_id);
+
+CREATE INDEX idx_domain_log_node_id              ON domain_log(node_id);
+CREATE INDEX idx_generic_log_user_id             ON generic_log(user_id);
