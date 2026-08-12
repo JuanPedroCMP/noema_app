@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/feature/home/providers/color_form_state.dart';
+import 'package:noema/feature/config/providers/color_form_state.dart';
 
 class ColorFormNotifier extends Notifier<ColorUpFormState> {
   @override

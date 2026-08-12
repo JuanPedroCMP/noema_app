@@ -1,55 +1,30 @@
--- =====================================================================
--- KDAS (Noema) — schema.drift
--- Adaptado de schema_kdas_sqlite.sql para uso com @DriftDatabase(include: {...})
---
--- Mudanças em relação ao .sql original:
---   * PRAGMA foreign_keys removido (não suportado em arquivos .drift;
---     reative via `customStatement('PRAGMA foreign_keys = ON')` no
---     `beforeOpen` da MigrationStrategy do seu AppDatabase).
---   * Colunas 0/1 (ex.: soft_deleted, is_active, ai_generated) trocadas
---     de INTEGER para BOOLEAN, para que o Drift gere `bool` no Dart em
---     vez de `int`. O CHECK (col IN (0,1)) foi mantido como reforço.
---   * Colunas de timestamp (ex.: created_at, updated_at, answered_at)
---     trocadas de TEXT para DATETIME, para que o Drift gere `DateTime`
---     no Dart em vez de `String`.
---   * Para que o Drift leia/grave essas DATETIME como TEXT ISO-8601
---     (igual ao DEFAULT strftime(...) usado aqui) em vez do padrão
---     (unix millis em INTEGER), adicione no build.yaml:
---       targets:
---         $default:
---           builders:
---             drift_dev:
---               options:
---                 store_date_time_values_as_text: true
--- =====================================================================
-
-CREATE TABLE user (
+CREATE TABLE app_user (
     id                  TEXT NOT NULL PRIMARY KEY,
     remote_id           TEXT NOT NULL,
     user_name           TEXT NOT NULL,
     display_name        TEXT NOT NULL,
     primary_email       TEXT NOT NULL,
-    last_seen_at         DATETIME NOT NULL,
+    last_seen_at         INTEGER NOT NULL,
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME,
+    soft_deleted_at     INTEGER,
     is_active           BOOLEAN NOT NULL DEFAULT 1 CHECK (is_active IN (0,1))
 );
 
 CREATE TABLE color_theme (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     name                TEXT NOT NULL,
     seed_color          INTEGER NOT NULL,
     overrides_json      TEXT,
     system_default      BOOLEAN NOT NULL DEFAULT 0 CHECK (system_default IN (0,1)),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT color_theme_name_uq UNIQUE (name, user_id)
 );
 
 CREATE TABLE typography_theme (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     name                TEXT NOT NULL,
     display_font        TEXT,
     body_font           TEXT,
@@ -57,19 +32,19 @@ CREATE TABLE typography_theme (
     font_scale          INTEGER NOT NULL,
     overrides_json      TEXT,
     system_default      BOOLEAN NOT NULL DEFAULT 0 CHECK (system_default IN (0,1)),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT typography_theme_name_uq UNIQUE (name, user_id)
 );
 
 CREATE TABLE config (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     color_theme_id      TEXT NOT NULL REFERENCES color_theme(id) ON DELETE RESTRICT,
     typography_theme_id TEXT NOT NULL REFERENCES typography_theme(id) ON DELETE RESTRICT,
     preferences         TEXT NOT NULL CHECK (json_valid(preferences)),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    last_sync           DATETIME,
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    last_sync           INTEGER,
     auto_sync           BOOLEAN NOT NULL DEFAULT 1 CHECK (auto_sync IN (0,1)),
     device_fingerprint  TEXT NOT NULL,
     CONSTRAINT config_user_uq UNIQUE (user_id)
@@ -77,15 +52,15 @@ CREATE TABLE config (
 
 CREATE TABLE knowledge_graph (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     title               TEXT NOT NULL,
     description         TEXT,
     is_archived         BOOLEAN NOT NULL DEFAULT 0 CHECK (is_archived IN (0,1)),
     synced              BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME
+    soft_deleted_at     INTEGER
 );
 
 CREATE TABLE graph_version (
@@ -94,7 +69,7 @@ CREATE TABLE graph_version (
     version_number      INTEGER NOT NULL,
     snapshot_json       TEXT NOT NULL CHECK (json_valid(snapshot_json)),
     change_summary      TEXT,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE graph_node (
@@ -111,10 +86,10 @@ CREATE TABLE graph_node (
     ai_synthesis        TEXT,
     synthesis_edited    BOOLEAN NOT NULL DEFAULT 0 CHECK (synthesis_edited IN (0,1)),
     fsrs_rating         INTEGER,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME
+    soft_deleted_at     INTEGER
 );
 
 CREATE TABLE graph_edge (
@@ -139,7 +114,7 @@ CREATE TABLE node_skill (
     ai_generated        BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
     user_edited         BOOLEAN NOT NULL DEFAULT 0 CHECK (user_edited IN (0,1)),
     display_order       INTEGER NOT NULL,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE learning_resource (
@@ -157,21 +132,21 @@ CREATE TABLE learning_resource (
     reputation_score    REAL NOT NULL,
     ai_generated        BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
     user_edited         BOOLEAN NOT NULL DEFAULT 0 CHECK (user_edited IN (0,1)),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME
+    soft_deleted_at     INTEGER
 );
 
 CREATE TABLE note (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     title               TEXT NOT NULL,
     content_quill_json  TEXT NOT NULL CHECK (json_valid(content_quill_json)),
     current_version     INTEGER NOT NULL,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME,
+    soft_deleted_at     INTEGER,
     CONSTRAINT title_uq UNIQUE (title, user_id)
 );
 
@@ -182,7 +157,7 @@ CREATE TABLE note_version (
     content_quill_json  TEXT NOT NULL CHECK (json_valid(content_quill_json)),
     change_description  TEXT,
     author              TEXT NOT NULL CHECK (author IN ('USER','AI')),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE note_node (
@@ -194,7 +169,7 @@ CREATE TABLE note_node (
 
 CREATE TABLE study_session (
     id                      TEXT NOT NULL PRIMARY KEY,
-    user_id                 TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id                 TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     status                  TEXT NOT NULL CHECK (status IN
                                 ('CONFIGURING','IN_PROGRESS','COMPLETED','ABANDONED')),
     target_duration_min     INTEGER NOT NULL,
@@ -205,16 +180,16 @@ CREATE TABLE study_session (
     completed_activities    INTEGER NOT NULL DEFAULT 0,
     synced                  BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
     soft_deleted            BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at         DATETIME,
-    started_at              DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    ended_at                DATETIME
+    soft_deleted_at         INTEGER,
+    started_at              INTEGER NOT NULL DEFAULT (unixepoch()),
+    ended_at                INTEGER
 );
 
 CREATE TABLE study_session_use_knowledge_graph (
     id                  TEXT NOT NULL PRIMARY KEY,
     graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
     study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT graph_session_uq UNIQUE (graph_id, study_session_id)
 );
 
@@ -232,10 +207,10 @@ CREATE TABLE flashcard (
     title               TEXT NOT NULL,
     statement           TEXT NOT NULL,
     target_skill        TEXT,
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    soft_deleted_at     INTEGER,
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE flashcard_group (
@@ -243,10 +218,10 @@ CREATE TABLE flashcard_group (
     node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
     name                TEXT NOT NULL,
     description         TEXT,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    soft_deleted_at     DATETIME,
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    soft_deleted_at     INTEGER,
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE flashcard_belongs_group (
@@ -261,7 +236,7 @@ CREATE TABLE flashcard_response_log (
     flashcard_id        TEXT NOT NULL REFERENCES flashcard(id) ON DELETE CASCADE,
     flashcard_snapshot  TEXT NOT NULL CHECK (json_valid(flashcard_snapshot)),
     answer              TEXT NOT NULL,
-    answered_at         DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    answered_at         INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE multiple_choice (
@@ -270,10 +245,10 @@ CREATE TABLE multiple_choice (
     title               TEXT NOT NULL,
     statement           TEXT NOT NULL,
     ai_generated        BOOLEAN CHECK (ai_generated IN (0,1)),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at     DATETIME
+    soft_deleted_at     INTEGER
 );
 
 CREATE TABLE choice (
@@ -283,8 +258,8 @@ CREATE TABLE choice (
     explanation         TEXT,
     weight              INTEGER,
     ai_generated        BOOLEAN CHECK (ai_generated IN (0,1)),
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE multiple_choice_response_log (
@@ -299,14 +274,14 @@ CREATE TABLE multiple_choice_response_log (
     ai_feedback                  TEXT,
     user_notes                   TEXT,
     score                         REAL,
-    answered_at                   DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    answered_at                   INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE activity_has_multiple_choice_question (
     id                  TEXT NOT NULL PRIMARY KEY,
     study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
     multiple_choice_id  TEXT REFERENCES multiple_choice(id) ON DELETE CASCADE,
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT activity_multiple_choice_uq UNIQUE (study_session_id, multiple_choice_id)
 );
 
@@ -318,10 +293,10 @@ CREATE TABLE open_ended (
     type                        TEXT NOT NULL CHECK (type IN ('ESSAY','FEYNMAN')),
     reference_correct_answer    TEXT,
     ai_generated                BOOLEAN CHECK (ai_generated IN (0,1)),
-    updated_at                  DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    created_at                  DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at                  INTEGER NOT NULL DEFAULT (unixepoch()),
+    created_at                  INTEGER NOT NULL DEFAULT (unixepoch()),
     soft_deleted                BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
-    soft_deleted_at             DATETIME
+    soft_deleted_at             INTEGER
 );
 
 CREATE TABLE open_ended_response_log (
@@ -335,14 +310,14 @@ CREATE TABLE open_ended_response_log (
     is_correct              BOOLEAN CHECK (is_correct IN (0,1)),
     mastery_demonstrated    TEXT CHECK (mastery_demonstrated IN ('WEAK','PARTIAL','ADEQUATE','STRONG')),
     score                    REAL,
-    answered_at              DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    answered_at              INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE activity_has_open_ended_question (
     id                  TEXT NOT NULL PRIMARY KEY,
     study_session_id    TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
     open_ended_id        TEXT REFERENCES open_ended(id) ON DELETE CASCADE,
-    created_at            DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at            INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT activity_open_ended_uq UNIQUE (study_session_id, open_ended_id)
 );
 
@@ -357,9 +332,9 @@ CREATE TABLE fsrs_state (
     scheduled_days      INTEGER NOT NULL DEFAULT 0,
     total_reviews       INTEGER NOT NULL DEFAULT 0,
     last_rating         INTEGER,
-    last_review_at      DATETIME,
-    next_review_at      DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    last_review_at      INTEGER,
+    next_review_at      INTEGER NOT NULL,
+    updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     CONSTRAINT fsrs_state_node_uq UNIQUE (node_id)
 );
 
@@ -373,7 +348,7 @@ CREATE TABLE fsrs_review_log (
     difficulty_before   REAL NOT NULL,
     elapsed_days        INTEGER NOT NULL,
     scheduled_days      INTEGER NOT NULL,
-    reviewed_at         DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    reviewed_at         INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE domain_log (
@@ -388,23 +363,16 @@ CREATE TABLE domain_log (
     source_activity_type    TEXT CHECK (source_activity_type IN
                                 ('FLASHCARD','MULTIPLE_CHOICE','ELABORATIVE_INTERROGATION',
                                  'FEYNMAN','ESSAY','DIAGNOSTIC')),
-    logged_at               DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    logged_at               INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE generic_log (
     id                  TEXT NOT NULL PRIMARY KEY,
-    user_id             TEXT REFERENCES user(id) ON DELETE SET NULL,
+    user_id             TEXT REFERENCES app_user(id) ON DELETE SET NULL,
     type                TEXT NOT NULL,
     payload             TEXT NOT NULL CHECK (json_valid(payload)),
-    created_at          DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
-
--- NOTA IMPORTANTE: "PRAGMA foreign_keys = ON;" e uma configuracao POR CONEXAO,
--- nao fica gravada no arquivo .db. O PRAGMA do topo deste script so vale para
--- a conexao que executou este schema. O aplicativo (Drift, sqlite3, etc.)
--- precisa reexecutar "PRAGMA foreign_keys = ON;" toda vez que abrir uma nova
--- conexao com o banco, ou os ON DELETE CASCADE/RESTRICT deixam de ser
--- aplicados silenciosamente (sem lancar erro).
 
 CREATE INDEX idx_color_theme_user_id            ON color_theme(user_id);
 CREATE INDEX idx_typography_theme_user_id        ON typography_theme(user_id);

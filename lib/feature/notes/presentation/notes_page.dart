@@ -5,6 +5,8 @@ class NotesPage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context){
-    return Text("Notes Page");
+    return Text("Notes Page", style: Theme.of(context)
+          .textTheme
+          .headlineMedium,);
   }
 }

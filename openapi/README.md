@@ -206,6 +206,7 @@ Class | Method | HTTP request | Description
  - [UserLocalConfigCreate](doc/UserLocalConfigCreate.md)
  - [UserLocalConfigOut](doc/UserLocalConfigOut.md)
  - [UserLocalConfigUpdate](doc/UserLocalConfigUpdate.md)
+ - [UserOut](doc/UserOut.md)
  - [UserTypographyThemeCreate](doc/UserTypographyThemeCreate.md)
  - [UserTypographyThemeOut](doc/UserTypographyThemeOut.md)
  - [UserTypographyThemeUpdate](doc/UserTypographyThemeUpdate.md)

@@ -85,6 +85,7 @@ export 'package:openapi/src/model/user_global_config_update.dart';
 export 'package:openapi/src/model/user_local_config_create.dart';
 export 'package:openapi/src/model/user_local_config_out.dart';
 export 'package:openapi/src/model/user_local_config_update.dart';
+export 'package:openapi/src/model/user_out.dart';
 export 'package:openapi/src/model/user_typography_theme_create.dart';
 export 'package:openapi/src/model/user_typography_theme_out.dart';
 export 'package:openapi/src/model/user_typography_theme_update.dart';

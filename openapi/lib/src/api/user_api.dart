@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:built_value/json_object.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_create.dart';
+import 'package:openapi/src/model/user_out.dart';
 import 'package:openapi/src/model/user_update.dart';
 
 class UserApi {
@@ -32,9 +33,9 @@ class UserApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [UserOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> currentUserApiV1UserGetGet({ 
+  Future<Response<UserOut>> currentUserApiV1UserGetGet({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -68,14 +69,14 @@ class UserApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    UserOut? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -87,7 +88,7 @@ class UserApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<UserOut>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -189,9 +190,9 @@ class UserApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [UserOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> newUserApiV1UserCreatePost({ 
+  Future<Response<UserOut>> newUserApiV1UserCreatePost({ 
     required UserCreate userCreate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -241,14 +242,14 @@ class UserApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    UserOut? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -260,7 +261,7 @@ class UserApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<UserOut>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -284,9 +285,9 @@ class UserApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [UserOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> updateUserApiV1UserUpdatePut({ 
+  Future<Response<UserOut>> updateUserApiV1UserUpdatePut({ 
     required UserUpdate userUpdate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -341,14 +342,14 @@ class UserApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    UserOut? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -360,7 +361,7 @@ class UserApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<UserOut>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

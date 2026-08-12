@@ -68,6 +68,7 @@ import 'package:openapi/src/model/user_global_config_update.dart';
 import 'package:openapi/src/model/user_local_config_create.dart';
 import 'package:openapi/src/model/user_local_config_out.dart';
 import 'package:openapi/src/model/user_local_config_update.dart';
+import 'package:openapi/src/model/user_out.dart';
 import 'package:openapi/src/model/user_typography_theme_create.dart';
 import 'package:openapi/src/model/user_typography_theme_out.dart';
 import 'package:openapi/src/model/user_typography_theme_update.dart';
@@ -131,6 +132,7 @@ part 'serializers.g.dart';
   UserLocalConfigCreate,
   UserLocalConfigOut,
   UserLocalConfigUpdate,
+  UserOut,
   UserTypographyThemeCreate,
   UserTypographyThemeOut,
   UserTypographyThemeUpdate,

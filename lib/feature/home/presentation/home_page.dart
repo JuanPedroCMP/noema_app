@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/theme/color_theme_provider.dart';
-import 'package:noema/feature/home/providers/color_form_provider.dart';
+import 'package:noema/feature/auth/providers/auth_state_provider.dart';
+import 'package:noema/feature/auth/services/login_service.dart';
+import 'package:noema/l10n/app_localizations.dart';
 
-class HomePage extends ConsumerWidget{
+
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref){
-    final brightnessThemeProvider = ref.watch(brightnessProvider);
-    final formNotifier = ref.watch(colorFormProvider.notifier);
-    final form = ref.watch(colorFormProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storage = ref.read(secureSorageProvider);
 
     return Center(
       child: SizedBox(
@@ -21,35 +21,21 @@ class HomePage extends ConsumerWidget{
             Row(
               spacing: 15,
               children: [
-                Expanded(
-                  child:  TextField(
-                    onChanged: formNotifier.colorChanged,
-                    decoration: InputDecoration(
-                      labelText: "Cor do app",
-                    ),
-                  ),
+                Text(
+                  AppLocalizations.of(context)!.helloWorld,
+                ), // Recurso de tradução... Aplicar no restante do app
+                OutlinedButton(
+                  onPressed: () async {
+                    await storage.delete(key: "access_token");
+                    ref.invalidate(authStateProvider);
+                  },
+                  child: Text("Sair"),
                 ),
-               
-                ElevatedButton(onPressed: () => {
-                  ref.read(colorProvider.notifier).change(color: form.color)
-                }, 
-                child: Text("mudar cor")
-                ),
-                ElevatedButton(onPressed: () async {
-                  if(brightnessThemeProvider == Brightness.light) {
-                    ref.read(brightnessProvider.notifier).change(brightness: Brightness.dark);
-                  }
-                  else {
-                    ref.read(brightnessProvider.notifier).change(brightness: Brightness.light);
-                  }
-                }, 
-                child: Text("Alternar tema")
-                )
               ],
-            )
+            ),
           ],
         ),
-      )
-      );
+      ),
+    );
   }
 }

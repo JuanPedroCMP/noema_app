@@ -9,7 +9,7 @@ void main() {
   group(UserApi, () {
     // Current User
     //
-    //Future<JsonObject> currentUserApiV1UserGetGet() async
+    //Future<UserOut> currentUserApiV1UserGetGet() async
     test('test currentUserApiV1UserGetGet', () async {
       // TODO
     });
@@ -23,14 +23,14 @@ void main() {
 
     // New User
     //
-    //Future<JsonObject> newUserApiV1UserCreatePost(UserCreate userCreate) async
+    //Future<UserOut> newUserApiV1UserCreatePost(UserCreate userCreate) async
     test('test newUserApiV1UserCreatePost', () async {
       // TODO
     });
 
     // Update User
     //
-    //Future<JsonObject> updateUserApiV1UserUpdatePut(UserUpdate userUpdate) async
+    //Future<UserOut> updateUserApiV1UserUpdatePut(UserUpdate userUpdate) async
     test('test updateUserApiV1UserUpdatePut', () async {
       // TODO
     });

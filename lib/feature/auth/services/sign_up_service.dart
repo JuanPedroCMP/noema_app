@@ -8,7 +8,7 @@ class SignUpService {
 
   SignUpService(this.userApi);
 
-  Future<JsonObject> createUser({
+  Future<UserOut?> createUser({
     required String userName,
     required String email,
     required String password,
@@ -26,7 +26,7 @@ class SignUpService {
 
     final response = await userApi.newUserApiV1UserCreatePost(userCreate: userCreate);
   
-    return response.data!;
+    return response.data;
   }
 }
 

@@ -3,6 +3,592 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class AppUser extends Table with TableInfo<AppUser, AppUserData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  AppUser(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _userNameMeta = const VerificationMeta(
+    'userName',
+  );
+  late final GeneratedColumn<String> userName = GeneratedColumn<String>(
+    'user_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _primaryEmailMeta = const VerificationMeta(
+    'primaryEmail',
+  );
+  late final GeneratedColumn<String> primaryEmail = GeneratedColumn<String>(
+    'primary_email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _lastSeenAtMeta = const VerificationMeta(
+    'lastSeenAt',
+  );
+  late final GeneratedColumn<int> lastSeenAt = GeneratedColumn<int>(
+    'last_seen_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _softDeletedMeta = const VerificationMeta(
+    'softDeleted',
+  );
+  late final GeneratedColumn<bool> softDeleted = GeneratedColumn<bool>(
+    'soft_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
+    'softDeletedAt',
+  );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))',
+    defaultValue: const CustomExpression('1'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    remoteId,
+    userName,
+    displayName,
+    primaryEmail,
+    lastSeenAt,
+    softDeleted,
+    softDeletedAt,
+    isActive,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_user';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppUserData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteIdMeta);
+    }
+    if (data.containsKey('user_name')) {
+      context.handle(
+        _userNameMeta,
+        userName.isAcceptableOrUnknown(data['user_name']!, _userNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userNameMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('primary_email')) {
+      context.handle(
+        _primaryEmailMeta,
+        primaryEmail.isAcceptableOrUnknown(
+          data['primary_email']!,
+          _primaryEmailMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_primaryEmailMeta);
+    }
+    if (data.containsKey('last_seen_at')) {
+      context.handle(
+        _lastSeenAtMeta,
+        lastSeenAt.isAcceptableOrUnknown(
+          data['last_seen_at']!,
+          _lastSeenAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastSeenAtMeta);
+    }
+    if (data.containsKey('soft_deleted')) {
+      context.handle(
+        _softDeletedMeta,
+        softDeleted.isAcceptableOrUnknown(
+          data['soft_deleted']!,
+          _softDeletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('soft_deleted_at')) {
+      context.handle(
+        _softDeletedAtMeta,
+        softDeletedAt.isAcceptableOrUnknown(
+          data['soft_deleted_at']!,
+          _softDeletedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppUserData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppUserData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      )!,
+      userName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_name'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      )!,
+      primaryEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}primary_email'],
+      )!,
+      lastSeenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_seen_at'],
+      )!,
+      softDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}soft_deleted'],
+      )!,
+      softDeletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}soft_deleted_at'],
+      ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+    );
+  }
+
+  @override
+  AppUser createAlias(String alias) {
+    return AppUser(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class AppUserData extends DataClass implements Insertable<AppUserData> {
+  final String id;
+  final String remoteId;
+  final String userName;
+  final String displayName;
+  final String primaryEmail;
+  final int lastSeenAt;
+  final bool softDeleted;
+  final int? softDeletedAt;
+  final bool isActive;
+  const AppUserData({
+    required this.id,
+    required this.remoteId,
+    required this.userName,
+    required this.displayName,
+    required this.primaryEmail,
+    required this.lastSeenAt,
+    required this.softDeleted,
+    this.softDeletedAt,
+    required this.isActive,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['remote_id'] = Variable<String>(remoteId);
+    map['user_name'] = Variable<String>(userName);
+    map['display_name'] = Variable<String>(displayName);
+    map['primary_email'] = Variable<String>(primaryEmail);
+    map['last_seen_at'] = Variable<int>(lastSeenAt);
+    map['soft_deleted'] = Variable<bool>(softDeleted);
+    if (!nullToAbsent || softDeletedAt != null) {
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  AppUserCompanion toCompanion(bool nullToAbsent) {
+    return AppUserCompanion(
+      id: Value(id),
+      remoteId: Value(remoteId),
+      userName: Value(userName),
+      displayName: Value(displayName),
+      primaryEmail: Value(primaryEmail),
+      lastSeenAt: Value(lastSeenAt),
+      softDeleted: Value(softDeleted),
+      softDeletedAt: softDeletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(softDeletedAt),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory AppUserData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppUserData(
+      id: serializer.fromJson<String>(json['id']),
+      remoteId: serializer.fromJson<String>(json['remote_id']),
+      userName: serializer.fromJson<String>(json['user_name']),
+      displayName: serializer.fromJson<String>(json['display_name']),
+      primaryEmail: serializer.fromJson<String>(json['primary_email']),
+      lastSeenAt: serializer.fromJson<int>(json['last_seen_at']),
+      softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
+      isActive: serializer.fromJson<bool>(json['is_active']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'remote_id': serializer.toJson<String>(remoteId),
+      'user_name': serializer.toJson<String>(userName),
+      'display_name': serializer.toJson<String>(displayName),
+      'primary_email': serializer.toJson<String>(primaryEmail),
+      'last_seen_at': serializer.toJson<int>(lastSeenAt),
+      'soft_deleted': serializer.toJson<bool>(softDeleted),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
+      'is_active': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  AppUserData copyWith({
+    String? id,
+    String? remoteId,
+    String? userName,
+    String? displayName,
+    String? primaryEmail,
+    int? lastSeenAt,
+    bool? softDeleted,
+    Value<int?> softDeletedAt = const Value.absent(),
+    bool? isActive,
+  }) => AppUserData(
+    id: id ?? this.id,
+    remoteId: remoteId ?? this.remoteId,
+    userName: userName ?? this.userName,
+    displayName: displayName ?? this.displayName,
+    primaryEmail: primaryEmail ?? this.primaryEmail,
+    lastSeenAt: lastSeenAt ?? this.lastSeenAt,
+    softDeleted: softDeleted ?? this.softDeleted,
+    softDeletedAt: softDeletedAt.present
+        ? softDeletedAt.value
+        : this.softDeletedAt,
+    isActive: isActive ?? this.isActive,
+  );
+  AppUserData copyWithCompanion(AppUserCompanion data) {
+    return AppUserData(
+      id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      userName: data.userName.present ? data.userName.value : this.userName,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      primaryEmail: data.primaryEmail.present
+          ? data.primaryEmail.value
+          : this.primaryEmail,
+      lastSeenAt: data.lastSeenAt.present
+          ? data.lastSeenAt.value
+          : this.lastSeenAt,
+      softDeleted: data.softDeleted.present
+          ? data.softDeleted.value
+          : this.softDeleted,
+      softDeletedAt: data.softDeletedAt.present
+          ? data.softDeletedAt.value
+          : this.softDeletedAt,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppUserData(')
+          ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('userName: $userName, ')
+          ..write('displayName: $displayName, ')
+          ..write('primaryEmail: $primaryEmail, ')
+          ..write('lastSeenAt: $lastSeenAt, ')
+          ..write('softDeleted: $softDeleted, ')
+          ..write('softDeletedAt: $softDeletedAt, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    remoteId,
+    userName,
+    displayName,
+    primaryEmail,
+    lastSeenAt,
+    softDeleted,
+    softDeletedAt,
+    isActive,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppUserData &&
+          other.id == this.id &&
+          other.remoteId == this.remoteId &&
+          other.userName == this.userName &&
+          other.displayName == this.displayName &&
+          other.primaryEmail == this.primaryEmail &&
+          other.lastSeenAt == this.lastSeenAt &&
+          other.softDeleted == this.softDeleted &&
+          other.softDeletedAt == this.softDeletedAt &&
+          other.isActive == this.isActive);
+}
+
+class AppUserCompanion extends UpdateCompanion<AppUserData> {
+  final Value<String> id;
+  final Value<String> remoteId;
+  final Value<String> userName;
+  final Value<String> displayName;
+  final Value<String> primaryEmail;
+  final Value<int> lastSeenAt;
+  final Value<bool> softDeleted;
+  final Value<int?> softDeletedAt;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const AppUserCompanion({
+    this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.userName = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.primaryEmail = const Value.absent(),
+    this.lastSeenAt = const Value.absent(),
+    this.softDeleted = const Value.absent(),
+    this.softDeletedAt = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AppUserCompanion.insert({
+    required String id,
+    required String remoteId,
+    required String userName,
+    required String displayName,
+    required String primaryEmail,
+    required int lastSeenAt,
+    this.softDeleted = const Value.absent(),
+    this.softDeletedAt = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       remoteId = Value(remoteId),
+       userName = Value(userName),
+       displayName = Value(displayName),
+       primaryEmail = Value(primaryEmail),
+       lastSeenAt = Value(lastSeenAt);
+  static Insertable<AppUserData> custom({
+    Expression<String>? id,
+    Expression<String>? remoteId,
+    Expression<String>? userName,
+    Expression<String>? displayName,
+    Expression<String>? primaryEmail,
+    Expression<int>? lastSeenAt,
+    Expression<bool>? softDeleted,
+    Expression<int>? softDeletedAt,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (userName != null) 'user_name': userName,
+      if (displayName != null) 'display_name': displayName,
+      if (primaryEmail != null) 'primary_email': primaryEmail,
+      if (lastSeenAt != null) 'last_seen_at': lastSeenAt,
+      if (softDeleted != null) 'soft_deleted': softDeleted,
+      if (softDeletedAt != null) 'soft_deleted_at': softDeletedAt,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AppUserCompanion copyWith({
+    Value<String>? id,
+    Value<String>? remoteId,
+    Value<String>? userName,
+    Value<String>? displayName,
+    Value<String>? primaryEmail,
+    Value<int>? lastSeenAt,
+    Value<bool>? softDeleted,
+    Value<int?>? softDeletedAt,
+    Value<bool>? isActive,
+    Value<int>? rowid,
+  }) {
+    return AppUserCompanion(
+      id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
+      userName: userName ?? this.userName,
+      displayName: displayName ?? this.displayName,
+      primaryEmail: primaryEmail ?? this.primaryEmail,
+      lastSeenAt: lastSeenAt ?? this.lastSeenAt,
+      softDeleted: softDeleted ?? this.softDeleted,
+      softDeletedAt: softDeletedAt ?? this.softDeletedAt,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
+    }
+    if (userName.present) {
+      map['user_name'] = Variable<String>(userName.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (primaryEmail.present) {
+      map['primary_email'] = Variable<String>(primaryEmail.value);
+    }
+    if (lastSeenAt.present) {
+      map['last_seen_at'] = Variable<int>(lastSeenAt.value);
+    }
+    if (softDeleted.present) {
+      map['soft_deleted'] = Variable<bool>(softDeleted.value);
+    }
+    if (softDeletedAt.present) {
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppUserCompanion(')
+          ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('userName: $userName, ')
+          ..write('displayName: $displayName, ')
+          ..write('primaryEmail: $primaryEmail, ')
+          ..write('lastSeenAt: $lastSeenAt, ')
+          ..write('softDeleted: $softDeleted, ')
+          ..write('softDeletedAt: $softDeletedAt, ')
+          ..write('isActive: $isActive, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class ColorTheme extends Table with TableInfo<ColorTheme, ColorThemeData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -24,7 +610,7 @@ class ColorTheme extends Table with TableInfo<ColorTheme, ColorThemeData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -72,32 +658,26 @@ class ColorTheme extends Table with TableInfo<ColorTheme, ColorThemeData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -219,11 +799,11 @@ class ColorTheme extends Table with TableInfo<ColorTheme, ColorThemeData> {
         data['${effectivePrefix}system_default'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
     );
@@ -249,8 +829,8 @@ class ColorThemeData extends DataClass implements Insertable<ColorThemeData> {
   final int seedColor;
   final String? overridesJson;
   final bool systemDefault;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int createdAt;
+  final int updatedAt;
   const ColorThemeData({
     required this.id,
     required this.userId,
@@ -272,8 +852,8 @@ class ColorThemeData extends DataClass implements Insertable<ColorThemeData> {
       map['overrides_json'] = Variable<String>(overridesJson);
     }
     map['system_default'] = Variable<bool>(systemDefault);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -304,8 +884,8 @@ class ColorThemeData extends DataClass implements Insertable<ColorThemeData> {
       seedColor: serializer.fromJson<int>(json['seed_color']),
       overridesJson: serializer.fromJson<String?>(json['overrides_json']),
       systemDefault: serializer.fromJson<bool>(json['system_default']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
     );
   }
   @override
@@ -318,8 +898,8 @@ class ColorThemeData extends DataClass implements Insertable<ColorThemeData> {
       'seed_color': serializer.toJson<int>(seedColor),
       'overrides_json': serializer.toJson<String?>(overridesJson),
       'system_default': serializer.toJson<bool>(systemDefault),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -330,8 +910,8 @@ class ColorThemeData extends DataClass implements Insertable<ColorThemeData> {
     int? seedColor,
     Value<String?> overridesJson = const Value.absent(),
     bool? systemDefault,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    int? createdAt,
+    int? updatedAt,
   }) => ColorThemeData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -408,8 +988,8 @@ class ColorThemeCompanion extends UpdateCompanion<ColorThemeData> {
   final Value<int> seedColor;
   final Value<String?> overridesJson;
   final Value<bool> systemDefault;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const ColorThemeCompanion({
     this.id = const Value.absent(),
@@ -443,8 +1023,8 @@ class ColorThemeCompanion extends UpdateCompanion<ColorThemeData> {
     Expression<int>? seedColor,
     Expression<String>? overridesJson,
     Expression<bool>? systemDefault,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -467,8 +1047,8 @@ class ColorThemeCompanion extends UpdateCompanion<ColorThemeData> {
     Value<int>? seedColor,
     Value<String?>? overridesJson,
     Value<bool>? systemDefault,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return ColorThemeCompanion(
@@ -506,10 +1086,10 @@ class ColorThemeCompanion extends UpdateCompanion<ColorThemeData> {
       map['system_default'] = Variable<bool>(systemDefault.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -556,7 +1136,7 @@ class TypographyTheme extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -637,32 +1217,26 @@ class TypographyTheme extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -820,11 +1394,11 @@ class TypographyTheme extends Table
         data['${effectivePrefix}system_default'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
     );
@@ -854,8 +1428,8 @@ class TypographyThemeData extends DataClass
   final int fontScale;
   final String? overridesJson;
   final bool systemDefault;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int createdAt;
+  final int updatedAt;
   const TypographyThemeData({
     required this.id,
     required this.userId,
@@ -889,8 +1463,8 @@ class TypographyThemeData extends DataClass
       map['overrides_json'] = Variable<String>(overridesJson);
     }
     map['system_default'] = Variable<bool>(systemDefault);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -933,8 +1507,8 @@ class TypographyThemeData extends DataClass
       fontScale: serializer.fromJson<int>(json['font_scale']),
       overridesJson: serializer.fromJson<String?>(json['overrides_json']),
       systemDefault: serializer.fromJson<bool>(json['system_default']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
     );
   }
   @override
@@ -950,8 +1524,8 @@ class TypographyThemeData extends DataClass
       'font_scale': serializer.toJson<int>(fontScale),
       'overrides_json': serializer.toJson<String?>(overridesJson),
       'system_default': serializer.toJson<bool>(systemDefault),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -965,8 +1539,8 @@ class TypographyThemeData extends DataClass
     int? fontScale,
     Value<String?> overridesJson = const Value.absent(),
     bool? systemDefault,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    int? createdAt,
+    int? updatedAt,
   }) => TypographyThemeData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -1063,8 +1637,8 @@ class TypographyThemeCompanion extends UpdateCompanion<TypographyThemeData> {
   final Value<int> fontScale;
   final Value<String?> overridesJson;
   final Value<bool> systemDefault;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const TypographyThemeCompanion({
     this.id = const Value.absent(),
@@ -1107,8 +1681,8 @@ class TypographyThemeCompanion extends UpdateCompanion<TypographyThemeData> {
     Expression<int>? fontScale,
     Expression<String>? overridesJson,
     Expression<bool>? systemDefault,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1137,8 +1711,8 @@ class TypographyThemeCompanion extends UpdateCompanion<TypographyThemeData> {
     Value<int>? fontScale,
     Value<String?>? overridesJson,
     Value<bool>? systemDefault,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return TypographyThemeCompanion(
@@ -1188,10 +1762,10 @@ class TypographyThemeCompanion extends UpdateCompanion<TypographyThemeData> {
       map['system_default'] = Variable<bool>(systemDefault.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1240,7 +1814,7 @@ class Config extends Table with TableInfo<Config, ConfigData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _colorThemeIdMeta = const VerificationMeta(
     'colorThemeId',
@@ -1280,26 +1854,23 @@ class Config extends Table with TableInfo<Config, ConfigData> {
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _lastSyncMeta = const VerificationMeta(
     'lastSync',
   );
-  late final GeneratedColumn<DateTime> lastSync = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> lastSync = GeneratedColumn<int>(
     'last_sync',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -1460,11 +2031,11 @@ class Config extends Table with TableInfo<Config, ConfigData> {
         data['${effectivePrefix}preferences'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       lastSync: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}last_sync'],
       ),
       autoSync: attachedDatabase.typeMapping.read(
@@ -1497,8 +2068,8 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
   final String colorThemeId;
   final String typographyThemeId;
   final String preferences;
-  final DateTime updatedAt;
-  final DateTime? lastSync;
+  final int updatedAt;
+  final int? lastSync;
   final bool autoSync;
   final String deviceFingerprint;
   const ConfigData({
@@ -1520,9 +2091,9 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     map['color_theme_id'] = Variable<String>(colorThemeId);
     map['typography_theme_id'] = Variable<String>(typographyThemeId);
     map['preferences'] = Variable<String>(preferences);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     if (!nullToAbsent || lastSync != null) {
-      map['last_sync'] = Variable<DateTime>(lastSync);
+      map['last_sync'] = Variable<int>(lastSync);
     }
     map['auto_sync'] = Variable<bool>(autoSync);
     map['device_fingerprint'] = Variable<String>(deviceFingerprint);
@@ -1558,8 +2129,8 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
         json['typography_theme_id'],
       ),
       preferences: serializer.fromJson<String>(json['preferences']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
-      lastSync: serializer.fromJson<DateTime?>(json['last_sync']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+      lastSync: serializer.fromJson<int?>(json['last_sync']),
       autoSync: serializer.fromJson<bool>(json['auto_sync']),
       deviceFingerprint: serializer.fromJson<String>(
         json['device_fingerprint'],
@@ -1575,8 +2146,8 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
       'color_theme_id': serializer.toJson<String>(colorThemeId),
       'typography_theme_id': serializer.toJson<String>(typographyThemeId),
       'preferences': serializer.toJson<String>(preferences),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
-      'last_sync': serializer.toJson<DateTime?>(lastSync),
+      'updated_at': serializer.toJson<int>(updatedAt),
+      'last_sync': serializer.toJson<int?>(lastSync),
       'auto_sync': serializer.toJson<bool>(autoSync),
       'device_fingerprint': serializer.toJson<String>(deviceFingerprint),
     };
@@ -1588,8 +2159,8 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     String? colorThemeId,
     String? typographyThemeId,
     String? preferences,
-    DateTime? updatedAt,
-    Value<DateTime?> lastSync = const Value.absent(),
+    int? updatedAt,
+    Value<int?> lastSync = const Value.absent(),
     bool? autoSync,
     String? deviceFingerprint,
   }) => ConfigData(
@@ -1674,8 +2245,8 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
   final Value<String> colorThemeId;
   final Value<String> typographyThemeId;
   final Value<String> preferences;
-  final Value<DateTime> updatedAt;
-  final Value<DateTime?> lastSync;
+  final Value<int> updatedAt;
+  final Value<int?> lastSync;
   final Value<bool> autoSync;
   final Value<String> deviceFingerprint;
   final Value<int> rowid;
@@ -1714,8 +2285,8 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     Expression<String>? colorThemeId,
     Expression<String>? typographyThemeId,
     Expression<String>? preferences,
-    Expression<DateTime>? updatedAt,
-    Expression<DateTime>? lastSync,
+    Expression<int>? updatedAt,
+    Expression<int>? lastSync,
     Expression<bool>? autoSync,
     Expression<String>? deviceFingerprint,
     Expression<int>? rowid,
@@ -1740,8 +2311,8 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     Value<String>? colorThemeId,
     Value<String>? typographyThemeId,
     Value<String>? preferences,
-    Value<DateTime>? updatedAt,
-    Value<DateTime?>? lastSync,
+    Value<int>? updatedAt,
+    Value<int?>? lastSync,
     Value<bool>? autoSync,
     Value<String>? deviceFingerprint,
     Value<int>? rowid,
@@ -1779,10 +2350,10 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
       map['preferences'] = Variable<String>(preferences.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (lastSync.present) {
-      map['last_sync'] = Variable<DateTime>(lastSync.value);
+      map['last_sync'] = Variable<int>(lastSync.value);
     }
     if (autoSync.present) {
       map['auto_sync'] = Variable<bool>(autoSync.value);
@@ -1836,7 +2407,7 @@ class KnowledgeGraph extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1883,32 +2454,26 @@ class KnowledgeGraph extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -1925,15 +2490,14 @@ class KnowledgeGraph extends Table
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2065,11 +2629,11 @@ class KnowledgeGraph extends Table
         data['${effectivePrefix}synced'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -2077,7 +2641,7 @@ class KnowledgeGraph extends Table
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -2100,10 +2664,10 @@ class KnowledgeGraphData extends DataClass
   final String? description;
   final bool isArchived;
   final bool synced;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int createdAt;
+  final int updatedAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const KnowledgeGraphData({
     required this.id,
     required this.userId,
@@ -2127,11 +2691,11 @@ class KnowledgeGraphData extends DataClass
     }
     map['is_archived'] = Variable<bool>(isArchived);
     map['synced'] = Variable<bool>(synced);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -2167,10 +2731,10 @@ class KnowledgeGraphData extends DataClass
       description: serializer.fromJson<String?>(json['description']),
       isArchived: serializer.fromJson<bool>(json['is_archived']),
       synced: serializer.fromJson<bool>(json['synced']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -2183,10 +2747,10 @@ class KnowledgeGraphData extends DataClass
       'description': serializer.toJson<String?>(description),
       'is_archived': serializer.toJson<bool>(isArchived),
       'synced': serializer.toJson<bool>(synced),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -2197,10 +2761,10 @@ class KnowledgeGraphData extends DataClass
     Value<String?> description = const Value.absent(),
     bool? isArchived,
     bool? synced,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    int? createdAt,
+    int? updatedAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => KnowledgeGraphData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -2291,10 +2855,10 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
   final Value<String?> description;
   final Value<bool> isArchived;
   final Value<bool> synced;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const KnowledgeGraphCompanion({
     this.id = const Value.absent(),
@@ -2331,10 +2895,10 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     Expression<String>? description,
     Expression<bool>? isArchived,
     Expression<bool>? synced,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2359,10 +2923,10 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     Value<String?>? description,
     Value<bool>? isArchived,
     Value<bool>? synced,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return KnowledgeGraphCompanion(
@@ -2402,16 +2966,16 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
       map['synced'] = Variable<bool>(synced.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2501,17 +3065,14 @@ class GraphVersion extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -2614,7 +3175,7 @@ class GraphVersion extends Table
         data['${effectivePrefix}change_summary'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -2636,7 +3197,7 @@ class GraphVersionData extends DataClass
   final int versionNumber;
   final String snapshotJson;
   final String? changeSummary;
-  final DateTime createdAt;
+  final int createdAt;
   const GraphVersionData({
     required this.id,
     required this.graphId,
@@ -2655,7 +3216,7 @@ class GraphVersionData extends DataClass
     if (!nullToAbsent || changeSummary != null) {
       map['change_summary'] = Variable<String>(changeSummary);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -2683,7 +3244,7 @@ class GraphVersionData extends DataClass
       versionNumber: serializer.fromJson<int>(json['version_number']),
       snapshotJson: serializer.fromJson<String>(json['snapshot_json']),
       changeSummary: serializer.fromJson<String?>(json['change_summary']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -2695,7 +3256,7 @@ class GraphVersionData extends DataClass
       'version_number': serializer.toJson<int>(versionNumber),
       'snapshot_json': serializer.toJson<String>(snapshotJson),
       'change_summary': serializer.toJson<String?>(changeSummary),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -2705,7 +3266,7 @@ class GraphVersionData extends DataClass
     int? versionNumber,
     String? snapshotJson,
     Value<String?> changeSummary = const Value.absent(),
-    DateTime? createdAt,
+    int? createdAt,
   }) => GraphVersionData(
     id: id ?? this.id,
     graphId: graphId ?? this.graphId,
@@ -2773,7 +3334,7 @@ class GraphVersionCompanion extends UpdateCompanion<GraphVersionData> {
   final Value<int> versionNumber;
   final Value<String> snapshotJson;
   final Value<String?> changeSummary;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const GraphVersionCompanion({
     this.id = const Value.absent(),
@@ -2802,7 +3363,7 @@ class GraphVersionCompanion extends UpdateCompanion<GraphVersionData> {
     Expression<int>? versionNumber,
     Expression<String>? snapshotJson,
     Expression<String>? changeSummary,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2822,7 +3383,7 @@ class GraphVersionCompanion extends UpdateCompanion<GraphVersionData> {
     Value<int>? versionNumber,
     Value<String>? snapshotJson,
     Value<String?>? changeSummary,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return GraphVersionCompanion(
@@ -2855,7 +3416,7 @@ class GraphVersionCompanion extends UpdateCompanion<GraphVersionData> {
       map['change_summary'] = Variable<String>(changeSummary.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -3027,32 +3588,26 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -3069,15 +3624,14 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3301,11 +3855,11 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
         data['${effectivePrefix}fsrs_rating'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -3313,7 +3867,7 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -3342,10 +3896,10 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
   final String? aiSynthesis;
   final bool synthesisEdited;
   final int? fsrsRating;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int createdAt;
+  final int updatedAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const GraphNodeData({
     required this.id,
     required this.graphId,
@@ -3391,11 +3945,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     if (!nullToAbsent || fsrsRating != null) {
       map['fsrs_rating'] = Variable<int>(fsrsRating);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -3453,10 +4007,10 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       aiSynthesis: serializer.fromJson<String?>(json['ai_synthesis']),
       synthesisEdited: serializer.fromJson<bool>(json['synthesis_edited']),
       fsrsRating: serializer.fromJson<int?>(json['fsrs_rating']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -3476,10 +4030,10 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       'ai_synthesis': serializer.toJson<String?>(aiSynthesis),
       'synthesis_edited': serializer.toJson<bool>(synthesisEdited),
       'fsrs_rating': serializer.toJson<int?>(fsrsRating),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -3497,10 +4051,10 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     Value<String?> aiSynthesis = const Value.absent(),
     bool? synthesisEdited,
     Value<int?> fsrsRating = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    int? createdAt,
+    int? updatedAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => GraphNodeData(
     id: id ?? this.id,
     graphId: graphId ?? this.graphId,
@@ -3639,10 +4193,10 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   final Value<String?> aiSynthesis;
   final Value<bool> synthesisEdited;
   final Value<int?> fsrsRating;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const GraphNodeCompanion({
     this.id = const Value.absent(),
@@ -3703,10 +4257,10 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     Expression<String>? aiSynthesis,
     Expression<bool>? synthesisEdited,
     Expression<int>? fsrsRating,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3745,10 +4299,10 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     Value<String?>? aiSynthesis,
     Value<bool>? synthesisEdited,
     Value<int?>? fsrsRating,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return GraphNodeCompanion(
@@ -3816,16 +4370,16 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
       map['fsrs_rating'] = Variable<int>(fsrsRating.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -4471,17 +5025,14 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -4608,7 +5159,7 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
         data['${effectivePrefix}display_order'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -4631,7 +5182,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
   final bool aiGenerated;
   final bool userEdited;
   final int displayOrder;
-  final DateTime createdAt;
+  final int createdAt;
   const NodeSkillData({
     required this.id,
     required this.nodeId,
@@ -4652,7 +5203,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     map['ai_generated'] = Variable<bool>(aiGenerated);
     map['user_edited'] = Variable<bool>(userEdited);
     map['display_order'] = Variable<int>(displayOrder);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -4682,7 +5233,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
       aiGenerated: serializer.fromJson<bool>(json['ai_generated']),
       userEdited: serializer.fromJson<bool>(json['user_edited']),
       displayOrder: serializer.fromJson<int>(json['display_order']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -4696,7 +5247,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
       'ai_generated': serializer.toJson<bool>(aiGenerated),
       'user_edited': serializer.toJson<bool>(userEdited),
       'display_order': serializer.toJson<int>(displayOrder),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -4708,7 +5259,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     bool? aiGenerated,
     bool? userEdited,
     int? displayOrder,
-    DateTime? createdAt,
+    int? createdAt,
   }) => NodeSkillData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -4788,7 +5339,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
   final Value<bool> aiGenerated;
   final Value<bool> userEdited;
   final Value<int> displayOrder;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const NodeSkillCompanion({
     this.id = const Value.absent(),
@@ -4824,7 +5375,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     Expression<bool>? aiGenerated,
     Expression<bool>? userEdited,
     Expression<int>? displayOrder,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4848,7 +5399,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     Value<bool>? aiGenerated,
     Value<bool>? userEdited,
     Value<int>? displayOrder,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return NodeSkillCompanion(
@@ -4889,7 +5440,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
       map['display_order'] = Variable<int>(displayOrder.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -5047,17 +5598,14 @@ class LearningResource extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -5074,15 +5622,14 @@ class LearningResource extends Table
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5289,7 +5836,7 @@ class LearningResource extends Table
         data['${effectivePrefix}user_edited'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -5297,7 +5844,7 @@ class LearningResource extends Table
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -5326,9 +5873,9 @@ class LearningResourceData extends DataClass
   final double reputationScore;
   final bool aiGenerated;
   final bool userEdited;
-  final DateTime createdAt;
+  final int createdAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const LearningResourceData({
     required this.id,
     required this.nodeId,
@@ -5365,10 +5912,10 @@ class LearningResourceData extends DataClass
     map['reputation_score'] = Variable<double>(reputationScore);
     map['ai_generated'] = Variable<bool>(aiGenerated);
     map['user_edited'] = Variable<bool>(userEdited);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -5415,9 +5962,9 @@ class LearningResourceData extends DataClass
       reputationScore: serializer.fromJson<double>(json['reputation_score']),
       aiGenerated: serializer.fromJson<bool>(json['ai_generated']),
       userEdited: serializer.fromJson<bool>(json['user_edited']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -5436,9 +5983,9 @@ class LearningResourceData extends DataClass
       'reputation_score': serializer.toJson<double>(reputationScore),
       'ai_generated': serializer.toJson<bool>(aiGenerated),
       'user_edited': serializer.toJson<bool>(userEdited),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -5455,9 +6002,9 @@ class LearningResourceData extends DataClass
     double? reputationScore,
     bool? aiGenerated,
     bool? userEdited,
-    DateTime? createdAt,
+    int? createdAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => LearningResourceData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -5583,9 +6130,9 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
   final Value<double> reputationScore;
   final Value<bool> aiGenerated;
   final Value<bool> userEdited;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const LearningResourceCompanion({
     this.id = const Value.absent(),
@@ -5643,9 +6190,9 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     Expression<double>? reputationScore,
     Expression<bool>? aiGenerated,
     Expression<bool>? userEdited,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5681,9 +6228,9 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     Value<double>? reputationScore,
     Value<bool>? aiGenerated,
     Value<bool>? userEdited,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return LearningResourceCompanion(
@@ -5746,13 +6293,13 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
       map['user_edited'] = Variable<bool>(userEdited.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -5805,7 +6352,7 @@ class Note extends Table with TableInfo<Note, NoteData> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -5841,32 +6388,26 @@ class Note extends Table with TableInfo<Note, NoteData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -5883,15 +6424,14 @@ class Note extends Table with TableInfo<Note, NoteData> {
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6023,11 +6563,11 @@ class Note extends Table with TableInfo<Note, NoteData> {
         data['${effectivePrefix}current_version'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -6035,7 +6575,7 @@ class Note extends Table with TableInfo<Note, NoteData> {
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -6060,10 +6600,10 @@ class NoteData extends DataClass implements Insertable<NoteData> {
   final String title;
   final String contentQuillJson;
   final int currentVersion;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final int createdAt;
+  final int updatedAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const NoteData({
     required this.id,
     required this.userId,
@@ -6083,11 +6623,11 @@ class NoteData extends DataClass implements Insertable<NoteData> {
     map['title'] = Variable<String>(title);
     map['content_quill_json'] = Variable<String>(contentQuillJson);
     map['current_version'] = Variable<int>(currentVersion);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -6119,10 +6659,10 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       title: serializer.fromJson<String>(json['title']),
       contentQuillJson: serializer.fromJson<String>(json['content_quill_json']),
       currentVersion: serializer.fromJson<int>(json['current_version']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -6134,10 +6674,10 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       'title': serializer.toJson<String>(title),
       'content_quill_json': serializer.toJson<String>(contentQuillJson),
       'current_version': serializer.toJson<int>(currentVersion),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -6147,10 +6687,10 @@ class NoteData extends DataClass implements Insertable<NoteData> {
     String? title,
     String? contentQuillJson,
     int? currentVersion,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    int? createdAt,
+    int? updatedAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => NoteData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -6235,10 +6775,10 @@ class NoteCompanion extends UpdateCompanion<NoteData> {
   final Value<String> title;
   final Value<String> contentQuillJson;
   final Value<int> currentVersion;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const NoteCompanion({
     this.id = const Value.absent(),
@@ -6274,10 +6814,10 @@ class NoteCompanion extends UpdateCompanion<NoteData> {
     Expression<String>? title,
     Expression<String>? contentQuillJson,
     Expression<int>? currentVersion,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -6300,10 +6840,10 @@ class NoteCompanion extends UpdateCompanion<NoteData> {
     Value<String>? title,
     Value<String>? contentQuillJson,
     Value<int>? currentVersion,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return NoteCompanion(
@@ -6339,16 +6879,16 @@ class NoteCompanion extends UpdateCompanion<NoteData> {
       map['current_version'] = Variable<int>(currentVersion.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -6443,17 +6983,14 @@ class NoteVersion extends Table with TableInfo<NoteVersion, NoteVersionData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -6569,7 +7106,7 @@ class NoteVersion extends Table with TableInfo<NoteVersion, NoteVersionData> {
         data['${effectivePrefix}author'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -6591,7 +7128,7 @@ class NoteVersionData extends DataClass implements Insertable<NoteVersionData> {
   final String contentQuillJson;
   final String? changeDescription;
   final String author;
-  final DateTime createdAt;
+  final int createdAt;
   const NoteVersionData({
     required this.id,
     required this.noteId,
@@ -6612,7 +7149,7 @@ class NoteVersionData extends DataClass implements Insertable<NoteVersionData> {
       map['change_description'] = Variable<String>(changeDescription);
     }
     map['author'] = Variable<String>(author);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -6644,7 +7181,7 @@ class NoteVersionData extends DataClass implements Insertable<NoteVersionData> {
         json['change_description'],
       ),
       author: serializer.fromJson<String>(json['author']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -6657,7 +7194,7 @@ class NoteVersionData extends DataClass implements Insertable<NoteVersionData> {
       'content_quill_json': serializer.toJson<String>(contentQuillJson),
       'change_description': serializer.toJson<String?>(changeDescription),
       'author': serializer.toJson<String>(author),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -6668,7 +7205,7 @@ class NoteVersionData extends DataClass implements Insertable<NoteVersionData> {
     String? contentQuillJson,
     Value<String?> changeDescription = const Value.absent(),
     String? author,
-    DateTime? createdAt,
+    int? createdAt,
   }) => NoteVersionData(
     id: id ?? this.id,
     noteId: noteId ?? this.noteId,
@@ -6742,7 +7279,7 @@ class NoteVersionCompanion extends UpdateCompanion<NoteVersionData> {
   final Value<String> contentQuillJson;
   final Value<String?> changeDescription;
   final Value<String> author;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const NoteVersionCompanion({
     this.id = const Value.absent(),
@@ -6775,7 +7312,7 @@ class NoteVersionCompanion extends UpdateCompanion<NoteVersionData> {
     Expression<String>? contentQuillJson,
     Expression<String>? changeDescription,
     Expression<String>? author,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -6797,7 +7334,7 @@ class NoteVersionCompanion extends UpdateCompanion<NoteVersionData> {
     Value<String>? contentQuillJson,
     Value<String?>? changeDescription,
     Value<String>? author,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return NoteVersionCompanion(
@@ -6834,7 +7371,7 @@ class NoteVersionCompanion extends UpdateCompanion<NoteVersionData> {
       map['author'] = Variable<String>(author.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -7147,7 +7684,7 @@ class StudySession extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES user(id)ON DELETE CASCADE',
+    $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -7253,38 +7790,34 @@ class StudySession extends Table
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _startedAtMeta = const VerificationMeta(
     'startedAt',
   );
-  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> startedAt = GeneratedColumn<int>(
     'started_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _endedAtMeta = const VerificationMeta(
     'endedAt',
   );
-  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> endedAt = GeneratedColumn<int>(
     'ended_at',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -7484,15 +8017,15 @@ class StudySession extends Table
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
       startedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}started_at'],
       )!,
       endedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}ended_at'],
       ),
     );
@@ -7520,9 +8053,9 @@ class StudySessionData extends DataClass
   final int completedActivities;
   final bool synced;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
-  final DateTime startedAt;
-  final DateTime? endedAt;
+  final int? softDeletedAt;
+  final int startedAt;
+  final int? endedAt;
   const StudySessionData({
     required this.id,
     required this.userId,
@@ -7556,11 +8089,11 @@ class StudySessionData extends DataClass
     map['synced'] = Variable<bool>(synced);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
-    map['started_at'] = Variable<DateTime>(startedAt);
+    map['started_at'] = Variable<int>(startedAt);
     if (!nullToAbsent || endedAt != null) {
-      map['ended_at'] = Variable<DateTime>(endedAt);
+      map['ended_at'] = Variable<int>(endedAt);
     }
     return map;
   }
@@ -7611,9 +8144,9 @@ class StudySessionData extends DataClass
       ),
       synced: serializer.fromJson<bool>(json['synced']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
-      startedAt: serializer.fromJson<DateTime>(json['started_at']),
-      endedAt: serializer.fromJson<DateTime?>(json['ended_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
+      startedAt: serializer.fromJson<int>(json['started_at']),
+      endedAt: serializer.fromJson<int?>(json['ended_at']),
     );
   }
   @override
@@ -7631,9 +8164,9 @@ class StudySessionData extends DataClass
       'completed_activities': serializer.toJson<int>(completedActivities),
       'synced': serializer.toJson<bool>(synced),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
-      'started_at': serializer.toJson<DateTime>(startedAt),
-      'ended_at': serializer.toJson<DateTime?>(endedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
+      'started_at': serializer.toJson<int>(startedAt),
+      'ended_at': serializer.toJson<int?>(endedAt),
     };
   }
 
@@ -7649,9 +8182,9 @@ class StudySessionData extends DataClass
     int? completedActivities,
     bool? synced,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
-    DateTime? startedAt,
-    Value<DateTime?> endedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
+    int? startedAt,
+    Value<int?> endedAt = const Value.absent(),
   }) => StudySessionData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -7777,9 +8310,9 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
   final Value<int> completedActivities;
   final Value<bool> synced;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
-  final Value<DateTime> startedAt;
-  final Value<DateTime?> endedAt;
+  final Value<int?> softDeletedAt;
+  final Value<int> startedAt;
+  final Value<int?> endedAt;
   final Value<int> rowid;
   const StudySessionCompanion({
     this.id = const Value.absent(),
@@ -7830,9 +8363,9 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     Expression<int>? completedActivities,
     Expression<bool>? synced,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
-    Expression<DateTime>? startedAt,
-    Expression<DateTime>? endedAt,
+    Expression<int>? softDeletedAt,
+    Expression<int>? startedAt,
+    Expression<int>? endedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7868,9 +8401,9 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     Value<int>? completedActivities,
     Value<bool>? synced,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
-    Value<DateTime>? startedAt,
-    Value<DateTime?>? endedAt,
+    Value<int?>? softDeletedAt,
+    Value<int>? startedAt,
+    Value<int?>? endedAt,
     Value<int>? rowid,
   }) {
     return StudySessionCompanion(
@@ -7929,13 +8462,13 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (startedAt.present) {
-      map['started_at'] = Variable<DateTime>(startedAt.value);
+      map['started_at'] = Variable<int>(startedAt.value);
     }
     if (endedAt.present) {
-      map['ended_at'] = Variable<DateTime>(endedAt.value);
+      map['ended_at'] = Variable<int>(endedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -8012,17 +8545,14 @@ class StudySessionUseKnowledgeGraph extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -8102,7 +8632,7 @@ class StudySessionUseKnowledgeGraph extends Table
         data['${effectivePrefix}study_session_id'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -8126,7 +8656,7 @@ class StudySessionUseKnowledgeGraphData extends DataClass
   final String id;
   final String graphId;
   final String studySessionId;
-  final DateTime createdAt;
+  final int createdAt;
   const StudySessionUseKnowledgeGraphData({
     required this.id,
     required this.graphId,
@@ -8139,7 +8669,7 @@ class StudySessionUseKnowledgeGraphData extends DataClass
     map['id'] = Variable<String>(id);
     map['graph_id'] = Variable<String>(graphId);
     map['study_session_id'] = Variable<String>(studySessionId);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -8161,7 +8691,7 @@ class StudySessionUseKnowledgeGraphData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       graphId: serializer.fromJson<String>(json['graph_id']),
       studySessionId: serializer.fromJson<String>(json['study_session_id']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -8171,7 +8701,7 @@ class StudySessionUseKnowledgeGraphData extends DataClass
       'id': serializer.toJson<String>(id),
       'graph_id': serializer.toJson<String>(graphId),
       'study_session_id': serializer.toJson<String>(studySessionId),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -8179,7 +8709,7 @@ class StudySessionUseKnowledgeGraphData extends DataClass
     String? id,
     String? graphId,
     String? studySessionId,
-    DateTime? createdAt,
+    int? createdAt,
   }) => StudySessionUseKnowledgeGraphData(
     id: id ?? this.id,
     graphId: graphId ?? this.graphId,
@@ -8227,7 +8757,7 @@ class StudySessionUseKnowledgeGraphCompanion
   final Value<String> id;
   final Value<String> graphId;
   final Value<String> studySessionId;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const StudySessionUseKnowledgeGraphCompanion({
     this.id = const Value.absent(),
@@ -8249,7 +8779,7 @@ class StudySessionUseKnowledgeGraphCompanion
     Expression<String>? id,
     Expression<String>? graphId,
     Expression<String>? studySessionId,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8265,7 +8795,7 @@ class StudySessionUseKnowledgeGraphCompanion
     Value<String>? id,
     Value<String>? graphId,
     Value<String>? studySessionId,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return StudySessionUseKnowledgeGraphCompanion(
@@ -8290,7 +8820,7 @@ class StudySessionUseKnowledgeGraphCompanion
       map['study_session_id'] = Variable<String>(studySessionId.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -8702,17 +9232,14 @@ class Flashcard extends Table with TableInfo<Flashcard, FlashcardData> {
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -8729,29 +9256,25 @@ class Flashcard extends Table with TableInfo<Flashcard, FlashcardData> {
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -8875,7 +9398,7 @@ class Flashcard extends Table with TableInfo<Flashcard, FlashcardData> {
         data['${effectivePrefix}target_skill'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -8883,11 +9406,11 @@ class Flashcard extends Table with TableInfo<Flashcard, FlashcardData> {
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -8908,10 +9431,10 @@ class FlashcardData extends DataClass implements Insertable<FlashcardData> {
   final String title;
   final String statement;
   final String? targetSkill;
-  final DateTime updatedAt;
+  final int updatedAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
-  final DateTime createdAt;
+  final int? softDeletedAt;
+  final int createdAt;
   const FlashcardData({
     required this.id,
     required this.nodeId,
@@ -8933,12 +9456,12 @@ class FlashcardData extends DataClass implements Insertable<FlashcardData> {
     if (!nullToAbsent || targetSkill != null) {
       map['target_skill'] = Variable<String>(targetSkill);
     }
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -8971,10 +9494,10 @@ class FlashcardData extends DataClass implements Insertable<FlashcardData> {
       title: serializer.fromJson<String>(json['title']),
       statement: serializer.fromJson<String>(json['statement']),
       targetSkill: serializer.fromJson<String?>(json['target_skill']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -8986,10 +9509,10 @@ class FlashcardData extends DataClass implements Insertable<FlashcardData> {
       'title': serializer.toJson<String>(title),
       'statement': serializer.toJson<String>(statement),
       'target_skill': serializer.toJson<String?>(targetSkill),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -8999,10 +9522,10 @@ class FlashcardData extends DataClass implements Insertable<FlashcardData> {
     String? title,
     String? statement,
     Value<String?> targetSkill = const Value.absent(),
-    DateTime? updatedAt,
+    int? updatedAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
-    DateTime? createdAt,
+    Value<int?> softDeletedAt = const Value.absent(),
+    int? createdAt,
   }) => FlashcardData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -9085,10 +9608,10 @@ class FlashcardCompanion extends UpdateCompanion<FlashcardData> {
   final Value<String> title;
   final Value<String> statement;
   final Value<String?> targetSkill;
-  final Value<DateTime> updatedAt;
+  final Value<int> updatedAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
-  final Value<DateTime> createdAt;
+  final Value<int?> softDeletedAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const FlashcardCompanion({
     this.id = const Value.absent(),
@@ -9123,10 +9646,10 @@ class FlashcardCompanion extends UpdateCompanion<FlashcardData> {
     Expression<String>? title,
     Expression<String>? statement,
     Expression<String>? targetSkill,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? updatedAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
-    Expression<DateTime>? createdAt,
+    Expression<int>? softDeletedAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9149,10 +9672,10 @@ class FlashcardCompanion extends UpdateCompanion<FlashcardData> {
     Value<String>? title,
     Value<String>? statement,
     Value<String?>? targetSkill,
-    Value<DateTime>? updatedAt,
+    Value<int>? updatedAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
-    Value<DateTime>? createdAt,
+    Value<int?>? softDeletedAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return FlashcardCompanion(
@@ -9188,16 +9711,16 @@ class FlashcardCompanion extends UpdateCompanion<FlashcardData> {
       map['target_skill'] = Variable<String>(targetSkill.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -9270,30 +9793,26 @@ class FlashcardGroup extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
   );
@@ -9309,17 +9828,14 @@ class FlashcardGroup extends Table
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -9430,11 +9946,11 @@ class FlashcardGroup extends Table
         data['${effectivePrefix}description'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
       softDeleted: attachedDatabase.typeMapping.read(
@@ -9442,7 +9958,7 @@ class FlashcardGroup extends Table
         data['${effectivePrefix}soft_deleted'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
     );
@@ -9463,10 +9979,10 @@ class FlashcardGroupData extends DataClass
   final String nodeId;
   final String name;
   final String? description;
-  final DateTime createdAt;
-  final DateTime? softDeletedAt;
+  final int createdAt;
+  final int? softDeletedAt;
   final bool softDeleted;
-  final DateTime updatedAt;
+  final int updatedAt;
   const FlashcardGroupData({
     required this.id,
     required this.nodeId,
@@ -9486,12 +10002,12 @@ class FlashcardGroupData extends DataClass
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     map['soft_deleted'] = Variable<bool>(softDeleted);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -9522,10 +10038,10 @@ class FlashcardGroupData extends DataClass
       nodeId: serializer.fromJson<String>(json['node_id']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
     );
   }
   @override
@@ -9536,10 +10052,10 @@ class FlashcardGroupData extends DataClass
       'node_id': serializer.toJson<String>(nodeId),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
-      'created_at': serializer.toJson<DateTime>(createdAt),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -9548,10 +10064,10 @@ class FlashcardGroupData extends DataClass
     String? nodeId,
     String? name,
     Value<String?> description = const Value.absent(),
-    DateTime? createdAt,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    int? createdAt,
+    Value<int?> softDeletedAt = const Value.absent(),
     bool? softDeleted,
-    DateTime? updatedAt,
+    int? updatedAt,
   }) => FlashcardGroupData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -9628,10 +10144,10 @@ class FlashcardGroupCompanion extends UpdateCompanion<FlashcardGroupData> {
   final Value<String> nodeId;
   final Value<String> name;
   final Value<String?> description;
-  final Value<DateTime> createdAt;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int> createdAt;
+  final Value<int?> softDeletedAt;
   final Value<bool> softDeleted;
-  final Value<DateTime> updatedAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const FlashcardGroupCompanion({
     this.id = const Value.absent(),
@@ -9662,10 +10178,10 @@ class FlashcardGroupCompanion extends UpdateCompanion<FlashcardGroupData> {
     Expression<String>? nodeId,
     Expression<String>? name,
     Expression<String>? description,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? createdAt,
+    Expression<int>? softDeletedAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9686,10 +10202,10 @@ class FlashcardGroupCompanion extends UpdateCompanion<FlashcardGroupData> {
     Value<String>? nodeId,
     Value<String>? name,
     Value<String?>? description,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? softDeletedAt,
+    Value<int>? createdAt,
+    Value<int?>? softDeletedAt,
     Value<bool>? softDeleted,
-    Value<DateTime>? updatedAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return FlashcardGroupCompanion(
@@ -9721,16 +10237,16 @@ class FlashcardGroupCompanion extends UpdateCompanion<FlashcardGroupData> {
       map['description'] = Variable<String>(description.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -10098,17 +10614,14 @@ class FlashcardResponseLog extends Table
   static const VerificationMeta _answeredAtMeta = const VerificationMeta(
     'answeredAt',
   );
-  late final GeneratedColumn<DateTime> answeredAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> answeredAt = GeneratedColumn<int>(
     'answered_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -10200,7 +10713,7 @@ class FlashcardResponseLog extends Table
         data['${effectivePrefix}answer'],
       )!,
       answeredAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}answered_at'],
       )!,
     );
@@ -10221,7 +10734,7 @@ class FlashcardResponseLogData extends DataClass
   final String flashcardId;
   final String flashcardSnapshot;
   final String answer;
-  final DateTime answeredAt;
+  final int answeredAt;
   const FlashcardResponseLogData({
     required this.id,
     required this.flashcardId,
@@ -10236,7 +10749,7 @@ class FlashcardResponseLogData extends DataClass
     map['flashcard_id'] = Variable<String>(flashcardId);
     map['flashcard_snapshot'] = Variable<String>(flashcardSnapshot);
     map['answer'] = Variable<String>(answer);
-    map['answered_at'] = Variable<DateTime>(answeredAt);
+    map['answered_at'] = Variable<int>(answeredAt);
     return map;
   }
 
@@ -10262,7 +10775,7 @@ class FlashcardResponseLogData extends DataClass
         json['flashcard_snapshot'],
       ),
       answer: serializer.fromJson<String>(json['answer']),
-      answeredAt: serializer.fromJson<DateTime>(json['answered_at']),
+      answeredAt: serializer.fromJson<int>(json['answered_at']),
     );
   }
   @override
@@ -10273,7 +10786,7 @@ class FlashcardResponseLogData extends DataClass
       'flashcard_id': serializer.toJson<String>(flashcardId),
       'flashcard_snapshot': serializer.toJson<String>(flashcardSnapshot),
       'answer': serializer.toJson<String>(answer),
-      'answered_at': serializer.toJson<DateTime>(answeredAt),
+      'answered_at': serializer.toJson<int>(answeredAt),
     };
   }
 
@@ -10282,7 +10795,7 @@ class FlashcardResponseLogData extends DataClass
     String? flashcardId,
     String? flashcardSnapshot,
     String? answer,
-    DateTime? answeredAt,
+    int? answeredAt,
   }) => FlashcardResponseLogData(
     id: id ?? this.id,
     flashcardId: flashcardId ?? this.flashcardId,
@@ -10340,7 +10853,7 @@ class FlashcardResponseLogCompanion
   final Value<String> flashcardId;
   final Value<String> flashcardSnapshot;
   final Value<String> answer;
-  final Value<DateTime> answeredAt;
+  final Value<int> answeredAt;
   final Value<int> rowid;
   const FlashcardResponseLogCompanion({
     this.id = const Value.absent(),
@@ -10366,7 +10879,7 @@ class FlashcardResponseLogCompanion
     Expression<String>? flashcardId,
     Expression<String>? flashcardSnapshot,
     Expression<String>? answer,
-    Expression<DateTime>? answeredAt,
+    Expression<int>? answeredAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -10384,7 +10897,7 @@ class FlashcardResponseLogCompanion
     Value<String>? flashcardId,
     Value<String>? flashcardSnapshot,
     Value<String>? answer,
-    Value<DateTime>? answeredAt,
+    Value<int>? answeredAt,
     Value<int>? rowid,
   }) {
     return FlashcardResponseLogCompanion(
@@ -10413,7 +10926,7 @@ class FlashcardResponseLogCompanion
       map['answer'] = Variable<String>(answer.value);
     }
     if (answeredAt.present) {
-      map['answered_at'] = Variable<DateTime>(answeredAt.value);
+      map['answered_at'] = Variable<int>(answeredAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -10493,32 +11006,26 @@ class MultipleChoice extends Table
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -10535,15 +11042,14 @@ class MultipleChoice extends Table
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -10666,11 +11172,11 @@ class MultipleChoice extends Table
         data['${effectivePrefix}ai_generated'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -10678,7 +11184,7 @@ class MultipleChoice extends Table
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -10700,10 +11206,10 @@ class MultipleChoiceData extends DataClass
   final String title;
   final String statement;
   final bool? aiGenerated;
-  final DateTime updatedAt;
-  final DateTime createdAt;
+  final int updatedAt;
+  final int createdAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const MultipleChoiceData({
     required this.id,
     required this.nodeId,
@@ -10725,11 +11231,11 @@ class MultipleChoiceData extends DataClass
     if (!nullToAbsent || aiGenerated != null) {
       map['ai_generated'] = Variable<bool>(aiGenerated);
     }
-    map['updated_at'] = Variable<DateTime>(updatedAt);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -10763,10 +11269,10 @@ class MultipleChoiceData extends DataClass
       title: serializer.fromJson<String>(json['title']),
       statement: serializer.fromJson<String>(json['statement']),
       aiGenerated: serializer.fromJson<bool?>(json['ai_generated']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -10778,10 +11284,10 @@ class MultipleChoiceData extends DataClass
       'title': serializer.toJson<String>(title),
       'statement': serializer.toJson<String>(statement),
       'ai_generated': serializer.toJson<bool?>(aiGenerated),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -10791,10 +11297,10 @@ class MultipleChoiceData extends DataClass
     String? title,
     String? statement,
     Value<bool?> aiGenerated = const Value.absent(),
-    DateTime? updatedAt,
-    DateTime? createdAt,
+    int? updatedAt,
+    int? createdAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => MultipleChoiceData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -10877,10 +11383,10 @@ class MultipleChoiceCompanion extends UpdateCompanion<MultipleChoiceData> {
   final Value<String> title;
   final Value<String> statement;
   final Value<bool?> aiGenerated;
-  final Value<DateTime> updatedAt;
-  final Value<DateTime> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> createdAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const MultipleChoiceCompanion({
     this.id = const Value.absent(),
@@ -10915,10 +11421,10 @@ class MultipleChoiceCompanion extends UpdateCompanion<MultipleChoiceData> {
     Expression<String>? title,
     Expression<String>? statement,
     Expression<bool>? aiGenerated,
-    Expression<DateTime>? updatedAt,
-    Expression<DateTime>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? createdAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -10941,10 +11447,10 @@ class MultipleChoiceCompanion extends UpdateCompanion<MultipleChoiceData> {
     Value<String>? title,
     Value<String>? statement,
     Value<bool?>? aiGenerated,
-    Value<DateTime>? updatedAt,
-    Value<DateTime>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? createdAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return MultipleChoiceCompanion(
@@ -10980,16 +11486,16 @@ class MultipleChoiceCompanion extends UpdateCompanion<MultipleChoiceData> {
       map['ai_generated'] = Variable<bool>(aiGenerated.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -11086,32 +11592,26 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -11230,11 +11730,11 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
         data['${effectivePrefix}ai_generated'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -11256,8 +11756,8 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
   final String? explanation;
   final int? weight;
   final bool? aiGenerated;
-  final DateTime updatedAt;
-  final DateTime createdAt;
+  final int updatedAt;
+  final int createdAt;
   const ChoiceData({
     required this.id,
     required this.multipleChoiceId,
@@ -11283,8 +11783,8 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     if (!nullToAbsent || aiGenerated != null) {
       map['ai_generated'] = Variable<bool>(aiGenerated);
     }
-    map['updated_at'] = Variable<DateTime>(updatedAt);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -11319,8 +11819,8 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
       explanation: serializer.fromJson<String?>(json['explanation']),
       weight: serializer.fromJson<int?>(json['weight']),
       aiGenerated: serializer.fromJson<bool?>(json['ai_generated']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -11333,8 +11833,8 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
       'explanation': serializer.toJson<String?>(explanation),
       'weight': serializer.toJson<int?>(weight),
       'ai_generated': serializer.toJson<bool?>(aiGenerated),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -11345,8 +11845,8 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     Value<String?> explanation = const Value.absent(),
     Value<int?> weight = const Value.absent(),
     Value<bool?> aiGenerated = const Value.absent(),
-    DateTime? updatedAt,
-    DateTime? createdAt,
+    int? updatedAt,
+    int? createdAt,
   }) => ChoiceData(
     id: id ?? this.id,
     multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
@@ -11423,8 +11923,8 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
   final Value<String?> explanation;
   final Value<int?> weight;
   final Value<bool?> aiGenerated;
-  final Value<DateTime> updatedAt;
-  final Value<DateTime> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const ChoiceCompanion({
     this.id = const Value.absent(),
@@ -11457,8 +11957,8 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     Expression<String>? explanation,
     Expression<int>? weight,
     Expression<bool>? aiGenerated,
-    Expression<DateTime>? updatedAt,
-    Expression<DateTime>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -11481,8 +11981,8 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     Value<String?>? explanation,
     Value<int?>? weight,
     Value<bool?>? aiGenerated,
-    Value<DateTime>? updatedAt,
-    Value<DateTime>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return ChoiceCompanion(
@@ -11520,10 +12020,10 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
       map['ai_generated'] = Variable<bool>(aiGenerated.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -11676,17 +12176,14 @@ class MultipleChoiceResponseLog extends Table
   static const VerificationMeta _answeredAtMeta = const VerificationMeta(
     'answeredAt',
   );
-  late final GeneratedColumn<DateTime> answeredAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> answeredAt = GeneratedColumn<int>(
     'answered_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -11878,7 +12375,7 @@ class MultipleChoiceResponseLog extends Table
         data['${effectivePrefix}score'],
       ),
       answeredAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}answered_at'],
       )!,
     );
@@ -11906,7 +12403,7 @@ class MultipleChoiceResponseLogData extends DataClass
   final String? aiFeedback;
   final String? userNotes;
   final double? score;
-  final DateTime answeredAt;
+  final int answeredAt;
   const MultipleChoiceResponseLogData({
     required this.id,
     required this.multipleChoiceId,
@@ -11941,7 +12438,7 @@ class MultipleChoiceResponseLogData extends DataClass
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<double>(score);
     }
-    map['answered_at'] = Variable<DateTime>(answeredAt);
+    map['answered_at'] = Variable<int>(answeredAt);
     return map;
   }
 
@@ -11991,7 +12488,7 @@ class MultipleChoiceResponseLogData extends DataClass
       aiFeedback: serializer.fromJson<String?>(json['ai_feedback']),
       userNotes: serializer.fromJson<String?>(json['user_notes']),
       score: serializer.fromJson<double?>(json['score']),
-      answeredAt: serializer.fromJson<DateTime>(json['answered_at']),
+      answeredAt: serializer.fromJson<int>(json['answered_at']),
     );
   }
   @override
@@ -12011,7 +12508,7 @@ class MultipleChoiceResponseLogData extends DataClass
       'ai_feedback': serializer.toJson<String?>(aiFeedback),
       'user_notes': serializer.toJson<String?>(userNotes),
       'score': serializer.toJson<double?>(score),
-      'answered_at': serializer.toJson<DateTime>(answeredAt),
+      'answered_at': serializer.toJson<int>(answeredAt),
     };
   }
 
@@ -12027,7 +12524,7 @@ class MultipleChoiceResponseLogData extends DataClass
     Value<String?> aiFeedback = const Value.absent(),
     Value<String?> userNotes = const Value.absent(),
     Value<double?> score = const Value.absent(),
-    DateTime? answeredAt,
+    int? answeredAt,
   }) => MultipleChoiceResponseLogData(
     id: id ?? this.id,
     multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
@@ -12145,7 +12642,7 @@ class MultipleChoiceResponseLogCompanion
   final Value<String?> aiFeedback;
   final Value<String?> userNotes;
   final Value<double?> score;
-  final Value<DateTime> answeredAt;
+  final Value<int> answeredAt;
   final Value<int> rowid;
   const MultipleChoiceResponseLogCompanion({
     this.id = const Value.absent(),
@@ -12196,7 +12693,7 @@ class MultipleChoiceResponseLogCompanion
     Expression<String>? aiFeedback,
     Expression<String>? userNotes,
     Expression<double>? score,
-    Expression<DateTime>? answeredAt,
+    Expression<int>? answeredAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12230,7 +12727,7 @@ class MultipleChoiceResponseLogCompanion
     Value<String?>? aiFeedback,
     Value<String?>? userNotes,
     Value<double?>? score,
-    Value<DateTime>? answeredAt,
+    Value<int>? answeredAt,
     Value<int>? rowid,
   }) {
     return MultipleChoiceResponseLogCompanion(
@@ -12290,7 +12787,7 @@ class MultipleChoiceResponseLogCompanion
       map['score'] = Variable<double>(score.value);
     }
     if (answeredAt.present) {
-      map['answered_at'] = Variable<DateTime>(answeredAt.value);
+      map['answered_at'] = Variable<int>(answeredAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -12364,17 +12861,14 @@ class ActivityHasMultipleChoiceQuestion extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -12455,7 +12949,7 @@ class ActivityHasMultipleChoiceQuestion extends Table
         data['${effectivePrefix}multiple_choice_id'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -12479,7 +12973,7 @@ class ActivityHasMultipleChoiceQuestionData extends DataClass
   final String id;
   final String studySessionId;
   final String? multipleChoiceId;
-  final DateTime createdAt;
+  final int createdAt;
   const ActivityHasMultipleChoiceQuestionData({
     required this.id,
     required this.studySessionId,
@@ -12494,7 +12988,7 @@ class ActivityHasMultipleChoiceQuestionData extends DataClass
     if (!nullToAbsent || multipleChoiceId != null) {
       map['multiple_choice_id'] = Variable<String>(multipleChoiceId);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -12520,7 +13014,7 @@ class ActivityHasMultipleChoiceQuestionData extends DataClass
       multipleChoiceId: serializer.fromJson<String?>(
         json['multiple_choice_id'],
       ),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -12530,7 +13024,7 @@ class ActivityHasMultipleChoiceQuestionData extends DataClass
       'id': serializer.toJson<String>(id),
       'study_session_id': serializer.toJson<String>(studySessionId),
       'multiple_choice_id': serializer.toJson<String?>(multipleChoiceId),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -12538,7 +13032,7 @@ class ActivityHasMultipleChoiceQuestionData extends DataClass
     String? id,
     String? studySessionId,
     Value<String?> multipleChoiceId = const Value.absent(),
-    DateTime? createdAt,
+    int? createdAt,
   }) => ActivityHasMultipleChoiceQuestionData(
     id: id ?? this.id,
     studySessionId: studySessionId ?? this.studySessionId,
@@ -12591,7 +13085,7 @@ class ActivityHasMultipleChoiceQuestionCompanion
   final Value<String> id;
   final Value<String> studySessionId;
   final Value<String?> multipleChoiceId;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const ActivityHasMultipleChoiceQuestionCompanion({
     this.id = const Value.absent(),
@@ -12612,7 +13106,7 @@ class ActivityHasMultipleChoiceQuestionCompanion
     Expression<String>? id,
     Expression<String>? studySessionId,
     Expression<String>? multipleChoiceId,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12628,7 +13122,7 @@ class ActivityHasMultipleChoiceQuestionCompanion
     Value<String>? id,
     Value<String>? studySessionId,
     Value<String?>? multipleChoiceId,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return ActivityHasMultipleChoiceQuestionCompanion(
@@ -12653,7 +13147,7 @@ class ActivityHasMultipleChoiceQuestionCompanion
       map['multiple_choice_id'] = Variable<String>(multipleChoiceId.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -12751,32 +13245,26 @@ class OpenEnded extends Table with TableInfo<OpenEnded, OpenEndedData> {
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
@@ -12793,15 +13281,14 @@ class OpenEnded extends Table with TableInfo<OpenEnded, OpenEndedData> {
   static const VerificationMeta _softDeletedAtMeta = const VerificationMeta(
     'softDeletedAt',
   );
-  late final GeneratedColumn<DateTime> softDeletedAt =
-      GeneratedColumn<DateTime>(
-        'soft_deleted_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
+  late final GeneratedColumn<int> softDeletedAt = GeneratedColumn<int>(
+    'soft_deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -12951,11 +13438,11 @@ class OpenEnded extends Table with TableInfo<OpenEnded, OpenEndedData> {
         data['${effectivePrefix}ai_generated'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
@@ -12963,7 +13450,7 @@ class OpenEnded extends Table with TableInfo<OpenEnded, OpenEndedData> {
         data['${effectivePrefix}soft_deleted'],
       )!,
       softDeletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}soft_deleted_at'],
       ),
     );
@@ -12986,10 +13473,10 @@ class OpenEndedData extends DataClass implements Insertable<OpenEndedData> {
   final String type;
   final String? referenceCorrectAnswer;
   final bool? aiGenerated;
-  final DateTime updatedAt;
-  final DateTime createdAt;
+  final int updatedAt;
+  final int createdAt;
   final bool softDeleted;
-  final DateTime? softDeletedAt;
+  final int? softDeletedAt;
   const OpenEndedData({
     required this.id,
     required this.nodeId,
@@ -13019,11 +13506,11 @@ class OpenEndedData extends DataClass implements Insertable<OpenEndedData> {
     if (!nullToAbsent || aiGenerated != null) {
       map['ai_generated'] = Variable<bool>(aiGenerated);
     }
-    map['updated_at'] = Variable<DateTime>(updatedAt);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['created_at'] = Variable<int>(createdAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt);
     }
     return map;
   }
@@ -13065,10 +13552,10 @@ class OpenEndedData extends DataClass implements Insertable<OpenEndedData> {
         json['reference_correct_answer'],
       ),
       aiGenerated: serializer.fromJson<bool?>(json['ai_generated']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
-      softDeletedAt: serializer.fromJson<DateTime?>(json['soft_deleted_at']),
+      softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
   }
   @override
@@ -13084,10 +13571,10 @@ class OpenEndedData extends DataClass implements Insertable<OpenEndedData> {
         referenceCorrectAnswer,
       ),
       'ai_generated': serializer.toJson<bool?>(aiGenerated),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
+      'created_at': serializer.toJson<int>(createdAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
-      'soft_deleted_at': serializer.toJson<DateTime?>(softDeletedAt),
+      'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
   }
 
@@ -13099,10 +13586,10 @@ class OpenEndedData extends DataClass implements Insertable<OpenEndedData> {
     String? type,
     Value<String?> referenceCorrectAnswer = const Value.absent(),
     Value<bool?> aiGenerated = const Value.absent(),
-    DateTime? updatedAt,
-    DateTime? createdAt,
+    int? updatedAt,
+    int? createdAt,
     bool? softDeleted,
-    Value<DateTime?> softDeletedAt = const Value.absent(),
+    Value<int?> softDeletedAt = const Value.absent(),
   }) => OpenEndedData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -13201,10 +13688,10 @@ class OpenEndedCompanion extends UpdateCompanion<OpenEndedData> {
   final Value<String> type;
   final Value<String?> referenceCorrectAnswer;
   final Value<bool?> aiGenerated;
-  final Value<DateTime> updatedAt;
-  final Value<DateTime> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> createdAt;
   final Value<bool> softDeleted;
-  final Value<DateTime?> softDeletedAt;
+  final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const OpenEndedCompanion({
     this.id = const Value.absent(),
@@ -13246,10 +13733,10 @@ class OpenEndedCompanion extends UpdateCompanion<OpenEndedData> {
     Expression<String>? type,
     Expression<String>? referenceCorrectAnswer,
     Expression<bool>? aiGenerated,
-    Expression<DateTime>? updatedAt,
-    Expression<DateTime>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? createdAt,
     Expression<bool>? softDeleted,
-    Expression<DateTime>? softDeletedAt,
+    Expression<int>? softDeletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13277,10 +13764,10 @@ class OpenEndedCompanion extends UpdateCompanion<OpenEndedData> {
     Value<String>? type,
     Value<String?>? referenceCorrectAnswer,
     Value<bool?>? aiGenerated,
-    Value<DateTime>? updatedAt,
-    Value<DateTime>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? createdAt,
     Value<bool>? softDeleted,
-    Value<DateTime?>? softDeletedAt,
+    Value<int?>? softDeletedAt,
     Value<int>? rowid,
   }) {
     return OpenEndedCompanion(
@@ -13327,16 +13814,16 @@ class OpenEndedCompanion extends UpdateCompanion<OpenEndedData> {
       map['ai_generated'] = Variable<bool>(aiGenerated.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
     }
     if (softDeletedAt.present) {
-      map['soft_deleted_at'] = Variable<DateTime>(softDeletedAt.value);
+      map['soft_deleted_at'] = Variable<int>(softDeletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -13478,17 +13965,14 @@ class OpenEndedResponseLog extends Table
   static const VerificationMeta _answeredAtMeta = const VerificationMeta(
     'answeredAt',
   );
-  late final GeneratedColumn<DateTime> answeredAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> answeredAt = GeneratedColumn<int>(
     'answered_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -13647,7 +14131,7 @@ class OpenEndedResponseLog extends Table
         data['${effectivePrefix}score'],
       ),
       answeredAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}answered_at'],
       )!,
     );
@@ -13674,7 +14158,7 @@ class OpenEndedResponseLogData extends DataClass
   final bool? isCorrect;
   final String? masteryDemonstrated;
   final double? score;
-  final DateTime answeredAt;
+  final int answeredAt;
   const OpenEndedResponseLogData({
     required this.id,
     required this.openEndedId,
@@ -13715,7 +14199,7 @@ class OpenEndedResponseLogData extends DataClass
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<double>(score);
     }
-    map['answered_at'] = Variable<DateTime>(answeredAt);
+    map['answered_at'] = Variable<int>(answeredAt);
     return map;
   }
 
@@ -13767,7 +14251,7 @@ class OpenEndedResponseLogData extends DataClass
         json['mastery_demonstrated'],
       ),
       score: serializer.fromJson<double?>(json['score']),
-      answeredAt: serializer.fromJson<DateTime>(json['answered_at']),
+      answeredAt: serializer.fromJson<int>(json['answered_at']),
     );
   }
   @override
@@ -13784,7 +14268,7 @@ class OpenEndedResponseLogData extends DataClass
       'is_correct': serializer.toJson<bool?>(isCorrect),
       'mastery_demonstrated': serializer.toJson<String?>(masteryDemonstrated),
       'score': serializer.toJson<double?>(score),
-      'answered_at': serializer.toJson<DateTime>(answeredAt),
+      'answered_at': serializer.toJson<int>(answeredAt),
     };
   }
 
@@ -13799,7 +14283,7 @@ class OpenEndedResponseLogData extends DataClass
     Value<bool?> isCorrect = const Value.absent(),
     Value<String?> masteryDemonstrated = const Value.absent(),
     Value<double?> score = const Value.absent(),
-    DateTime? answeredAt,
+    int? answeredAt,
   }) => OpenEndedResponseLogData(
     id: id ?? this.id,
     openEndedId: openEndedId ?? this.openEndedId,
@@ -13906,7 +14390,7 @@ class OpenEndedResponseLogCompanion
   final Value<bool?> isCorrect;
   final Value<String?> masteryDemonstrated;
   final Value<double?> score;
-  final Value<DateTime> answeredAt;
+  final Value<int> answeredAt;
   final Value<int> rowid;
   const OpenEndedResponseLogCompanion({
     this.id = const Value.absent(),
@@ -13949,7 +14433,7 @@ class OpenEndedResponseLogCompanion
     Expression<bool>? isCorrect,
     Expression<String>? masteryDemonstrated,
     Expression<double>? score,
-    Expression<DateTime>? answeredAt,
+    Expression<int>? answeredAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13980,7 +14464,7 @@ class OpenEndedResponseLogCompanion
     Value<bool?>? isCorrect,
     Value<String?>? masteryDemonstrated,
     Value<double?>? score,
-    Value<DateTime>? answeredAt,
+    Value<int>? answeredAt,
     Value<int>? rowid,
   }) {
     return OpenEndedResponseLogCompanion(
@@ -14033,7 +14517,7 @@ class OpenEndedResponseLogCompanion
       map['score'] = Variable<double>(score.value);
     }
     if (answeredAt.present) {
-      map['answered_at'] = Variable<DateTime>(answeredAt.value);
+      map['answered_at'] = Variable<int>(answeredAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -14106,17 +14590,14 @@ class ActivityHasOpenEndedQuestion extends Table
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -14197,7 +14678,7 @@ class ActivityHasOpenEndedQuestion extends Table
         data['${effectivePrefix}open_ended_id'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -14221,7 +14702,7 @@ class ActivityHasOpenEndedQuestionData extends DataClass
   final String id;
   final String studySessionId;
   final String? openEndedId;
-  final DateTime createdAt;
+  final int createdAt;
   const ActivityHasOpenEndedQuestionData({
     required this.id,
     required this.studySessionId,
@@ -14236,7 +14717,7 @@ class ActivityHasOpenEndedQuestionData extends DataClass
     if (!nullToAbsent || openEndedId != null) {
       map['open_ended_id'] = Variable<String>(openEndedId);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -14260,7 +14741,7 @@ class ActivityHasOpenEndedQuestionData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       studySessionId: serializer.fromJson<String>(json['study_session_id']),
       openEndedId: serializer.fromJson<String?>(json['open_ended_id']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -14270,7 +14751,7 @@ class ActivityHasOpenEndedQuestionData extends DataClass
       'id': serializer.toJson<String>(id),
       'study_session_id': serializer.toJson<String>(studySessionId),
       'open_ended_id': serializer.toJson<String?>(openEndedId),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -14278,7 +14759,7 @@ class ActivityHasOpenEndedQuestionData extends DataClass
     String? id,
     String? studySessionId,
     Value<String?> openEndedId = const Value.absent(),
-    DateTime? createdAt,
+    int? createdAt,
   }) => ActivityHasOpenEndedQuestionData(
     id: id ?? this.id,
     studySessionId: studySessionId ?? this.studySessionId,
@@ -14328,7 +14809,7 @@ class ActivityHasOpenEndedQuestionCompanion
   final Value<String> id;
   final Value<String> studySessionId;
   final Value<String?> openEndedId;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const ActivityHasOpenEndedQuestionCompanion({
     this.id = const Value.absent(),
@@ -14349,7 +14830,7 @@ class ActivityHasOpenEndedQuestionCompanion
     Expression<String>? id,
     Expression<String>? studySessionId,
     Expression<String>? openEndedId,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14365,7 +14846,7 @@ class ActivityHasOpenEndedQuestionCompanion
     Value<String>? id,
     Value<String>? studySessionId,
     Value<String?>? openEndedId,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return ActivityHasOpenEndedQuestionCompanion(
@@ -14390,7 +14871,7 @@ class ActivityHasOpenEndedQuestionCompanion
       map['open_ended_id'] = Variable<String>(openEndedId.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -14529,39 +15010,36 @@ class FsrsState extends Table with TableInfo<FsrsState, FsrsStateData> {
   static const VerificationMeta _lastReviewAtMeta = const VerificationMeta(
     'lastReviewAt',
   );
-  late final GeneratedColumn<DateTime> lastReviewAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> lastReviewAt = GeneratedColumn<int>(
     'last_review_at',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
   static const VerificationMeta _nextReviewAtMeta = const VerificationMeta(
     'nextReviewAt',
   );
-  late final GeneratedColumn<DateTime> nextReviewAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> nextReviewAt = GeneratedColumn<int>(
     'next_review_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -14752,15 +15230,15 @@ class FsrsState extends Table with TableInfo<FsrsState, FsrsStateData> {
         data['${effectivePrefix}last_rating'],
       ),
       lastReviewAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}last_review_at'],
       ),
       nextReviewAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}next_review_at'],
       )!,
       updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
     );
@@ -14790,9 +15268,9 @@ class FsrsStateData extends DataClass implements Insertable<FsrsStateData> {
   final int scheduledDays;
   final int totalReviews;
   final int? lastRating;
-  final DateTime? lastReviewAt;
-  final DateTime nextReviewAt;
-  final DateTime updatedAt;
+  final int? lastReviewAt;
+  final int nextReviewAt;
+  final int updatedAt;
   const FsrsStateData({
     required this.id,
     required this.nodeId,
@@ -14824,10 +15302,10 @@ class FsrsStateData extends DataClass implements Insertable<FsrsStateData> {
       map['last_rating'] = Variable<int>(lastRating);
     }
     if (!nullToAbsent || lastReviewAt != null) {
-      map['last_review_at'] = Variable<DateTime>(lastReviewAt);
+      map['last_review_at'] = Variable<int>(lastReviewAt);
     }
-    map['next_review_at'] = Variable<DateTime>(nextReviewAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['next_review_at'] = Variable<int>(nextReviewAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -14869,9 +15347,9 @@ class FsrsStateData extends DataClass implements Insertable<FsrsStateData> {
       scheduledDays: serializer.fromJson<int>(json['scheduled_days']),
       totalReviews: serializer.fromJson<int>(json['total_reviews']),
       lastRating: serializer.fromJson<int?>(json['last_rating']),
-      lastReviewAt: serializer.fromJson<DateTime?>(json['last_review_at']),
-      nextReviewAt: serializer.fromJson<DateTime>(json['next_review_at']),
-      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      lastReviewAt: serializer.fromJson<int?>(json['last_review_at']),
+      nextReviewAt: serializer.fromJson<int>(json['next_review_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
     );
   }
   @override
@@ -14888,9 +15366,9 @@ class FsrsStateData extends DataClass implements Insertable<FsrsStateData> {
       'scheduled_days': serializer.toJson<int>(scheduledDays),
       'total_reviews': serializer.toJson<int>(totalReviews),
       'last_rating': serializer.toJson<int?>(lastRating),
-      'last_review_at': serializer.toJson<DateTime?>(lastReviewAt),
-      'next_review_at': serializer.toJson<DateTime>(nextReviewAt),
-      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'last_review_at': serializer.toJson<int?>(lastReviewAt),
+      'next_review_at': serializer.toJson<int>(nextReviewAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -14905,9 +15383,9 @@ class FsrsStateData extends DataClass implements Insertable<FsrsStateData> {
     int? scheduledDays,
     int? totalReviews,
     Value<int?> lastRating = const Value.absent(),
-    Value<DateTime?> lastReviewAt = const Value.absent(),
-    DateTime? nextReviewAt,
-    DateTime? updatedAt,
+    Value<int?> lastReviewAt = const Value.absent(),
+    int? nextReviewAt,
+    int? updatedAt,
   }) => FsrsStateData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -15023,9 +15501,9 @@ class FsrsStateCompanion extends UpdateCompanion<FsrsStateData> {
   final Value<int> scheduledDays;
   final Value<int> totalReviews;
   final Value<int?> lastRating;
-  final Value<DateTime?> lastReviewAt;
-  final Value<DateTime> nextReviewAt;
-  final Value<DateTime> updatedAt;
+  final Value<int?> lastReviewAt;
+  final Value<int> nextReviewAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const FsrsStateCompanion({
     this.id = const Value.absent(),
@@ -15055,7 +15533,7 @@ class FsrsStateCompanion extends UpdateCompanion<FsrsStateData> {
     this.totalReviews = const Value.absent(),
     this.lastRating = const Value.absent(),
     this.lastReviewAt = const Value.absent(),
-    required DateTime nextReviewAt,
+    required int nextReviewAt,
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -15076,9 +15554,9 @@ class FsrsStateCompanion extends UpdateCompanion<FsrsStateData> {
     Expression<int>? scheduledDays,
     Expression<int>? totalReviews,
     Expression<int>? lastRating,
-    Expression<DateTime>? lastReviewAt,
-    Expression<DateTime>? nextReviewAt,
-    Expression<DateTime>? updatedAt,
+    Expression<int>? lastReviewAt,
+    Expression<int>? nextReviewAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15110,9 +15588,9 @@ class FsrsStateCompanion extends UpdateCompanion<FsrsStateData> {
     Value<int>? scheduledDays,
     Value<int>? totalReviews,
     Value<int?>? lastRating,
-    Value<DateTime?>? lastReviewAt,
-    Value<DateTime>? nextReviewAt,
-    Value<DateTime>? updatedAt,
+    Value<int?>? lastReviewAt,
+    Value<int>? nextReviewAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return FsrsStateCompanion(
@@ -15167,13 +15645,13 @@ class FsrsStateCompanion extends UpdateCompanion<FsrsStateData> {
       map['last_rating'] = Variable<int>(lastRating.value);
     }
     if (lastReviewAt.present) {
-      map['last_review_at'] = Variable<DateTime>(lastReviewAt.value);
+      map['last_review_at'] = Variable<int>(lastReviewAt.value);
     }
     if (nextReviewAt.present) {
-      map['next_review_at'] = Variable<DateTime>(nextReviewAt.value);
+      map['next_review_at'] = Variable<int>(nextReviewAt.value);
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -15309,17 +15787,14 @@ class FsrsReviewLog extends Table
   static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
     'reviewedAt',
   );
-  late final GeneratedColumn<DateTime> reviewedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> reviewedAt = GeneratedColumn<int>(
     'reviewed_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -15485,7 +15960,7 @@ class FsrsReviewLog extends Table
         data['${effectivePrefix}scheduled_days'],
       )!,
       reviewedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}reviewed_at'],
       )!,
     );
@@ -15511,7 +15986,7 @@ class FsrsReviewLogData extends DataClass
   final double difficultyBefore;
   final int elapsedDays;
   final int scheduledDays;
-  final DateTime reviewedAt;
+  final int reviewedAt;
   const FsrsReviewLogData({
     required this.id,
     required this.fsrsStateId,
@@ -15536,7 +16011,7 @@ class FsrsReviewLogData extends DataClass
     map['difficulty_before'] = Variable<double>(difficultyBefore);
     map['elapsed_days'] = Variable<int>(elapsedDays);
     map['scheduled_days'] = Variable<int>(scheduledDays);
-    map['reviewed_at'] = Variable<DateTime>(reviewedAt);
+    map['reviewed_at'] = Variable<int>(reviewedAt);
     return map;
   }
 
@@ -15570,7 +16045,7 @@ class FsrsReviewLogData extends DataClass
       difficultyBefore: serializer.fromJson<double>(json['difficulty_before']),
       elapsedDays: serializer.fromJson<int>(json['elapsed_days']),
       scheduledDays: serializer.fromJson<int>(json['scheduled_days']),
-      reviewedAt: serializer.fromJson<DateTime>(json['reviewed_at']),
+      reviewedAt: serializer.fromJson<int>(json['reviewed_at']),
     );
   }
   @override
@@ -15586,7 +16061,7 @@ class FsrsReviewLogData extends DataClass
       'difficulty_before': serializer.toJson<double>(difficultyBefore),
       'elapsed_days': serializer.toJson<int>(elapsedDays),
       'scheduled_days': serializer.toJson<int>(scheduledDays),
-      'reviewed_at': serializer.toJson<DateTime>(reviewedAt),
+      'reviewed_at': serializer.toJson<int>(reviewedAt),
     };
   }
 
@@ -15600,7 +16075,7 @@ class FsrsReviewLogData extends DataClass
     double? difficultyBefore,
     int? elapsedDays,
     int? scheduledDays,
-    DateTime? reviewedAt,
+    int? reviewedAt,
   }) => FsrsReviewLogData(
     id: id ?? this.id,
     fsrsStateId: fsrsStateId ?? this.fsrsStateId,
@@ -15700,7 +16175,7 @@ class FsrsReviewLogCompanion extends UpdateCompanion<FsrsReviewLogData> {
   final Value<double> difficultyBefore;
   final Value<int> elapsedDays;
   final Value<int> scheduledDays;
-  final Value<DateTime> reviewedAt;
+  final Value<int> reviewedAt;
   final Value<int> rowid;
   const FsrsReviewLogCompanion({
     this.id = const Value.absent(),
@@ -15746,7 +16221,7 @@ class FsrsReviewLogCompanion extends UpdateCompanion<FsrsReviewLogData> {
     Expression<double>? difficultyBefore,
     Expression<int>? elapsedDays,
     Expression<int>? scheduledDays,
-    Expression<DateTime>? reviewedAt,
+    Expression<int>? reviewedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15774,7 +16249,7 @@ class FsrsReviewLogCompanion extends UpdateCompanion<FsrsReviewLogData> {
     Value<double>? difficultyBefore,
     Value<int>? elapsedDays,
     Value<int>? scheduledDays,
-    Value<DateTime>? reviewedAt,
+    Value<int>? reviewedAt,
     Value<int>? rowid,
   }) {
     return FsrsReviewLogCompanion(
@@ -15823,7 +16298,7 @@ class FsrsReviewLogCompanion extends UpdateCompanion<FsrsReviewLogData> {
       map['scheduled_days'] = Variable<int>(scheduledDays.value);
     }
     if (reviewedAt.present) {
-      map['reviewed_at'] = Variable<DateTime>(reviewedAt.value);
+      map['reviewed_at'] = Variable<int>(reviewedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -15946,17 +16421,14 @@ class DomainLog extends Table with TableInfo<DomainLog, DomainLogData> {
   static const VerificationMeta _loggedAtMeta = const VerificationMeta(
     'loggedAt',
   );
-  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> loggedAt = GeneratedColumn<int>(
     'logged_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -16097,7 +16569,7 @@ class DomainLog extends Table with TableInfo<DomainLog, DomainLogData> {
         data['${effectivePrefix}source_activity_type'],
       ),
       loggedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}logged_at'],
       )!,
     );
@@ -16121,7 +16593,7 @@ class DomainLogData extends DataClass implements Insertable<DomainLogData> {
   final String? levelAfter;
   final String eventOrigin;
   final String? sourceActivityType;
-  final DateTime loggedAt;
+  final int loggedAt;
   const DomainLogData({
     required this.id,
     required this.nodeId,
@@ -16150,7 +16622,7 @@ class DomainLogData extends DataClass implements Insertable<DomainLogData> {
     if (!nullToAbsent || sourceActivityType != null) {
       map['source_activity_type'] = Variable<String>(sourceActivityType);
     }
-    map['logged_at'] = Variable<DateTime>(loggedAt);
+    map['logged_at'] = Variable<int>(loggedAt);
     return map;
   }
 
@@ -16190,7 +16662,7 @@ class DomainLogData extends DataClass implements Insertable<DomainLogData> {
       sourceActivityType: serializer.fromJson<String?>(
         json['source_activity_type'],
       ),
-      loggedAt: serializer.fromJson<DateTime>(json['logged_at']),
+      loggedAt: serializer.fromJson<int>(json['logged_at']),
     );
   }
   @override
@@ -16205,7 +16677,7 @@ class DomainLogData extends DataClass implements Insertable<DomainLogData> {
       'level_after': serializer.toJson<String?>(levelAfter),
       'event_origin': serializer.toJson<String>(eventOrigin),
       'source_activity_type': serializer.toJson<String?>(sourceActivityType),
-      'logged_at': serializer.toJson<DateTime>(loggedAt),
+      'logged_at': serializer.toJson<int>(loggedAt),
     };
   }
 
@@ -16218,7 +16690,7 @@ class DomainLogData extends DataClass implements Insertable<DomainLogData> {
     Value<String?> levelAfter = const Value.absent(),
     String? eventOrigin,
     Value<String?> sourceActivityType = const Value.absent(),
-    DateTime? loggedAt,
+    int? loggedAt,
   }) => DomainLogData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -16310,7 +16782,7 @@ class DomainLogCompanion extends UpdateCompanion<DomainLogData> {
   final Value<String?> levelAfter;
   final Value<String> eventOrigin;
   final Value<String?> sourceActivityType;
-  final Value<DateTime> loggedAt;
+  final Value<int> loggedAt;
   final Value<int> rowid;
   const DomainLogCompanion({
     this.id = const Value.absent(),
@@ -16349,7 +16821,7 @@ class DomainLogCompanion extends UpdateCompanion<DomainLogData> {
     Expression<String>? levelAfter,
     Expression<String>? eventOrigin,
     Expression<String>? sourceActivityType,
-    Expression<DateTime>? loggedAt,
+    Expression<int>? loggedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -16376,7 +16848,7 @@ class DomainLogCompanion extends UpdateCompanion<DomainLogData> {
     Value<String?>? levelAfter,
     Value<String>? eventOrigin,
     Value<String?>? sourceActivityType,
-    Value<DateTime>? loggedAt,
+    Value<int>? loggedAt,
     Value<int>? rowid,
   }) {
     return DomainLogCompanion(
@@ -16421,7 +16893,7 @@ class DomainLogCompanion extends UpdateCompanion<DomainLogData> {
       map['source_activity_type'] = Variable<String>(sourceActivityType.value);
     }
     if (loggedAt.present) {
-      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+      map['logged_at'] = Variable<int>(loggedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -16468,7 +16940,7 @@ class GenericLog extends Table with TableInfo<GenericLog, GenericLogData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    $customConstraints: 'REFERENCES user(id)ON DELETE SET NULL',
+    $customConstraints: 'REFERENCES app_user(id)ON DELETE SET NULL',
   );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
@@ -16493,17 +16965,14 @@ class GenericLog extends Table with TableInfo<GenericLog, GenericLogData> {
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\'))',
-    defaultValue: const CustomExpression(
-      'strftime(\'%Y-%m-%dT%H:%M:%fZ\', \'now\')',
-    ),
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
   );
   @override
   List<GeneratedColumn> get $columns => [id, userId, type, payload, createdAt];
@@ -16578,7 +17047,7 @@ class GenericLog extends Table with TableInfo<GenericLog, GenericLogData> {
         data['${effectivePrefix}payload'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.int,
         data['${effectivePrefix}created_at'],
       )!,
     );
@@ -16598,7 +17067,7 @@ class GenericLogData extends DataClass implements Insertable<GenericLogData> {
   final String? userId;
   final String type;
   final String payload;
-  final DateTime createdAt;
+  final int createdAt;
   const GenericLogData({
     required this.id,
     this.userId,
@@ -16615,7 +17084,7 @@ class GenericLogData extends DataClass implements Insertable<GenericLogData> {
     }
     map['type'] = Variable<String>(type);
     map['payload'] = Variable<String>(payload);
-    map['created_at'] = Variable<DateTime>(createdAt);
+    map['created_at'] = Variable<int>(createdAt);
     return map;
   }
 
@@ -16641,7 +17110,7 @@ class GenericLogData extends DataClass implements Insertable<GenericLogData> {
       userId: serializer.fromJson<String?>(json['user_id']),
       type: serializer.fromJson<String>(json['type']),
       payload: serializer.fromJson<String>(json['payload']),
-      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
     );
   }
   @override
@@ -16652,7 +17121,7 @@ class GenericLogData extends DataClass implements Insertable<GenericLogData> {
       'user_id': serializer.toJson<String?>(userId),
       'type': serializer.toJson<String>(type),
       'payload': serializer.toJson<String>(payload),
-      'created_at': serializer.toJson<DateTime>(createdAt),
+      'created_at': serializer.toJson<int>(createdAt),
     };
   }
 
@@ -16661,7 +17130,7 @@ class GenericLogData extends DataClass implements Insertable<GenericLogData> {
     Value<String?> userId = const Value.absent(),
     String? type,
     String? payload,
-    DateTime? createdAt,
+    int? createdAt,
   }) => GenericLogData(
     id: id ?? this.id,
     userId: userId.present ? userId.value : this.userId,
@@ -16709,7 +17178,7 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
   final Value<String?> userId;
   final Value<String> type;
   final Value<String> payload;
-  final Value<DateTime> createdAt;
+  final Value<int> createdAt;
   final Value<int> rowid;
   const GenericLogCompanion({
     this.id = const Value.absent(),
@@ -16734,7 +17203,7 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
     Expression<String>? userId,
     Expression<String>? type,
     Expression<String>? payload,
-    Expression<DateTime>? createdAt,
+    Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -16752,7 +17221,7 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
     Value<String?>? userId,
     Value<String>? type,
     Value<String>? payload,
-    Value<DateTime>? createdAt,
+    Value<int>? createdAt,
     Value<int>? rowid,
   }) {
     return GenericLogCompanion(
@@ -16781,7 +17250,7 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
       map['payload'] = Variable<String>(payload.value);
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<int>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -16806,6 +17275,7 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final AppUser appUser = AppUser(this);
   late final ColorTheme colorTheme = ColorTheme(this);
   late final TypographyTheme typographyTheme = TypographyTheme(this);
   late final Config config = Config(this);
@@ -17010,6 +17480,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    appUser,
     colorTheme,
     typographyTheme,
     config,
@@ -17085,6 +17556,34 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('color_theme', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('typography_theme', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('config', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('knowledge_graph', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'knowledge_graph',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -17134,6 +17633,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'note',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -17152,6 +17658,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('note_node', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_session', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -17332,9 +17845,953 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('domain_log', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'app_user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('generic_log', kind: UpdateKind.update)],
+    ),
   ]);
 }
 
+typedef $AppUserCreateCompanionBuilder =
+    AppUserCompanion Function({
+      required String id,
+      required String remoteId,
+      required String userName,
+      required String displayName,
+      required String primaryEmail,
+      required int lastSeenAt,
+      Value<bool> softDeleted,
+      Value<int?> softDeletedAt,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+typedef $AppUserUpdateCompanionBuilder =
+    AppUserCompanion Function({
+      Value<String> id,
+      Value<String> remoteId,
+      Value<String> userName,
+      Value<String> displayName,
+      Value<String> primaryEmail,
+      Value<int> lastSeenAt,
+      Value<bool> softDeleted,
+      Value<int?> softDeletedAt,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+
+final class $AppUserReferences
+    extends BaseReferences<_$AppDatabase, AppUser, AppUserData> {
+  $AppUserReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<ColorTheme, List<ColorThemeData>>
+  _colorThemeRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.colorTheme,
+    aliasName: 'app_user__id__color_theme__user_id',
+  );
+
+  $ColorThemeProcessedTableManager get colorThemeRefs {
+    final manager = $ColorThemeTableManager(
+      $_db,
+      $_db.colorTheme,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_colorThemeRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<TypographyTheme, List<TypographyThemeData>>
+  _typographyThemeRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.typographyTheme,
+    aliasName: 'app_user__id__typography_theme__user_id',
+  );
+
+  $TypographyThemeProcessedTableManager get typographyThemeRefs {
+    final manager = $TypographyThemeTableManager(
+      $_db,
+      $_db.typographyTheme,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _typographyThemeRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Config, List<ConfigData>> _configRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.config,
+    aliasName: 'app_user__id__config__user_id',
+  );
+
+  $ConfigProcessedTableManager get configRefs {
+    final manager = $ConfigTableManager(
+      $_db,
+      $_db.config,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_configRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<KnowledgeGraph, List<KnowledgeGraphData>>
+  _knowledgeGraphRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.knowledgeGraph,
+    aliasName: 'app_user__id__knowledge_graph__user_id',
+  );
+
+  $KnowledgeGraphProcessedTableManager get knowledgeGraphRefs {
+    final manager = $KnowledgeGraphTableManager(
+      $_db,
+      $_db.knowledgeGraph,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_knowledgeGraphRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Note, List<NoteData>> _noteRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.note,
+    aliasName: 'app_user__id__note__user_id',
+  );
+
+  $NoteProcessedTableManager get noteRefs {
+    final manager = $NoteTableManager(
+      $_db,
+      $_db.note,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_noteRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<StudySession, List<StudySessionData>>
+  _studySessionRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.studySession,
+    aliasName: 'app_user__id__study_session__user_id',
+  );
+
+  $StudySessionProcessedTableManager get studySessionRefs {
+    final manager = $StudySessionTableManager(
+      $_db,
+      $_db.studySession,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_studySessionRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<GenericLog, List<GenericLogData>>
+  _genericLogRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.genericLog,
+    aliasName: 'app_user__id__generic_log__user_id',
+  );
+
+  $GenericLogProcessedTableManager get genericLogRefs {
+    final manager = $GenericLogTableManager(
+      $_db,
+      $_db.genericLog,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_genericLogRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $AppUserFilterComposer extends Composer<_$AppDatabase, AppUser> {
+  $AppUserFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userName => $composableBuilder(
+    column: $table.userName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get primaryEmail => $composableBuilder(
+    column: $table.primaryEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastSeenAt => $composableBuilder(
+    column: $table.lastSeenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get softDeleted => $composableBuilder(
+    column: $table.softDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
+    column: $table.softDeletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> colorThemeRefs(
+    Expression<bool> Function($ColorThemeFilterComposer f) f,
+  ) {
+    final $ColorThemeFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.colorTheme,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ColorThemeFilterComposer(
+            $db: $db,
+            $table: $db.colorTheme,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> typographyThemeRefs(
+    Expression<bool> Function($TypographyThemeFilterComposer f) f,
+  ) {
+    final $TypographyThemeFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.typographyTheme,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TypographyThemeFilterComposer(
+            $db: $db,
+            $table: $db.typographyTheme,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> configRefs(
+    Expression<bool> Function($ConfigFilterComposer f) f,
+  ) {
+    final $ConfigFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.config,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConfigFilterComposer(
+            $db: $db,
+            $table: $db.config,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> knowledgeGraphRefs(
+    Expression<bool> Function($KnowledgeGraphFilterComposer f) f,
+  ) {
+    final $KnowledgeGraphFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.knowledgeGraph,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KnowledgeGraphFilterComposer(
+            $db: $db,
+            $table: $db.knowledgeGraph,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> noteRefs(
+    Expression<bool> Function($NoteFilterComposer f) f,
+  ) {
+    final $NoteFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.note,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $NoteFilterComposer(
+            $db: $db,
+            $table: $db.note,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> studySessionRefs(
+    Expression<bool> Function($StudySessionFilterComposer f) f,
+  ) {
+    final $StudySessionFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySession,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionFilterComposer(
+            $db: $db,
+            $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> genericLogRefs(
+    Expression<bool> Function($GenericLogFilterComposer f) f,
+  ) {
+    final $GenericLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.genericLog,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GenericLogFilterComposer(
+            $db: $db,
+            $table: $db.genericLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $AppUserOrderingComposer extends Composer<_$AppDatabase, AppUser> {
+  $AppUserOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userName => $composableBuilder(
+    column: $table.userName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get primaryEmail => $composableBuilder(
+    column: $table.primaryEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastSeenAt => $composableBuilder(
+    column: $table.lastSeenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get softDeleted => $composableBuilder(
+    column: $table.softDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
+    column: $table.softDeletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $AppUserAnnotationComposer extends Composer<_$AppDatabase, AppUser> {
+  $AppUserAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get userName =>
+      $composableBuilder(column: $table.userName, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get primaryEmail => $composableBuilder(
+    column: $table.primaryEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastSeenAt => $composableBuilder(
+    column: $table.lastSeenAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get softDeleted => $composableBuilder(
+    column: $table.softDeleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
+    column: $table.softDeletedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  Expression<T> colorThemeRefs<T extends Object>(
+    Expression<T> Function($ColorThemeAnnotationComposer a) f,
+  ) {
+    final $ColorThemeAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.colorTheme,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ColorThemeAnnotationComposer(
+            $db: $db,
+            $table: $db.colorTheme,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> typographyThemeRefs<T extends Object>(
+    Expression<T> Function($TypographyThemeAnnotationComposer a) f,
+  ) {
+    final $TypographyThemeAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.typographyTheme,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TypographyThemeAnnotationComposer(
+            $db: $db,
+            $table: $db.typographyTheme,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> configRefs<T extends Object>(
+    Expression<T> Function($ConfigAnnotationComposer a) f,
+  ) {
+    final $ConfigAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.config,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConfigAnnotationComposer(
+            $db: $db,
+            $table: $db.config,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> knowledgeGraphRefs<T extends Object>(
+    Expression<T> Function($KnowledgeGraphAnnotationComposer a) f,
+  ) {
+    final $KnowledgeGraphAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.knowledgeGraph,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KnowledgeGraphAnnotationComposer(
+            $db: $db,
+            $table: $db.knowledgeGraph,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> noteRefs<T extends Object>(
+    Expression<T> Function($NoteAnnotationComposer a) f,
+  ) {
+    final $NoteAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.note,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $NoteAnnotationComposer(
+            $db: $db,
+            $table: $db.note,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> studySessionRefs<T extends Object>(
+    Expression<T> Function($StudySessionAnnotationComposer a) f,
+  ) {
+    final $StudySessionAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySession,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionAnnotationComposer(
+            $db: $db,
+            $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> genericLogRefs<T extends Object>(
+    Expression<T> Function($GenericLogAnnotationComposer a) f,
+  ) {
+    final $GenericLogAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.genericLog,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GenericLogAnnotationComposer(
+            $db: $db,
+            $table: $db.genericLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $AppUserTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          AppUser,
+          AppUserData,
+          $AppUserFilterComposer,
+          $AppUserOrderingComposer,
+          $AppUserAnnotationComposer,
+          $AppUserCreateCompanionBuilder,
+          $AppUserUpdateCompanionBuilder,
+          (AppUserData, $AppUserReferences),
+          AppUserData,
+          PrefetchHooks Function({
+            bool colorThemeRefs,
+            bool typographyThemeRefs,
+            bool configRefs,
+            bool knowledgeGraphRefs,
+            bool noteRefs,
+            bool studySessionRefs,
+            bool genericLogRefs,
+          })
+        > {
+  $AppUserTableManager(_$AppDatabase db, AppUser table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $AppUserFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $AppUserOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $AppUserAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> remoteId = const Value.absent(),
+                Value<String> userName = const Value.absent(),
+                Value<String> displayName = const Value.absent(),
+                Value<String> primaryEmail = const Value.absent(),
+                Value<int> lastSeenAt = const Value.absent(),
+                Value<bool> softDeleted = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppUserCompanion(
+                id: id,
+                remoteId: remoteId,
+                userName: userName,
+                displayName: displayName,
+                primaryEmail: primaryEmail,
+                lastSeenAt: lastSeenAt,
+                softDeleted: softDeleted,
+                softDeletedAt: softDeletedAt,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String remoteId,
+                required String userName,
+                required String displayName,
+                required String primaryEmail,
+                required int lastSeenAt,
+                Value<bool> softDeleted = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppUserCompanion.insert(
+                id: id,
+                remoteId: remoteId,
+                userName: userName,
+                displayName: displayName,
+                primaryEmail: primaryEmail,
+                lastSeenAt: lastSeenAt,
+                softDeleted: softDeleted,
+                softDeletedAt: softDeletedAt,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (e.readTable(table), $AppUserReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                colorThemeRefs = false,
+                typographyThemeRefs = false,
+                configRefs = false,
+                knowledgeGraphRefs = false,
+                noteRefs = false,
+                studySessionRefs = false,
+                genericLogRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (colorThemeRefs) db.colorTheme,
+                    if (typographyThemeRefs) db.typographyTheme,
+                    if (configRefs) db.config,
+                    if (knowledgeGraphRefs) db.knowledgeGraph,
+                    if (noteRefs) db.note,
+                    if (studySessionRefs) db.studySession,
+                    if (genericLogRefs) db.genericLog,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (colorThemeRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          ColorThemeData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences
+                              ._colorThemeRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $AppUserReferences(db, table, p0).colorThemeRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (typographyThemeRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          TypographyThemeData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences
+                              ._typographyThemeRefsTable(db),
+                          managerFromTypedResult: (p0) => $AppUserReferences(
+                            db,
+                            table,
+                            p0,
+                          ).typographyThemeRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (configRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          ConfigData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences._configRefsTable(
+                            db,
+                          ),
+                          managerFromTypedResult: (p0) =>
+                              $AppUserReferences(db, table, p0).configRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (knowledgeGraphRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          KnowledgeGraphData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences
+                              ._knowledgeGraphRefsTable(db),
+                          managerFromTypedResult: (p0) => $AppUserReferences(
+                            db,
+                            table,
+                            p0,
+                          ).knowledgeGraphRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (noteRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          NoteData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences._noteRefsTable(
+                            db,
+                          ),
+                          managerFromTypedResult: (p0) =>
+                              $AppUserReferences(db, table, p0).noteRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (studySessionRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          StudySessionData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences
+                              ._studySessionRefsTable(db),
+                          managerFromTypedResult: (p0) => $AppUserReferences(
+                            db,
+                            table,
+                            p0,
+                          ).studySessionRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (genericLogRefs)
+                        await $_getPrefetchedData<
+                          AppUserData,
+                          AppUser,
+                          GenericLogData
+                        >(
+                          currentTable: table,
+                          referencedTable: $AppUserReferences
+                              ._genericLogRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $AppUserReferences(db, table, p0).genericLogRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $AppUserProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      AppUser,
+      AppUserData,
+      $AppUserFilterComposer,
+      $AppUserOrderingComposer,
+      $AppUserAnnotationComposer,
+      $AppUserCreateCompanionBuilder,
+      $AppUserUpdateCompanionBuilder,
+      (AppUserData, $AppUserReferences),
+      AppUserData,
+      PrefetchHooks Function({
+        bool colorThemeRefs,
+        bool typographyThemeRefs,
+        bool configRefs,
+        bool knowledgeGraphRefs,
+        bool noteRefs,
+        bool studySessionRefs,
+        bool genericLogRefs,
+      })
+    >;
 typedef $ColorThemeCreateCompanionBuilder =
     ColorThemeCompanion Function({
       required String id,
@@ -17343,8 +18800,8 @@ typedef $ColorThemeCreateCompanionBuilder =
       required int seedColor,
       Value<String?> overridesJson,
       Value<bool> systemDefault,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $ColorThemeUpdateCompanionBuilder =
@@ -17355,14 +18812,31 @@ typedef $ColorThemeUpdateCompanionBuilder =
       Value<int> seedColor,
       Value<String?> overridesJson,
       Value<bool> systemDefault,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
 final class $ColorThemeReferences
     extends BaseReferences<_$AppDatabase, ColorTheme, ColorThemeData> {
   $ColorThemeReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('color_theme__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<Config, List<ConfigData>> _configRefsTable(
     _$AppDatabase db,
@@ -17397,11 +18871,6 @@ class $ColorThemeFilterComposer extends Composer<_$AppDatabase, ColorTheme> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -17422,15 +18891,38 @@ class $ColorThemeFilterComposer extends Composer<_$AppDatabase, ColorTheme> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> configRefs(
     Expression<bool> Function($ConfigFilterComposer f) f,
@@ -17471,11 +18963,6 @@ class $ColorThemeOrderingComposer extends Composer<_$AppDatabase, ColorTheme> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -17496,15 +18983,38 @@ class $ColorThemeOrderingComposer extends Composer<_$AppDatabase, ColorTheme> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ColorThemeAnnotationComposer
@@ -17518,9 +19028,6 @@ class $ColorThemeAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -17538,11 +19045,34 @@ class $ColorThemeAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> configRefs<T extends Object>(
     Expression<T> Function($ConfigAnnotationComposer a) f,
@@ -17583,7 +19113,7 @@ class $ColorThemeTableManager
           $ColorThemeUpdateCompanionBuilder,
           (ColorThemeData, $ColorThemeReferences),
           ColorThemeData,
-          PrefetchHooks Function({bool configRefs})
+          PrefetchHooks Function({bool userId, bool configRefs})
         > {
   $ColorThemeTableManager(_$AppDatabase db, ColorTheme table)
     : super(
@@ -17604,8 +19134,8 @@ class $ColorThemeTableManager
                 Value<int> seedColor = const Value.absent(),
                 Value<String?> overridesJson = const Value.absent(),
                 Value<bool> systemDefault = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ColorThemeCompanion(
                 id: id,
@@ -17626,8 +19156,8 @@ class $ColorThemeTableManager
                 required int seedColor,
                 Value<String?> overridesJson = const Value.absent(),
                 Value<bool> systemDefault = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ColorThemeCompanion.insert(
                 id: id,
@@ -17646,11 +19176,42 @@ class $ColorThemeTableManager
                     (e.readTable(table), $ColorThemeReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({configRefs = false}) {
+          prefetchHooksCallback: ({userId = false, configRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (configRefs) db.config],
-              addJoins: null,
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $ColorThemeReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $ColorThemeReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (configRefs)
@@ -17691,7 +19252,7 @@ typedef $ColorThemeProcessedTableManager =
       $ColorThemeUpdateCompanionBuilder,
       (ColorThemeData, $ColorThemeReferences),
       ColorThemeData,
-      PrefetchHooks Function({bool configRefs})
+      PrefetchHooks Function({bool userId, bool configRefs})
     >;
 typedef $TypographyThemeCreateCompanionBuilder =
     TypographyThemeCompanion Function({
@@ -17704,8 +19265,8 @@ typedef $TypographyThemeCreateCompanionBuilder =
       required int fontScale,
       Value<String?> overridesJson,
       Value<bool> systemDefault,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $TypographyThemeUpdateCompanionBuilder =
@@ -17719,8 +19280,8 @@ typedef $TypographyThemeUpdateCompanionBuilder =
       Value<int> fontScale,
       Value<String?> overridesJson,
       Value<bool> systemDefault,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -17728,6 +19289,23 @@ final class $TypographyThemeReferences
     extends
         BaseReferences<_$AppDatabase, TypographyTheme, TypographyThemeData> {
   $TypographyThemeReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('typography_theme__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<Config, List<ConfigData>> _configRefsTable(
     _$AppDatabase db,
@@ -17759,11 +19337,6 @@ class $TypographyThemeFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17802,15 +19375,38 @@ class $TypographyThemeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> configRefs(
     Expression<bool> Function($ConfigFilterComposer f) f,
@@ -17852,11 +19448,6 @@ class $TypographyThemeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -17892,15 +19483,38 @@ class $TypographyThemeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $TypographyThemeAnnotationComposer
@@ -17914,9 +19528,6 @@ class $TypographyThemeAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -17945,11 +19556,34 @@ class $TypographyThemeAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> configRefs<T extends Object>(
     Expression<T> Function($ConfigAnnotationComposer a) f,
@@ -17990,7 +19624,7 @@ class $TypographyThemeTableManager
           $TypographyThemeUpdateCompanionBuilder,
           (TypographyThemeData, $TypographyThemeReferences),
           TypographyThemeData,
-          PrefetchHooks Function({bool configRefs})
+          PrefetchHooks Function({bool userId, bool configRefs})
         > {
   $TypographyThemeTableManager(_$AppDatabase db, TypographyTheme table)
     : super(
@@ -18014,8 +19648,8 @@ class $TypographyThemeTableManager
                 Value<int> fontScale = const Value.absent(),
                 Value<String?> overridesJson = const Value.absent(),
                 Value<bool> systemDefault = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TypographyThemeCompanion(
                 id: id,
@@ -18042,8 +19676,8 @@ class $TypographyThemeTableManager
                 required int fontScale,
                 Value<String?> overridesJson = const Value.absent(),
                 Value<bool> systemDefault = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TypographyThemeCompanion.insert(
                 id: id,
@@ -18067,11 +19701,42 @@ class $TypographyThemeTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({configRefs = false}) {
+          prefetchHooksCallback: ({userId = false, configRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (configRefs) db.config],
-              addJoins: null,
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $TypographyThemeReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $TypographyThemeReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (configRefs)
@@ -18111,7 +19776,7 @@ typedef $TypographyThemeProcessedTableManager =
       $TypographyThemeUpdateCompanionBuilder,
       (TypographyThemeData, $TypographyThemeReferences),
       TypographyThemeData,
-      PrefetchHooks Function({bool configRefs})
+      PrefetchHooks Function({bool userId, bool configRefs})
     >;
 typedef $ConfigCreateCompanionBuilder =
     ConfigCompanion Function({
@@ -18120,8 +19785,8 @@ typedef $ConfigCreateCompanionBuilder =
       required String colorThemeId,
       required String typographyThemeId,
       required String preferences,
-      Value<DateTime> updatedAt,
-      Value<DateTime?> lastSync,
+      Value<int> updatedAt,
+      Value<int?> lastSync,
       Value<bool> autoSync,
       required String deviceFingerprint,
       Value<int> rowid,
@@ -18133,8 +19798,8 @@ typedef $ConfigUpdateCompanionBuilder =
       Value<String> colorThemeId,
       Value<String> typographyThemeId,
       Value<String> preferences,
-      Value<DateTime> updatedAt,
-      Value<DateTime?> lastSync,
+      Value<int> updatedAt,
+      Value<int?> lastSync,
       Value<bool> autoSync,
       Value<String> deviceFingerprint,
       Value<int> rowid,
@@ -18143,6 +19808,23 @@ typedef $ConfigUpdateCompanionBuilder =
 final class $ConfigReferences
     extends BaseReferences<_$AppDatabase, Config, ConfigData> {
   $ConfigReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('config__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static ColorTheme _colorThemeIdTable(_$AppDatabase db) =>
       db.colorTheme.createAlias('config__color_theme_id__color_theme__id');
@@ -18193,22 +19875,17 @@ class $ConfigFilterComposer extends Composer<_$AppDatabase, Config> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get preferences => $composableBuilder(
     column: $table.preferences,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get lastSync => $composableBuilder(
+  ColumnFilters<int> get lastSync => $composableBuilder(
     column: $table.lastSync,
     builder: (column) => ColumnFilters(column),
   );
@@ -18222,6 +19899,29 @@ class $ConfigFilterComposer extends Composer<_$AppDatabase, Config> {
     column: $table.deviceFingerprint,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $ColorThemeFilterComposer get colorThemeId {
     final $ColorThemeFilterComposer composer = $composerBuilder(
@@ -18283,22 +19983,17 @@ class $ConfigOrderingComposer extends Composer<_$AppDatabase, Config> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get preferences => $composableBuilder(
     column: $table.preferences,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get lastSync => $composableBuilder(
+  ColumnOrderings<int> get lastSync => $composableBuilder(
     column: $table.lastSync,
     builder: (column) => ColumnOrderings(column),
   );
@@ -18312,6 +20007,29 @@ class $ConfigOrderingComposer extends Composer<_$AppDatabase, Config> {
     column: $table.deviceFingerprint,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $ColorThemeOrderingComposer get colorThemeId {
     final $ColorThemeOrderingComposer composer = $composerBuilder(
@@ -18371,18 +20089,15 @@ class $ConfigAnnotationComposer extends Composer<_$AppDatabase, Config> {
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
-
   GeneratedColumn<String> get preferences => $composableBuilder(
     column: $table.preferences,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get lastSync =>
+  GeneratedColumn<int> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
 
   GeneratedColumn<bool> get autoSync =>
@@ -18392,6 +20107,29 @@ class $ConfigAnnotationComposer extends Composer<_$AppDatabase, Config> {
     column: $table.deviceFingerprint,
     builder: (column) => column,
   );
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $ColorThemeAnnotationComposer get colorThemeId {
     final $ColorThemeAnnotationComposer composer = $composerBuilder(
@@ -18453,7 +20191,11 @@ class $ConfigTableManager
           $ConfigUpdateCompanionBuilder,
           (ConfigData, $ConfigReferences),
           ConfigData,
-          PrefetchHooks Function({bool colorThemeId, bool typographyThemeId})
+          PrefetchHooks Function({
+            bool userId,
+            bool colorThemeId,
+            bool typographyThemeId,
+          })
         > {
   $ConfigTableManager(_$AppDatabase db, Config table)
     : super(
@@ -18473,8 +20215,8 @@ class $ConfigTableManager
                 Value<String> colorThemeId = const Value.absent(),
                 Value<String> typographyThemeId = const Value.absent(),
                 Value<String> preferences = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> lastSync = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int?> lastSync = const Value.absent(),
                 Value<bool> autoSync = const Value.absent(),
                 Value<String> deviceFingerprint = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -18497,8 +20239,8 @@ class $ConfigTableManager
                 required String colorThemeId,
                 required String typographyThemeId,
                 required String preferences,
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> lastSync = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int?> lastSync = const Value.absent(),
                 Value<bool> autoSync = const Value.absent(),
                 required String deviceFingerprint,
                 Value<int> rowid = const Value.absent(),
@@ -18518,7 +20260,11 @@ class $ConfigTableManager
               .map((e) => (e.readTable(table), $ConfigReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback:
-              ({colorThemeId = false, typographyThemeId = false}) {
+              ({
+                userId = false,
+                colorThemeId = false,
+                typographyThemeId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -18538,6 +20284,19 @@ class $ConfigTableManager
                           dynamic
                         >
                       >(state) {
+                        if (userId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userId,
+                                    referencedTable: $ConfigReferences
+                                        ._userIdTable(db),
+                                    referencedColumn: $ConfigReferences
+                                        ._userIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
                         if (colorThemeId) {
                           state =
                               state.withJoin(
@@ -18588,7 +20347,11 @@ typedef $ConfigProcessedTableManager =
       $ConfigUpdateCompanionBuilder,
       (ConfigData, $ConfigReferences),
       ConfigData,
-      PrefetchHooks Function({bool colorThemeId, bool typographyThemeId})
+      PrefetchHooks Function({
+        bool userId,
+        bool colorThemeId,
+        bool typographyThemeId,
+      })
     >;
 typedef $KnowledgeGraphCreateCompanionBuilder =
     KnowledgeGraphCompanion Function({
@@ -18598,10 +20361,10 @@ typedef $KnowledgeGraphCreateCompanionBuilder =
       Value<String?> description,
       Value<bool> isArchived,
       Value<bool> synced,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $KnowledgeGraphUpdateCompanionBuilder =
@@ -18612,16 +20375,33 @@ typedef $KnowledgeGraphUpdateCompanionBuilder =
       Value<String?> description,
       Value<bool> isArchived,
       Value<bool> synced,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
 final class $KnowledgeGraphReferences
     extends BaseReferences<_$AppDatabase, KnowledgeGraph, KnowledgeGraphData> {
   $KnowledgeGraphReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('knowledge_graph__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<GraphVersion, List<GraphVersionData>>
   _graphVersionRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -18718,11 +20498,6 @@ class $KnowledgeGraphFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnFilters(column),
@@ -18743,12 +20518,12 @@ class $KnowledgeGraphFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -18758,10 +20533,33 @@ class $KnowledgeGraphFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> graphVersionRefs(
     Expression<bool> Function($GraphVersionFilterComposer f) f,
@@ -18879,11 +20677,6 @@ class $KnowledgeGraphOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
@@ -18904,12 +20697,12 @@ class $KnowledgeGraphOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -18919,10 +20712,33 @@ class $KnowledgeGraphOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $KnowledgeGraphAnnotationComposer
@@ -18936,9 +20752,6 @@ class $KnowledgeGraphAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -18956,10 +20769,10 @@ class $KnowledgeGraphAnnotationComposer
   GeneratedColumn<bool> get synced =>
       $composableBuilder(column: $table.synced, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -18967,10 +20780,33 @@ class $KnowledgeGraphAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> graphVersionRefs<T extends Object>(
     Expression<T> Function($GraphVersionAnnotationComposer a) f,
@@ -19089,6 +20925,7 @@ class $KnowledgeGraphTableManager
           (KnowledgeGraphData, $KnowledgeGraphReferences),
           KnowledgeGraphData,
           PrefetchHooks Function({
+            bool userId,
             bool graphVersionRefs,
             bool graphNodeRefs,
             bool graphEdgeRefs,
@@ -19114,10 +20951,10 @@ class $KnowledgeGraphTableManager
                 Value<String?> description = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => KnowledgeGraphCompanion(
                 id: id,
@@ -19140,10 +20977,10 @@ class $KnowledgeGraphTableManager
                 Value<String?> description = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => KnowledgeGraphCompanion.insert(
                 id: id,
@@ -19168,6 +21005,7 @@ class $KnowledgeGraphTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                userId = false,
                 graphVersionRefs = false,
                 graphNodeRefs = false,
                 graphEdgeRefs = false,
@@ -19182,7 +21020,38 @@ class $KnowledgeGraphTableManager
                     if (studySessionUseKnowledgeGraphRefs)
                       db.studySessionUseKnowledgeGraph,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userId,
+                                    referencedTable: $KnowledgeGraphReferences
+                                        ._userIdTable(db),
+                                    referencedColumn: $KnowledgeGraphReferences
+                                        ._userIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (graphVersionRefs)
@@ -19290,6 +21159,7 @@ typedef $KnowledgeGraphProcessedTableManager =
       (KnowledgeGraphData, $KnowledgeGraphReferences),
       KnowledgeGraphData,
       PrefetchHooks Function({
+        bool userId,
         bool graphVersionRefs,
         bool graphNodeRefs,
         bool graphEdgeRefs,
@@ -19303,7 +21173,7 @@ typedef $GraphVersionCreateCompanionBuilder =
       required int versionNumber,
       required String snapshotJson,
       Value<String?> changeSummary,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $GraphVersionUpdateCompanionBuilder =
@@ -19313,7 +21183,7 @@ typedef $GraphVersionUpdateCompanionBuilder =
       Value<int> versionNumber,
       Value<String> snapshotJson,
       Value<String?> changeSummary,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -19368,7 +21238,7 @@ class $GraphVersionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -19426,7 +21296,7 @@ class $GraphVersionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -19482,7 +21352,7 @@ class $GraphVersionAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $KnowledgeGraphAnnotationComposer get graphId {
@@ -19542,7 +21412,7 @@ class $GraphVersionTableManager
                 Value<int> versionNumber = const Value.absent(),
                 Value<String> snapshotJson = const Value.absent(),
                 Value<String?> changeSummary = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphVersionCompanion(
                 id: id,
@@ -19560,7 +21430,7 @@ class $GraphVersionTableManager
                 required int versionNumber,
                 required String snapshotJson,
                 Value<String?> changeSummary = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphVersionCompanion.insert(
                 id: id,
@@ -19651,10 +21521,10 @@ typedef $GraphNodeCreateCompanionBuilder =
       Value<String?> aiSynthesis,
       Value<bool> synthesisEdited,
       Value<int?> fsrsRating,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $GraphNodeUpdateCompanionBuilder =
@@ -19672,10 +21542,10 @@ typedef $GraphNodeUpdateCompanionBuilder =
       Value<String?> aiSynthesis,
       Value<bool> synthesisEdited,
       Value<int?> fsrsRating,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
@@ -19952,12 +21822,12 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -19967,7 +21837,7 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -20314,12 +22184,12 @@ class $GraphNodeOrderingComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -20329,7 +22199,7 @@ class $GraphNodeOrderingComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -20412,10 +22282,10 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -20423,7 +22293,7 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
@@ -20755,10 +22625,10 @@ class $GraphNodeTableManager
                 Value<String?> aiSynthesis = const Value.absent(),
                 Value<bool> synthesisEdited = const Value.absent(),
                 Value<int?> fsrsRating = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphNodeCompanion(
                 id: id,
@@ -20795,10 +22665,10 @@ class $GraphNodeTableManager
                 Value<String?> aiSynthesis = const Value.absent(),
                 Value<bool> synthesisEdited = const Value.absent(),
                 Value<int?> fsrsRating = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphNodeCompanion.insert(
                 id: id,
@@ -21663,7 +23533,7 @@ typedef $NodeSkillCreateCompanionBuilder =
       Value<bool> aiGenerated,
       Value<bool> userEdited,
       required int displayOrder,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $NodeSkillUpdateCompanionBuilder =
@@ -21675,7 +23545,7 @@ typedef $NodeSkillUpdateCompanionBuilder =
       Value<bool> aiGenerated,
       Value<bool> userEdited,
       Value<int> displayOrder,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -21739,7 +23609,7 @@ class $NodeSkillFilterComposer extends Composer<_$AppDatabase, NodeSkill> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -21806,7 +23676,7 @@ class $NodeSkillOrderingComposer extends Composer<_$AppDatabase, NodeSkill> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -21869,7 +23739,7 @@ class $NodeSkillAnnotationComposer extends Composer<_$AppDatabase, NodeSkill> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $GraphNodeAnnotationComposer get nodeId {
@@ -21931,7 +23801,7 @@ class $NodeSkillTableManager
                 Value<bool> aiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 Value<int> displayOrder = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NodeSkillCompanion(
                 id: id,
@@ -21953,7 +23823,7 @@ class $NodeSkillTableManager
                 Value<bool> aiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 required int displayOrder,
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NodeSkillCompanion.insert(
                 id: id,
@@ -22044,9 +23914,9 @@ typedef $LearningResourceCreateCompanionBuilder =
       required double reputationScore,
       Value<bool> aiGenerated,
       Value<bool> userEdited,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $LearningResourceUpdateCompanionBuilder =
@@ -22063,9 +23933,9 @@ typedef $LearningResourceUpdateCompanionBuilder =
       Value<double> reputationScore,
       Value<bool> aiGenerated,
       Value<bool> userEdited,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
@@ -22156,7 +24026,7 @@ class $LearningResourceFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -22166,7 +24036,7 @@ class $LearningResourceFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -22259,7 +24129,7 @@ class $LearningResourceOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -22269,7 +24139,7 @@ class $LearningResourceOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -22348,7 +24218,7 @@ class $LearningResourceAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -22356,7 +24226,7 @@ class $LearningResourceAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
@@ -22425,9 +24295,9 @@ class $LearningResourceTableManager
                 Value<double> reputationScore = const Value.absent(),
                 Value<bool> aiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LearningResourceCompanion(
                 id: id,
@@ -22461,9 +24331,9 @@ class $LearningResourceTableManager
                 required double reputationScore,
                 Value<bool> aiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LearningResourceCompanion.insert(
                 id: id,
@@ -22557,10 +24427,10 @@ typedef $NoteCreateCompanionBuilder =
       required String title,
       required String contentQuillJson,
       required int currentVersion,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $NoteUpdateCompanionBuilder =
@@ -22570,16 +24440,33 @@ typedef $NoteUpdateCompanionBuilder =
       Value<String> title,
       Value<String> contentQuillJson,
       Value<int> currentVersion,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
 final class $NoteReferences
     extends BaseReferences<_$AppDatabase, Note, NoteData> {
   $NoteReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('note__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<NoteVersion, List<NoteVersionData>>
   _noteVersionRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -22632,11 +24519,6 @@ class $NoteFilterComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnFilters(column),
@@ -22652,12 +24534,12 @@ class $NoteFilterComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -22667,10 +24549,33 @@ class $NoteFilterComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> noteVersionRefs(
     Expression<bool> Function($NoteVersionFilterComposer f) f,
@@ -22736,11 +24641,6 @@ class $NoteOrderingComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
@@ -22756,12 +24656,12 @@ class $NoteOrderingComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -22771,10 +24671,33 @@ class $NoteOrderingComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $NoteAnnotationComposer extends Composer<_$AppDatabase, Note> {
@@ -22787,9 +24710,6 @@ class $NoteAnnotationComposer extends Composer<_$AppDatabase, Note> {
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -22804,10 +24724,10 @@ class $NoteAnnotationComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -22815,10 +24735,33 @@ class $NoteAnnotationComposer extends Composer<_$AppDatabase, Note> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> noteVersionRefs<T extends Object>(
     Expression<T> Function($NoteVersionAnnotationComposer a) f,
@@ -22884,7 +24827,11 @@ class $NoteTableManager
           $NoteUpdateCompanionBuilder,
           (NoteData, $NoteReferences),
           NoteData,
-          PrefetchHooks Function({bool noteVersionRefs, bool noteNodeRefs})
+          PrefetchHooks Function({
+            bool userId,
+            bool noteVersionRefs,
+            bool noteNodeRefs,
+          })
         > {
   $NoteTableManager(_$AppDatabase db, Note table)
     : super(
@@ -22904,10 +24851,10 @@ class $NoteTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> contentQuillJson = const Value.absent(),
                 Value<int> currentVersion = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteCompanion(
                 id: id,
@@ -22928,10 +24875,10 @@ class $NoteTableManager
                 required String title,
                 required String contentQuillJson,
                 required int currentVersion,
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteCompanion.insert(
                 id: id,
@@ -22949,14 +24896,49 @@ class $NoteTableManager
               .map((e) => (e.readTable(table), $NoteReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback:
-              ({noteVersionRefs = false, noteNodeRefs = false}) {
+              ({
+                userId = false,
+                noteVersionRefs = false,
+                noteNodeRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (noteVersionRefs) db.noteVersion,
                     if (noteNodeRefs) db.noteNode,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userId,
+                                    referencedTable: $NoteReferences
+                                        ._userIdTable(db),
+                                    referencedColumn: $NoteReferences
+                                        ._userIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (noteVersionRefs)
@@ -23010,7 +24992,11 @@ typedef $NoteProcessedTableManager =
       $NoteUpdateCompanionBuilder,
       (NoteData, $NoteReferences),
       NoteData,
-      PrefetchHooks Function({bool noteVersionRefs, bool noteNodeRefs})
+      PrefetchHooks Function({
+        bool userId,
+        bool noteVersionRefs,
+        bool noteNodeRefs,
+      })
     >;
 typedef $NoteVersionCreateCompanionBuilder =
     NoteVersionCompanion Function({
@@ -23020,7 +25006,7 @@ typedef $NoteVersionCreateCompanionBuilder =
       required String contentQuillJson,
       Value<String?> changeDescription,
       required String author,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $NoteVersionUpdateCompanionBuilder =
@@ -23031,7 +25017,7 @@ typedef $NoteVersionUpdateCompanionBuilder =
       Value<String> contentQuillJson,
       Value<String?> changeDescription,
       Value<String> author,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -23090,7 +25076,7 @@ class $NoteVersionFilterComposer extends Composer<_$AppDatabase, NoteVersion> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -23153,7 +25139,7 @@ class $NoteVersionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -23212,7 +25198,7 @@ class $NoteVersionAnnotationComposer
   GeneratedColumn<String> get author =>
       $composableBuilder(column: $table.author, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $NoteAnnotationComposer get noteId {
@@ -23273,7 +25259,7 @@ class $NoteVersionTableManager
                 Value<String> contentQuillJson = const Value.absent(),
                 Value<String?> changeDescription = const Value.absent(),
                 Value<String> author = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteVersionCompanion(
                 id: id,
@@ -23293,7 +25279,7 @@ class $NoteVersionTableManager
                 required String contentQuillJson,
                 Value<String?> changeDescription = const Value.absent(),
                 required String author,
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteVersionCompanion.insert(
                 id: id,
@@ -23742,9 +25728,9 @@ typedef $StudySessionCreateCompanionBuilder =
       Value<int> completedActivities,
       Value<bool> synced,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
-      Value<DateTime> startedAt,
-      Value<DateTime?> endedAt,
+      Value<int?> softDeletedAt,
+      Value<int> startedAt,
+      Value<int?> endedAt,
       Value<int> rowid,
     });
 typedef $StudySessionUpdateCompanionBuilder =
@@ -23760,15 +25746,32 @@ typedef $StudySessionUpdateCompanionBuilder =
       Value<int> completedActivities,
       Value<bool> synced,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
-      Value<DateTime> startedAt,
-      Value<DateTime?> endedAt,
+      Value<int?> softDeletedAt,
+      Value<int> startedAt,
+      Value<int?> endedAt,
       Value<int> rowid,
     });
 
 final class $StudySessionReferences
     extends BaseReferences<_$AppDatabase, StudySession, StudySessionData> {
   $StudySessionReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('study_session__user_id__app_user__id');
+
+  $AppUserProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<
     StudySessionUseKnowledgeGraph,
@@ -23884,11 +25887,6 @@ class $StudySessionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnFilters(column),
@@ -23934,20 +25932,43 @@ class $StudySessionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+  ColumnFilters<int> get startedAt => $composableBuilder(
     column: $table.startedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+  ColumnFilters<int> get endedAt => $composableBuilder(
     column: $table.endedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> studySessionUseKnowledgeGraphRefs(
     Expression<bool> Function($StudySessionUseKnowledgeGraphFilterComposer f) f,
@@ -24070,11 +26091,6 @@ class $StudySessionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -24120,20 +26136,43 @@ class $StudySessionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+  ColumnOrderings<int> get startedAt => $composableBuilder(
     column: $table.startedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+  ColumnOrderings<int> get endedAt => $composableBuilder(
     column: $table.endedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $StudySessionAnnotationComposer
@@ -24147,9 +26186,6 @@ class $StudySessionAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -24192,16 +26228,39 @@ class $StudySessionAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get startedAt =>
+  GeneratedColumn<int> get startedAt =>
       $composableBuilder(column: $table.startedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get endedAt =>
+  GeneratedColumn<int> get endedAt =>
       $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> studySessionUseKnowledgeGraphRefs<T extends Object>(
     Expression<T> Function($StudySessionUseKnowledgeGraphAnnotationComposer a)
@@ -24325,6 +26384,7 @@ class $StudySessionTableManager
           (StudySessionData, $StudySessionReferences),
           StudySessionData,
           PrefetchHooks Function({
+            bool userId,
             bool studySessionUseKnowledgeGraphRefs,
             bool sessionNodeRefs,
             bool activityHasMultipleChoiceQuestionRefs,
@@ -24355,9 +26415,9 @@ class $StudySessionTableManager
                 Value<int> completedActivities = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
-                Value<DateTime> startedAt = const Value.absent(),
-                Value<DateTime?> endedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<int> startedAt = const Value.absent(),
+                Value<int?> endedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionCompanion(
                 id: id,
@@ -24389,9 +26449,9 @@ class $StudySessionTableManager
                 Value<int> completedActivities = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
-                Value<DateTime> startedAt = const Value.absent(),
-                Value<DateTime?> endedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<int> startedAt = const Value.absent(),
+                Value<int?> endedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionCompanion.insert(
                 id: id,
@@ -24418,6 +26478,7 @@ class $StudySessionTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                userId = false,
                 studySessionUseKnowledgeGraphRefs = false,
                 sessionNodeRefs = false,
                 activityHasMultipleChoiceQuestionRefs = false,
@@ -24434,7 +26495,38 @@ class $StudySessionTableManager
                     if (activityHasOpenEndedQuestionRefs)
                       db.activityHasOpenEndedQuestion,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userId,
+                                    referencedTable: $StudySessionReferences
+                                        ._userIdTable(db),
+                                    referencedColumn: $StudySessionReferences
+                                        ._userIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (studySessionUseKnowledgeGraphRefs)
@@ -24542,6 +26634,7 @@ typedef $StudySessionProcessedTableManager =
       (StudySessionData, $StudySessionReferences),
       StudySessionData,
       PrefetchHooks Function({
+        bool userId,
         bool studySessionUseKnowledgeGraphRefs,
         bool sessionNodeRefs,
         bool activityHasMultipleChoiceQuestionRefs,
@@ -24553,7 +26646,7 @@ typedef $StudySessionUseKnowledgeGraphCreateCompanionBuilder =
       required String id,
       required String graphId,
       required String studySessionId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $StudySessionUseKnowledgeGraphUpdateCompanionBuilder =
@@ -24561,7 +26654,7 @@ typedef $StudySessionUseKnowledgeGraphUpdateCompanionBuilder =
       Value<String> id,
       Value<String> graphId,
       Value<String> studySessionId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -24632,7 +26725,7 @@ class $StudySessionUseKnowledgeGraphFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -24698,7 +26791,7 @@ class $StudySessionUseKnowledgeGraphOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -24762,7 +26855,7 @@ class $StudySessionUseKnowledgeGraphAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $KnowledgeGraphAnnotationComposer get graphId {
@@ -24857,7 +26950,7 @@ class $StudySessionUseKnowledgeGraphTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> graphId = const Value.absent(),
                 Value<String> studySessionId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionUseKnowledgeGraphCompanion(
                 id: id,
@@ -24871,7 +26964,7 @@ class $StudySessionUseKnowledgeGraphTableManager
                 required String id,
                 required String graphId,
                 required String studySessionId,
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionUseKnowledgeGraphCompanion.insert(
                 id: id,
@@ -25357,10 +27450,10 @@ typedef $FlashcardCreateCompanionBuilder =
       required String title,
       required String statement,
       Value<String?> targetSkill,
-      Value<DateTime> updatedAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
-      Value<DateTime> createdAt,
+      Value<int?> softDeletedAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $FlashcardUpdateCompanionBuilder =
@@ -25370,10 +27463,10 @@ typedef $FlashcardUpdateCompanionBuilder =
       Value<String> title,
       Value<String> statement,
       Value<String?> targetSkill,
-      Value<DateTime> updatedAt,
+      Value<int> updatedAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
-      Value<DateTime> createdAt,
+      Value<int?> softDeletedAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -25475,7 +27568,7 @@ class $FlashcardFilterComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -25485,12 +27578,12 @@ class $FlashcardFilterComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -25597,7 +27690,7 @@ class $FlashcardOrderingComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -25607,12 +27700,12 @@ class $FlashcardOrderingComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -25663,7 +27756,7 @@ class $FlashcardAnnotationComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -25671,12 +27764,12 @@ class $FlashcardAnnotationComposer extends Composer<_$AppDatabase, Flashcard> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $GraphNodeAnnotationComposer get nodeId {
@@ -25790,10 +27883,10 @@ class $FlashcardTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> statement = const Value.absent(),
                 Value<String?> targetSkill = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardCompanion(
                 id: id,
@@ -25814,10 +27907,10 @@ class $FlashcardTableManager
                 required String title,
                 required String statement,
                 Value<String?> targetSkill = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardCompanion.insert(
                 id: id,
@@ -25954,10 +28047,10 @@ typedef $FlashcardGroupCreateCompanionBuilder =
       required String nodeId,
       required String name,
       Value<String?> description,
-      Value<DateTime> createdAt,
-      Value<DateTime?> softDeletedAt,
+      Value<int> createdAt,
+      Value<int?> softDeletedAt,
       Value<bool> softDeleted,
-      Value<DateTime> updatedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $FlashcardGroupUpdateCompanionBuilder =
@@ -25966,10 +28059,10 @@ typedef $FlashcardGroupUpdateCompanionBuilder =
       Value<String> nodeId,
       Value<String> name,
       Value<String?> description,
-      Value<DateTime> createdAt,
-      Value<DateTime?> softDeletedAt,
+      Value<int> createdAt,
+      Value<int?> softDeletedAt,
       Value<bool> softDeleted,
-      Value<DateTime> updatedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -26047,12 +28140,12 @@ class $FlashcardGroupFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -26062,7 +28155,7 @@ class $FlashcardGroupFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -26140,12 +28233,12 @@ class $FlashcardGroupOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -26155,7 +28248,7 @@ class $FlashcardGroupOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -26204,10 +28297,10 @@ class $FlashcardGroupAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
@@ -26217,7 +28310,7 @@ class $FlashcardGroupAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $GraphNodeAnnotationComposer get nodeId {
@@ -26301,10 +28394,10 @@ class $FlashcardGroupTableManager
                 Value<String> nodeId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardGroupCompanion(
                 id: id,
@@ -26323,10 +28416,10 @@ class $FlashcardGroupTableManager
                 required String nodeId,
                 required String name,
                 Value<String?> description = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardGroupCompanion.insert(
                 id: id,
@@ -26820,7 +28913,7 @@ typedef $FlashcardResponseLogCreateCompanionBuilder =
       required String flashcardId,
       required String flashcardSnapshot,
       required String answer,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 typedef $FlashcardResponseLogUpdateCompanionBuilder =
@@ -26829,7 +28922,7 @@ typedef $FlashcardResponseLogUpdateCompanionBuilder =
       Value<String> flashcardId,
       Value<String> flashcardSnapshot,
       Value<String> answer,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 
@@ -26888,7 +28981,7 @@ class $FlashcardResponseLogFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get answeredAt => $composableBuilder(
+  ColumnFilters<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -26941,7 +29034,7 @@ class $FlashcardResponseLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get answeredAt => $composableBuilder(
+  ColumnOrderings<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -26990,7 +29083,7 @@ class $FlashcardResponseLogAnnotationComposer
   GeneratedColumn<String> get answer =>
       $composableBuilder(column: $table.answer, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get answeredAt => $composableBuilder(
+  GeneratedColumn<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => column,
   );
@@ -27053,7 +29146,7 @@ class $FlashcardResponseLogTableManager
                 Value<String> flashcardId = const Value.absent(),
                 Value<String> flashcardSnapshot = const Value.absent(),
                 Value<String> answer = const Value.absent(),
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardResponseLogCompanion(
                 id: id,
@@ -27069,7 +29162,7 @@ class $FlashcardResponseLogTableManager
                 required String flashcardId,
                 required String flashcardSnapshot,
                 required String answer,
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FlashcardResponseLogCompanion.insert(
                 id: id,
@@ -27154,10 +29247,10 @@ typedef $MultipleChoiceCreateCompanionBuilder =
       required String title,
       required String statement,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $MultipleChoiceUpdateCompanionBuilder =
@@ -27167,10 +29260,10 @@ typedef $MultipleChoiceUpdateCompanionBuilder =
       Value<String> title,
       Value<String> statement,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
@@ -27303,12 +29396,12 @@ class $MultipleChoiceFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -27318,7 +29411,7 @@ class $MultipleChoiceFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -27455,12 +29548,12 @@ class $MultipleChoiceOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -27470,7 +29563,7 @@ class $MultipleChoiceOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -27522,10 +29615,10 @@ class $MultipleChoiceAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -27533,7 +29626,7 @@ class $MultipleChoiceAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
@@ -27680,10 +29773,10 @@ class $MultipleChoiceTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> statement = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceCompanion(
                 id: id,
@@ -27704,10 +29797,10 @@ class $MultipleChoiceTableManager
                 required String title,
                 required String statement,
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceCompanion.insert(
                 id: id,
@@ -27877,8 +29970,8 @@ typedef $ChoiceCreateCompanionBuilder =
       Value<String?> explanation,
       Value<int?> weight,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $ChoiceUpdateCompanionBuilder =
@@ -27889,8 +29982,8 @@ typedef $ChoiceUpdateCompanionBuilder =
       Value<String?> explanation,
       Value<int?> weight,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -27950,12 +30043,12 @@ class $ChoiceFilterComposer extends Composer<_$AppDatabase, Choice> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -28017,12 +30110,12 @@ class $ChoiceOrderingComposer extends Composer<_$AppDatabase, Choice> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -28078,10 +30171,10 @@ class $ChoiceAnnotationComposer extends Composer<_$AppDatabase, Choice> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $MultipleChoiceAnnotationComposer get multipleChoiceId {
@@ -28142,8 +30235,8 @@ class $ChoiceTableManager
                 Value<String?> explanation = const Value.absent(),
                 Value<int?> weight = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChoiceCompanion(
                 id: id,
@@ -28164,8 +30257,8 @@ class $ChoiceTableManager
                 Value<String?> explanation = const Value.absent(),
                 Value<int?> weight = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChoiceCompanion.insert(
                 id: id,
@@ -28253,7 +30346,7 @@ typedef $MultipleChoiceResponseLogCreateCompanionBuilder =
       Value<String?> aiFeedback,
       Value<String?> userNotes,
       Value<double?> score,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 typedef $MultipleChoiceResponseLogUpdateCompanionBuilder =
@@ -28269,7 +30362,7 @@ typedef $MultipleChoiceResponseLogUpdateCompanionBuilder =
       Value<String?> aiFeedback,
       Value<String?> userNotes,
       Value<double?> score,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 
@@ -28365,7 +30458,7 @@ class $MultipleChoiceResponseLogFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get answeredAt => $composableBuilder(
+  ColumnFilters<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -28453,7 +30546,7 @@ class $MultipleChoiceResponseLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get answeredAt => $composableBuilder(
+  ColumnOrderings<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -28535,7 +30628,7 @@ class $MultipleChoiceResponseLogAnnotationComposer
   GeneratedColumn<double> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get answeredAt => $composableBuilder(
+  GeneratedColumn<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => column,
   );
@@ -28611,7 +30704,7 @@ class $MultipleChoiceResponseLogTableManager
                 Value<String?> aiFeedback = const Value.absent(),
                 Value<String?> userNotes = const Value.absent(),
                 Value<double?> score = const Value.absent(),
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceResponseLogCompanion(
                 id: id,
@@ -28641,7 +30734,7 @@ class $MultipleChoiceResponseLogTableManager
                 Value<String?> aiFeedback = const Value.absent(),
                 Value<String?> userNotes = const Value.absent(),
                 Value<double?> score = const Value.absent(),
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceResponseLogCompanion.insert(
                 id: id,
@@ -28732,7 +30825,7 @@ typedef $ActivityHasMultipleChoiceQuestionCreateCompanionBuilder =
       required String id,
       required String studySessionId,
       Value<String?> multipleChoiceId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $ActivityHasMultipleChoiceQuestionUpdateCompanionBuilder =
@@ -28740,7 +30833,7 @@ typedef $ActivityHasMultipleChoiceQuestionUpdateCompanionBuilder =
       Value<String> id,
       Value<String> studySessionId,
       Value<String?> multipleChoiceId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -28812,7 +30905,7 @@ class $ActivityHasMultipleChoiceQuestionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -28878,7 +30971,7 @@ class $ActivityHasMultipleChoiceQuestionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -28942,7 +31035,7 @@ class $ActivityHasMultipleChoiceQuestionAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $StudySessionAnnotationComposer get studySessionId {
@@ -29037,7 +31130,7 @@ class $ActivityHasMultipleChoiceQuestionTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> studySessionId = const Value.absent(),
                 Value<String?> multipleChoiceId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityHasMultipleChoiceQuestionCompanion(
                 id: id,
@@ -29051,7 +31144,7 @@ class $ActivityHasMultipleChoiceQuestionTableManager
                 required String id,
                 required String studySessionId,
                 Value<String?> multipleChoiceId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityHasMultipleChoiceQuestionCompanion.insert(
                 id: id,
@@ -29156,10 +31249,10 @@ typedef $OpenEndedCreateCompanionBuilder =
       required String type,
       Value<String?> referenceCorrectAnswer,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 typedef $OpenEndedUpdateCompanionBuilder =
@@ -29171,10 +31264,10 @@ typedef $OpenEndedUpdateCompanionBuilder =
       Value<String> type,
       Value<String?> referenceCorrectAnswer,
       Value<bool?> aiGenerated,
-      Value<DateTime> updatedAt,
-      Value<DateTime> createdAt,
+      Value<int> updatedAt,
+      Value<int> createdAt,
       Value<bool> softDeleted,
-      Value<DateTime?> softDeletedAt,
+      Value<int?> softDeletedAt,
       Value<int> rowid,
     });
 
@@ -29288,12 +31381,12 @@ class $OpenEndedFilterComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -29303,7 +31396,7 @@ class $OpenEndedFilterComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnFilters<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -29421,12 +31514,12 @@ class $OpenEndedOrderingComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -29436,7 +31529,7 @@ class $OpenEndedOrderingComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get softDeletedAt => $composableBuilder(
+  ColumnOrderings<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -29495,10 +31588,10 @@ class $OpenEndedAnnotationComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
@@ -29506,7 +31599,7 @@ class $OpenEndedAnnotationComposer extends Composer<_$AppDatabase, OpenEnded> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get softDeletedAt => $composableBuilder(
+  GeneratedColumn<int> get softDeletedAt => $composableBuilder(
     column: $table.softDeletedAt,
     builder: (column) => column,
   );
@@ -29625,10 +31718,10 @@ class $OpenEndedTableManager
                 Value<String> type = const Value.absent(),
                 Value<String?> referenceCorrectAnswer = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedCompanion(
                 id: id,
@@ -29653,10 +31746,10 @@ class $OpenEndedTableManager
                 required String type,
                 Value<String?> referenceCorrectAnswer = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
-                Value<DateTime?> softDeletedAt = const Value.absent(),
+                Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedCompanion.insert(
                 id: id,
@@ -29802,7 +31895,7 @@ typedef $OpenEndedResponseLogCreateCompanionBuilder =
       Value<bool?> isCorrect,
       Value<String?> masteryDemonstrated,
       Value<double?> score,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 typedef $OpenEndedResponseLogUpdateCompanionBuilder =
@@ -29817,7 +31910,7 @@ typedef $OpenEndedResponseLogUpdateCompanionBuilder =
       Value<bool?> isCorrect,
       Value<String?> masteryDemonstrated,
       Value<double?> score,
-      Value<DateTime> answeredAt,
+      Value<int> answeredAt,
       Value<int> rowid,
     });
 
@@ -29906,7 +31999,7 @@ class $OpenEndedResponseLogFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get answeredAt => $composableBuilder(
+  ColumnFilters<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -29989,7 +32082,7 @@ class $OpenEndedResponseLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get answeredAt => $composableBuilder(
+  ColumnOrderings<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -30062,7 +32155,7 @@ class $OpenEndedResponseLogAnnotationComposer
   GeneratedColumn<double> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get answeredAt => $composableBuilder(
+  GeneratedColumn<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => column,
   );
@@ -30131,7 +32224,7 @@ class $OpenEndedResponseLogTableManager
                 Value<bool?> isCorrect = const Value.absent(),
                 Value<String?> masteryDemonstrated = const Value.absent(),
                 Value<double?> score = const Value.absent(),
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedResponseLogCompanion(
                 id: id,
@@ -30159,7 +32252,7 @@ class $OpenEndedResponseLogTableManager
                 Value<bool?> isCorrect = const Value.absent(),
                 Value<String?> masteryDemonstrated = const Value.absent(),
                 Value<double?> score = const Value.absent(),
-                Value<DateTime> answeredAt = const Value.absent(),
+                Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedResponseLogCompanion.insert(
                 id: id,
@@ -30248,7 +32341,7 @@ typedef $ActivityHasOpenEndedQuestionCreateCompanionBuilder =
       required String id,
       required String studySessionId,
       Value<String?> openEndedId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $ActivityHasOpenEndedQuestionUpdateCompanionBuilder =
@@ -30256,7 +32349,7 @@ typedef $ActivityHasOpenEndedQuestionUpdateCompanionBuilder =
       Value<String> id,
       Value<String> studySessionId,
       Value<String?> openEndedId,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 
@@ -30326,7 +32419,7 @@ class $ActivityHasOpenEndedQuestionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -30392,7 +32485,7 @@ class $ActivityHasOpenEndedQuestionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -30456,7 +32549,7 @@ class $ActivityHasOpenEndedQuestionAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $StudySessionAnnotationComposer get studySessionId {
@@ -30551,7 +32644,7 @@ class $ActivityHasOpenEndedQuestionTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> studySessionId = const Value.absent(),
                 Value<String?> openEndedId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityHasOpenEndedQuestionCompanion(
                 id: id,
@@ -30565,7 +32658,7 @@ class $ActivityHasOpenEndedQuestionTableManager
                 required String id,
                 required String studySessionId,
                 Value<String?> openEndedId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityHasOpenEndedQuestionCompanion.insert(
                 id: id,
@@ -30674,9 +32767,9 @@ typedef $FsrsStateCreateCompanionBuilder =
       Value<int> scheduledDays,
       Value<int> totalReviews,
       Value<int?> lastRating,
-      Value<DateTime?> lastReviewAt,
-      required DateTime nextReviewAt,
-      Value<DateTime> updatedAt,
+      Value<int?> lastReviewAt,
+      required int nextReviewAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $FsrsStateUpdateCompanionBuilder =
@@ -30691,9 +32784,9 @@ typedef $FsrsStateUpdateCompanionBuilder =
       Value<int> scheduledDays,
       Value<int> totalReviews,
       Value<int?> lastRating,
-      Value<DateTime?> lastReviewAt,
-      Value<DateTime> nextReviewAt,
-      Value<DateTime> updatedAt,
+      Value<int?> lastReviewAt,
+      Value<int> nextReviewAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -30790,17 +32883,17 @@ class $FsrsStateFilterComposer extends Composer<_$AppDatabase, FsrsState> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get lastReviewAt => $composableBuilder(
+  ColumnFilters<int> get lastReviewAt => $composableBuilder(
     column: $table.lastReviewAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get nextReviewAt => $composableBuilder(
+  ColumnFilters<int> get nextReviewAt => $composableBuilder(
     column: $table.nextReviewAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+  ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -30907,17 +33000,17 @@ class $FsrsStateOrderingComposer extends Composer<_$AppDatabase, FsrsState> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get lastReviewAt => $composableBuilder(
+  ColumnOrderings<int> get lastReviewAt => $composableBuilder(
     column: $table.lastReviewAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get nextReviewAt => $composableBuilder(
+  ColumnOrderings<int> get nextReviewAt => $composableBuilder(
     column: $table.nextReviewAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -30993,17 +33086,17 @@ class $FsrsStateAnnotationComposer extends Composer<_$AppDatabase, FsrsState> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get lastReviewAt => $composableBuilder(
+  GeneratedColumn<int> get lastReviewAt => $composableBuilder(
     column: $table.lastReviewAt,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get nextReviewAt => $composableBuilder(
+  GeneratedColumn<int> get nextReviewAt => $composableBuilder(
     column: $table.nextReviewAt,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $GraphNodeAnnotationComposer get nodeId {
@@ -31093,9 +33186,9 @@ class $FsrsStateTableManager
                 Value<int> scheduledDays = const Value.absent(),
                 Value<int> totalReviews = const Value.absent(),
                 Value<int?> lastRating = const Value.absent(),
-                Value<DateTime?> lastReviewAt = const Value.absent(),
-                Value<DateTime> nextReviewAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> lastReviewAt = const Value.absent(),
+                Value<int> nextReviewAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FsrsStateCompanion(
                 id: id,
@@ -31125,9 +33218,9 @@ class $FsrsStateTableManager
                 Value<int> scheduledDays = const Value.absent(),
                 Value<int> totalReviews = const Value.absent(),
                 Value<int?> lastRating = const Value.absent(),
-                Value<DateTime?> lastReviewAt = const Value.absent(),
-                required DateTime nextReviewAt,
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> lastReviewAt = const Value.absent(),
+                required int nextReviewAt,
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FsrsStateCompanion.insert(
                 id: id,
@@ -31240,7 +33333,7 @@ typedef $FsrsReviewLogCreateCompanionBuilder =
       required double difficultyBefore,
       required int elapsedDays,
       required int scheduledDays,
-      Value<DateTime> reviewedAt,
+      Value<int> reviewedAt,
       Value<int> rowid,
     });
 typedef $FsrsReviewLogUpdateCompanionBuilder =
@@ -31254,7 +33347,7 @@ typedef $FsrsReviewLogUpdateCompanionBuilder =
       Value<double> difficultyBefore,
       Value<int> elapsedDays,
       Value<int> scheduledDays,
-      Value<DateTime> reviewedAt,
+      Value<int> reviewedAt,
       Value<int> rowid,
     });
 
@@ -31329,7 +33422,7 @@ class $FsrsReviewLogFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get reviewedAt => $composableBuilder(
+  ColumnFilters<int> get reviewedAt => $composableBuilder(
     column: $table.reviewedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -31407,7 +33500,7 @@ class $FsrsReviewLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get reviewedAt => $composableBuilder(
+  ColumnOrderings<int> get reviewedAt => $composableBuilder(
     column: $table.reviewedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -31481,7 +33574,7 @@ class $FsrsReviewLogAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get reviewedAt => $composableBuilder(
+  GeneratedColumn<int> get reviewedAt => $composableBuilder(
     column: $table.reviewedAt,
     builder: (column) => column,
   );
@@ -31547,7 +33640,7 @@ class $FsrsReviewLogTableManager
                 Value<double> difficultyBefore = const Value.absent(),
                 Value<int> elapsedDays = const Value.absent(),
                 Value<int> scheduledDays = const Value.absent(),
-                Value<DateTime> reviewedAt = const Value.absent(),
+                Value<int> reviewedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FsrsReviewLogCompanion(
                 id: id,
@@ -31573,7 +33666,7 @@ class $FsrsReviewLogTableManager
                 required double difficultyBefore,
                 required int elapsedDays,
                 required int scheduledDays,
-                Value<DateTime> reviewedAt = const Value.absent(),
+                Value<int> reviewedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FsrsReviewLogCompanion.insert(
                 id: id,
@@ -31665,7 +33758,7 @@ typedef $DomainLogCreateCompanionBuilder =
       Value<String?> levelAfter,
       required String eventOrigin,
       Value<String?> sourceActivityType,
-      Value<DateTime> loggedAt,
+      Value<int> loggedAt,
       Value<int> rowid,
     });
 typedef $DomainLogUpdateCompanionBuilder =
@@ -31678,7 +33771,7 @@ typedef $DomainLogUpdateCompanionBuilder =
       Value<String?> levelAfter,
       Value<String> eventOrigin,
       Value<String?> sourceActivityType,
-      Value<DateTime> loggedAt,
+      Value<int> loggedAt,
       Value<int> rowid,
     });
 
@@ -31747,7 +33840,7 @@ class $DomainLogFilterComposer extends Composer<_$AppDatabase, DomainLog> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+  ColumnFilters<int> get loggedAt => $composableBuilder(
     column: $table.loggedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -31819,7 +33912,7 @@ class $DomainLogOrderingComposer extends Composer<_$AppDatabase, DomainLog> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+  ColumnOrderings<int> get loggedAt => $composableBuilder(
     column: $table.loggedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -31889,7 +33982,7 @@ class $DomainLogAnnotationComposer extends Composer<_$AppDatabase, DomainLog> {
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get loggedAt =>
+  GeneratedColumn<int> get loggedAt =>
       $composableBuilder(column: $table.loggedAt, builder: (column) => column);
 
   $GraphNodeAnnotationComposer get nodeId {
@@ -31952,7 +34045,7 @@ class $DomainLogTableManager
                 Value<String?> levelAfter = const Value.absent(),
                 Value<String> eventOrigin = const Value.absent(),
                 Value<String?> sourceActivityType = const Value.absent(),
-                Value<DateTime> loggedAt = const Value.absent(),
+                Value<int> loggedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DomainLogCompanion(
                 id: id,
@@ -31976,7 +34069,7 @@ class $DomainLogTableManager
                 Value<String?> levelAfter = const Value.absent(),
                 required String eventOrigin,
                 Value<String?> sourceActivityType = const Value.absent(),
-                Value<DateTime> loggedAt = const Value.absent(),
+                Value<int> loggedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DomainLogCompanion.insert(
                 id: id,
@@ -32060,7 +34153,7 @@ typedef $GenericLogCreateCompanionBuilder =
       Value<String?> userId,
       required String type,
       required String payload,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
 typedef $GenericLogUpdateCompanionBuilder =
@@ -32069,9 +34162,31 @@ typedef $GenericLogUpdateCompanionBuilder =
       Value<String?> userId,
       Value<String> type,
       Value<String> payload,
-      Value<DateTime> createdAt,
+      Value<int> createdAt,
       Value<int> rowid,
     });
+
+final class $GenericLogReferences
+    extends BaseReferences<_$AppDatabase, GenericLog, GenericLogData> {
+  $GenericLogReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static AppUser _userIdTable(_$AppDatabase db) =>
+      db.appUser.createAlias('generic_log__user_id__app_user__id');
+
+  $AppUserProcessedTableManager? get userId {
+    final $_column = $_itemColumn<String>('user_id');
+    if ($_column == null) return null;
+    final manager = $AppUserTableManager(
+      $_db,
+      $_db.appUser,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $GenericLogFilterComposer extends Composer<_$AppDatabase, GenericLog> {
   $GenericLogFilterComposer({
@@ -32086,11 +34201,6 @@ class $GenericLogFilterComposer extends Composer<_$AppDatabase, GenericLog> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnFilters(column),
@@ -32101,10 +34211,33 @@ class $GenericLogFilterComposer extends Composer<_$AppDatabase, GenericLog> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+  ColumnFilters<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $AppUserFilterComposer get userId {
+    final $AppUserFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserFilterComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $GenericLogOrderingComposer extends Composer<_$AppDatabase, GenericLog> {
@@ -32120,11 +34253,6 @@ class $GenericLogOrderingComposer extends Composer<_$AppDatabase, GenericLog> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
@@ -32135,10 +34263,33 @@ class $GenericLogOrderingComposer extends Composer<_$AppDatabase, GenericLog> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $AppUserOrderingComposer get userId {
+    final $AppUserOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserOrderingComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $GenericLogAnnotationComposer
@@ -32153,17 +34304,37 @@ class $GenericLogAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
-
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get payload =>
       $composableBuilder(column: $table.payload, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $AppUserAnnotationComposer get userId {
+    final $AppUserAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.appUser,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AppUserAnnotationComposer(
+            $db: $db,
+            $table: $db.appUser,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $GenericLogTableManager
@@ -32177,12 +34348,9 @@ class $GenericLogTableManager
           $GenericLogAnnotationComposer,
           $GenericLogCreateCompanionBuilder,
           $GenericLogUpdateCompanionBuilder,
-          (
-            GenericLogData,
-            BaseReferences<_$AppDatabase, GenericLog, GenericLogData>,
-          ),
+          (GenericLogData, $GenericLogReferences),
           GenericLogData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool userId})
         > {
   $GenericLogTableManager(_$AppDatabase db, GenericLog table)
     : super(
@@ -32201,7 +34369,7 @@ class $GenericLogTableManager
                 Value<String?> userId = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String> payload = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GenericLogCompanion(
                 id: id,
@@ -32217,7 +34385,7 @@ class $GenericLogTableManager
                 Value<String?> userId = const Value.absent(),
                 required String type,
                 required String payload,
-                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GenericLogCompanion.insert(
                 id: id,
@@ -32228,9 +34396,52 @@ class $GenericLogTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $GenericLogReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $GenericLogReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $GenericLogReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -32245,17 +34456,15 @@ typedef $GenericLogProcessedTableManager =
       $GenericLogAnnotationComposer,
       $GenericLogCreateCompanionBuilder,
       $GenericLogUpdateCompanionBuilder,
-      (
-        GenericLogData,
-        BaseReferences<_$AppDatabase, GenericLog, GenericLogData>,
-      ),
+      (GenericLogData, $GenericLogReferences),
       GenericLogData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool userId})
     >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $AppUserTableManager get appUser => $AppUserTableManager(_db, _db.appUser);
   $ColorThemeTableManager get colorTheme =>
       $ColorThemeTableManager(_db, _db.colorTheme);
   $TypographyThemeTableManager get typographyTheme =>

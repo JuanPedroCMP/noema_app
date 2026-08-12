@@ -16,7 +16,7 @@ Method | HTTP request | Description
 
 
 # **currentUserApiV1UserGetGet**
-> JsonObject currentUserApiV1UserGetGet()
+> UserOut currentUserApiV1UserGetGet()
 
 Current User
 
@@ -41,7 +41,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+[**UserOut**](UserOut.md)
 
 ### Authorization
 
@@ -94,7 +94,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **newUserApiV1UserCreatePost**
-> JsonObject newUserApiV1UserCreatePost(userCreate)
+> UserOut newUserApiV1UserCreatePost(userCreate)
 
 New User
 
@@ -121,7 +121,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+[**UserOut**](UserOut.md)
 
 ### Authorization
 
@@ -135,7 +135,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateUserApiV1UserUpdatePut**
-> JsonObject updateUserApiV1UserUpdatePut(userUpdate)
+> UserOut updateUserApiV1UserUpdatePut(userUpdate)
 
 Update User
 
@@ -164,7 +164,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+[**UserOut**](UserOut.md)
 
 ### Authorization
 

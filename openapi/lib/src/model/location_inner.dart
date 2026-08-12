@@ -2,7 +2,7 @@
 // AUTO-GENERATED FILE, DO NOT MODIFY!
 //
 
-// ignore_for_file: unused_element_parameter, unused_element
+// ignore_for_file: unused_element
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
