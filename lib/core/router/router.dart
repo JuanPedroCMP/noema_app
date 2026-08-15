@@ -10,16 +10,17 @@ import 'package:noema/feature/config/presentation/profile_section.dart';
 import 'package:noema/feature/graph/create_graph.dart';
 import 'package:noema/feature/graph/graph.dart';
 import 'package:noema/feature/graph/graph_list.dart';
+import 'package:noema/feature/graph/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
 import 'package:noema/teste_page.dart';
 
-final goRouterProvider= Provider<GoRouter>((ref){
+final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
-    initialLocation:  "/",
+    initialLocation: "/",
 
     redirect: (context, state) {
       final isLoggingIn = state.matchedLocation == "/login";
@@ -27,128 +28,104 @@ final goRouterProvider= Provider<GoRouter>((ref){
       final isAuthLoading = authState.isLoading;
       final isLoggedIn = authState.value == true;
 
-      if(isAuthLoading){
-        return "/splash"; 
+      if (isAuthLoading) {
+        return "/splash";
       }
 
-      if (!isLoggedIn && !isLoggingIn && !isSigninUp){
+      if (!isLoggedIn && !isLoggingIn && !isSigninUp) {
         return "/login";
       }
 
-      if (isLoggedIn && (isLoggingIn || state.matchedLocation == "/splash")){
+      if (isLoggedIn && (isLoggingIn || state.matchedLocation == "/splash")) {
         return "/";
       }
 
       return null;
     },
 
-    routes: 
-    [
-       ShellRoute(
+    routes: [
+      ShellRoute(
         builder: (context, state, child) {
           return AuthBasePage(child: child);
         },
         routes: [
+          GoRoute(path: "/splash", builder: (_, _) => SplashPage()),
+          GoRoute(path: "/login", builder: (_, _) => LoginPage()),
 
-          GoRoute(
-            path: "/splash",
-            builder: (_, _) => SplashPage()
-          ),
-          GoRoute(
-            path: "/login",
-            builder: (_, _) => LoginPage()
-          ),
-
-          GoRoute(
-            path: "/sign_up",
-            builder: (_, _) => SignUpPage()
-          ),
+          GoRoute(path: "/sign_up", builder: (_, _) => SignUpPage()),
         ],
-       ),
-       
+      ),
+
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(
             navigationShell: navigationShell,
             currentPath: state.uri.path,
-            );
+          );
         },
 
         branches: [
           StatefulShellBranch(
+            routes: [GoRoute(path: "/", builder: (_, _) => const HomePage())],
+          ),
+
+          StatefulShellBranch(
+            routes: [GoRoute(path: "/notes", builder: (_, _) => NotesPage())],
+          ),
+
+          StatefulShellBranch(
+            routes: [GoRoute(path: "/config", builder: (_, _) => ConfigPage())],
+          ),
+
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: "/teste", builder: (_, _) => M3ShowcaseApp()),
+            ],
+          ),
+
+          StatefulShellBranch(
             routes: [
               GoRoute(
-              path: "/",
-              builder: (_, _) => const HomePage(),
+                path: "/graphs",
+                builder: (_, _) =>
+                    GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) {
+                      final String graphId = state.pathParameters['graphId']!;
+                      return GraphPage(graphId: graphId,);
+                    },
+                  ),
+                ],
               ),
-            ]
+            ],
           ),
 
           StatefulShellBranch(
+            //Temp
             routes: [
               GoRoute(
-                path: "/notes",
-                builder: (_, _) => NotesPage(),
-              ),        
-            ]
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: "/config",
-                builder: (_, _) => ConfigPage(),
-              ),        
-            ]
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: "/teste",
-                builder: (_, _) => M3ShowcaseApp(),
-              ),        
-            ]
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: "/graph",
-                builder: (_, _) => GraphPage(),
+                path: "/cg",
+                builder: (_, _) => CreateGraph(),
                 routes: [
                   
                 ]
-              ),        
-            ]
+              ),
+            ],
           ),
-          
-          // StatefulShellBranch( //Temp
-          //   routes: [
-          //     GoRoute(
-          //       path: "/cg",
-          //       builder: (_, _) => CreateGraph(),
-          //       routes: [
+
+          StatefulShellBranch(
+            //Temp
+            routes: [
+              GoRoute(path: "/lg", builder: (_, _) => GraphList(), routes: [
                   
-          //       ]
-          //     ),        
-          //   ]
-          // ),
-          
-          // StatefulShellBranch( //Temp 
-          //   routes: [
-          //     GoRoute(
-          //       path: "/lg",
-          //       builder: (_, _) => GraphList(),
-          //       routes: [
-                  
-          //       ]
-          //     ),        
-          //   ]
-          // ),
-          
-        ]
-      )
-    ]
+                ]
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
   );
 });

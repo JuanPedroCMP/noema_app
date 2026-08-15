@@ -70,4 +70,8 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
       ),
     );
   }
+
+  DeleteStatement<KnowledgeGraph, KnowledgeGraphData> deleteAllKnowledgeGraph() {
+    return (delete(attachedDatabase.knowledgeGraph));
+  }
 }

@@ -60,27 +60,39 @@ class AppShell extends ConsumerWidget {
                       navigationShell: navigationShell,
                       icon: Icon(Icons.home_rounded),
                     ),
-                     NavigationItem(
+                    NavigationItem(
                       index: 1,
                       label: "notes",
                       navigationShell: navigationShell,
                       icon: Icon(Icons.notes),
                     ),
-                     NavigationItem(
+                    NavigationItem(
                       index: 2,
                       label: "Config",
                       navigationShell: navigationShell,
                       icon: Icon(Icons.settings_rounded),
                     ),
-                     NavigationItem(
+                    NavigationItem(
                       index: 3,
                       label: "Teste",
                       navigationShell: navigationShell,
                       icon: Icon(Icons.smart_button),
                     ),
-                     NavigationItem(
+                    NavigationItem(
                       index: 4,
                       label: "Graph",
+                      navigationShell: navigationShell,
+                      icon: Icon(Icons.graphic_eq_rounded),
+                    ),
+                    NavigationItem(
+                      index: 5,
+                      label: "Create Graph",
+                      navigationShell: navigationShell,
+                      icon: Icon(Icons.graphic_eq_rounded),
+                    ),
+                    NavigationItem(
+                      index: 6,
+                      label: "List Graph",
                       navigationShell: navigationShell,
                       icon: Icon(Icons.graphic_eq_rounded),
                     ),
@@ -88,11 +100,11 @@ class AppShell extends ConsumerWidget {
                   pageWidgets: chrome.pageItens,
                   bottonWidgets: [
                     Icon(Icons.more_vert_rounded),
-                    SizedBox(height: context.spacing.md,),
+                    SizedBox(height: context.spacing.md),
                     Icon(Icons.person),
                   ],
                 ),
-               
+
                 const VerticalDivider(width: 1),
                 Expanded(child: _buildBody(context, navigationShell)),
               ],

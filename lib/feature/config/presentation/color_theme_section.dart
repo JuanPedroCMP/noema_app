@@ -26,7 +26,36 @@ class ColorThemeSection extends ConsumerWidget {
             Row(
               spacing: 15,
               children: [
-               
+                Expanded(
+                  child: ColorPicker(
+                    
+                    color: Color(form.color),
+                    onColorChanged: (Color color) =>
+                        formNotifier.colorChanged(color.toARGB32().toString()),
+                    wheelDiameter: 150,
+                    copyPasteBehavior: ColorPickerCopyPasteBehavior(),
+                    pickersEnabled: const <ColorPickerType, bool>{
+                      ColorPickerType.wheel: true, // Roda de cores
+                      ColorPickerType.primary: false,
+                      ColorPickerType.accent: false,
+                      ColorPickerType.both: false,
+                      ColorPickerType.custom: false,
+                      ColorPickerType.bw: false,
+                      ColorPickerType.customSecondary: false,
+                    },
+
+                    enableShadesSelection: false,
+                    colorCodeHasColor: true,
+                    colorCodeReadOnly: false,
+                  ),
+                ),
+
+                ElevatedButton(
+                  onPressed: () => {
+                    ref.read(colorProvider.notifier).change(color: form.color),
+                  },
+                  child: Text("mudar cor"),
+                ),
                 ElevatedButton(
                   onPressed: () async {
                     if (brightnessThemeProvider == Brightness.light) {
