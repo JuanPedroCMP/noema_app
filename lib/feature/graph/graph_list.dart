@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
+import 'package:noema/feature/graph/graph_page.dart';
+import 'package:noema/feature/graph/service/sugiyama.dart';
 
 class GraphList extends ConsumerStatefulWidget {
   const GraphList({super.key});
@@ -89,8 +92,17 @@ class _GraphListState extends ConsumerState<GraphList> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  context.push("/graphs/${graph.id}");
+                                  sugiyama(graph.id, ref);
+                                },
                                 child: Text("Ir para grafo"),
+                              ),
+                               OutlinedButton(
+                                onPressed: () {
+                                  context.push("/graphs/edit/${graph.id}");
+                                },
+                                child: Text("Editar grafo"),
                               ),
                               OutlinedButton(
                                 onPressed: () {

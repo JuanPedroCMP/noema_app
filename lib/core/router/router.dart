@@ -11,6 +11,7 @@ import 'package:noema/feature/graph/create_graph.dart';
 import 'package:noema/feature/graph/graph.dart';
 import 'package:noema/feature/graph/graph_list.dart';
 import 'package:noema/feature/graph/graph_page.dart';
+import 'package:noema/feature/graph/manage_graph.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
@@ -91,10 +92,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
                 routes: [
                   GoRoute(
-                    path: ':id',
+                    path: ':graphId',
                     builder: (context, state) {
                       final String graphId = state.pathParameters['graphId']!;
                       return GraphPage(graphId: graphId,);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'edit/:graphId',
+                    builder: (context, state) {
+                      final String graphId = state.pathParameters['graphId']!;
+                      return ManageGraph(graphId: graphId,);
                     },
                   ),
                 ],

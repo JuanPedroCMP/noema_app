@@ -9,7 +9,7 @@ final nodesProvider = FutureProvider.family<List<GraphNodeData>, String>((ref, g
     final db = ref.read(appDatabaseProvider);
     final dao = GraphNodeDao(db);
 
-    return dao.getGraphNodesByGraph(graphId: graphId);
+    return await dao.getGraphNodesByGraph(graphId: graphId);
   
 });
 
@@ -17,6 +17,6 @@ final edgesProvider = FutureProvider.family<List<GraphEdgeData>, String>((ref, g
     final db = ref.read(appDatabaseProvider);
     final dao = GraphEdgeDao(db);
 
-    return dao.getGraphEdgesByGraph(graphId: graphId);
+    return await dao.getGraphEdgesByGraph(graphId: graphId);
   
 });

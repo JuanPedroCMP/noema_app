@@ -44,6 +44,6 @@ class NodeFormProvider extends Notifier<NodeformState> {
   }
 }
 
-final edgeFormProvider = NotifierProvider<NodeFormProvider, NodeformState>(
+final nodeFormProvider = NotifierProvider<NodeFormProvider, NodeformState>(
   NodeFormProvider.new,
 );
