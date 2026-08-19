@@ -22,6 +22,7 @@ class AppShell extends ConsumerWidget {
   });
 
   static DisplaySize spacingFor(double width) {
+    return DisplaySize.desktop; //TODO temp, tirar dps
     if (width >= 900) return DisplaySize.desktop;
     if (width >= 600) return DisplaySize.tablet;
 

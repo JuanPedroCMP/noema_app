@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
 import 'package:noema/core/database/database.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
 
 (String, bool, bool) getTapTarget(
@@ -9,13 +10,25 @@ import 'package:noema/feature/graph/provider/selected_provider.dart';
   List<GraphEdgeData> edges,
   (List<Path>, List<String>) paths,
   SelectedNotifier selectedNotifier,
+  BuildContext context,
 ) {
+  final double nodeWidth = 200;
+  final double nodeHeigth = 80;
   // Nodes
   for (final node in nodes) {
-    final distance =
-        (Offset(node.positionX, node.positionY) - position).distance;
+    final rect = Rect.fromLTWH(
+      node.positionX - nodeWidth / 2,
+      node.positionY - nodeHeigth / 2,
+      nodeWidth,
+      nodeHeigth,
+    );
 
-    if (distance <= 40) {
+    final rrect = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(context.radius.card),
+    );
+
+    if (rrect.contains(position)) {
       selectedNotifier.selectedChanged(node.id);
       return (node.id, true, true);
     }
@@ -46,4 +59,8 @@ import 'package:noema/feature/graph/provider/selected_provider.dart';
   }
 
   return ("", false, false);
+}
+
+GraphNodeData onNodeTap(List<GraphNodeData> nodes, String nodeId) {
+  return nodes.firstWhere((node) => node.id == nodeId);
 }

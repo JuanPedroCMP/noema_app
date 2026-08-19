@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
 import 'package:noema/feature/graph/provider/path_provider.dart';
 import 'package:noema/teste_page.dart';
@@ -44,19 +45,22 @@ class GraphPainter extends CustomPainter {
 
     final nodePaint = Paint()
       ..color = context.colorScheme.surfaceContainer
-      ..style = PaintingStyle.fill
+      ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.miter
       ..strokeWidth = 4;
-      
+
     final nodePaintSelected = Paint()
-      ..color = context.colorScheme.surfaceContainerHighest
+      ..color = context.colorScheme.surfaceContainerHigh
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.miter
       ..strokeWidth = 4;
 
     final nodesById = {for (final node in nodes) node.id: node};
+
+    final double nodeWidth = 200;
+    final double nodeHeigth = 80;
 
     if (option == 1) {
       //// Direto
@@ -70,9 +74,9 @@ class GraphPainter extends CustomPainter {
 
         final path = Path();
 
-        path.moveTo(source.positionX, source.positionY);
+        path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
 
-        path.lineTo(target.positionX, target.positionY);
+        path.lineTo(target.positionX, target.positionY - nodeHeigth / 2);
 
         if (edge.id == selected) {
           canvas.drawPath(path, edgePaintSelected);
@@ -93,10 +97,10 @@ class GraphPainter extends CustomPainter {
         final path = Path();
 
         path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY),
+          Offset(source.positionX, source.positionY + nodeHeigth / 2),
           Offset(source.positionX, (target.positionY + source.positionY) / 2),
           Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY),
+          Offset(target.positionX, target.positionY - nodeHeigth / 2),
         ], false);
 
         if (edge.id == selected) {
@@ -118,11 +122,11 @@ class GraphPainter extends CustomPainter {
         final path = Path();
 
         path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY),
+          Offset(source.positionX, source.positionY + nodeHeigth / 2),
           Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY),
+          Offset(target.positionX, target.positionY - nodeHeigth / 2),
         ], false);
- 
+
         if (edge.id == selected) {
           canvas.drawPath(path, edgePaintSelected);
         } else {
@@ -141,13 +145,13 @@ class GraphPainter extends CustomPainter {
 
         final path = Path();
 
-        path.moveTo(source.positionX, source.positionY);
+        path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
 
         path.quadraticBezierTo(
           source.positionX,
           (source.positionY + target.positionY) / 2,
           target.positionX,
-          target.positionY,
+          target.positionY - nodeHeigth / 2,
         );
 
         if (edge.id == selected) {
@@ -158,19 +162,24 @@ class GraphPainter extends CustomPainter {
       }
     }
 
+    // Nodes
     for (final node in nodes) {
+      final rect = Rect.fromLTWH(
+        node.positionX - nodeWidth / 2,
+        node.positionY - nodeHeigth / 2,
+        nodeWidth,
+        nodeHeigth,
+      );
+
+      final rrect = RRect.fromRectAndRadius(
+        rect,
+        Radius.circular(context.radius.card),
+      );
+
       if (node.id == selected) {
-        canvas.drawCircle(
-          Offset(node.positionX, node.positionY),
-          40,
-          nodePaintSelected,
-        );
+        canvas.drawRRect(rrect, nodePaintSelected);
       } else {
-        canvas.drawCircle(
-          Offset(node.positionX, node.positionY),
-          40,
-          nodePaint,
-        );
+        canvas.drawRRect(rrect, nodePaint);
       }
 
       final textStyle = TextStyle(

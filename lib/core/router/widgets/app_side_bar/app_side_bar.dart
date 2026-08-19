@@ -42,33 +42,49 @@ class AppSideBar extends ConsumerWidget {
                 child: Icon(Icons.view_sidebar_rounded),
               ),
               SizedBox(height: context.spacing.lg),
-              ...navigationWidgets,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: context.spacing.md,
+                    children: [...navigationWidgets],
+                  ),
+                ),
+              ),
               Spacer(),
               ...bottonWidgets,
 
               SizedBox(height: context.spacing.lg),
             ],
           ),
-          
+
           SizedBox(child: sideBar.isOpen ? VerticalDivider(width: 1) : null),
 
           AnimatedSwitcher(
             duration: context.durations.instant,
             child: sideBar.isOpen
-                ? Column(
+                ? SingleChildScrollView(
+                  key: const ValueKey('sidebar-page'),
+                  child: Column(
                     spacing: context.spacing.md,
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
                         onTap: () {
-                          sideBarProdiver.alternateIsFixed(sideBar.isFixed);
+                          sideBarProdiver.alternateIsFixed(
+                            sideBar.isFixed,
+                          );
                         },
-                        child: sideBar.isFixed
-                            ? Icon(Icons.lock_rounded)
-                            : Icon(Icons.lock_open_rounded),
+                        child: Icon(
+                          sideBar.isFixed
+                              ? Icons.lock_rounded
+                              : Icons.lock_open_rounded,
+                        ),
                       ),
+
                       ...pageWidgets,
                     ],
+                    ),
                   )
                 : null,
           ),

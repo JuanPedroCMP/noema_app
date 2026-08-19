@@ -28,6 +28,8 @@ class GraphPage extends ConsumerWidget {
     final edgeType = ref.watch(edgeTypeProvider);
     final edgeTypeNotifier = ref.watch(edgeTypeProvider.notifier);
 
+    final controller = TransformationController();
+
     return nodesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Text('Erro: $error'),
@@ -37,40 +39,88 @@ class GraphPage extends ConsumerWidget {
           error: (error, stack) => Text('Erro: $error'),
           data: (edges) {
             final paths = calculatePaths(nodes, edges, edgeType);
+
+            if (nodes.isEmpty) {
+              return const SizedBox.expand();
+            }
+
+            double minX = double.infinity;
+            double maxX = double.negativeInfinity;
+            double minY = double.infinity;
+            double maxY = double.negativeInfinity;
+
+            for (final node in nodes) {
+              if (!node.positionX.isFinite || !node.positionY.isFinite) {
+                continue;
+              }
+
+              minX = min(minX, node.positionX);
+              maxX = max(maxX, node.positionX);
+
+              minY = min(minY, node.positionY);
+              maxY = max(maxY, node.positionY);
+            }
+
+            if (!minX.isFinite ||
+                !maxX.isFinite ||
+                !minY.isFinite ||
+                !maxY.isFinite) {
+              return const SizedBox.expand();
+            }
+
+            const padding = 50.0;
+
+            final graphWidth = max(1.0, maxX * 2);
+
+            final graphHeight = max(1.0, maxY * 2);
             return InteractiveViewer(
-              child: GestureDetector(
-                onTapDown: (details) {
-                  final result = getTapTarget(
-                    details.localPosition,
-                    nodes,
-                    edges,
-                    paths,
-                    selectedNotifier,
-                  );
+              boundaryMargin: EdgeInsets.all(500),
+              transformationController: controller,
+              constrained: false,
+              minScale: 0.05,
+              maxScale: 5,
+              child: SizedBox(
+                width: graphWidth,
+                height: graphHeight,
+                child: GestureDetector(
+                  onTapDown: (details) {
+                    final result = getTapTarget(
+                      details.localPosition,
+                      nodes,
+                      edges,
+                      paths,
+                      selectedNotifier,
+                      context
+                    );
 
-                  if (result.$3) {
-                    if (result.$2) {
-                      print('Node id ${result.$1}');
-                    } else {
-                      print('Edge id ${result.$1}');
+                    if (result.$3) {
+                      if (result.$2) {
+                        final node = onNodeTap(nodes, result.$1);
+                        print('Node id ${result.$1}');
+
+                        // controller.toScene(
+                        //   Offset(node.positionX, node.positionY),
+                        // );
+                      } else {
+                        print('Edge id ${result.$1}');
+                      }
                     }
-                  }
 
-                  if (edgeType >= 3) {
-                    edgeTypeNotifier.edgeTypeChanged(0);
-                  } else {
-                    edgeTypeNotifier.edgeTypeChanged(edgeType + 1);
-                  }
-                },
-                child: CustomPaint(
-                  painter: GraphPainter(
-                    context: context,
-                    nodes: nodes,
-                    edges: edges,
-                    selected: selected,
-                    option: edgeType,
+                    if (edgeType >= 3) {
+                      edgeTypeNotifier.edgeTypeChanged(0);
+                    } else {
+                      edgeTypeNotifier.edgeTypeChanged(edgeType + 1);
+                    }
+                  },
+                  child: CustomPaint(
+                    painter: GraphPainter(
+                      context: context,
+                      nodes: nodes,
+                      edges: edges,
+                      selected: selected,
+                      option: edgeType,
+                    ),
                   ),
-                  child: const SizedBox.expand(),
                 ),
               ),
             );

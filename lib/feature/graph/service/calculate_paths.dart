@@ -12,6 +12,8 @@ import 'package:noema/core/database/database.dart';
   List<Path> paths = [];
   List<String> ids = [];
 
+  final double nodeHeigth = 80;
+
   if (option == 1) {
     //// Direto
     for (final edge in edges) {
@@ -24,9 +26,9 @@ import 'package:noema/core/database/database.dart';
 
       final path = Path();
 
-      path.moveTo(source.positionX, source.positionY);
+      path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
 
-      path.lineTo(target.positionX, target.positionY);
+      path.lineTo(target.positionX, target.positionY - nodeHeigth / 2);
 
       paths.add(path);
       ids.add(edge.id);
@@ -44,10 +46,10 @@ import 'package:noema/core/database/database.dart';
       final path = Path();
 
       path.addPolygon(<Offset>[
-        Offset(source.positionX, source.positionY),
+        Offset(source.positionX, source.positionY + nodeHeigth / 2),
         Offset(source.positionX, (target.positionY + source.positionY) / 2),
         Offset(target.positionX, (target.positionY + source.positionY) / 2),
-        Offset(target.positionX, target.positionY),
+        Offset(target.positionX, target.positionY - nodeHeigth / 2),
       ], false);
 
       paths.add(path);
@@ -66,9 +68,9 @@ import 'package:noema/core/database/database.dart';
       final path = Path();
 
       path.addPolygon(<Offset>[
-        Offset(source.positionX, source.positionY),
+        Offset(source.positionX, source.positionY + nodeHeigth / 2),
         Offset(target.positionX, (target.positionY + source.positionY) / 2),
-        Offset(target.positionX, target.positionY),
+        Offset(target.positionX, target.positionY - nodeHeigth / 2),
       ], false);
       paths.add(path);
       ids.add(edge.id);
@@ -85,13 +87,13 @@ import 'package:noema/core/database/database.dart';
 
       final path = Path();
 
-      path.moveTo(source.positionX, source.positionY);
+      path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
 
       path.quadraticBezierTo(
         source.positionX,
         (source.positionY + target.positionY) / 2,
         target.positionX,
-        target.positionY,
+        target.positionY - nodeHeigth / 2,
       );
 
       paths.add(path);
