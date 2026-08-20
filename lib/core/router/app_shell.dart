@@ -119,8 +119,6 @@ Widget _buildBody(
   StatefulNavigationShell navigationShell,
 ) {
   return Container(
-    margin: EdgeInsets.all(context.spacing.xl),
-
     child: navigationShell,
   );
 }

@@ -75,7 +75,6 @@ class SugiyamaConfig {
   });
 }
 
-
 /// ============================================================================
 /// TIPOS INTERNOS
 /// ============================================================================
@@ -84,12 +83,8 @@ class _InputEdge {
   final String source;
   final String target;
 
-  const _InputEdge({
-    required this.source,
-    required this.target,
-  });
+  const _InputEdge({required this.source, required this.target});
 }
-
 
 class _LayoutNode {
   final String id;
@@ -102,24 +97,15 @@ class _LayoutNode {
   /// null para dummy nodes.
   final String? realNodeId;
 
-  const _LayoutNode({
-    required this.id,
-    required this.isDummy,
-    this.realNodeId,
-  });
+  const _LayoutNode({required this.id, required this.isDummy, this.realNodeId});
 }
-
 
 class _LayoutEdge {
   final String source;
   final String target;
 
-  const _LayoutEdge({
-    required this.source,
-    required this.target,
-  });
+  const _LayoutEdge({required this.source, required this.target});
 }
-
 
 class _GraphModel {
   final Map<String, _LayoutNode> nodes;
@@ -139,17 +125,12 @@ class _GraphModel {
   });
 }
 
-
 class _ExpandedGraph {
   final _GraphModel graph;
   final Map<String, int> layers;
 
-  const _ExpandedGraph({
-    required this.graph,
-    required this.layers,
-  });
+  const _ExpandedGraph({required this.graph, required this.layers});
 }
-
 
 class _LayerOrderResult {
   final Map<int, List<String>> nodesByLayer;
@@ -161,17 +142,12 @@ class _LayerOrderResult {
   });
 }
 
-
 class _SugiyamaResult {
   final Map<String, Offset> positions;
   final Map<String, int> layers;
 
-  const _SugiyamaResult({
-    required this.positions,
-    required this.layers,
-  });
+  const _SugiyamaResult({required this.positions, required this.layers});
 }
-
 
 /// ============================================================================
 /// ERRO ESPECÍFICO
@@ -195,7 +171,6 @@ class SugiyamaLayoutException implements Exception {
   String toString() => 'SugiyamaLayoutException: $message';
 }
 
-
 /// ============================================================================
 /// FENWICK TREE
 /// ============================================================================
@@ -216,16 +191,9 @@ class SugiyamaLayoutException implements Exception {
 class _FenwickTree {
   final List<int> _tree;
 
-  _FenwickTree(int size)
-      : _tree = List<int>.filled(
-          size + 1,
-          0,
-        );
+  _FenwickTree(int size) : _tree = List<int>.filled(size + 1, 0);
 
-  void add(
-    int index,
-    int value,
-  ) {
+  void add(int index, int value) {
     var i = index + 1;
 
     while (i < _tree.length) {
@@ -246,19 +214,14 @@ class _FenwickTree {
     return result;
   }
 
-  int queryRange(
-    int left,
-    int right,
-  ) {
+  int queryRange(int left, int right) {
     if (right < left) {
       return 0;
     }
 
-    return query(right) -
-        (left == 0 ? 0 : query(left - 1));
+    return query(right) - (left == 0 ? 0 : query(left - 1));
   }
 }
-
 
 /// ============================================================================
 /// API PRINCIPAL
@@ -270,17 +233,19 @@ class _FenwickTree {
 /// retorna sem alterar o que já estava salvo.
 ///
 
-Future<void> sugiyama(
+Future<Offset> sugiyama(
   String graphId,
   WidgetRef ref, {
   SugiyamaConfig config = const SugiyamaConfig(),
 }) async {
   try {
-    await _runAndPersistSugiyama(
+    final succeded = await _runAndPersistSugiyama(
       graphId: graphId,
       ref: ref,
       config: _sanitizeConfig(config),
     );
+
+    return succeded;
   } catch (error, stackTrace) {
     // --------------------------------------------------------------------------
     // Última rede de segurança: um erro no auto-layout nunca deve travar a
@@ -291,15 +256,16 @@ Future<void> sugiyama(
       'As posições anteriores foram preservadas. Erro: $error',
     );
     debugPrint('$stackTrace');
+
+    return Offset(0, 0);
   }
 }
-
 
 /// Carrega os dados, roda o algoritmo puro e persiste o resultado.
 ///
 /// Separado de `sugiyama()` só para que o try/catch externo cubra o
 /// pipeline inteiro (carregamento incluso) em um único lugar.
-Future<void> _runAndPersistSugiyama({
+Future<Offset> _runAndPersistSugiyama({
   required String graphId,
   required WidgetRef ref,
   required SugiyamaConfig config,
@@ -307,16 +273,12 @@ Future<void> _runAndPersistSugiyama({
   final db = ref.read(appDatabaseProvider);
   final graphNodeDao = GraphNodeDao(db);
 
-  final nodes = await ref.read(
-    nodesProvider(graphId).future,
-  );
+  final nodes = await ref.read(nodesProvider(graphId).future);
 
-  final edges = await ref.read(
-    edgesProvider(graphId).future,
-  );
+  final edges = await ref.read(edgesProvider(graphId).future);
 
   if (nodes.isEmpty) {
-    return;
+    return Offset(0, 0);
   }
 
   // --------------------------------------------------------------------------
@@ -345,10 +307,7 @@ Future<void> _runAndPersistSugiyama({
 
   for (final edge in edges) {
     inputEdges.add(
-      _InputEdge(
-        source: edge.sourceNodeId,
-        target: edge.targetNodeId,
-      ),
+      _InputEdge(source: edge.sourceNodeId, target: edge.targetNodeId),
     );
   }
 
@@ -373,19 +332,24 @@ Future<void> _runAndPersistSugiyama({
   var succeeded = 0;
   var failed = 0;
 
+  Offset succeeded0 = Offset(0, 0);
+
   for (final node in nodes) {
     final position = result.positions[node.id];
 
     if (position == null) {
       continue;
     }
-
     try {
       await graphNodeDao.updateGraphNode(
         id: node.id,
         positionX: position.dx,
         positionY: position.dy,
       );
+
+      if (succeeded == 0) {
+        succeeded0 = Offset(node.positionX, node.positionY);
+      }
 
       succeeded++;
 
@@ -412,8 +376,9 @@ Future<void> _runAndPersistSugiyama({
     '${nodes.length} nós reais '
     '($succeeded atualizados, $failed com falha).',
   );
-}
 
+  return succeeded0;
+}
 
 /// ============================================================================
 /// SANITIZAÇÃO DE CONFIGURAÇÃO
@@ -426,10 +391,7 @@ Future<void> _runAndPersistSugiyama({
 ///
 
 SugiyamaConfig _sanitizeConfig(SugiyamaConfig config) {
-  double safeSpacing(
-    double value,
-    double fallback,
-  ) {
+  double safeSpacing(double value, double fallback) {
     if (!value.isFinite || value <= 0) {
       return fallback;
     }
@@ -446,32 +408,16 @@ SugiyamaConfig _sanitizeConfig(SugiyamaConfig config) {
   }
 
   return SugiyamaConfig(
-    horizontalSpacing: safeSpacing(
-      config.horizontalSpacing,
-      220.0,
-    ),
-    verticalSpacing: safeSpacing(
-      config.verticalSpacing,
-      180.0,
-    ),
-    minimumHorizontalGap: safeSpacing(
-      config.minimumHorizontalGap,
-      220.0,
-    ),
-    crossingIterations: safeIterations(
-      config.crossingIterations,
-    ),
-    transposeIterations: safeIterations(
-      config.transposeIterations,
-    ),
-    coordinateIterations: safeIterations(
-      config.coordinateIterations,
-    ),
+    horizontalSpacing: safeSpacing(config.horizontalSpacing, 220.0),
+    verticalSpacing: safeSpacing(config.verticalSpacing, 180.0),
+    minimumHorizontalGap: safeSpacing(config.minimumHorizontalGap, 220.0),
+    crossingIterations: safeIterations(config.crossingIterations),
+    transposeIterations: safeIterations(config.transposeIterations),
+    coordinateIterations: safeIterations(config.coordinateIterations),
     preservePreviousOrder: config.preservePreviousOrder,
     compact: config.compact,
   );
 }
-
 
 /// ============================================================================
 /// PIPELINE
@@ -487,27 +433,19 @@ _SugiyamaResult _runSugiyama({
   // 1. Construir o grafo (já livre de ciclos, ver `_buildGraph`)
   // ==========================================================================
 
-  final graph = _buildGraph(
-    nodes: nodes,
-    edges: edges,
-  );
+  final graph = _buildGraph(nodes: nodes, edges: edges);
 
   // ==========================================================================
   // 2. Atribuir camadas
   // ==========================================================================
 
-  final layers = _assignLayers(
-    graph: graph,
-  );
+  final layers = _assignLayers(graph: graph);
 
   // ==========================================================================
   // 3. Inserir dummy nodes
   // ==========================================================================
 
-  final expanded = _insertDummyNodes(
-    graph: graph,
-    layers: layers,
-  );
+  final expanded = _insertDummyNodes(graph: graph, layers: layers);
 
   // ==========================================================================
   // 4. Ordem inicial
@@ -539,12 +477,8 @@ _SugiyamaResult _runSugiyama({
     config: config,
   );
 
-  return _SugiyamaResult(
-    positions: positions,
-    layers: expanded.layers,
-  );
+  return _SugiyamaResult(positions: positions, layers: expanded.layers);
 }
-
 
 /// ============================================================================
 /// CONSTRUIR GRAFO
@@ -556,11 +490,7 @@ _GraphModel _buildGraph({
 }) {
   final layoutNodes = <String, _LayoutNode>{
     for (final node in nodes)
-      node.id: _LayoutNode(
-        id: node.id,
-        isDummy: false,
-        realNodeId: node.id,
-      ),
+      node.id: _LayoutNode(id: node.id, isDummy: false, realNodeId: node.id),
   };
 
   final nodeIds = layoutNodes.keys.toSet();
@@ -580,8 +510,7 @@ _GraphModel _buildGraph({
     final source = edge.source;
     final target = edge.target;
 
-    if (!nodeIds.contains(source) ||
-        !nodeIds.contains(target)) {
+    if (!nodeIds.contains(source) || !nodeIds.contains(target)) {
       continue;
     }
 
@@ -608,16 +537,11 @@ _GraphModel _buildGraph({
   // para tornar o grafo acíclico.
   // --------------------------------------------------------------------------
 
-  final cycleResult = _breakCycles(
-    nodeIds: nodeIds,
-    edges: candidateEdges,
-  );
+  final cycleResult = _breakCycles(nodeIds: nodeIds, edges: candidateEdges);
 
   if (cycleResult.removedEdges.isNotEmpty) {
     final removedDescription = cycleResult.removedEdges
-        .map(
-          (edge) => '${edge.source}->${edge.target}',
-        )
+        .map((edge) => '${edge.source}->${edge.target}')
         .join(', ');
 
     debugPrint(
@@ -632,19 +556,14 @@ _GraphModel _buildGraph({
   // --------------------------------------------------------------------------
 
   final parents = <String, List<String>>{
-    for (final node in nodes)
-      node.id: <String>[],
+    for (final node in nodes) node.id: <String>[],
   };
 
   final children = <String, List<String>>{
-    for (final node in nodes)
-      node.id: <String>[],
+    for (final node in nodes) node.id: <String>[],
   };
 
-  final indegree = <String, int>{
-    for (final node in nodes)
-      node.id: 0,
-  };
+  final indegree = <String, int>{for (final node in nodes) node.id: 0};
 
   final layoutEdges = <_LayoutEdge>[];
 
@@ -652,12 +571,7 @@ _GraphModel _buildGraph({
     final source = edge.source;
     final target = edge.target;
 
-    layoutEdges.add(
-      _LayoutEdge(
-        source: source,
-        target: target,
-      ),
-    );
+    layoutEdges.add(_LayoutEdge(source: source, target: target));
 
     children[source]?.add(target);
     parents[target]?.add(source);
@@ -673,7 +587,6 @@ _GraphModel _buildGraph({
     indegree: indegree,
   );
 }
-
 
 /// ============================================================================
 /// REMOÇÃO AUTOMÁTICA DE CICLOS
@@ -718,9 +631,7 @@ _CycleBreakResult _breakCycles({
     adjacency[edge.source]?.add(edge);
   }
 
-  final color = <String, int>{
-    for (final id in nodeIds) id: _dfsWhite,
-  };
+  final color = <String, int>{for (final id in nodeIds) id: _dfsWhite};
 
   final acyclicEdges = <_InputEdge>[];
   final removedEdges = <_InputEdge>[];
@@ -785,7 +696,6 @@ _CycleBreakResult _breakCycles({
   );
 }
 
-
 /// ============================================================================
 /// LAYER ASSIGNMENT
 /// ============================================================================
@@ -811,16 +721,11 @@ _CycleBreakResult _breakCycles({
 /// lançar uma exceção.
 ///
 
-Map<String, int> _assignLayers({
-  required _GraphModel graph,
-}) {
-  final indegree = <String, int>{
-    ...graph.indegree,
-  };
+Map<String, int> _assignLayers({required _GraphModel graph}) {
+  final indegree = <String, int>{...graph.indegree};
 
   final layers = <String, int>{
-    for (final nodeId in graph.nodes.keys)
-      nodeId: 0,
+    for (final nodeId in graph.nodes.keys) nodeId: 0,
   };
 
   final queue = Queue<String>();
@@ -841,10 +746,7 @@ Map<String, int> _assignLayers({
     final currentLayer = layers[current] ?? 0;
 
     for (final child in graph.children[current] ?? const []) {
-      layers[child] = math.max(
-        layers[child] ?? 0,
-        currentLayer + 1,
-      );
+      layers[child] = math.max(layers[child] ?? 0, currentLayer + 1);
 
       indegree[child] = (indegree[child] ?? 0) - 1;
 
@@ -863,12 +765,8 @@ Map<String, int> _assignLayers({
 
   if (processed != graph.nodes.length) {
     final unprocessed = indegree.entries
-        .where(
-          (entry) => entry.value > 0,
-        )
-        .map(
-          (entry) => entry.key,
-        )
+        .where((entry) => entry.value > 0)
+        .map((entry) => entry.key)
         .toList();
 
     debugPrint(
@@ -877,10 +775,8 @@ Map<String, int> _assignLayers({
       'de fallback para: $unprocessed',
     );
 
-    final fallbackLayer = (layers.values.isEmpty
-            ? 0
-            : layers.values.reduce(math.max)) +
-        1;
+    final fallbackLayer =
+        (layers.values.isEmpty ? 0 : layers.values.reduce(math.max)) + 1;
 
     for (final nodeId in unprocessed) {
       layers[nodeId] = fallbackLayer;
@@ -890,7 +786,6 @@ Map<String, int> _assignLayers({
   return layers;
 }
 
-
 /// ============================================================================
 /// INSERIR DUMMY NODES
 /// ============================================================================
@@ -899,15 +794,11 @@ _ExpandedGraph _insertDummyNodes({
   required _GraphModel graph,
   required Map<String, int> layers,
 }) {
-  final expandedNodes = <String, _LayoutNode>{
-    ...graph.nodes,
-  };
+  final expandedNodes = <String, _LayoutNode>{...graph.nodes};
 
   final expandedEdges = <_LayoutEdge>[];
 
-  final expandedLayers = <String, int>{
-    ...layers,
-  };
+  final expandedLayers = <String, int>{...layers};
 
   var dummyCounter = 0;
 
@@ -915,8 +806,7 @@ _ExpandedGraph _insertDummyNodes({
     final sourceLayer = layers[edge.source] ?? 0;
     final targetLayer = layers[edge.target] ?? 0;
 
-    final distance =
-        targetLayer - sourceLayer;
+    final distance = targetLayer - sourceLayer;
 
     // ------------------------------------------------------------------------
     // Aresta entre camadas consecutivas (ou, no pior caso de fallback,
@@ -941,18 +831,12 @@ _ExpandedGraph _insertDummyNodes({
 
     var previousNode = edge.source;
 
-    for (
-      var layer = sourceLayer + 1;
-      layer < targetLayer;
-      layer++
-    ) {
-      final dummyId =
-          '__dummy__$dummyCounter';
+    for (var layer = sourceLayer + 1; layer < targetLayer; layer++) {
+      final dummyId = '__dummy__$dummyCounter';
 
       dummyCounter++;
 
-      expandedNodes[dummyId] =
-          _LayoutNode(
+      expandedNodes[dummyId] = _LayoutNode(
         id: dummyId,
         isDummy: true,
         realNodeId: null,
@@ -960,37 +844,24 @@ _ExpandedGraph _insertDummyNodes({
 
       expandedLayers[dummyId] = layer;
 
-      expandedEdges.add(
-        _LayoutEdge(
-          source: previousNode,
-          target: dummyId,
-        ),
-      );
+      expandedEdges.add(_LayoutEdge(source: previousNode, target: dummyId));
 
       previousNode = dummyId;
     }
 
-    expandedEdges.add(
-      _LayoutEdge(
-        source: previousNode,
-        target: edge.target,
-      ),
-    );
+    expandedEdges.add(_LayoutEdge(source: previousNode, target: edge.target));
   }
 
   final parents = <String, List<String>>{
-    for (final nodeId in expandedNodes.keys)
-      nodeId: <String>[],
+    for (final nodeId in expandedNodes.keys) nodeId: <String>[],
   };
 
   final children = <String, List<String>>{
-    for (final nodeId in expandedNodes.keys)
-      nodeId: <String>[],
+    for (final nodeId in expandedNodes.keys) nodeId: <String>[],
   };
 
   final indegree = <String, int>{
-    for (final nodeId in expandedNodes.keys)
-      nodeId: 0,
+    for (final nodeId in expandedNodes.keys) nodeId: 0,
   };
 
   for (final edge in expandedEdges) {
@@ -1012,7 +883,6 @@ _ExpandedGraph _insertDummyNodes({
   );
 }
 
-
 /// ============================================================================
 /// ORDEM INICIAL DAS CAMADAS
 /// ============================================================================
@@ -1025,83 +895,64 @@ Map<int, List<String>> _buildInitialLayerOrder({
   final result = <int, List<String>>{};
 
   for (final entry in layers.entries) {
-    result
-        .putIfAbsent(
-          entry.value,
-          () => <String>[],
-        )
-        .add(entry.key);
+    result.putIfAbsent(entry.value, () => <String>[]).add(entry.key);
   }
 
   for (final layerNodes in result.values) {
-    final originalOrder = _positionMap(
-      layerNodes,
-    );
+    final originalOrder = _positionMap(layerNodes);
 
-    layerNodes.sort(
-      (a, b) {
-        final xA = previousX[a];
-        final xB = previousX[b];
+    layerNodes.sort((a, b) {
+      final xA = previousX[a];
+      final xB = previousX[b];
 
-        // --------------------------------------------------------------------
-        // Ambos possuem posição anterior.
-        // --------------------------------------------------------------------
+      // --------------------------------------------------------------------
+      // Ambos possuem posição anterior.
+      // --------------------------------------------------------------------
 
-        if (xA != null && xB != null) {
-          final comparison =
-              xA.compareTo(xB);
+      if (xA != null && xB != null) {
+        final comparison = xA.compareTo(xB);
 
-          if (comparison != 0) {
-            return comparison;
-          }
-
-          return originalOrder[a]!
-              .compareTo(
-                originalOrder[b]!,
-              );
+        if (comparison != 0) {
+          return comparison;
         }
 
-        // --------------------------------------------------------------------
-        // Apenas A possui posição.
-        // --------------------------------------------------------------------
+        return originalOrder[a]!.compareTo(originalOrder[b]!);
+      }
 
-        if (xA != null) {
-          return -1;
-        }
+      // --------------------------------------------------------------------
+      // Apenas A possui posição.
+      // --------------------------------------------------------------------
 
-        // --------------------------------------------------------------------
-        // Apenas B possui posição.
-        // --------------------------------------------------------------------
+      if (xA != null) {
+        return -1;
+      }
 
-        if (xB != null) {
-          return 1;
-        }
+      // --------------------------------------------------------------------
+      // Apenas B possui posição.
+      // --------------------------------------------------------------------
 
-        // --------------------------------------------------------------------
-        // Dummy nodes sem posição anterior.
-        // --------------------------------------------------------------------
+      if (xB != null) {
+        return 1;
+      }
 
-        final aDummy =
-            graph.nodes[a]?.isDummy ?? false;
+      // --------------------------------------------------------------------
+      // Dummy nodes sem posição anterior.
+      // --------------------------------------------------------------------
 
-        final bDummy =
-            graph.nodes[b]?.isDummy ?? false;
+      final aDummy = graph.nodes[a]?.isDummy ?? false;
 
-        if (aDummy != bDummy) {
-          return aDummy ? 1 : -1;
-        }
+      final bDummy = graph.nodes[b]?.isDummy ?? false;
 
-        return originalOrder[a]!
-            .compareTo(
-              originalOrder[b]!,
-            );
-      },
-    );
+      if (aDummy != bDummy) {
+        return aDummy ? 1 : -1;
+      }
+
+      return originalOrder[a]!.compareTo(originalOrder[b]!);
+    });
   }
 
   return result;
 }
-
 
 /// ============================================================================
 /// MINIMIZAÇÃO DE CRUZAMENTOS
@@ -1112,82 +963,56 @@ _LayerOrderResult _minimizeCrossings({
   required Map<int, List<String>> initialLayers,
   required SugiyamaConfig config,
 }) {
-  var current =
-      _cloneLayers(initialLayers);
+  var current = _cloneLayers(initialLayers);
 
-  var currentCrossings =
-      _countAllCrossings(
+  var currentCrossings = _countAllCrossings(
     graph: graph,
     nodesByLayer: current,
   );
 
-  var best =
-      _cloneLayers(current);
+  var best = _cloneLayers(current);
 
-  var bestCrossings =
-      currentCrossings;
+  var bestCrossings = currentCrossings;
 
-  for (
-    var iteration = 0;
-    iteration < config.crossingIterations;
-    iteration++
-  ) {
+  for (var iteration = 0; iteration < config.crossingIterations; iteration++) {
     // ========================================================================
     // Downward sweep
     // ========================================================================
 
-    final downward =
-        _downwardSweep(
-      graph: graph,
-      nodesByLayer: current,
-    );
+    final downward = _downwardSweep(graph: graph, nodesByLayer: current);
 
-    final downwardCrossings =
-        _countAllCrossings(
+    final downwardCrossings = _countAllCrossings(
       graph: graph,
       nodesByLayer: downward,
     );
 
     current = downward;
-    currentCrossings =
-        downwardCrossings;
+    currentCrossings = downwardCrossings;
 
-    if (currentCrossings <
-        bestCrossings) {
-      best =
-          _cloneLayers(current);
+    if (currentCrossings < bestCrossings) {
+      best = _cloneLayers(current);
 
-      bestCrossings =
-          currentCrossings;
+      bestCrossings = currentCrossings;
     }
 
     // ========================================================================
     // Upward sweep
     // ========================================================================
 
-    final upward =
-        _upwardSweep(
-      graph: graph,
-      nodesByLayer: current,
-    );
+    final upward = _upwardSweep(graph: graph, nodesByLayer: current);
 
-    final upwardCrossings =
-        _countAllCrossings(
+    final upwardCrossings = _countAllCrossings(
       graph: graph,
       nodesByLayer: upward,
     );
 
     current = upward;
-    currentCrossings =
-        upwardCrossings;
+    currentCrossings = upwardCrossings;
 
-    if (currentCrossings <
-        bestCrossings) {
-      best =
-          _cloneLayers(current);
+    if (currentCrossings < bestCrossings) {
+      best = _cloneLayers(current);
 
-      bestCrossings =
-          currentCrossings;
+      bestCrossings = currentCrossings;
     }
 
     // ========================================================================
@@ -1196,31 +1021,24 @@ _LayerOrderResult _minimizeCrossings({
     // Tenta trocar pares vizinhos quando isso reduz cruzamentos.
     // ========================================================================
 
-    final transposed =
-        _transposeLayers(
+    final transposed = _transposeLayers(
       graph: graph,
       nodesByLayer: current,
-      maxIterations:
-          config.transposeIterations,
+      maxIterations: config.transposeIterations,
     );
 
-    final transposedCrossings =
-        _countAllCrossings(
+    final transposedCrossings = _countAllCrossings(
       graph: graph,
       nodesByLayer: transposed,
     );
 
     current = transposed;
-    currentCrossings =
-        transposedCrossings;
+    currentCrossings = transposedCrossings;
 
-    if (currentCrossings <
-        bestCrossings) {
-      best =
-          _cloneLayers(current);
+    if (currentCrossings < bestCrossings) {
+      best = _cloneLayers(current);
 
-      bestCrossings =
-          currentCrossings;
+      bestCrossings = currentCrossings;
     }
 
     // ========================================================================
@@ -1232,12 +1050,8 @@ _LayerOrderResult _minimizeCrossings({
     }
   }
 
-  return _LayerOrderResult(
-    nodesByLayer: best,
-    crossingCount: bestCrossings,
-  );
+  return _LayerOrderResult(nodesByLayer: best, crossingCount: bestCrossings);
 }
-
 
 /// ============================================================================
 /// DOWNWARD SWEEP
@@ -1262,72 +1076,46 @@ Map<int, List<String>> _downwardSweep({
   required _GraphModel graph,
   required Map<int, List<String>> nodesByLayer,
 }) {
-  final result =
-      _cloneLayers(nodesByLayer);
+  final result = _cloneLayers(nodesByLayer);
 
-  final maxLayer =
-      _maxLayer(result);
+  final maxLayer = _maxLayer(result);
 
-  for (
-    var layer = 1;
-    layer <= maxLayer;
-    layer++
-  ) {
-    final currentLayer =
-        result[layer];
+  for (var layer = 1; layer <= maxLayer; layer++) {
+    final currentLayer = result[layer];
 
-    if (currentLayer == null ||
-        currentLayer.length <= 1) {
+    if (currentLayer == null || currentLayer.length <= 1) {
       continue;
     }
 
-    final upperLayer =
-        result[layer - 1] ?? const [];
+    final upperLayer = result[layer - 1] ?? const [];
 
-    final upperPosition =
-        _positionMap(upperLayer);
+    final upperPosition = _positionMap(upperLayer);
 
-    final oldPosition =
-        _positionMap(currentLayer);
+    final oldPosition = _positionMap(currentLayer);
 
     final score = <String, double>{};
 
-    for (final nodeId
-        in currentLayer) {
-      score[nodeId] =
-          _barycenter(
-        neighbors:
-            graph.parents[nodeId] ??
-                const [],
-        position:
-            upperPosition,
+    for (final nodeId in currentLayer) {
+      score[nodeId] = _barycenter(
+        neighbors: graph.parents[nodeId] ?? const [],
+        position: upperPosition,
       );
     }
 
-    currentLayer.sort(
-      (a, b) {
-        final comparison =
-            _compareScores(
-          score[a]!,
-          score[b]!,
-        );
+    currentLayer.sort((a, b) {
+      final comparison = _compareScores(score[a]!, score[b]!);
 
-        if (comparison != 0) {
-          return comparison;
-        }
+      if (comparison != 0) {
+        return comparison;
+      }
 
-        // Mantém estabilidade.
-        return oldPosition[a]!
-            .compareTo(
-              oldPosition[b]!,
-            );
-      },
-    );
+      // Mantém estabilidade.
+      return oldPosition[a]!.compareTo(oldPosition[b]!);
+    });
   }
 
   return result;
 }
-
 
 /// ============================================================================
 /// UPWARD SWEEP
@@ -1337,71 +1125,45 @@ Map<int, List<String>> _upwardSweep({
   required _GraphModel graph,
   required Map<int, List<String>> nodesByLayer,
 }) {
-  final result =
-      _cloneLayers(nodesByLayer);
+  final result = _cloneLayers(nodesByLayer);
 
-  final maxLayer =
-      _maxLayer(result);
+  final maxLayer = _maxLayer(result);
 
-  for (
-    var layer = maxLayer - 1;
-    layer >= 0;
-    layer--
-  ) {
-    final currentLayer =
-        result[layer];
+  for (var layer = maxLayer - 1; layer >= 0; layer--) {
+    final currentLayer = result[layer];
 
-    if (currentLayer == null ||
-        currentLayer.length <= 1) {
+    if (currentLayer == null || currentLayer.length <= 1) {
       continue;
     }
 
-    final lowerLayer =
-        result[layer + 1] ?? const [];
+    final lowerLayer = result[layer + 1] ?? const [];
 
-    final lowerPosition =
-        _positionMap(lowerLayer);
+    final lowerPosition = _positionMap(lowerLayer);
 
-    final oldPosition =
-        _positionMap(currentLayer);
+    final oldPosition = _positionMap(currentLayer);
 
     final score = <String, double>{};
 
-    for (final nodeId
-        in currentLayer) {
-      score[nodeId] =
-          _barycenter(
-        neighbors:
-            graph.children[nodeId] ??
-                const [],
-        position:
-            lowerPosition,
+    for (final nodeId in currentLayer) {
+      score[nodeId] = _barycenter(
+        neighbors: graph.children[nodeId] ?? const [],
+        position: lowerPosition,
       );
     }
 
-    currentLayer.sort(
-      (a, b) {
-        final comparison =
-            _compareScores(
-          score[a]!,
-          score[b]!,
-        );
+    currentLayer.sort((a, b) {
+      final comparison = _compareScores(score[a]!, score[b]!);
 
-        if (comparison != 0) {
-          return comparison;
-        }
+      if (comparison != 0) {
+        return comparison;
+      }
 
-        return oldPosition[a]!
-            .compareTo(
-              oldPosition[b]!,
-            );
-      },
-    );
+      return oldPosition[a]!.compareTo(oldPosition[b]!);
+    });
   }
 
   return result;
 }
-
 
 /// ============================================================================
 /// BARYCENTER
@@ -1414,10 +1176,8 @@ double _barycenter({
   var sum = 0.0;
   var count = 0;
 
-  for (final neighbor
-      in neighbors) {
-    final index =
-        position[neighbor];
+  for (final neighbor in neighbors) {
+    final index = position[neighbor];
 
     if (index == null) {
       continue;
@@ -1434,17 +1194,12 @@ double _barycenter({
   return sum / count;
 }
 
-
 /// ============================================================================
 /// COMPARADOR DE SCORES
 /// ============================================================================
 
-int _compareScores(
-  double a,
-  double b,
-) {
-  if (a.isInfinite &&
-      b.isInfinite) {
+int _compareScores(double a, double b) {
+  if (a.isInfinite && b.isInfinite) {
     return 0;
   }
 
@@ -1458,7 +1213,6 @@ int _compareScores(
 
   return a.compareTo(b);
 }
-
 
 /// ============================================================================
 /// ADJACENT TRANSPOSE
@@ -1482,69 +1236,48 @@ Map<int, List<String>> _transposeLayers({
   required Map<int, List<String>> nodesByLayer,
   required int maxIterations,
 }) {
-  final result =
-      _cloneLayers(nodesByLayer);
+  final result = _cloneLayers(nodesByLayer);
 
   if (maxIterations <= 0) {
     return result;
   }
 
-  for (
-    var iteration = 0;
-    iteration < maxIterations;
-    iteration++
-  ) {
+  for (var iteration = 0; iteration < maxIterations; iteration++) {
     var changed = false;
 
-    final maxLayer =
-        _maxLayer(result);
+    final maxLayer = _maxLayer(result);
 
     // ------------------------------------------------------------------------
     // Alternamos a direção para evitar viés.
     // ------------------------------------------------------------------------
 
-    final forward =
-        iteration.isEven;
+    final forward = iteration.isEven;
 
-    final start =
-        forward ? 0 : maxLayer;
+    final start = forward ? 0 : maxLayer;
 
-    final end =
-        forward ? maxLayer : 0;
+    final end = forward ? maxLayer : 0;
 
-    final step =
-        forward ? 1 : -1;
+    final step = forward ? 1 : -1;
 
     for (
       var layer = start;
-      forward
-          ? layer <= end
-          : layer >= end;
+      forward ? layer <= end : layer >= end;
       layer += step
     ) {
-      final nodes =
-          result[layer];
+      final nodes = result[layer];
 
-      if (nodes == null ||
-          nodes.length <= 1) {
+      if (nodes == null || nodes.length <= 1) {
         continue;
       }
 
-      var i = forward
-          ? 0
-          : nodes.length - 2;
+      var i = forward ? 0 : nodes.length - 2;
 
-      while (
-          forward
-              ? i < nodes.length - 1
-              : i >= 0) {
-        if (i < 0 ||
-            i + 1 >= nodes.length) {
+      while (forward ? i < nodes.length - 1 : i >= 0) {
+        if (i < 0 || i + 1 >= nodes.length) {
           break;
         }
 
-        final before =
-            _localCrossingsForNodeLayer(
+        final before = _localCrossingsForNodeLayer(
           graph: graph,
           nodesByLayer: result,
           layer: layer,
@@ -1555,8 +1288,7 @@ Map<int, List<String>> _transposeLayers({
         nodes[i] = nodes[i + 1];
         nodes[i + 1] = temp;
 
-        final after =
-            _localCrossingsForNodeLayer(
+        final after = _localCrossingsForNodeLayer(
           graph: graph,
           nodesByLayer: result,
           layer: layer,
@@ -1573,8 +1305,7 @@ Map<int, List<String>> _transposeLayers({
           }
         } else {
           // Desfaz.
-          final rollback =
-              nodes[i];
+          final rollback = nodes[i];
 
           nodes[i] = nodes[i + 1];
           nodes[i + 1] = rollback;
@@ -1596,7 +1327,6 @@ Map<int, List<String>> _transposeLayers({
   return result;
 }
 
-
 /// ============================================================================
 /// CROSSINGS LOCAIS
 /// ============================================================================
@@ -1612,17 +1342,13 @@ int _localCrossingsForNodeLayer({
 }) {
   var result = 0;
 
-  final upper =
-      nodesByLayer[layer - 1];
+  final upper = nodesByLayer[layer - 1];
 
-  final current =
-      nodesByLayer[layer];
+  final current = nodesByLayer[layer];
 
-  final lower =
-      nodesByLayer[layer + 1];
+  final lower = nodesByLayer[layer + 1];
 
-  if (upper != null &&
-      current != null) {
+  if (upper != null && current != null) {
     result += _countLayerCrossings(
       graph: graph,
       upperLayer: upper,
@@ -1630,8 +1356,7 @@ int _localCrossingsForNodeLayer({
     );
   }
 
-  if (current != null &&
-      lower != null) {
+  if (current != null && lower != null) {
     result += _countLayerCrossings(
       graph: graph,
       upperLayer: current,
@@ -1641,7 +1366,6 @@ int _localCrossingsForNodeLayer({
 
   return result;
 }
-
 
 /// ============================================================================
 /// COORDINATE ASSIGNMENT
@@ -1669,8 +1393,7 @@ Map<String, Offset> _assignCoordinates({
   required Map<int, List<String>> nodesByLayer,
   required SugiyamaConfig config,
 }) {
-  final positions =
-      <String, Offset>{};
+  final positions = <String, Offset>{};
 
   if (nodesByLayer.isEmpty) {
     return positions;
@@ -1680,23 +1403,15 @@ Map<String, Offset> _assignCoordinates({
   // 1. Posição inicial
   // ==========================================================================
 
-  for (final entry
-      in nodesByLayer.entries) {
-    final layer =
-        entry.key;
+  for (final entry in nodesByLayer.entries) {
+    final layer = entry.key;
 
-    final nodes =
-        entry.value;
+    final nodes = entry.value;
 
-    for (var i = 0;
-        i < nodes.length;
-        i++) {
-      positions[nodes[i]] =
-          Offset(
-        i *
-            config.horizontalSpacing,
-        layer *
-            config.verticalSpacing,
+    for (var i = 0; i < nodes.length; i++) {
+      positions[nodes[i]] = Offset(
+        i * config.horizontalSpacing,
+        layer * config.verticalSpacing,
       );
     }
   }
@@ -1707,38 +1422,29 @@ Map<String, Offset> _assignCoordinates({
 
   for (
     var iteration = 0;
-    iteration <
-        config.coordinateIterations;
+    iteration < config.coordinateIterations;
     iteration++
   ) {
-    final forward =
-        iteration.isEven;
+    final forward = iteration.isEven;
 
     if (forward) {
       _coordinateForwardPass(
         graph: graph,
-        nodesByLayer:
-            nodesByLayer,
-        positions:
-            positions,
+        nodesByLayer: nodesByLayer,
+        positions: positions,
       );
     } else {
       _coordinateBackwardPass(
         graph: graph,
-        nodesByLayer:
-            nodesByLayer,
-        positions:
-            positions,
+        nodesByLayer: nodesByLayer,
+        positions: positions,
       );
     }
 
     _projectLayerPositions(
-      nodesByLayer:
-          nodesByLayer,
-      positions:
-          positions,
-      minimumGap:
-          config.minimumHorizontalGap,
+      nodesByLayer: nodesByLayer,
+      positions: positions,
+      minimumGap: config.minimumHorizontalGap,
     );
   }
 
@@ -1751,8 +1457,7 @@ Map<String, Offset> _assignCoordinates({
       graph: graph,
       nodesByLayer: nodesByLayer,
       positions: positions,
-      minimumGap:
-          config.minimumHorizontalGap,
+      minimumGap: config.minimumHorizontalGap,
     );
   }
 
@@ -1760,13 +1465,10 @@ Map<String, Offset> _assignCoordinates({
   // 4. Garantir coordenadas positivas
   // ==========================================================================
 
-  _normalizeCoordinates(
-    positions,
-  );
+  _normalizeCoordinates(positions);
 
   return positions;
 }
-
 
 /// ============================================================================
 /// PASSAGEM PARA FRENTE
@@ -1777,50 +1479,30 @@ void _coordinateForwardPass({
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
 }) {
-  final maxLayer =
-      _maxLayer(nodesByLayer);
+  final maxLayer = _maxLayer(nodesByLayer);
 
-  for (
-    var layer = 1;
-    layer <= maxLayer;
-    layer++
-  ) {
-    final current =
-        nodesByLayer[layer];
+  for (var layer = 1; layer <= maxLayer; layer++) {
+    final current = nodesByLayer[layer];
 
     if (current == null) {
       continue;
     }
 
     for (final nodeId in current) {
-      final neighbors =
-          graph.parents[nodeId] ??
-              const [];
+      final neighbors = graph.parents[nodeId] ?? const [];
 
-      final desired =
-          _desiredX(
-        neighbors:
-            neighbors,
-        positions:
-            positions,
-      );
+      final desired = _desiredX(neighbors: neighbors, positions: positions);
 
       if (desired == null) {
         continue;
       }
 
-      final position =
-          positions[nodeId]!;
+      final position = positions[nodeId]!;
 
-      positions[nodeId] =
-          Offset(
-        desired,
-        position.dy,
-      );
+      positions[nodeId] = Offset(desired, position.dy);
     }
   }
 }
-
 
 /// ============================================================================
 /// PASSAGEM PARA TRÁS
@@ -1831,50 +1513,30 @@ void _coordinateBackwardPass({
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
 }) {
-  final maxLayer =
-      _maxLayer(nodesByLayer);
+  final maxLayer = _maxLayer(nodesByLayer);
 
-  for (
-    var layer = maxLayer - 1;
-    layer >= 0;
-    layer--
-  ) {
-    final current =
-        nodesByLayer[layer];
+  for (var layer = maxLayer - 1; layer >= 0; layer--) {
+    final current = nodesByLayer[layer];
 
     if (current == null) {
       continue;
     }
 
     for (final nodeId in current) {
-      final neighbors =
-          graph.children[nodeId] ??
-              const [];
+      final neighbors = graph.children[nodeId] ?? const [];
 
-      final desired =
-          _desiredX(
-        neighbors:
-            neighbors,
-        positions:
-            positions,
-      );
+      final desired = _desiredX(neighbors: neighbors, positions: positions);
 
       if (desired == null) {
         continue;
       }
 
-      final position =
-          positions[nodeId]!;
+      final position = positions[nodeId]!;
 
-      positions[nodeId] =
-          Offset(
-        desired,
-        position.dy,
-      );
+      positions[nodeId] = Offset(desired, position.dy);
     }
   }
 }
-
 
 /// ============================================================================
 /// X DESEJADO
@@ -1887,10 +1549,8 @@ double? _desiredX({
   var sum = 0.0;
   var count = 0;
 
-  for (final neighbor
-      in neighbors) {
-    final position =
-        positions[neighbor];
+  for (final neighbor in neighbors) {
+    final position = positions[neighbor];
 
     if (position == null) {
       continue;
@@ -1906,7 +1566,6 @@ double? _desiredX({
 
   return sum / count;
 }
-
 
 /// ============================================================================
 /// PROJEÇÃO NAS RESTRIÇÕES DE ORDEM
@@ -1924,8 +1583,7 @@ void _projectLayerPositions({
   required Map<String, Offset> positions,
   required double minimumGap,
 }) {
-  for (final nodes
-      in nodesByLayer.values) {
+  for (final nodes in nodesByLayer.values) {
     if (nodes.length <= 1) {
       continue;
     }
@@ -1934,25 +1592,15 @@ void _projectLayerPositions({
     // Forward projection
     // ------------------------------------------------------------------------
 
-    for (var i = 1;
-        i < nodes.length;
-        i++) {
-      final previous =
-          positions[nodes[i - 1]]!;
+    for (var i = 1; i < nodes.length; i++) {
+      final previous = positions[nodes[i - 1]]!;
 
-      final current =
-          positions[nodes[i]]!;
+      final current = positions[nodes[i]]!;
 
-      final minimumX =
-          previous.dx +
-              minimumGap;
+      final minimumX = previous.dx + minimumGap;
 
       if (current.dx < minimumX) {
-        positions[nodes[i]] =
-            Offset(
-          minimumX,
-          current.dy,
-        );
+        positions[nodes[i]] = Offset(minimumX, current.dy);
       }
     }
 
@@ -1962,27 +1610,15 @@ void _projectLayerPositions({
     // Isso diminui deslocamentos acumulados.
     // ------------------------------------------------------------------------
 
-    for (
-      var i = nodes.length - 2;
-      i >= 0;
-      i--
-    ) {
-      final current =
-          positions[nodes[i]]!;
+    for (var i = nodes.length - 2; i >= 0; i--) {
+      final current = positions[nodes[i]]!;
 
-      final next =
-          positions[nodes[i + 1]]!;
+      final next = positions[nodes[i + 1]]!;
 
-      final maximumX =
-          next.dx -
-              minimumGap;
+      final maximumX = next.dx - minimumGap;
 
       if (current.dx > maximumX) {
-        positions[nodes[i]] =
-            Offset(
-          maximumX,
-          current.dy,
-        );
+        positions[nodes[i]] = Offset(maximumX, current.dy);
       }
     }
 
@@ -1990,30 +1626,19 @@ void _projectLayerPositions({
     // Uma segunda projeção forward garante novamente a restrição.
     // ------------------------------------------------------------------------
 
-    for (var i = 1;
-        i < nodes.length;
-        i++) {
-      final previous =
-          positions[nodes[i - 1]]!;
+    for (var i = 1; i < nodes.length; i++) {
+      final previous = positions[nodes[i - 1]]!;
 
-      final current =
-          positions[nodes[i]]!;
+      final current = positions[nodes[i]]!;
 
-      final minimumX =
-          previous.dx +
-              minimumGap;
+      final minimumX = previous.dx + minimumGap;
 
       if (current.dx < minimumX) {
-        positions[nodes[i]] =
-            Offset(
-          minimumX,
-          current.dy,
-        );
+        positions[nodes[i]] = Offset(minimumX, current.dy);
       }
     }
   }
 }
-
 
 /// ============================================================================
 /// COMPACTAÇÃO
@@ -2031,19 +1656,12 @@ void _compactGraph({
   required Map<String, Offset> positions,
   required double minimumGap,
 }) {
-  final maxLayer =
-      _maxLayer(nodesByLayer);
+  final maxLayer = _maxLayer(nodesByLayer);
 
-  for (
-    var layer = 0;
-    layer <= maxLayer;
-    layer++
-  ) {
-    final current =
-        nodesByLayer[layer];
+  for (var layer = 0; layer <= maxLayer; layer++) {
+    final current = nodesByLayer[layer];
 
-    if (current == null ||
-        current.isEmpty) {
+    if (current == null || current.isEmpty) {
       continue;
     }
 
@@ -2054,16 +1672,12 @@ void _compactGraph({
     var totalDesiredShift = 0.0;
     var desiredCount = 0;
 
-    for (final nodeId
-        in current) {
-      final nodePosition =
-          positions[nodeId]!;
+    for (final nodeId in current) {
+      final nodePosition = positions[nodeId]!;
 
       final neighbors = <String>[
-        ...graph.parents[nodeId] ??
-            const [],
-        ...graph.children[nodeId] ??
-            const [],
+        ...graph.parents[nodeId] ?? const [],
+        ...graph.children[nodeId] ?? const [],
       ];
 
       if (neighbors.isEmpty) {
@@ -2073,17 +1687,14 @@ void _compactGraph({
       var neighborSum = 0.0;
       var neighborCount = 0;
 
-      for (final neighbor
-          in neighbors) {
-        final neighborPosition =
-            positions[neighbor];
+      for (final neighbor in neighbors) {
+        final neighborPosition = positions[neighbor];
 
         if (neighborPosition == null) {
           continue;
         }
 
-        neighborSum +=
-            neighborPosition.dx;
+        neighborSum += neighborPosition.dx;
 
         neighborCount++;
       }
@@ -2092,13 +1703,9 @@ void _compactGraph({
         continue;
       }
 
-      final desiredX =
-          neighborSum /
-              neighborCount;
+      final desiredX = neighborSum / neighborCount;
 
-      totalDesiredShift +=
-          desiredX -
-              nodePosition.dx;
+      totalDesiredShift += desiredX - nodePosition.dx;
 
       desiredCount++;
     }
@@ -2107,41 +1714,24 @@ void _compactGraph({
       continue;
     }
 
-    final shift =
-        totalDesiredShift /
-            desiredCount;
+    final shift = totalDesiredShift / desiredCount;
 
     // Limita a compactação para não destruir uma estrutura boa.
-    final clampedShift =
-        shift.clamp(
-          -minimumGap,
-          minimumGap,
-        );
+    final clampedShift = shift.clamp(-minimumGap, minimumGap);
 
-    for (final nodeId
-        in current) {
-      final position =
-          positions[nodeId]!;
+    for (final nodeId in current) {
+      final position = positions[nodeId]!;
 
-      positions[nodeId] =
-          Offset(
-        position.dx +
-            clampedShift,
-        position.dy,
-      );
+      positions[nodeId] = Offset(position.dx + clampedShift, position.dy);
     }
 
     _projectLayerPositions(
-      nodesByLayer:
-          nodesByLayer,
-      positions:
-          positions,
-      minimumGap:
-          minimumGap,
+      nodesByLayer: nodesByLayer,
+      positions: positions,
+      minimumGap: minimumGap,
     );
   }
 }
-
 
 /// ============================================================================
 /// COUNTING DE CROSSINGS
@@ -2153,29 +1743,18 @@ int _countAllCrossings({
 }) {
   var total = 0;
 
-  final maxLayer =
-      _maxLayer(nodesByLayer);
+  final maxLayer = _maxLayer(nodesByLayer);
 
-  for (
-    var layer = 0;
-    layer < maxLayer;
-    layer++
-  ) {
-    total +=
-        _countLayerCrossings(
+  for (var layer = 0; layer < maxLayer; layer++) {
+    total += _countLayerCrossings(
       graph: graph,
-      upperLayer:
-          nodesByLayer[layer] ??
-              const [],
-      lowerLayer:
-          nodesByLayer[layer + 1] ??
-              const [],
+      upperLayer: nodesByLayer[layer] ?? const [],
+      lowerLayer: nodesByLayer[layer + 1] ?? const [],
     );
   }
 
   return total;
 }
-
 
 /// ============================================================================
 /// COUNT CROSSINGS ENTRE DUAS CAMADAS
@@ -2206,46 +1785,31 @@ int _countLayerCrossings({
   required List<String> upperLayer,
   required List<String> lowerLayer,
 }) {
-  if (upperLayer.isEmpty ||
-      lowerLayer.isEmpty) {
+  if (upperLayer.isEmpty || lowerLayer.isEmpty) {
     return 0;
   }
 
-  final upperPosition =
-      _positionMap(upperLayer);
+  final upperPosition = _positionMap(upperLayer);
 
-  final lowerPosition =
-      _positionMap(lowerLayer);
+  final lowerPosition = _positionMap(lowerLayer);
 
-  final segmentsByUpper =
-      <int, List<int>>{};
+  final segmentsByUpper = <int, List<int>>{};
 
-  for (final source
-      in upperLayer) {
-    final sourcePosition =
-        upperPosition[source]!;
+  for (final source in upperLayer) {
+    final sourcePosition = upperPosition[source]!;
 
-    final children =
-        graph.children[source] ??
-            const [];
+    final children = graph.children[source] ?? const [];
 
-    for (final target
-        in children) {
-      final targetPosition =
-          lowerPosition[target];
+    for (final target in children) {
+      final targetPosition = lowerPosition[target];
 
       if (targetPosition == null) {
         continue;
       }
 
       segmentsByUpper
-          .putIfAbsent(
-            sourcePosition,
-            () => <int>[],
-          )
-          .add(
-            targetPosition,
-          );
+          .putIfAbsent(sourcePosition, () => <int>[])
+          .add(targetPosition);
     }
   }
 
@@ -2253,46 +1817,29 @@ int _countLayerCrossings({
     return 0;
   }
 
-  final fenwick =
-      _FenwickTree(
-    lowerLayer.length,
-  );
+  final fenwick = _FenwickTree(lowerLayer.length);
 
   var seen = 0;
   var crossings = 0;
 
-  final upperPositions =
-      segmentsByUpper.keys.toList()
-        ..sort();
+  final upperPositions = segmentsByUpper.keys.toList()..sort();
 
-  for (final upperPositionValue
-      in upperPositions) {
-    final targets =
-        segmentsByUpper[
-            upperPositionValue]!;
+  for (final upperPositionValue in upperPositions) {
+    final targets = segmentsByUpper[upperPositionValue]!;
 
     // Primeiro consulta todas.
     // Depois adiciona todas.
     //
     // Assim, arestas que partem do mesmo nó nunca contam
     // como cruzamento entre si.
-    for (final targetPosition
-        in targets) {
-      final before =
-          fenwick.query(
-        targetPosition,
-      );
+    for (final targetPosition in targets) {
+      final before = fenwick.query(targetPosition);
 
-      crossings +=
-          seen - before;
+      crossings += seen - before;
     }
 
-    for (final targetPosition
-        in targets) {
-      fenwick.add(
-        targetPosition,
-        1,
-      );
+    for (final targetPosition in targets) {
+      fenwick.add(targetPosition, 1);
 
       seen++;
     }
@@ -2301,108 +1848,59 @@ int _countLayerCrossings({
   return crossings;
 }
 
-
 /// ============================================================================
 /// UTILITÁRIOS
 /// ============================================================================
 
-Map<String, int> _positionMap(
-  List<String> nodes,
-) {
-  return <String, int>{
-    for (var i = 0;
-        i < nodes.length;
-        i++)
-      nodes[i]: i,
-  };
+Map<String, int> _positionMap(List<String> nodes) {
+  return <String, int>{for (var i = 0; i < nodes.length; i++) nodes[i]: i};
 }
 
-
-int _maxLayer(
-  Map<int, List<String>> nodesByLayer,
-) {
+int _maxLayer(Map<int, List<String>> nodesByLayer) {
   if (nodesByLayer.isEmpty) {
     return 0;
   }
 
-  return nodesByLayer.keys.reduce(
-    math.max,
-  );
+  return nodesByLayer.keys.reduce(math.max);
 }
 
-
-Map<int, List<String>> _cloneLayers(
-  Map<int, List<String>> source,
-) {
+Map<int, List<String>> _cloneLayers(Map<int, List<String>> source) {
   return <int, List<String>>{
-    for (final entry
-        in source.entries)
-      entry.key:
-          List<String>.from(
-        entry.value,
-      ),
+    for (final entry in source.entries)
+      entry.key: List<String>.from(entry.value),
   };
 }
-
 
 /// ============================================================================
 /// NORMALIZAÇÃO
 /// ============================================================================
 
-void _normalizeCoordinates(
-  Map<String, Offset> positions,
-) {
+void _normalizeCoordinates(Map<String, Offset> positions) {
   if (positions.isEmpty) {
     return;
   }
 
-  var minimumX =
-      double.infinity;
+  var minimumX = double.infinity;
 
-  var minimumY =
-      double.infinity;
+  var minimumY = double.infinity;
 
-  for (final position
-      in positions.values) {
-    minimumX =
-        math.min(
-      minimumX,
-      position.dx,
-    );
+  for (final position in positions.values) {
+    minimumX = math.min(minimumX, position.dx);
 
-    minimumY =
-        math.min(
-      minimumY,
-      position.dy,
-    );
+    minimumY = math.min(minimumY, position.dy);
   }
 
-  final shiftX =
-      minimumX.isFinite &&
-              minimumX < 0
-          ? -minimumX
-          : 0.0;
+  final shiftX = minimumX.isFinite && minimumX < 0 ? -minimumX : 0.0;
 
-  final shiftY =
-      minimumY.isFinite &&
-              minimumY < 0
-          ? -minimumY
-          : 0.0;
+  final shiftY = minimumY.isFinite && minimumY < 0 ? -minimumY : 0.0;
 
-  if (shiftX == 0 &&
-      shiftY == 0) {
+  if (shiftX == 0 && shiftY == 0) {
     return;
   }
 
-  for (final nodeId
-      in positions.keys.toList()) {
-    final position =
-        positions[nodeId]!;
+  for (final nodeId in positions.keys.toList()) {
+    final position = positions[nodeId]!;
 
-    positions[nodeId] =
-        Offset(
-      position.dx + shiftX,
-      position.dy + shiftY,
-    );
+    positions[nodeId] = Offset(position.dx + shiftX, position.dy + shiftY);
   }
 }

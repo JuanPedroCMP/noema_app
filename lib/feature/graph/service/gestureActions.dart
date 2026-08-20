@@ -61,6 +61,12 @@ import 'package:noema/feature/graph/provider/selected_provider.dart';
   return ("", false, false);
 }
 
-GraphNodeData onNodeTap(List<GraphNodeData> nodes, String nodeId) {
+// Ações
+GraphNodeData onNodeTap(
+  List<GraphNodeData> nodes,
+  String nodeId,
+  TransformationController controller,
+) {
+  controller.value = Matrix4.identity();
   return nodes.firstWhere((node) => node.id == nodeId);
 }

@@ -10,25 +10,55 @@ import 'package:noema/feature/graph/provider/edge_type_provider.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
 import 'package:noema/feature/graph/provider/path_provider.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
+import 'package:noema/feature/graph/provider/transformation_controller_provider.dart';
 import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/gestureActions.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
 
-class GraphPage extends ConsumerWidget {
+class GraphPage extends ConsumerStatefulWidget {
   const GraphPage({super.key, required this.graphId});
 
   final String graphId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final nodesAsync = ref.watch(nodesProvider(graphId));
-    final edgesAsync = ref.watch(edgesProvider(graphId));
+  ConsumerState<GraphPage> createState() => _GraphPage();
+}
+
+class _GraphPage extends ConsumerState<GraphPage> {
+  @override
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final size = MediaQuery.sizeOf(context);
+
+      final controllerNotifier = ref.read(
+        transformationControllerProvider.notifier,
+      );
+
+      sugiyama(widget.graphId, ref);
+      final seed = sugiyama(widget.graphId, ref);
+
+      controllerNotifier.goToPoint(await seed, 0.8, size);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nodesAsync = ref.watch(nodesProvider(widget.graphId));
+    final edgesAsync = ref.watch(edgesProvider(widget.graphId));
     final selected = ref.watch(selectedProvider);
     final selectedNotifier = ref.watch(selectedProvider.notifier);
     final edgeType = ref.watch(edgeTypeProvider);
     final edgeTypeNotifier = ref.watch(edgeTypeProvider.notifier);
 
-    final controller = TransformationController();
+    final controller = ref.watch(transformationControllerProvider);
+    final controllerNotifier = ref.watch(
+      transformationControllerProvider.notifier,
+    );
 
     return nodesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -68,16 +98,15 @@ class GraphPage extends ConsumerWidget {
               return const SizedBox.expand();
             }
 
-            const padding = 50.0;
-
             final graphWidth = max(1.0, maxX * 2);
 
             final graphHeight = max(1.0, maxY * 2);
+
             return InteractiveViewer(
               boundaryMargin: EdgeInsets.all(500),
               transformationController: controller,
               constrained: false,
-              minScale: 0.05,
+              minScale: 0.1,
               maxScale: 5,
               child: SizedBox(
                 width: graphWidth,
@@ -90,12 +119,20 @@ class GraphPage extends ConsumerWidget {
                       edges,
                       paths,
                       selectedNotifier,
-                      context
+                      context,
                     );
 
                     if (result.$3) {
                       if (result.$2) {
-                        final node = onNodeTap(nodes, result.$1);
+                        final size = MediaQuery.of(context).size;
+                        final node = nodes.firstWhere(
+                          (node) => node.id == result.$1,
+                        );
+                        controllerNotifier.goToPoint(
+                          Offset(node.positionX, node.positionY),
+                          1.0,
+                          size,
+                        );
                         print('Node id ${result.$1}');
 
                         // controller.toScene(

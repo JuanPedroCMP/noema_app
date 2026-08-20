@@ -36,26 +36,30 @@ class GraphPainter extends CustomPainter {
     final edgePaint = Paint()
       ..color = context.colorScheme.tertiary
       ..strokeWidth = 4
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
 
     final edgePaintSelected = Paint()
       ..color = context.colorScheme.onPrimary
       ..strokeWidth = 4
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
 
     final nodePaint = Paint()
       ..color = context.colorScheme.surfaceContainer
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.miter
-      ..strokeWidth = 4;
+      ..strokeWidth = 4
+      ..isAntiAlias = true;
 
     final nodePaintSelected = Paint()
       ..color = context.colorScheme.surfaceContainerHigh
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.miter
-      ..strokeWidth = 4;
+      ..strokeWidth = 4
+      ..isAntiAlias = true;
 
     final nodesById = {for (final node in nodes) node.id: node};
 
@@ -194,17 +198,17 @@ class GraphPainter extends CustomPainter {
       // 3. Initialize the TextPainter object
       final textPainter = TextPainter(
         text: textSpan,
-        textDirection: TextDirection.ltr, // Required parameter
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        ellipsis: "..." // Required parameter
       );
 
       // 4. Compute constraints and layout the paragraph geometry
-      textPainter.layout(
-        minWidth: 0,
-        maxWidth: size.width, // Wrap text if it exceeds width boundary
-      );
+      textPainter.layout(maxWidth: nodeWidth - 20);
 
       // 6. Paint the computed text paragraph onto the canvas
-      textPainter.paint(canvas, Offset(node.positionX, node.positionY));
+      textPainter.paint(canvas, Offset(node.positionX - textPainter.width/2, node.positionY - textPainter.height/2));
     }
   }
 
