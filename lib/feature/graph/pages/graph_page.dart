@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
-import 'package:noema/feature/graph/graph.dart';
+import 'package:noema/feature/graph/widgets/graph.dart';
+import 'package:noema/feature/graph/widgets/graph_utils_layer.dart';
 import 'package:noema/feature/graph/provider/edge_type_provider.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
 import 'package:noema/feature/graph/provider/path_provider.dart';
@@ -14,6 +15,7 @@ import 'package:noema/feature/graph/provider/transformation_controller_provider.
 import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/gestureActions.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
+import 'package:noema/feature/graph/widgets/node_card.dart';
 
 class GraphPage extends ConsumerStatefulWidget {
   const GraphPage({super.key, required this.graphId});
@@ -74,6 +76,8 @@ class _GraphPage extends ConsumerState<GraphPage> {
               return const SizedBox.expand();
             }
 
+            final nodesById = {for (final node in nodes) node.id: node};
+
             double minX = double.infinity;
             double maxX = double.negativeInfinity;
             double minY = double.infinity;
@@ -102,64 +106,82 @@ class _GraphPage extends ConsumerState<GraphPage> {
 
             final graphHeight = max(1.0, maxY * 2);
 
-            return InteractiveViewer(
-              boundaryMargin: EdgeInsets.all(500),
-              transformationController: controller,
-              constrained: false,
-              minScale: 0.1,
-              maxScale: 5,
-              child: SizedBox(
-                width: graphWidth,
-                height: graphHeight,
-                child: GestureDetector(
-                  onTapDown: (details) {
-                    final result = getTapTarget(
-                      details.localPosition,
-                      nodes,
-                      edges,
-                      paths,
-                      selectedNotifier,
-                      context,
-                    );
-
-                    if (result.$3) {
-                      if (result.$2) {
-                        final size = MediaQuery.of(context).size;
-                        final node = nodes.firstWhere(
-                          (node) => node.id == result.$1,
+            return Stack(
+              fit: StackFit.loose,
+              children: [
+                InteractiveViewer(
+                  boundaryMargin: EdgeInsets.all(500),
+                  transformationController: controller,
+                  constrained: false,
+                  minScale: 0.1,
+                  maxScale: 5,
+                  child: SizedBox(
+                    width: graphWidth,
+                    height: graphHeight,
+                    child: GestureDetector(
+                      onTapDown: (details) {
+                        final result = getTapTarget(
+                          details.localPosition,
+                          nodes,
+                          edges,
+                          paths,
+                          selectedNotifier,
+                          context,
                         );
-                        controllerNotifier.goToPoint(
-                          Offset(node.positionX, node.positionY),
-                          1.0,
-                          size,
-                        );
-                        print('Node id ${result.$1}');
 
-                        // controller.toScene(
-                        //   Offset(node.positionX, node.positionY),
-                        // );
-                      } else {
-                        print('Edge id ${result.$1}');
-                      }
-                    }
+                        if (result.$3) {
+                          if (result.$2) {
+                            final size = MediaQuery.of(context).size;
+                            final node = nodesById[result.$1];
+                            if (node == null) {
+                              return;
+                            }
+                            controllerNotifier.goToPoint(
+                              Offset(node!.positionX, node.positionY),
+                              1.0,
+                              size,
+                            );
+                            print('Node id ${result.$1}');
+                            selectedNotifier.selectedChanged(result.$1);
 
-                    if (edgeType >= 3) {
-                      edgeTypeNotifier.edgeTypeChanged(0);
-                    } else {
-                      edgeTypeNotifier.edgeTypeChanged(edgeType + 1);
-                    }
-                  },
-                  child: CustomPaint(
-                    painter: GraphPainter(
-                      context: context,
-                      nodes: nodes,
-                      edges: edges,
-                      selected: selected,
-                      option: edgeType,
+                            // controller.toScene(
+                            //   Offset(node.positionX, node.positionY),
+                            // );
+                          } else {
+                            print('Edge id ${result.$1}');
+                          }
+                        }
+
+                        if (edgeType >= 3) {
+                          edgeTypeNotifier.edgeTypeChanged(0);
+                        } else {
+                          edgeTypeNotifier.edgeTypeChanged(edgeType + 1);
+                        }
+                      },
+                      child: CustomPaint(
+                        painter: GraphPainter(
+                          context: context,
+                          nodes: nodes,
+                          edges: edges,
+                          selected: selected,
+                          option: edgeType,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+                Positioned(top: 10, left: 10, child: GraphUtilsLayer()),
+                nodesById[selected] == null
+                    ? SizedBox()
+                    : SizedBox(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: NodeCard(
+                            node: nodesById[selected]!,
+                          ),
+                        ),
+                      ),
+              ],
             );
           },
         );

@@ -6,7 +6,7 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
-import 'package:noema/feature/graph/graph_page.dart';
+import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
 
 class GraphList extends ConsumerStatefulWidget {
