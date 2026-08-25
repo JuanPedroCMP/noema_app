@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
+import 'package:noema/feature/graph/provider/graph_states_provider.dart';
+import 'package:noema/feature/graph/widgets/create_edge_card.dart';
+import 'package:noema/feature/graph/widgets/create_node_card.dart';
 import 'package:noema/feature/graph/widgets/graph.dart';
 import 'package:noema/feature/graph/widgets/graph_utils_layer.dart';
 import 'package:noema/feature/graph/provider/edge_type_provider.dart';
@@ -27,7 +30,7 @@ class GraphPage extends ConsumerStatefulWidget {
 }
 
 class _GraphPage extends ConsumerState<GraphPage> {
-  @override
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +59,8 @@ class _GraphPage extends ConsumerState<GraphPage> {
     final selectedNotifier = ref.watch(selectedProvider.notifier);
     final edgeType = ref.watch(edgeTypeProvider);
     final edgeTypeNotifier = ref.watch(edgeTypeProvider.notifier);
-
+    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
+    final graphStates = ref.watch(graphStatesProvider);
     final controller = ref.watch(transformationControllerProvider);
     final controllerNotifier = ref.watch(
       transformationControllerProvider.notifier,
@@ -137,7 +141,7 @@ class _GraphPage extends ConsumerState<GraphPage> {
                               return;
                             }
                             controllerNotifier.goToPoint(
-                              Offset(node!.positionX, node.positionY),
+                              Offset(node.positionX, node.positionY),
                               1.0,
                               size,
                             );
@@ -178,6 +182,26 @@ class _GraphPage extends ConsumerState<GraphPage> {
                           alignment: Alignment.centerRight,
                           child: NodeCard(
                             node: nodesById[selected]!,
+                          ),
+                        ),
+                      ),
+                  !graphStates.isCreatingNode // Concertar os erros cabulosos causador pelos dois widgets a
+                    ? SizedBox()
+                    : SizedBox(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: CreateNodeCard(
+                            graphId: widget.graphId,
+                          ),
+                        ),
+                      ),
+                  !graphStates.isCreatingEdge
+                    ? SizedBox()
+                    : SizedBox(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: CreateEdgeCard(
+                            graphId: widget.graphId,
                           ),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/learning_resource_dao.dart';
+import 'package:noema/feature/graph/provider/selected_provider.dart';
 
 class NodeCard extends ConsumerWidget {
   NodeCard({super.key, required this.node});
@@ -13,14 +14,14 @@ class NodeCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // final user = await userNotifier.getUser();
-
+    final selectedNotifier = ref.watch(selectedProvider.notifier);
     final db = ref.read(appDatabaseProvider);
-    final dao = (db);
 
     final learningResouce = LearningResourceDao(db);
 
-    final resources = learningResouce.getLearningResourcesByNode(nodeId: node.id);
-
+    final resourcesFuture = learningResouce.getLearningResourcesByNode(
+      nodeId: node.id,
+    );
 
     return SizedBox(
       width: 600,
@@ -30,14 +31,15 @@ class NodeCard extends ConsumerWidget {
           child: Column(
             children: [
               Row(
+                spacing: context.spacing.sm,
                 children: [
-                  Icon(Icons.accessible),
-                  Icon(Icons.add_box_outlined),
-                  Text(node.type),
-                  Text(node.masteryScore.toString()),
+                  Spacer(),
+                  IconButton(onPressed: () {
+                    selectedNotifier.selectedChanged("none");
+                  }, icon: Icon(Icons.close_rounded))
                 ],
               ),
-              Text(node.title, style: context.textTheme.titleMedium),
+              Text(node.title, style: context.textTheme.headlineMedium),
               Divider(),
               if (node.description == null || node.description == "")
                 Text(
@@ -47,9 +49,35 @@ class NodeCard extends ConsumerWidget {
                 Text(node.description!, style: context.textTheme.bodyMedium),
               // Recursos
               Text("Veja sobre", style: context.textTheme.titleMedium),
-              for(final resource in resources){
-                // Arrumar isso
-              }
+              FutureBuilder(
+                future: resourcesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text('Erro ao carregar recursos');
+                  }
+
+                  final resources = snapshot.data ?? [];
+
+                  if (resources.isEmpty) {
+                    return const Text('Nenhum recurso encontrado');
+                  }
+
+                  return Column(
+                    children: resources
+                        .map(
+                          (resource) => Row(
+                            children: [
+                              Text(resource.title)
+                          ]),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
             ],
           ),
         ),
