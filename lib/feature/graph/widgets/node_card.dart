@@ -6,14 +6,13 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
 
-class NodeCard extends ConsumerWidget {
-  NodeCard({super.key, required this.node});
+class NodeDetails extends ConsumerWidget {
+  const NodeDetails({super.key, required this.node});
 
-  GraphNodeData node;
+  final GraphNodeData node;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final user = await userNotifier.getUser();
     final selectedNotifier = ref.watch(selectedProvider.notifier);
     final db = ref.read(appDatabaseProvider);
 

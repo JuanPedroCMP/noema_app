@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,21 @@ import 'package:noema/core/router/page_chrome.dart';
 import 'package:noema/core/router/widgets/app_side_bar/app_side_bar.dart';
 import 'package:noema/core/router/widgets/navigation_item/navigation_item.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/teste_page.dart';
+
+List<String> buildCumulativePaths(BuildContext context) {
+  final segments = GoRouterState.of(context).uri.pathSegments;
+
+  final cumulative = <String>[];
+  var current = '';
+
+  for (final segment in segments) {
+    current += '/$segment';
+    cumulative.add(current);
+  }
+
+  return cumulative;
+}
 
 enum DisplaySize { mobile, tablet, desktop }
 
@@ -42,8 +59,34 @@ class AppShell extends ConsumerWidget {
 
     final displayWidth = ref.watch(displayWidthProvider);
 
+    final matchList = GoRouter.of(context).routerDelegate.currentConfiguration;
+    final paths = buildCumulativePaths(context);
+
+    final List<Widget> navItens = [];
+
     return Scaffold(
-      appBar: AppBar(title: Text(chrome.title), actions: chrome.actions),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Text(chrome.title),
+            SizedBox(width: 25),
+            for (final path in paths) ...[
+              GestureDetector(
+                onTap: () => context.go(path),
+                child: Text(
+                  path,
+                  style: BuildContextThemeExtension(context)
+                      .textTheme
+                      .labelLarge
+                      ?.copyWith(color: context.colorScheme.primary),
+                ), // pega o label correspondente
+              ),
+            ],
+            Spacer(),
+            ...chrome.actions,
+          ],
+        ),
+      ),
 
       drawer: (spacingFor(displayWidth) == DisplaySize.mobile)
           ? _buildDrawer(context, chrome, navigationShell, user)
@@ -85,18 +128,6 @@ class AppShell extends ConsumerWidget {
                       navigationShell: navigationShell,
                       icon: Icon(Icons.graphic_eq_rounded),
                     ),
-                    NavigationItem(
-                      index: 5,
-                      label: "Create Graph",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.graphic_eq_rounded),
-                    ),
-                    NavigationItem(
-                      index: 6,
-                      label: "List Graph",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.graphic_eq_rounded),
-                    ),
                   ],
                   pageWidgets: chrome.pageItens,
                   bottonWidgets: [
@@ -118,9 +149,7 @@ Widget _buildBody(
   BuildContext context,
   StatefulNavigationShell navigationShell,
 ) {
-  return Container(
-    child: navigationShell,
-  );
+  return Container(child: navigationShell);
 }
 
 Widget _buildDrawer(

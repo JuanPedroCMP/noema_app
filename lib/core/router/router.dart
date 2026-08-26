@@ -6,9 +6,7 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
 import 'package:noema/feature/auth/presentation/sign_up_page.dart';
 import 'package:noema/feature/config/presentation/config_page.dart';
-import 'package:noema/feature/config/presentation/profile_section.dart';
-import 'package:noema/feature/graph/pages/create_graph.dart';
-import 'package:noema/feature/graph/widgets/graph.dart';
+import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/graph/pages/manage_graph.dart';
@@ -92,43 +90,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
                 routes: [
                   GoRoute(
+                    path: "/create_graph",
+                    builder: (_, _) => CreateBlankGraph(),
+                  ),
+                  GoRoute(
                     path: ':graphId',
                     builder: (context, state) {
                       final String graphId = state.pathParameters['graphId']!;
-                      return GraphPage(graphId: graphId,);
+                      return GraphPage(graphId: graphId);
                     },
                   ),
                   GoRoute(
                     path: 'edit/:graphId',
                     builder: (context, state) {
                       final String graphId = state.pathParameters['graphId']!;
-                      return ManageGraph(graphId: graphId,);
+                      return ManageGraph(graphId: graphId);
                     },
                   ),
                 ],
-              ),
-            ],
-          ),
-
-          StatefulShellBranch(
-            //Temp
-            routes: [
-              GoRoute(
-                path: "/cg",
-                builder: (_, _) => CreateGraph(),
-                routes: [
-                  
-                ]
-              ),
-            ],
-          ),
-
-          StatefulShellBranch(
-            //Temp
-            routes: [
-              GoRoute(path: "/lg", builder: (_, _) => GraphList(), routes: [
-                  
-                ]
               ),
             ],
           ),

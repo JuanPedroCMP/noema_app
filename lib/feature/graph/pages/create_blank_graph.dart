@@ -10,8 +10,8 @@ import 'package:noema/feature/graph/provider/temp_json_graph_provider.dart';
 import 'package:noema/feature/graph/service/import_grap_from_json.dart';
 import 'package:openapi/openapi.dart';
 
-class CreateGraph extends ConsumerWidget {
-  const CreateGraph({super.key});
+class CreateBlankGraph extends ConsumerWidget {
+  const CreateBlankGraph({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,6 +28,7 @@ class CreateGraph extends ConsumerWidget {
 
     return Column(
       children: [
+        // TODO Temp, tirar
         TextField(
           onChanged: jsonFormNotifier.jsonChanged,
           decoration: InputDecoration(
@@ -52,6 +53,7 @@ class CreateGraph extends ConsumerWidget {
         ),
 
         Divider(),
+        ///
 
         TextField(
           onChanged: formProvider.titleChagend,

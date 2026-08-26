@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart';
-import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/feature/graph/data/graph_node_dao.dart';
-import 'package:noema/feature/graph/provider/path_provider.dart';
 import 'package:noema/teste_page.dart';
 
 class GraphNode {

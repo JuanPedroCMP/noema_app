@@ -1,43 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
-import 'package:noema/feature/graph/data/graph_node_dao.dart';
-import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/edge_form_provider.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
-import 'package:noema/feature/graph/provider/node_form_provider.dart';
-import 'package:noema/feature/graph/provider/selected_provider.dart';
+import 'package:noema/feature/graph/provider/graph_states_provider.dart';
 
-class CreateEdgeCard extends ConsumerWidget {
-  CreateEdgeCard({super.key, required this.graphId});
+class CreateEdge extends ConsumerWidget {
+  const CreateEdge({super.key, required this.graphId});
 
   final String graphId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formNode = ref.watch(nodeFormProvider);
-    final formNodeNotifier = ref.watch(nodeFormProvider.notifier);
     final formEdge = ref.watch(edgeFormProvider);
     final formEdgeNotifier = ref.watch(edgeFormProvider.notifier);
     final db = ref.watch(appDatabaseProvider);
-    final nodeDao = GraphNodeDao(db);
     final edgeDao = GraphEdgeDao(db);
     final nodesList = ref.watch(nodesProvider(graphId));
+    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
 
-    return SizedBox(
-      width: 800,
-      height: 600,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
+    return SingleChildScrollView(
       child: Column(
+        spacing: context.spacing.md,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        children: [         
+        children: [
           Text("Edges"),
           nodesList.when(
             data: (data) => DropdownMenu<String>(
@@ -58,6 +48,12 @@ class CreateEdgeCard extends ConsumerWidget {
             ),
             error: (Object error, StackTrace stackTrace) => Text("Erro"),
             loading: () => Text("Carregando"),
+          ),
+          Row(
+            children: [
+              SizedBox(width: context.spacing.lg),
+              Icon(Icons.arrow_downward_rounded),
+            ],
           ),
           nodesList.when(
             data: (data) => DropdownMenu<String>(
@@ -116,29 +112,30 @@ class CreateEdgeCard extends ConsumerWidget {
               labelText: "weightChanged",
             ),
           ),
+          Row(
+            spacing: context.spacing.md,
+            children: [
+              OutlinedButton(
+                onPressed: () async {
+                  await edgeDao.insertGraphEdge(
+                    graphId: graphId,
+                    type: formEdge.type,
+                    sourceNodeId: formEdge.sourceNodeId,
+                    targetNodeId: formEdge.targetNodeId,
+                  );
+                },
+                child: Text("Criar"),
+              ),
 
-          OutlinedButton(
-            onPressed: () async {
-              await edgeDao.insertGraphEdge(
-                graphId: graphId,
-                type: formEdge.type,
-                sourceNodeId: formEdge.sourceNodeId,
-                targetNodeId: formEdge.targetNodeId,
-              );
-            },
-            child: Text("Criar"),
-          ),
-
-          OutlinedButton(
-            onPressed: () {
-              context.pop();
-            },
-            child: Text("Cancelar"),
+              OutlinedButton(
+                onPressed: () {
+                  graphStatesNotifier.isCreatingEdgeChanged(false);
+                },
+                child: Text("Cancelar"),
+              ),
+            ],
           ),
         ],
-      ),
-    ),
-        ),
       ),
     );
   }

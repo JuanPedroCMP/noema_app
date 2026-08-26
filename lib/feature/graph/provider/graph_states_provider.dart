@@ -8,15 +8,15 @@ class GraphStatesNotifier extends Notifier<GraphStatesSate> {
   }
 
   void isCreatingEdgeChanged(bool value) {
-    state = state.copyWith(isCreatingEdge: value);
+    state = state.copyWith(isCreatingEdge: value,  isCreatingNode: false, isEditing:false);
   }
 
   void isCreatingNodeChanged(bool value) {
-    state = state.copyWith(isCreatingNode: value);
+    state = state.copyWith(isCreatingNode: value, isCreatingEdge: false, isEditing:false);
   }
 
   void isEditingChanged(bool value) {
-    state = state.copyWith(isEditing: value);
+    state = state.copyWith(isEditing: value, isCreatingNode: false, isCreatingEdge: false);
   }
 }
 

@@ -6,8 +6,8 @@ import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
 import 'package:noema/feature/graph/provider/graph_states_provider.dart';
-import 'package:noema/feature/graph/widgets/create_edge_card.dart';
-import 'package:noema/feature/graph/widgets/create_node_card.dart';
+import 'package:noema/feature/graph/widgets/create_edge.dart';
+import 'package:noema/feature/graph/widgets/create_node.dart';
 import 'package:noema/feature/graph/widgets/graph.dart';
 import 'package:noema/feature/graph/widgets/graph_utils_layer.dart';
 import 'package:noema/feature/graph/provider/edge_type_provider.dart';
@@ -19,6 +19,7 @@ import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/gestureActions.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
 import 'package:noema/feature/graph/widgets/node_card.dart';
+import 'package:noema/shared/floating_card/floating_card.dart';
 
 class GraphPage extends ConsumerStatefulWidget {
   const GraphPage({super.key, required this.graphId});
@@ -30,7 +31,6 @@ class GraphPage extends ConsumerStatefulWidget {
 }
 
 class _GraphPage extends ConsumerState<GraphPage> {
-
   @override
   void initState() {
     super.initState();
@@ -180,29 +180,28 @@ class _GraphPage extends ConsumerState<GraphPage> {
                     : SizedBox(
                         child: Align(
                           alignment: Alignment.centerRight,
-                          child: NodeCard(
-                            node: nodesById[selected]!,
-                          ),
+                          child: NodeDetails(node: nodesById[selected]!),
                         ),
                       ),
-                  !graphStates.isCreatingNode // Concertar os erros cabulosos causador pelos dois widgets a
-                    ? SizedBox()
-                    : SizedBox(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: CreateNodeCard(
-                            graphId: widget.graphId,
-                          ),
-                        ),
-                      ),
-                  !graphStates.isCreatingEdge
+                !graphStates
+                        .isCreatingNode // Concertar os erros cabulosos causador pelos dois widgets a
                     ? SizedBox()
                     : SizedBox(
                         child: Align(
                           alignment: Alignment.center,
-                          child: CreateEdgeCard(
-                            graphId: widget.graphId,
+                          child: FloatingCard(
+                            width: 800,
+                            child: CreateNode(graphId: widget.graphId),
                           ),
+                        ),
+                      ),
+                !graphStates.isCreatingEdge
+                    ? SizedBox()
+                    : Align(
+                        alignment: Alignment.center,
+                        child: FloatingCard(
+                          width: 800,
+                          child: CreateEdge(graphId: widget.graphId),
                         ),
                       ),
               ],
