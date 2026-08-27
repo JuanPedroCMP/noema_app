@@ -119,17 +119,14 @@ Future<String> importGraphFromJson({
             db.graphNode,
             GraphNodeCompanion.insert(
               id: dbNodeId,
-              graphId: graphId,
-              parentId: const Value.absent(),
+              graphId: graphId,            
               type: node.type.value,
               title: node.title,
               description: Value(node.description),
               positionX: startX + (index * xSpacing),
               positionY: startY + (level * ySpacing),
               masteryScore: const Value.absent(),
-              isSkipped: const Value.absent(),
-              aiSynthesis: const Value.absent(),
-              synthesisEdited: const Value.absent(),
+              isSkipped: const Value.absent(),        
               fsrsRating: const Value.absent(),
             ),
           );
@@ -151,10 +148,8 @@ Future<String> importGraphFromJson({
             graphId: graphId,
             sourceNodeId: sourceId,
             targetNodeId: targetId,
-            type: _mapEdgeTypeToDb(edge.type),
-            isBidirectional: const Value(false),
-            weight: const Value.absent(),
-            synced: const Value.absent(),
+            type: _mapEdgeTypeToDb(edge.type),         
+            weight: const Value.absent(),   
           ),
         );
       }

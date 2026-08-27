@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/auth/providers/sign_up_form_provider.dart';
 import 'package:noema/feature/auth/providers/sign_up_provider.dart';
 
@@ -14,13 +15,15 @@ class SignUpPage extends ConsumerWidget {
     final form = ref.watch(signUpFormProvider);
     final formNotifier = ref.watch(signUpFormProvider.notifier);
 
-    const double textFieldWidth = 1250;
+    const double textFieldWidth = 800;
 
     return Center(
       child: SizedBox(
         width: textFieldWidth,
         child: Column(
-          spacing: 15,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: context.spacing.md,
           children: [
             TextField(
               onChanged: formNotifier.userNameChanged,
@@ -56,10 +59,7 @@ class SignUpPage extends ConsumerWidget {
                 labelText: "Confirme sua senha",
               ),
             ),
-            ElevatedButton(
-              style: ButtonStyle(
-                minimumSize: WidgetStateProperty.all(Size(500, 55))
-              ),
+            OutlinedButton(
               onPressed: () async {
                 await ref
                     .read(signUpControllerProvider.notifier)
@@ -75,6 +75,12 @@ class SignUpPage extends ConsumerWidget {
                 }
               },
               child: Text("Criar User"),
+            ),
+            TextButton(
+              onPressed: () {
+                context.go("/login");
+              },
+              child: Text("Cancelar"),
             ),
           ],
         ),

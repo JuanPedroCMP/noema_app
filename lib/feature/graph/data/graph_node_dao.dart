@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'graph_node_dao.g.dart';
 
 @DriftAccessor(tables: [GraphNode])
-class GraphNodeDao extends DatabaseAccessor<AppDatabase> with _$GraphNodeDaoMixin {
+class GraphNodeDao extends DatabaseAccessor<AppDatabase>
+    with _$GraphNodeDaoMixin {
   GraphNodeDao(super.db);
 
   Future<int> insertGraphNode({
@@ -26,7 +27,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase> with _$GraphNodeDaoMixi
       GraphNodeCompanion.insert(
         id: Uuid().v4(),
         graphId: graphId,
-        parentId: Value(parentId),
         type: type,
         title: title,
         description: Value(description),
@@ -34,8 +34,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase> with _$GraphNodeDaoMixi
         isSkipped: isSkipped == null ? const Value.absent() : Value(isSkipped),
         positionX: positionX,
         positionY: positionY,
-        aiSynthesis: Value(aiSynthesis),
-        synthesisEdited: synthesisEdited == null ? const Value.absent() : Value(synthesisEdited),
         fsrsRating: Value(fsrsRating),
       ),
     );
@@ -61,24 +59,28 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase> with _$GraphNodeDaoMixi
     )..where((tbl) => tbl.id.equals(id))).write(
       GraphNodeCompanion(
         graphId: graphId == null ? const Value.absent() : Value(graphId),
-        parentId: parentId == null ? const Value.absent() : Value(parentId),
         type: type == null ? const Value.absent() : Value(type),
         title: title == null ? const Value.absent() : Value(title),
-        description: description == null ? const Value.absent() : Value(description),
-        masteryScore: masteryScore == null ? const Value.absent() : Value(masteryScore),
+        description: description == null
+            ? const Value.absent()
+            : Value(description),
+        masteryScore: masteryScore == null
+            ? const Value.absent()
+            : Value(masteryScore),
         isSkipped: isSkipped == null ? const Value.absent() : Value(isSkipped),
         positionX: positionX == null ? const Value.absent() : Value(positionX),
         positionY: positionY == null ? const Value.absent() : Value(positionY),
-        aiSynthesis: aiSynthesis == null ? const Value.absent() : Value(aiSynthesis),
-        synthesisEdited: synthesisEdited == null ? const Value.absent() : Value(synthesisEdited),
-        fsrsRating: fsrsRating == null ? const Value.absent() : Value(fsrsRating),
+        fsrsRating: fsrsRating == null
+            ? const Value.absent()
+            : Value(fsrsRating),
       ),
     );
   }
 
   Future<GraphNodeData?> getGraphNode({required String id}) {
-    return (select(attachedDatabase.graphNode)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.graphNode,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<List<GraphNodeData>> getGraphNodesByGraph({required String graphId}) {

@@ -5,7 +5,7 @@ import 'package:noema/core/network/api_client.dart';
 import 'package:openapi/openapi.dart';
 
 final secureSorageProvider = Provider<FlutterSecureStorage>((ref) {
- return const FlutterSecureStorage();
+  return const FlutterSecureStorage();
 });
 
 class LoginService {
@@ -13,20 +13,18 @@ class LoginService {
   final FlutterSecureStorage storage;
   final Ref ref;
 
-  LoginService(this.authApi , this.storage, this.ref);
+  LoginService(this.authApi, this.storage, this.ref);
 
-  Future<String> login({
-    required String user,
-    required String password,
-  })
-
-  async {
-    final response = await authApi.authenticateApiV1AuthLoginPost(username: user, password: password);
+  Future<String> login({required String user, required String password}) async {
+    final response = await authApi.authenticateApiV1AuthLoginPost(
+      username: user,
+      password: password,
+    );
 
     final data = response.data?.asMap;
     final token = data?["access_token"] as String;
 
-    if(token.isEmpty) {
+    if (token.isEmpty) {
       throw StateError("Token não veio");
     }
 
@@ -35,9 +33,13 @@ class LoginService {
     ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
 
     return token;
-  }  
+  }
 }
 
 final loginServiceProvider = Provider((ref) {
-  return LoginService(ref.watch(authApiProvider), ref.read(secureSorageProvider), ref);
+  return LoginService(
+    ref.read(authApiProvider),
+    ref.read(secureSorageProvider),
+    ref,
+  );
 });

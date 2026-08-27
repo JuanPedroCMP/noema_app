@@ -55,6 +55,7 @@ CREATE TABLE knowledge_graph (
     user_id             TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     title               TEXT NOT NULL,
     description         TEXT,
+    is_ai_generated     BOOLEAN NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0,1)),
     is_archived         BOOLEAN NOT NULL DEFAULT 0 CHECK (is_archived IN (0,1)),
     synced              BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
     created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
@@ -75,7 +76,6 @@ CREATE TABLE graph_version (
 CREATE TABLE graph_node (
     id                  TEXT NOT NULL PRIMARY KEY,
     graph_id            TEXT NOT NULL REFERENCES knowledge_graph(id) ON DELETE CASCADE,
-    parent_id           TEXT REFERENCES graph_node(id) ON DELETE CASCADE,
     type                TEXT NOT NULL CHECK (type IN ('AREA','TOPIC','CONCEPT','SUBCONCEPT')),
     title               TEXT NOT NULL,
     description         TEXT,
@@ -83,11 +83,11 @@ CREATE TABLE graph_node (
     is_skipped          BOOLEAN NOT NULL DEFAULT 0 CHECK (is_skipped IN (0,1)),
     position_x          REAL NOT NULL,
     position_y          REAL NOT NULL,
-    ai_synthesis        TEXT,
-    synthesis_edited    BOOLEAN NOT NULL DEFAULT 0 CHECK (synthesis_edited IN (0,1)),
     fsrs_rating         INTEGER,
     created_at          INTEGER NOT NULL DEFAULT (unixepoch()),
     updated_at          INTEGER NOT NULL DEFAULT (unixepoch()),
+    is_first_acess      BOOLEAN NOT NULL DEFAULT 0 CHECK (is_first_acess IN (0,1)),
+    is_ai_generated     BOOLEAN NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0,1)),
     soft_deleted        BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0,1)),
     soft_deleted_at     INTEGER
 );
@@ -98,11 +98,8 @@ CREATE TABLE graph_edge (
     source_node_id      TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
     target_node_id      TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
     type                TEXT NOT NULL CHECK (type IN
-                            ('STRONG_PREREQUISITE','WEAK_PREREQUISITE','RELATED',
-                             'APPLIES','GENERALIZES','INSTANTIATES')),
-    is_bidirectional    BOOLEAN NOT NULL DEFAULT 0 CHECK (is_bidirectional IN (0,1)),
+                            ('PREREQUISITE','SUBTOPIC')),
     weight              REAL,
-    synced              BOOLEAN NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
     CONSTRAINT graph_edge_uq UNIQUE (source_node_id, target_node_id, graph_id)
 );
 
@@ -111,7 +108,7 @@ CREATE TABLE node_skill (
     node_id             TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
     description         TEXT NOT NULL,
     type                TEXT NOT NULL CHECK (type IN ('MEMORIZE','APPLY','ANALYZE','CREATE')),
-    ai_generated        BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
+    is_ai_generated     BOOLEAN NOT NULL DEFAULT 0 CHECK (ai_generated IN (0,1)),
     user_edited         BOOLEAN NOT NULL DEFAULT 0 CHECK (user_edited IN (0,1)),
     display_order       INTEGER NOT NULL,
     created_at          INTEGER NOT NULL DEFAULT (unixepoch())

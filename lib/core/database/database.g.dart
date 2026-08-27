@@ -2429,6 +2429,18 @@ class KnowledgeGraph extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _isAiGeneratedMeta = const VerificationMeta(
+    'isAiGenerated',
+  );
+  late final GeneratedColumn<bool> isAiGenerated = GeneratedColumn<bool>(
+    'is_ai_generated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
   static const VerificationMeta _isArchivedMeta = const VerificationMeta(
     'isArchived',
   );
@@ -2504,6 +2516,7 @@ class KnowledgeGraph extends Table
     userId,
     title,
     description,
+    isAiGenerated,
     isArchived,
     synced,
     createdAt,
@@ -2550,6 +2563,15 @@ class KnowledgeGraph extends Table
         description.isAcceptableOrUnknown(
           data['description']!,
           _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_ai_generated')) {
+      context.handle(
+        _isAiGeneratedMeta,
+        isAiGenerated.isAcceptableOrUnknown(
+          data['is_ai_generated']!,
+          _isAiGeneratedMeta,
         ),
       );
     }
@@ -2620,6 +2642,10 @@ class KnowledgeGraph extends Table
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
+      isAiGenerated: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_ai_generated'],
+      )!,
       isArchived: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_archived'],
@@ -2662,6 +2688,7 @@ class KnowledgeGraphData extends DataClass
   final String userId;
   final String title;
   final String? description;
+  final bool isAiGenerated;
   final bool isArchived;
   final bool synced;
   final int createdAt;
@@ -2673,6 +2700,7 @@ class KnowledgeGraphData extends DataClass
     required this.userId,
     required this.title,
     this.description,
+    required this.isAiGenerated,
     required this.isArchived,
     required this.synced,
     required this.createdAt,
@@ -2689,6 +2717,7 @@ class KnowledgeGraphData extends DataClass
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    map['is_ai_generated'] = Variable<bool>(isAiGenerated);
     map['is_archived'] = Variable<bool>(isArchived);
     map['synced'] = Variable<bool>(synced);
     map['created_at'] = Variable<int>(createdAt);
@@ -2708,6 +2737,7 @@ class KnowledgeGraphData extends DataClass
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      isAiGenerated: Value(isAiGenerated),
       isArchived: Value(isArchived),
       synced: Value(synced),
       createdAt: Value(createdAt),
@@ -2729,6 +2759,7 @@ class KnowledgeGraphData extends DataClass
       userId: serializer.fromJson<String>(json['user_id']),
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
+      isAiGenerated: serializer.fromJson<bool>(json['is_ai_generated']),
       isArchived: serializer.fromJson<bool>(json['is_archived']),
       synced: serializer.fromJson<bool>(json['synced']),
       createdAt: serializer.fromJson<int>(json['created_at']),
@@ -2745,6 +2776,7 @@ class KnowledgeGraphData extends DataClass
       'user_id': serializer.toJson<String>(userId),
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String?>(description),
+      'is_ai_generated': serializer.toJson<bool>(isAiGenerated),
       'is_archived': serializer.toJson<bool>(isArchived),
       'synced': serializer.toJson<bool>(synced),
       'created_at': serializer.toJson<int>(createdAt),
@@ -2759,6 +2791,7 @@ class KnowledgeGraphData extends DataClass
     String? userId,
     String? title,
     Value<String?> description = const Value.absent(),
+    bool? isAiGenerated,
     bool? isArchived,
     bool? synced,
     int? createdAt,
@@ -2770,6 +2803,7 @@ class KnowledgeGraphData extends DataClass
     userId: userId ?? this.userId,
     title: title ?? this.title,
     description: description.present ? description.value : this.description,
+    isAiGenerated: isAiGenerated ?? this.isAiGenerated,
     isArchived: isArchived ?? this.isArchived,
     synced: synced ?? this.synced,
     createdAt: createdAt ?? this.createdAt,
@@ -2787,6 +2821,9 @@ class KnowledgeGraphData extends DataClass
       description: data.description.present
           ? data.description.value
           : this.description,
+      isAiGenerated: data.isAiGenerated.present
+          ? data.isAiGenerated.value
+          : this.isAiGenerated,
       isArchived: data.isArchived.present
           ? data.isArchived.value
           : this.isArchived,
@@ -2809,6 +2846,7 @@ class KnowledgeGraphData extends DataClass
           ..write('userId: $userId, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('isArchived: $isArchived, ')
           ..write('synced: $synced, ')
           ..write('createdAt: $createdAt, ')
@@ -2825,6 +2863,7 @@ class KnowledgeGraphData extends DataClass
     userId,
     title,
     description,
+    isAiGenerated,
     isArchived,
     synced,
     createdAt,
@@ -2840,6 +2879,7 @@ class KnowledgeGraphData extends DataClass
           other.userId == this.userId &&
           other.title == this.title &&
           other.description == this.description &&
+          other.isAiGenerated == this.isAiGenerated &&
           other.isArchived == this.isArchived &&
           other.synced == this.synced &&
           other.createdAt == this.createdAt &&
@@ -2853,6 +2893,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
   final Value<String> userId;
   final Value<String> title;
   final Value<String?> description;
+  final Value<bool> isAiGenerated;
   final Value<bool> isArchived;
   final Value<bool> synced;
   final Value<int> createdAt;
@@ -2865,6 +2906,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     this.userId = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.synced = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2878,6 +2920,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     required String userId,
     required String title,
     this.description = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.synced = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2893,6 +2936,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     Expression<String>? userId,
     Expression<String>? title,
     Expression<String>? description,
+    Expression<bool>? isAiGenerated,
     Expression<bool>? isArchived,
     Expression<bool>? synced,
     Expression<int>? createdAt,
@@ -2906,6 +2950,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
       if (userId != null) 'user_id': userId,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
+      if (isAiGenerated != null) 'is_ai_generated': isAiGenerated,
       if (isArchived != null) 'is_archived': isArchived,
       if (synced != null) 'synced': synced,
       if (createdAt != null) 'created_at': createdAt,
@@ -2921,6 +2966,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     Value<String>? userId,
     Value<String>? title,
     Value<String?>? description,
+    Value<bool>? isAiGenerated,
     Value<bool>? isArchived,
     Value<bool>? synced,
     Value<int>? createdAt,
@@ -2934,6 +2980,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
       userId: userId ?? this.userId,
       title: title ?? this.title,
       description: description ?? this.description,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
       isArchived: isArchived ?? this.isArchived,
       synced: synced ?? this.synced,
       createdAt: createdAt ?? this.createdAt,
@@ -2958,6 +3005,9 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (isAiGenerated.present) {
+      map['is_ai_generated'] = Variable<bool>(isAiGenerated.value);
     }
     if (isArchived.present) {
       map['is_archived'] = Variable<bool>(isArchived.value);
@@ -2990,6 +3040,7 @@ class KnowledgeGraphCompanion extends UpdateCompanion<KnowledgeGraphData> {
           ..write('userId: $userId, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('isArchived: $isArchived, ')
           ..write('synced: $synced, ')
           ..write('createdAt: $createdAt, ')
@@ -3465,17 +3516,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
     $customConstraints:
         'NOT NULL REFERENCES knowledge_graph(id)ON DELETE CASCADE',
   );
-  static const VerificationMeta _parentIdMeta = const VerificationMeta(
-    'parentId',
-  );
-  late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
-    'parent_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'REFERENCES graph_node(id)ON DELETE CASCADE',
-  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
     'type',
@@ -3551,29 +3591,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _aiSynthesisMeta = const VerificationMeta(
-    'aiSynthesis',
-  );
-  late final GeneratedColumn<String> aiSynthesis = GeneratedColumn<String>(
-    'ai_synthesis',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _synthesisEditedMeta = const VerificationMeta(
-    'synthesisEdited',
-  );
-  late final GeneratedColumn<bool> synthesisEdited = GeneratedColumn<bool>(
-    'synthesis_edited',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (synthesis_edited IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
   static const VerificationMeta _fsrsRatingMeta = const VerificationMeta(
     'fsrsRating',
   );
@@ -3609,6 +3626,30 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
     $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
     defaultValue: const CustomExpression('unixepoch()'),
   );
+  static const VerificationMeta _isFirstAcessMeta = const VerificationMeta(
+    'isFirstAcess',
+  );
+  late final GeneratedColumn<bool> isFirstAcess = GeneratedColumn<bool>(
+    'is_first_acess',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_first_acess IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _isAiGeneratedMeta = const VerificationMeta(
+    'isAiGenerated',
+  );
+  late final GeneratedColumn<bool> isAiGenerated = GeneratedColumn<bool>(
+    'is_ai_generated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
   static const VerificationMeta _softDeletedMeta = const VerificationMeta(
     'softDeleted',
   );
@@ -3636,7 +3677,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
   List<GeneratedColumn> get $columns => [
     id,
     graphId,
-    parentId,
     type,
     title,
     description,
@@ -3644,11 +3684,11 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
     isSkipped,
     positionX,
     positionY,
-    aiSynthesis,
-    synthesisEdited,
     fsrsRating,
     createdAt,
     updatedAt,
+    isFirstAcess,
+    isAiGenerated,
     softDeleted,
     softDeletedAt,
   ];
@@ -3676,12 +3716,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
       );
     } else if (isInserting) {
       context.missing(_graphIdMeta);
-    }
-    if (data.containsKey('parent_id')) {
-      context.handle(
-        _parentIdMeta,
-        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
-      );
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -3739,24 +3773,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
     } else if (isInserting) {
       context.missing(_positionYMeta);
     }
-    if (data.containsKey('ai_synthesis')) {
-      context.handle(
-        _aiSynthesisMeta,
-        aiSynthesis.isAcceptableOrUnknown(
-          data['ai_synthesis']!,
-          _aiSynthesisMeta,
-        ),
-      );
-    }
-    if (data.containsKey('synthesis_edited')) {
-      context.handle(
-        _synthesisEditedMeta,
-        synthesisEdited.isAcceptableOrUnknown(
-          data['synthesis_edited']!,
-          _synthesisEditedMeta,
-        ),
-      );
-    }
     if (data.containsKey('fsrs_rating')) {
       context.handle(
         _fsrsRatingMeta,
@@ -3773,6 +3789,24 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
       context.handle(
         _updatedAtMeta,
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_first_acess')) {
+      context.handle(
+        _isFirstAcessMeta,
+        isFirstAcess.isAcceptableOrUnknown(
+          data['is_first_acess']!,
+          _isFirstAcessMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_ai_generated')) {
+      context.handle(
+        _isAiGeneratedMeta,
+        isAiGenerated.isAcceptableOrUnknown(
+          data['is_ai_generated']!,
+          _isAiGeneratedMeta,
+        ),
       );
     }
     if (data.containsKey('soft_deleted')) {
@@ -3810,10 +3844,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
         DriftSqlType.string,
         data['${effectivePrefix}graph_id'],
       )!,
-      parentId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}parent_id'],
-      ),
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}type'],
@@ -3842,14 +3872,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
         DriftSqlType.double,
         data['${effectivePrefix}position_y'],
       )!,
-      aiSynthesis: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}ai_synthesis'],
-      ),
-      synthesisEdited: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}synthesis_edited'],
-      )!,
       fsrsRating: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}fsrs_rating'],
@@ -3861,6 +3883,14 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
+      )!,
+      isFirstAcess: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_first_acess'],
+      )!,
+      isAiGenerated: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_ai_generated'],
       )!,
       softDeleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -3885,7 +3915,6 @@ class GraphNode extends Table with TableInfo<GraphNode, GraphNodeData> {
 class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
   final String id;
   final String graphId;
-  final String? parentId;
   final String type;
   final String title;
   final String? description;
@@ -3893,17 +3922,16 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
   final bool isSkipped;
   final double positionX;
   final double positionY;
-  final String? aiSynthesis;
-  final bool synthesisEdited;
   final int? fsrsRating;
   final int createdAt;
   final int updatedAt;
+  final bool isFirstAcess;
+  final bool isAiGenerated;
   final bool softDeleted;
   final int? softDeletedAt;
   const GraphNodeData({
     required this.id,
     required this.graphId,
-    this.parentId,
     required this.type,
     required this.title,
     this.description,
@@ -3911,11 +3939,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     required this.isSkipped,
     required this.positionX,
     required this.positionY,
-    this.aiSynthesis,
-    required this.synthesisEdited,
     this.fsrsRating,
     required this.createdAt,
     required this.updatedAt,
+    required this.isFirstAcess,
+    required this.isAiGenerated,
     required this.softDeleted,
     this.softDeletedAt,
   });
@@ -3924,9 +3952,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['graph_id'] = Variable<String>(graphId);
-    if (!nullToAbsent || parentId != null) {
-      map['parent_id'] = Variable<String>(parentId);
-    }
     map['type'] = Variable<String>(type);
     map['title'] = Variable<String>(title);
     if (!nullToAbsent || description != null) {
@@ -3938,15 +3963,13 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     map['is_skipped'] = Variable<bool>(isSkipped);
     map['position_x'] = Variable<double>(positionX);
     map['position_y'] = Variable<double>(positionY);
-    if (!nullToAbsent || aiSynthesis != null) {
-      map['ai_synthesis'] = Variable<String>(aiSynthesis);
-    }
-    map['synthesis_edited'] = Variable<bool>(synthesisEdited);
     if (!nullToAbsent || fsrsRating != null) {
       map['fsrs_rating'] = Variable<int>(fsrsRating);
     }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
+    map['is_first_acess'] = Variable<bool>(isFirstAcess);
+    map['is_ai_generated'] = Variable<bool>(isAiGenerated);
     map['soft_deleted'] = Variable<bool>(softDeleted);
     if (!nullToAbsent || softDeletedAt != null) {
       map['soft_deleted_at'] = Variable<int>(softDeletedAt);
@@ -3958,9 +3981,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     return GraphNodeCompanion(
       id: Value(id),
       graphId: Value(graphId),
-      parentId: parentId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(parentId),
       type: Value(type),
       title: Value(title),
       description: description == null && nullToAbsent
@@ -3972,15 +3992,13 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       isSkipped: Value(isSkipped),
       positionX: Value(positionX),
       positionY: Value(positionY),
-      aiSynthesis: aiSynthesis == null && nullToAbsent
-          ? const Value.absent()
-          : Value(aiSynthesis),
-      synthesisEdited: Value(synthesisEdited),
       fsrsRating: fsrsRating == null && nullToAbsent
           ? const Value.absent()
           : Value(fsrsRating),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isFirstAcess: Value(isFirstAcess),
+      isAiGenerated: Value(isAiGenerated),
       softDeleted: Value(softDeleted),
       softDeletedAt: softDeletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -3996,7 +4014,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     return GraphNodeData(
       id: serializer.fromJson<String>(json['id']),
       graphId: serializer.fromJson<String>(json['graph_id']),
-      parentId: serializer.fromJson<String?>(json['parent_id']),
       type: serializer.fromJson<String>(json['type']),
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
@@ -4004,11 +4021,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       isSkipped: serializer.fromJson<bool>(json['is_skipped']),
       positionX: serializer.fromJson<double>(json['position_x']),
       positionY: serializer.fromJson<double>(json['position_y']),
-      aiSynthesis: serializer.fromJson<String?>(json['ai_synthesis']),
-      synthesisEdited: serializer.fromJson<bool>(json['synthesis_edited']),
       fsrsRating: serializer.fromJson<int?>(json['fsrs_rating']),
       createdAt: serializer.fromJson<int>(json['created_at']),
       updatedAt: serializer.fromJson<int>(json['updated_at']),
+      isFirstAcess: serializer.fromJson<bool>(json['is_first_acess']),
+      isAiGenerated: serializer.fromJson<bool>(json['is_ai_generated']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
       softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
     );
@@ -4019,7 +4036,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'graph_id': serializer.toJson<String>(graphId),
-      'parent_id': serializer.toJson<String?>(parentId),
       'type': serializer.toJson<String>(type),
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String?>(description),
@@ -4027,11 +4043,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       'is_skipped': serializer.toJson<bool>(isSkipped),
       'position_x': serializer.toJson<double>(positionX),
       'position_y': serializer.toJson<double>(positionY),
-      'ai_synthesis': serializer.toJson<String?>(aiSynthesis),
-      'synthesis_edited': serializer.toJson<bool>(synthesisEdited),
       'fsrs_rating': serializer.toJson<int?>(fsrsRating),
       'created_at': serializer.toJson<int>(createdAt),
       'updated_at': serializer.toJson<int>(updatedAt),
+      'is_first_acess': serializer.toJson<bool>(isFirstAcess),
+      'is_ai_generated': serializer.toJson<bool>(isAiGenerated),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
       'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
     };
@@ -4040,7 +4056,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
   GraphNodeData copyWith({
     String? id,
     String? graphId,
-    Value<String?> parentId = const Value.absent(),
     String? type,
     String? title,
     Value<String?> description = const Value.absent(),
@@ -4048,17 +4063,16 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     bool? isSkipped,
     double? positionX,
     double? positionY,
-    Value<String?> aiSynthesis = const Value.absent(),
-    bool? synthesisEdited,
     Value<int?> fsrsRating = const Value.absent(),
     int? createdAt,
     int? updatedAt,
+    bool? isFirstAcess,
+    bool? isAiGenerated,
     bool? softDeleted,
     Value<int?> softDeletedAt = const Value.absent(),
   }) => GraphNodeData(
     id: id ?? this.id,
     graphId: graphId ?? this.graphId,
-    parentId: parentId.present ? parentId.value : this.parentId,
     type: type ?? this.type,
     title: title ?? this.title,
     description: description.present ? description.value : this.description,
@@ -4066,11 +4080,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     isSkipped: isSkipped ?? this.isSkipped,
     positionX: positionX ?? this.positionX,
     positionY: positionY ?? this.positionY,
-    aiSynthesis: aiSynthesis.present ? aiSynthesis.value : this.aiSynthesis,
-    synthesisEdited: synthesisEdited ?? this.synthesisEdited,
     fsrsRating: fsrsRating.present ? fsrsRating.value : this.fsrsRating,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    isFirstAcess: isFirstAcess ?? this.isFirstAcess,
+    isAiGenerated: isAiGenerated ?? this.isAiGenerated,
     softDeleted: softDeleted ?? this.softDeleted,
     softDeletedAt: softDeletedAt.present
         ? softDeletedAt.value
@@ -4080,7 +4094,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     return GraphNodeData(
       id: data.id.present ? data.id.value : this.id,
       graphId: data.graphId.present ? data.graphId.value : this.graphId,
-      parentId: data.parentId.present ? data.parentId.value : this.parentId,
       type: data.type.present ? data.type.value : this.type,
       title: data.title.present ? data.title.value : this.title,
       description: data.description.present
@@ -4092,17 +4105,17 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       isSkipped: data.isSkipped.present ? data.isSkipped.value : this.isSkipped,
       positionX: data.positionX.present ? data.positionX.value : this.positionX,
       positionY: data.positionY.present ? data.positionY.value : this.positionY,
-      aiSynthesis: data.aiSynthesis.present
-          ? data.aiSynthesis.value
-          : this.aiSynthesis,
-      synthesisEdited: data.synthesisEdited.present
-          ? data.synthesisEdited.value
-          : this.synthesisEdited,
       fsrsRating: data.fsrsRating.present
           ? data.fsrsRating.value
           : this.fsrsRating,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isFirstAcess: data.isFirstAcess.present
+          ? data.isFirstAcess.value
+          : this.isFirstAcess,
+      isAiGenerated: data.isAiGenerated.present
+          ? data.isAiGenerated.value
+          : this.isAiGenerated,
       softDeleted: data.softDeleted.present
           ? data.softDeleted.value
           : this.softDeleted,
@@ -4117,7 +4130,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     return (StringBuffer('GraphNodeData(')
           ..write('id: $id, ')
           ..write('graphId: $graphId, ')
-          ..write('parentId: $parentId, ')
           ..write('type: $type, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
@@ -4125,11 +4137,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
           ..write('isSkipped: $isSkipped, ')
           ..write('positionX: $positionX, ')
           ..write('positionY: $positionY, ')
-          ..write('aiSynthesis: $aiSynthesis, ')
-          ..write('synthesisEdited: $synthesisEdited, ')
           ..write('fsrsRating: $fsrsRating, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isFirstAcess: $isFirstAcess, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('softDeleted: $softDeleted, ')
           ..write('softDeletedAt: $softDeletedAt')
           ..write(')'))
@@ -4140,7 +4152,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
   int get hashCode => Object.hash(
     id,
     graphId,
-    parentId,
     type,
     title,
     description,
@@ -4148,11 +4159,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
     isSkipped,
     positionX,
     positionY,
-    aiSynthesis,
-    synthesisEdited,
     fsrsRating,
     createdAt,
     updatedAt,
+    isFirstAcess,
+    isAiGenerated,
     softDeleted,
     softDeletedAt,
   );
@@ -4162,7 +4173,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
       (other is GraphNodeData &&
           other.id == this.id &&
           other.graphId == this.graphId &&
-          other.parentId == this.parentId &&
           other.type == this.type &&
           other.title == this.title &&
           other.description == this.description &&
@@ -4170,11 +4180,11 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
           other.isSkipped == this.isSkipped &&
           other.positionX == this.positionX &&
           other.positionY == this.positionY &&
-          other.aiSynthesis == this.aiSynthesis &&
-          other.synthesisEdited == this.synthesisEdited &&
           other.fsrsRating == this.fsrsRating &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.isFirstAcess == this.isFirstAcess &&
+          other.isAiGenerated == this.isAiGenerated &&
           other.softDeleted == this.softDeleted &&
           other.softDeletedAt == this.softDeletedAt);
 }
@@ -4182,7 +4192,6 @@ class GraphNodeData extends DataClass implements Insertable<GraphNodeData> {
 class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   final Value<String> id;
   final Value<String> graphId;
-  final Value<String?> parentId;
   final Value<String> type;
   final Value<String> title;
   final Value<String?> description;
@@ -4190,18 +4199,17 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   final Value<bool> isSkipped;
   final Value<double> positionX;
   final Value<double> positionY;
-  final Value<String?> aiSynthesis;
-  final Value<bool> synthesisEdited;
   final Value<int?> fsrsRating;
   final Value<int> createdAt;
   final Value<int> updatedAt;
+  final Value<bool> isFirstAcess;
+  final Value<bool> isAiGenerated;
   final Value<bool> softDeleted;
   final Value<int?> softDeletedAt;
   final Value<int> rowid;
   const GraphNodeCompanion({
     this.id = const Value.absent(),
     this.graphId = const Value.absent(),
-    this.parentId = const Value.absent(),
     this.type = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
@@ -4209,11 +4217,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     this.isSkipped = const Value.absent(),
     this.positionX = const Value.absent(),
     this.positionY = const Value.absent(),
-    this.aiSynthesis = const Value.absent(),
-    this.synthesisEdited = const Value.absent(),
     this.fsrsRating = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isFirstAcess = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.softDeleted = const Value.absent(),
     this.softDeletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4221,7 +4229,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   GraphNodeCompanion.insert({
     required String id,
     required String graphId,
-    this.parentId = const Value.absent(),
     required String type,
     required String title,
     this.description = const Value.absent(),
@@ -4229,11 +4236,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     this.isSkipped = const Value.absent(),
     required double positionX,
     required double positionY,
-    this.aiSynthesis = const Value.absent(),
-    this.synthesisEdited = const Value.absent(),
     this.fsrsRating = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isFirstAcess = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.softDeleted = const Value.absent(),
     this.softDeletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4246,7 +4253,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   static Insertable<GraphNodeData> custom({
     Expression<String>? id,
     Expression<String>? graphId,
-    Expression<String>? parentId,
     Expression<String>? type,
     Expression<String>? title,
     Expression<String>? description,
@@ -4254,11 +4260,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     Expression<bool>? isSkipped,
     Expression<double>? positionX,
     Expression<double>? positionY,
-    Expression<String>? aiSynthesis,
-    Expression<bool>? synthesisEdited,
     Expression<int>? fsrsRating,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
+    Expression<bool>? isFirstAcess,
+    Expression<bool>? isAiGenerated,
     Expression<bool>? softDeleted,
     Expression<int>? softDeletedAt,
     Expression<int>? rowid,
@@ -4266,7 +4272,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (graphId != null) 'graph_id': graphId,
-      if (parentId != null) 'parent_id': parentId,
       if (type != null) 'type': type,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
@@ -4274,11 +4279,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
       if (isSkipped != null) 'is_skipped': isSkipped,
       if (positionX != null) 'position_x': positionX,
       if (positionY != null) 'position_y': positionY,
-      if (aiSynthesis != null) 'ai_synthesis': aiSynthesis,
-      if (synthesisEdited != null) 'synthesis_edited': synthesisEdited,
       if (fsrsRating != null) 'fsrs_rating': fsrsRating,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isFirstAcess != null) 'is_first_acess': isFirstAcess,
+      if (isAiGenerated != null) 'is_ai_generated': isAiGenerated,
       if (softDeleted != null) 'soft_deleted': softDeleted,
       if (softDeletedAt != null) 'soft_deleted_at': softDeletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -4288,7 +4293,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
   GraphNodeCompanion copyWith({
     Value<String>? id,
     Value<String>? graphId,
-    Value<String?>? parentId,
     Value<String>? type,
     Value<String>? title,
     Value<String?>? description,
@@ -4296,11 +4300,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     Value<bool>? isSkipped,
     Value<double>? positionX,
     Value<double>? positionY,
-    Value<String?>? aiSynthesis,
-    Value<bool>? synthesisEdited,
     Value<int?>? fsrsRating,
     Value<int>? createdAt,
     Value<int>? updatedAt,
+    Value<bool>? isFirstAcess,
+    Value<bool>? isAiGenerated,
     Value<bool>? softDeleted,
     Value<int?>? softDeletedAt,
     Value<int>? rowid,
@@ -4308,7 +4312,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     return GraphNodeCompanion(
       id: id ?? this.id,
       graphId: graphId ?? this.graphId,
-      parentId: parentId ?? this.parentId,
       type: type ?? this.type,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -4316,11 +4319,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
       isSkipped: isSkipped ?? this.isSkipped,
       positionX: positionX ?? this.positionX,
       positionY: positionY ?? this.positionY,
-      aiSynthesis: aiSynthesis ?? this.aiSynthesis,
-      synthesisEdited: synthesisEdited ?? this.synthesisEdited,
       fsrsRating: fsrsRating ?? this.fsrsRating,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isFirstAcess: isFirstAcess ?? this.isFirstAcess,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
       softDeleted: softDeleted ?? this.softDeleted,
       softDeletedAt: softDeletedAt ?? this.softDeletedAt,
       rowid: rowid ?? this.rowid,
@@ -4335,9 +4338,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     }
     if (graphId.present) {
       map['graph_id'] = Variable<String>(graphId.value);
-    }
-    if (parentId.present) {
-      map['parent_id'] = Variable<String>(parentId.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -4360,12 +4360,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     if (positionY.present) {
       map['position_y'] = Variable<double>(positionY.value);
     }
-    if (aiSynthesis.present) {
-      map['ai_synthesis'] = Variable<String>(aiSynthesis.value);
-    }
-    if (synthesisEdited.present) {
-      map['synthesis_edited'] = Variable<bool>(synthesisEdited.value);
-    }
     if (fsrsRating.present) {
       map['fsrs_rating'] = Variable<int>(fsrsRating.value);
     }
@@ -4374,6 +4368,12 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (isFirstAcess.present) {
+      map['is_first_acess'] = Variable<bool>(isFirstAcess.value);
+    }
+    if (isAiGenerated.present) {
+      map['is_ai_generated'] = Variable<bool>(isAiGenerated.value);
     }
     if (softDeleted.present) {
       map['soft_deleted'] = Variable<bool>(softDeleted.value);
@@ -4392,7 +4392,6 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
     return (StringBuffer('GraphNodeCompanion(')
           ..write('id: $id, ')
           ..write('graphId: $graphId, ')
-          ..write('parentId: $parentId, ')
           ..write('type: $type, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
@@ -4400,11 +4399,11 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
           ..write('isSkipped: $isSkipped, ')
           ..write('positionX: $positionX, ')
           ..write('positionY: $positionY, ')
-          ..write('aiSynthesis: $aiSynthesis, ')
-          ..write('synthesisEdited: $synthesisEdited, ')
           ..write('fsrsRating: $fsrsRating, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isFirstAcess: $isFirstAcess, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('softDeleted: $softDeleted, ')
           ..write('softDeletedAt: $softDeletedAt, ')
           ..write('rowid: $rowid')
@@ -4469,19 +4468,7 @@ class GraphEdge extends Table with TableInfo<GraphEdge, GraphEdgeData> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     $customConstraints:
-        'NOT NULL CHECK (type IN (\'STRONG_PREREQUISITE\', \'WEAK_PREREQUISITE\', \'RELATED\', \'APPLIES\', \'GENERALIZES\', \'INSTANTIATES\'))',
-  );
-  static const VerificationMeta _isBidirectionalMeta = const VerificationMeta(
-    'isBidirectional',
-  );
-  late final GeneratedColumn<bool> isBidirectional = GeneratedColumn<bool>(
-    'is_bidirectional',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_bidirectional IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
+        'NOT NULL CHECK (type IN (\'PREREQUISITE\', \'SUBTOPIC\'))',
   );
   static const VerificationMeta _weightMeta = const VerificationMeta('weight');
   late final GeneratedColumn<double> weight = GeneratedColumn<double>(
@@ -4492,16 +4479,6 @@ class GraphEdge extends Table with TableInfo<GraphEdge, GraphEdgeData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
-  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
-    'synced',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (synced IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4509,9 +4486,7 @@ class GraphEdge extends Table with TableInfo<GraphEdge, GraphEdgeData> {
     sourceNodeId,
     targetNodeId,
     type,
-    isBidirectional,
     weight,
-    synced,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4568,25 +4543,10 @@ class GraphEdge extends Table with TableInfo<GraphEdge, GraphEdgeData> {
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (data.containsKey('is_bidirectional')) {
-      context.handle(
-        _isBidirectionalMeta,
-        isBidirectional.isAcceptableOrUnknown(
-          data['is_bidirectional']!,
-          _isBidirectionalMeta,
-        ),
-      );
-    }
     if (data.containsKey('weight')) {
       context.handle(
         _weightMeta,
         weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
-      );
-    }
-    if (data.containsKey('synced')) {
-      context.handle(
-        _syncedMeta,
-        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
       );
     }
     return context;
@@ -4622,18 +4582,10 @@ class GraphEdge extends Table with TableInfo<GraphEdge, GraphEdgeData> {
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
-      isBidirectional: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_bidirectional'],
-      )!,
       weight: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}weight'],
       ),
-      synced: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}synced'],
-      )!,
     );
   }
 
@@ -4656,18 +4608,14 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
   final String sourceNodeId;
   final String targetNodeId;
   final String type;
-  final bool isBidirectional;
   final double? weight;
-  final bool synced;
   const GraphEdgeData({
     required this.id,
     required this.graphId,
     required this.sourceNodeId,
     required this.targetNodeId,
     required this.type,
-    required this.isBidirectional,
     this.weight,
-    required this.synced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4677,11 +4625,9 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
     map['source_node_id'] = Variable<String>(sourceNodeId);
     map['target_node_id'] = Variable<String>(targetNodeId);
     map['type'] = Variable<String>(type);
-    map['is_bidirectional'] = Variable<bool>(isBidirectional);
     if (!nullToAbsent || weight != null) {
       map['weight'] = Variable<double>(weight);
     }
-    map['synced'] = Variable<bool>(synced);
     return map;
   }
 
@@ -4692,11 +4638,9 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
       sourceNodeId: Value(sourceNodeId),
       targetNodeId: Value(targetNodeId),
       type: Value(type),
-      isBidirectional: Value(isBidirectional),
       weight: weight == null && nullToAbsent
           ? const Value.absent()
           : Value(weight),
-      synced: Value(synced),
     );
   }
 
@@ -4711,9 +4655,7 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
       sourceNodeId: serializer.fromJson<String>(json['source_node_id']),
       targetNodeId: serializer.fromJson<String>(json['target_node_id']),
       type: serializer.fromJson<String>(json['type']),
-      isBidirectional: serializer.fromJson<bool>(json['is_bidirectional']),
       weight: serializer.fromJson<double?>(json['weight']),
-      synced: serializer.fromJson<bool>(json['synced']),
     );
   }
   @override
@@ -4725,9 +4667,7 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
       'source_node_id': serializer.toJson<String>(sourceNodeId),
       'target_node_id': serializer.toJson<String>(targetNodeId),
       'type': serializer.toJson<String>(type),
-      'is_bidirectional': serializer.toJson<bool>(isBidirectional),
       'weight': serializer.toJson<double?>(weight),
-      'synced': serializer.toJson<bool>(synced),
     };
   }
 
@@ -4737,18 +4677,14 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
     String? sourceNodeId,
     String? targetNodeId,
     String? type,
-    bool? isBidirectional,
     Value<double?> weight = const Value.absent(),
-    bool? synced,
   }) => GraphEdgeData(
     id: id ?? this.id,
     graphId: graphId ?? this.graphId,
     sourceNodeId: sourceNodeId ?? this.sourceNodeId,
     targetNodeId: targetNodeId ?? this.targetNodeId,
     type: type ?? this.type,
-    isBidirectional: isBidirectional ?? this.isBidirectional,
     weight: weight.present ? weight.value : this.weight,
-    synced: synced ?? this.synced,
   );
   GraphEdgeData copyWithCompanion(GraphEdgeCompanion data) {
     return GraphEdgeData(
@@ -4761,11 +4697,7 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
           ? data.targetNodeId.value
           : this.targetNodeId,
       type: data.type.present ? data.type.value : this.type,
-      isBidirectional: data.isBidirectional.present
-          ? data.isBidirectional.value
-          : this.isBidirectional,
       weight: data.weight.present ? data.weight.value : this.weight,
-      synced: data.synced.present ? data.synced.value : this.synced,
     );
   }
 
@@ -4777,24 +4709,14 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
           ..write('sourceNodeId: $sourceNodeId, ')
           ..write('targetNodeId: $targetNodeId, ')
           ..write('type: $type, ')
-          ..write('isBidirectional: $isBidirectional, ')
-          ..write('weight: $weight, ')
-          ..write('synced: $synced')
+          ..write('weight: $weight')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    graphId,
-    sourceNodeId,
-    targetNodeId,
-    type,
-    isBidirectional,
-    weight,
-    synced,
-  );
+  int get hashCode =>
+      Object.hash(id, graphId, sourceNodeId, targetNodeId, type, weight);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4804,9 +4726,7 @@ class GraphEdgeData extends DataClass implements Insertable<GraphEdgeData> {
           other.sourceNodeId == this.sourceNodeId &&
           other.targetNodeId == this.targetNodeId &&
           other.type == this.type &&
-          other.isBidirectional == this.isBidirectional &&
-          other.weight == this.weight &&
-          other.synced == this.synced);
+          other.weight == this.weight);
 }
 
 class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
@@ -4815,9 +4735,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
   final Value<String> sourceNodeId;
   final Value<String> targetNodeId;
   final Value<String> type;
-  final Value<bool> isBidirectional;
   final Value<double?> weight;
-  final Value<bool> synced;
   final Value<int> rowid;
   const GraphEdgeCompanion({
     this.id = const Value.absent(),
@@ -4825,9 +4743,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
     this.sourceNodeId = const Value.absent(),
     this.targetNodeId = const Value.absent(),
     this.type = const Value.absent(),
-    this.isBidirectional = const Value.absent(),
     this.weight = const Value.absent(),
-    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GraphEdgeCompanion.insert({
@@ -4836,9 +4752,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
     required String sourceNodeId,
     required String targetNodeId,
     required String type,
-    this.isBidirectional = const Value.absent(),
     this.weight = const Value.absent(),
-    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        graphId = Value(graphId),
@@ -4851,9 +4765,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
     Expression<String>? sourceNodeId,
     Expression<String>? targetNodeId,
     Expression<String>? type,
-    Expression<bool>? isBidirectional,
     Expression<double>? weight,
-    Expression<bool>? synced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4862,9 +4774,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
       if (sourceNodeId != null) 'source_node_id': sourceNodeId,
       if (targetNodeId != null) 'target_node_id': targetNodeId,
       if (type != null) 'type': type,
-      if (isBidirectional != null) 'is_bidirectional': isBidirectional,
       if (weight != null) 'weight': weight,
-      if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4875,9 +4785,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
     Value<String>? sourceNodeId,
     Value<String>? targetNodeId,
     Value<String>? type,
-    Value<bool>? isBidirectional,
     Value<double?>? weight,
-    Value<bool>? synced,
     Value<int>? rowid,
   }) {
     return GraphEdgeCompanion(
@@ -4886,9 +4794,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
       sourceNodeId: sourceNodeId ?? this.sourceNodeId,
       targetNodeId: targetNodeId ?? this.targetNodeId,
       type: type ?? this.type,
-      isBidirectional: isBidirectional ?? this.isBidirectional,
       weight: weight ?? this.weight,
-      synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4911,14 +4817,8 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
-    if (isBidirectional.present) {
-      map['is_bidirectional'] = Variable<bool>(isBidirectional.value);
-    }
     if (weight.present) {
       map['weight'] = Variable<double>(weight.value);
-    }
-    if (synced.present) {
-      map['synced'] = Variable<bool>(synced.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -4934,9 +4834,7 @@ class GraphEdgeCompanion extends UpdateCompanion<GraphEdgeData> {
           ..write('sourceNodeId: $sourceNodeId, ')
           ..write('targetNodeId: $targetNodeId, ')
           ..write('type: $type, ')
-          ..write('isBidirectional: $isBidirectional, ')
           ..write('weight: $weight, ')
-          ..write('synced: $synced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4987,11 +4885,11 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
     $customConstraints:
         'NOT NULL CHECK (type IN (\'MEMORIZE\', \'APPLY\', \'ANALYZE\', \'CREATE\'))',
   );
-  static const VerificationMeta _aiGeneratedMeta = const VerificationMeta(
-    'aiGenerated',
+  static const VerificationMeta _isAiGeneratedMeta = const VerificationMeta(
+    'isAiGenerated',
   );
-  late final GeneratedColumn<bool> aiGenerated = GeneratedColumn<bool>(
-    'ai_generated',
+  late final GeneratedColumn<bool> isAiGenerated = GeneratedColumn<bool>(
+    'is_ai_generated',
     aliasedName,
     false,
     type: DriftSqlType.bool,
@@ -5040,7 +4938,7 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
     nodeId,
     description,
     type,
-    aiGenerated,
+    isAiGenerated,
     userEdited,
     displayOrder,
     createdAt,
@@ -5089,12 +4987,12 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (data.containsKey('ai_generated')) {
+    if (data.containsKey('is_ai_generated')) {
       context.handle(
-        _aiGeneratedMeta,
-        aiGenerated.isAcceptableOrUnknown(
-          data['ai_generated']!,
-          _aiGeneratedMeta,
+        _isAiGeneratedMeta,
+        isAiGenerated.isAcceptableOrUnknown(
+          data['is_ai_generated']!,
+          _isAiGeneratedMeta,
         ),
       );
     }
@@ -5146,9 +5044,9 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
-      aiGenerated: attachedDatabase.typeMapping.read(
+      isAiGenerated: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
-        data['${effectivePrefix}ai_generated'],
+        data['${effectivePrefix}is_ai_generated'],
       )!,
       userEdited: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -5179,7 +5077,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
   final String nodeId;
   final String description;
   final String type;
-  final bool aiGenerated;
+  final bool isAiGenerated;
   final bool userEdited;
   final int displayOrder;
   final int createdAt;
@@ -5188,7 +5086,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     required this.nodeId,
     required this.description,
     required this.type,
-    required this.aiGenerated,
+    required this.isAiGenerated,
     required this.userEdited,
     required this.displayOrder,
     required this.createdAt,
@@ -5200,7 +5098,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     map['node_id'] = Variable<String>(nodeId);
     map['description'] = Variable<String>(description);
     map['type'] = Variable<String>(type);
-    map['ai_generated'] = Variable<bool>(aiGenerated);
+    map['is_ai_generated'] = Variable<bool>(isAiGenerated);
     map['user_edited'] = Variable<bool>(userEdited);
     map['display_order'] = Variable<int>(displayOrder);
     map['created_at'] = Variable<int>(createdAt);
@@ -5213,7 +5111,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
       nodeId: Value(nodeId),
       description: Value(description),
       type: Value(type),
-      aiGenerated: Value(aiGenerated),
+      isAiGenerated: Value(isAiGenerated),
       userEdited: Value(userEdited),
       displayOrder: Value(displayOrder),
       createdAt: Value(createdAt),
@@ -5230,7 +5128,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
       nodeId: serializer.fromJson<String>(json['node_id']),
       description: serializer.fromJson<String>(json['description']),
       type: serializer.fromJson<String>(json['type']),
-      aiGenerated: serializer.fromJson<bool>(json['ai_generated']),
+      isAiGenerated: serializer.fromJson<bool>(json['is_ai_generated']),
       userEdited: serializer.fromJson<bool>(json['user_edited']),
       displayOrder: serializer.fromJson<int>(json['display_order']),
       createdAt: serializer.fromJson<int>(json['created_at']),
@@ -5244,7 +5142,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
       'node_id': serializer.toJson<String>(nodeId),
       'description': serializer.toJson<String>(description),
       'type': serializer.toJson<String>(type),
-      'ai_generated': serializer.toJson<bool>(aiGenerated),
+      'is_ai_generated': serializer.toJson<bool>(isAiGenerated),
       'user_edited': serializer.toJson<bool>(userEdited),
       'display_order': serializer.toJson<int>(displayOrder),
       'created_at': serializer.toJson<int>(createdAt),
@@ -5256,7 +5154,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     String? nodeId,
     String? description,
     String? type,
-    bool? aiGenerated,
+    bool? isAiGenerated,
     bool? userEdited,
     int? displayOrder,
     int? createdAt,
@@ -5265,7 +5163,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     nodeId: nodeId ?? this.nodeId,
     description: description ?? this.description,
     type: type ?? this.type,
-    aiGenerated: aiGenerated ?? this.aiGenerated,
+    isAiGenerated: isAiGenerated ?? this.isAiGenerated,
     userEdited: userEdited ?? this.userEdited,
     displayOrder: displayOrder ?? this.displayOrder,
     createdAt: createdAt ?? this.createdAt,
@@ -5278,9 +5176,9 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
           ? data.description.value
           : this.description,
       type: data.type.present ? data.type.value : this.type,
-      aiGenerated: data.aiGenerated.present
-          ? data.aiGenerated.value
-          : this.aiGenerated,
+      isAiGenerated: data.isAiGenerated.present
+          ? data.isAiGenerated.value
+          : this.isAiGenerated,
       userEdited: data.userEdited.present
           ? data.userEdited.value
           : this.userEdited,
@@ -5298,7 +5196,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
           ..write('nodeId: $nodeId, ')
           ..write('description: $description, ')
           ..write('type: $type, ')
-          ..write('aiGenerated: $aiGenerated, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('userEdited: $userEdited, ')
           ..write('displayOrder: $displayOrder, ')
           ..write('createdAt: $createdAt')
@@ -5312,7 +5210,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
     nodeId,
     description,
     type,
-    aiGenerated,
+    isAiGenerated,
     userEdited,
     displayOrder,
     createdAt,
@@ -5325,7 +5223,7 @@ class NodeSkillData extends DataClass implements Insertable<NodeSkillData> {
           other.nodeId == this.nodeId &&
           other.description == this.description &&
           other.type == this.type &&
-          other.aiGenerated == this.aiGenerated &&
+          other.isAiGenerated == this.isAiGenerated &&
           other.userEdited == this.userEdited &&
           other.displayOrder == this.displayOrder &&
           other.createdAt == this.createdAt);
@@ -5336,7 +5234,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
   final Value<String> nodeId;
   final Value<String> description;
   final Value<String> type;
-  final Value<bool> aiGenerated;
+  final Value<bool> isAiGenerated;
   final Value<bool> userEdited;
   final Value<int> displayOrder;
   final Value<int> createdAt;
@@ -5346,7 +5244,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     this.nodeId = const Value.absent(),
     this.description = const Value.absent(),
     this.type = const Value.absent(),
-    this.aiGenerated = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.userEdited = const Value.absent(),
     this.displayOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -5357,7 +5255,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     required String nodeId,
     required String description,
     required String type,
-    this.aiGenerated = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.userEdited = const Value.absent(),
     required int displayOrder,
     this.createdAt = const Value.absent(),
@@ -5372,7 +5270,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     Expression<String>? nodeId,
     Expression<String>? description,
     Expression<String>? type,
-    Expression<bool>? aiGenerated,
+    Expression<bool>? isAiGenerated,
     Expression<bool>? userEdited,
     Expression<int>? displayOrder,
     Expression<int>? createdAt,
@@ -5383,7 +5281,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
       if (nodeId != null) 'node_id': nodeId,
       if (description != null) 'description': description,
       if (type != null) 'type': type,
-      if (aiGenerated != null) 'ai_generated': aiGenerated,
+      if (isAiGenerated != null) 'is_ai_generated': isAiGenerated,
       if (userEdited != null) 'user_edited': userEdited,
       if (displayOrder != null) 'display_order': displayOrder,
       if (createdAt != null) 'created_at': createdAt,
@@ -5396,7 +5294,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     Value<String>? nodeId,
     Value<String>? description,
     Value<String>? type,
-    Value<bool>? aiGenerated,
+    Value<bool>? isAiGenerated,
     Value<bool>? userEdited,
     Value<int>? displayOrder,
     Value<int>? createdAt,
@@ -5407,7 +5305,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
       nodeId: nodeId ?? this.nodeId,
       description: description ?? this.description,
       type: type ?? this.type,
-      aiGenerated: aiGenerated ?? this.aiGenerated,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
       userEdited: userEdited ?? this.userEdited,
       displayOrder: displayOrder ?? this.displayOrder,
       createdAt: createdAt ?? this.createdAt,
@@ -5430,8 +5328,8 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
-    if (aiGenerated.present) {
-      map['ai_generated'] = Variable<bool>(aiGenerated.value);
+    if (isAiGenerated.present) {
+      map['is_ai_generated'] = Variable<bool>(isAiGenerated.value);
     }
     if (userEdited.present) {
       map['user_edited'] = Variable<bool>(userEdited.value);
@@ -5455,7 +5353,7 @@ class NodeSkillCompanion extends UpdateCompanion<NodeSkillData> {
           ..write('nodeId: $nodeId, ')
           ..write('description: $description, ')
           ..write('type: $type, ')
-          ..write('aiGenerated: $aiGenerated, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('userEdited: $userEdited, ')
           ..write('displayOrder: $displayOrder, ')
           ..write('createdAt: $createdAt, ')
@@ -20359,6 +20257,7 @@ typedef $KnowledgeGraphCreateCompanionBuilder =
       required String userId,
       required String title,
       Value<String?> description,
+      Value<bool> isAiGenerated,
       Value<bool> isArchived,
       Value<bool> synced,
       Value<int> createdAt,
@@ -20373,6 +20272,7 @@ typedef $KnowledgeGraphUpdateCompanionBuilder =
       Value<String> userId,
       Value<String> title,
       Value<String?> description,
+      Value<bool> isAiGenerated,
       Value<bool> isArchived,
       Value<bool> synced,
       Value<int> createdAt,
@@ -20505,6 +20405,11 @@ class $KnowledgeGraphFilterComposer
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -20687,6 +20592,11 @@ class $KnowledgeGraphOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isArchived => $composableBuilder(
     column: $table.isArchived,
     builder: (column) => ColumnOrderings(column),
@@ -20758,6 +20668,11 @@ class $KnowledgeGraphAnnotationComposer
 
   GeneratedColumn<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => column,
   );
 
@@ -20949,6 +20864,7 @@ class $KnowledgeGraphTableManager
                 Value<String> userId = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
@@ -20961,6 +20877,7 @@ class $KnowledgeGraphTableManager
                 userId: userId,
                 title: title,
                 description: description,
+                isAiGenerated: isAiGenerated,
                 isArchived: isArchived,
                 synced: synced,
                 createdAt: createdAt,
@@ -20975,6 +20892,7 @@ class $KnowledgeGraphTableManager
                 required String userId,
                 required String title,
                 Value<String?> description = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
@@ -20987,6 +20905,7 @@ class $KnowledgeGraphTableManager
                 userId: userId,
                 title: title,
                 description: description,
+                isAiGenerated: isAiGenerated,
                 isArchived: isArchived,
                 synced: synced,
                 createdAt: createdAt,
@@ -21510,7 +21429,6 @@ typedef $GraphNodeCreateCompanionBuilder =
     GraphNodeCompanion Function({
       required String id,
       required String graphId,
-      Value<String?> parentId,
       required String type,
       required String title,
       Value<String?> description,
@@ -21518,11 +21436,11 @@ typedef $GraphNodeCreateCompanionBuilder =
       Value<bool> isSkipped,
       required double positionX,
       required double positionY,
-      Value<String?> aiSynthesis,
-      Value<bool> synthesisEdited,
       Value<int?> fsrsRating,
       Value<int> createdAt,
       Value<int> updatedAt,
+      Value<bool> isFirstAcess,
+      Value<bool> isAiGenerated,
       Value<bool> softDeleted,
       Value<int?> softDeletedAt,
       Value<int> rowid,
@@ -21531,7 +21449,6 @@ typedef $GraphNodeUpdateCompanionBuilder =
     GraphNodeCompanion Function({
       Value<String> id,
       Value<String> graphId,
-      Value<String?> parentId,
       Value<String> type,
       Value<String> title,
       Value<String?> description,
@@ -21539,11 +21456,11 @@ typedef $GraphNodeUpdateCompanionBuilder =
       Value<bool> isSkipped,
       Value<double> positionX,
       Value<double> positionY,
-      Value<String?> aiSynthesis,
-      Value<bool> synthesisEdited,
       Value<int?> fsrsRating,
       Value<int> createdAt,
       Value<int> updatedAt,
+      Value<bool> isFirstAcess,
+      Value<bool> isAiGenerated,
       Value<bool> softDeleted,
       Value<int?> softDeletedAt,
       Value<int> rowid,
@@ -21767,11 +21684,6 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get parentId => $composableBuilder(
-    column: $table.parentId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnFilters(column),
@@ -21807,16 +21719,6 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get aiSynthesis => $composableBuilder(
-    column: $table.aiSynthesis,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get synthesisEdited => $composableBuilder(
-    column: $table.synthesisEdited,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get fsrsRating => $composableBuilder(
     column: $table.fsrsRating,
     builder: (column) => ColumnFilters(column),
@@ -21829,6 +21731,16 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFirstAcess => $composableBuilder(
+    column: $table.isFirstAcess,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -22129,11 +22041,6 @@ class $GraphNodeOrderingComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get parentId => $composableBuilder(
-    column: $table.parentId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
@@ -22169,16 +22076,6 @@ class $GraphNodeOrderingComposer extends Composer<_$AppDatabase, GraphNode> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get aiSynthesis => $composableBuilder(
-    column: $table.aiSynthesis,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get synthesisEdited => $composableBuilder(
-    column: $table.synthesisEdited,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get fsrsRating => $composableBuilder(
     column: $table.fsrsRating,
     builder: (column) => ColumnOrderings(column),
@@ -22191,6 +22088,16 @@ class $GraphNodeOrderingComposer extends Composer<_$AppDatabase, GraphNode> {
 
   ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isFirstAcess => $composableBuilder(
+    column: $table.isFirstAcess,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -22239,9 +22146,6 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get parentId =>
-      $composableBuilder(column: $table.parentId, builder: (column) => column);
-
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
@@ -22267,16 +22171,6 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
   GeneratedColumn<double> get positionY =>
       $composableBuilder(column: $table.positionY, builder: (column) => column);
 
-  GeneratedColumn<String> get aiSynthesis => $composableBuilder(
-    column: $table.aiSynthesis,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get synthesisEdited => $composableBuilder(
-    column: $table.synthesisEdited,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<int> get fsrsRating => $composableBuilder(
     column: $table.fsrsRating,
     builder: (column) => column,
@@ -22287,6 +22181,16 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFirstAcess => $composableBuilder(
+    column: $table.isFirstAcess,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get softDeleted => $composableBuilder(
     column: $table.softDeleted,
@@ -22614,7 +22518,6 @@ class $GraphNodeTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> graphId = const Value.absent(),
-                Value<String?> parentId = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> description = const Value.absent(),
@@ -22622,18 +22525,17 @@ class $GraphNodeTableManager
                 Value<bool> isSkipped = const Value.absent(),
                 Value<double> positionX = const Value.absent(),
                 Value<double> positionY = const Value.absent(),
-                Value<String?> aiSynthesis = const Value.absent(),
-                Value<bool> synthesisEdited = const Value.absent(),
                 Value<int?> fsrsRating = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
+                Value<bool> isFirstAcess = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
                 Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphNodeCompanion(
                 id: id,
                 graphId: graphId,
-                parentId: parentId,
                 type: type,
                 title: title,
                 description: description,
@@ -22641,11 +22543,11 @@ class $GraphNodeTableManager
                 isSkipped: isSkipped,
                 positionX: positionX,
                 positionY: positionY,
-                aiSynthesis: aiSynthesis,
-                synthesisEdited: synthesisEdited,
                 fsrsRating: fsrsRating,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isFirstAcess: isFirstAcess,
+                isAiGenerated: isAiGenerated,
                 softDeleted: softDeleted,
                 softDeletedAt: softDeletedAt,
                 rowid: rowid,
@@ -22654,7 +22556,6 @@ class $GraphNodeTableManager
               ({
                 required String id,
                 required String graphId,
-                Value<String?> parentId = const Value.absent(),
                 required String type,
                 required String title,
                 Value<String?> description = const Value.absent(),
@@ -22662,18 +22563,17 @@ class $GraphNodeTableManager
                 Value<bool> isSkipped = const Value.absent(),
                 required double positionX,
                 required double positionY,
-                Value<String?> aiSynthesis = const Value.absent(),
-                Value<bool> synthesisEdited = const Value.absent(),
                 Value<int?> fsrsRating = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
+                Value<bool> isFirstAcess = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
                 Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphNodeCompanion.insert(
                 id: id,
                 graphId: graphId,
-                parentId: parentId,
                 type: type,
                 title: title,
                 description: description,
@@ -22681,11 +22581,11 @@ class $GraphNodeTableManager
                 isSkipped: isSkipped,
                 positionX: positionX,
                 positionY: positionY,
-                aiSynthesis: aiSynthesis,
-                synthesisEdited: synthesisEdited,
                 fsrsRating: fsrsRating,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isFirstAcess: isFirstAcess,
+                isAiGenerated: isAiGenerated,
                 softDeleted: softDeleted,
                 softDeletedAt: softDeletedAt,
                 rowid: rowid,
@@ -22980,9 +22880,7 @@ typedef $GraphEdgeCreateCompanionBuilder =
       required String sourceNodeId,
       required String targetNodeId,
       required String type,
-      Value<bool> isBidirectional,
       Value<double?> weight,
-      Value<bool> synced,
       Value<int> rowid,
     });
 typedef $GraphEdgeUpdateCompanionBuilder =
@@ -22992,9 +22890,7 @@ typedef $GraphEdgeUpdateCompanionBuilder =
       Value<String> sourceNodeId,
       Value<String> targetNodeId,
       Value<String> type,
-      Value<bool> isBidirectional,
       Value<double?> weight,
-      Value<bool> synced,
       Value<int> rowid,
     });
 
@@ -23072,18 +22968,8 @@ class $GraphEdgeFilterComposer extends Composer<_$AppDatabase, GraphEdge> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get isBidirectional => $composableBuilder(
-    column: $table.isBidirectional,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get weight => $composableBuilder(
     column: $table.weight,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get synced => $composableBuilder(
-    column: $table.synced,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -23175,18 +23061,8 @@ class $GraphEdgeOrderingComposer extends Composer<_$AppDatabase, GraphEdge> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isBidirectional => $composableBuilder(
-    column: $table.isBidirectional,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get weight => $composableBuilder(
     column: $table.weight,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get synced => $composableBuilder(
-    column: $table.synced,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -23274,16 +23150,8 @@ class $GraphEdgeAnnotationComposer extends Composer<_$AppDatabase, GraphEdge> {
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<bool> get isBidirectional => $composableBuilder(
-    column: $table.isBidirectional,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<double> get weight =>
       $composableBuilder(column: $table.weight, builder: (column) => column);
-
-  GeneratedColumn<bool> get synced =>
-      $composableBuilder(column: $table.synced, builder: (column) => column);
 
   $KnowledgeGraphAnnotationComposer get graphId {
     final $KnowledgeGraphAnnotationComposer composer = $composerBuilder(
@@ -23392,9 +23260,7 @@ class $GraphEdgeTableManager
                 Value<String> sourceNodeId = const Value.absent(),
                 Value<String> targetNodeId = const Value.absent(),
                 Value<String> type = const Value.absent(),
-                Value<bool> isBidirectional = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
-                Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphEdgeCompanion(
                 id: id,
@@ -23402,9 +23268,7 @@ class $GraphEdgeTableManager
                 sourceNodeId: sourceNodeId,
                 targetNodeId: targetNodeId,
                 type: type,
-                isBidirectional: isBidirectional,
                 weight: weight,
-                synced: synced,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -23414,9 +23278,7 @@ class $GraphEdgeTableManager
                 required String sourceNodeId,
                 required String targetNodeId,
                 required String type,
-                Value<bool> isBidirectional = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
-                Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GraphEdgeCompanion.insert(
                 id: id,
@@ -23424,9 +23286,7 @@ class $GraphEdgeTableManager
                 sourceNodeId: sourceNodeId,
                 targetNodeId: targetNodeId,
                 type: type,
-                isBidirectional: isBidirectional,
                 weight: weight,
-                synced: synced,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -23530,7 +23390,7 @@ typedef $NodeSkillCreateCompanionBuilder =
       required String nodeId,
       required String description,
       required String type,
-      Value<bool> aiGenerated,
+      Value<bool> isAiGenerated,
       Value<bool> userEdited,
       required int displayOrder,
       Value<int> createdAt,
@@ -23542,7 +23402,7 @@ typedef $NodeSkillUpdateCompanionBuilder =
       Value<String> nodeId,
       Value<String> description,
       Value<String> type,
-      Value<bool> aiGenerated,
+      Value<bool> isAiGenerated,
       Value<bool> userEdited,
       Value<int> displayOrder,
       Value<int> createdAt,
@@ -23594,8 +23454,8 @@ class $NodeSkillFilterComposer extends Composer<_$AppDatabase, NodeSkill> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  ColumnFilters<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -23661,8 +23521,8 @@ class $NodeSkillOrderingComposer extends Composer<_$AppDatabase, NodeSkill> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  ColumnOrderings<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -23724,8 +23584,8 @@ class $NodeSkillAnnotationComposer extends Composer<_$AppDatabase, NodeSkill> {
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  GeneratedColumn<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => column,
   );
 
@@ -23798,7 +23658,7 @@ class $NodeSkillTableManager
                 Value<String> nodeId = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<String> type = const Value.absent(),
-                Value<bool> aiGenerated = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 Value<int> displayOrder = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
@@ -23808,7 +23668,7 @@ class $NodeSkillTableManager
                 nodeId: nodeId,
                 description: description,
                 type: type,
-                aiGenerated: aiGenerated,
+                isAiGenerated: isAiGenerated,
                 userEdited: userEdited,
                 displayOrder: displayOrder,
                 createdAt: createdAt,
@@ -23820,7 +23680,7 @@ class $NodeSkillTableManager
                 required String nodeId,
                 required String description,
                 required String type,
-                Value<bool> aiGenerated = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 required int displayOrder,
                 Value<int> createdAt = const Value.absent(),
@@ -23830,7 +23690,7 @@ class $NodeSkillTableManager
                 nodeId: nodeId,
                 description: description,
                 type: type,
-                aiGenerated: aiGenerated,
+                isAiGenerated: isAiGenerated,
                 userEdited: userEdited,
                 displayOrder: displayOrder,
                 createdAt: createdAt,
