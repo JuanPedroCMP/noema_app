@@ -44,7 +44,7 @@ class HomePage extends ConsumerWidget {
 
                 OutlinedButton(
                   onPressed: () async {
-                    db.deleteDatabase();
+                    await db.deleteDatabase();
                   },
                   child: Text("Apagar DB"),
                 ),

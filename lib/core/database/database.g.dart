@@ -4894,7 +4894,7 @@ class NodeSkill extends Table with TableInfo<NodeSkill, NodeSkillData> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (ai_generated IN (0, 1))',
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0, 1))',
     defaultValue: const CustomExpression('0'),
   );
   static const VerificationMeta _userEditedMeta = const VerificationMeta(
@@ -5469,16 +5469,16 @@ class LearningResource extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _aiGeneratedMeta = const VerificationMeta(
-    'aiGenerated',
+  static const VerificationMeta _isAiGeneratedMeta = const VerificationMeta(
+    'isAiGenerated',
   );
-  late final GeneratedColumn<bool> aiGenerated = GeneratedColumn<bool>(
-    'ai_generated',
+  late final GeneratedColumn<bool> isAiGenerated = GeneratedColumn<bool>(
+    'is_ai_generated',
     aliasedName,
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (ai_generated IN (0, 1))',
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_ai_generated IN (0, 1))',
     defaultValue: const CustomExpression('0'),
   );
   static const VerificationMeta _userEditedMeta = const VerificationMeta(
@@ -5540,7 +5540,7 @@ class LearningResource extends Table
     rationale,
     relevanceScore,
     reputationScore,
-    aiGenerated,
+    isAiGenerated,
     userEdited,
     createdAt,
     softDeleted,
@@ -5637,12 +5637,12 @@ class LearningResource extends Table
     } else if (isInserting) {
       context.missing(_reputationScoreMeta);
     }
-    if (data.containsKey('ai_generated')) {
+    if (data.containsKey('is_ai_generated')) {
       context.handle(
-        _aiGeneratedMeta,
-        aiGenerated.isAcceptableOrUnknown(
-          data['ai_generated']!,
-          _aiGeneratedMeta,
+        _isAiGeneratedMeta,
+        isAiGenerated.isAcceptableOrUnknown(
+          data['is_ai_generated']!,
+          _isAiGeneratedMeta,
         ),
       );
     }
@@ -5725,9 +5725,9 @@ class LearningResource extends Table
         DriftSqlType.double,
         data['${effectivePrefix}reputation_score'],
       )!,
-      aiGenerated: attachedDatabase.typeMapping.read(
+      isAiGenerated: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
-        data['${effectivePrefix}ai_generated'],
+        data['${effectivePrefix}is_ai_generated'],
       )!,
       userEdited: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -5769,7 +5769,7 @@ class LearningResourceData extends DataClass
   final String rationale;
   final double relevanceScore;
   final double reputationScore;
-  final bool aiGenerated;
+  final bool isAiGenerated;
   final bool userEdited;
   final int createdAt;
   final bool softDeleted;
@@ -5785,7 +5785,7 @@ class LearningResourceData extends DataClass
     required this.rationale,
     required this.relevanceScore,
     required this.reputationScore,
-    required this.aiGenerated,
+    required this.isAiGenerated,
     required this.userEdited,
     required this.createdAt,
     required this.softDeleted,
@@ -5808,7 +5808,7 @@ class LearningResourceData extends DataClass
     map['rationale'] = Variable<String>(rationale);
     map['relevance_score'] = Variable<double>(relevanceScore);
     map['reputation_score'] = Variable<double>(reputationScore);
-    map['ai_generated'] = Variable<bool>(aiGenerated);
+    map['is_ai_generated'] = Variable<bool>(isAiGenerated);
     map['user_edited'] = Variable<bool>(userEdited);
     map['created_at'] = Variable<int>(createdAt);
     map['soft_deleted'] = Variable<bool>(softDeleted);
@@ -5832,7 +5832,7 @@ class LearningResourceData extends DataClass
       rationale: Value(rationale),
       relevanceScore: Value(relevanceScore),
       reputationScore: Value(reputationScore),
-      aiGenerated: Value(aiGenerated),
+      isAiGenerated: Value(isAiGenerated),
       userEdited: Value(userEdited),
       createdAt: Value(createdAt),
       softDeleted: Value(softDeleted),
@@ -5858,7 +5858,7 @@ class LearningResourceData extends DataClass
       rationale: serializer.fromJson<String>(json['rationale']),
       relevanceScore: serializer.fromJson<double>(json['relevance_score']),
       reputationScore: serializer.fromJson<double>(json['reputation_score']),
-      aiGenerated: serializer.fromJson<bool>(json['ai_generated']),
+      isAiGenerated: serializer.fromJson<bool>(json['is_ai_generated']),
       userEdited: serializer.fromJson<bool>(json['user_edited']),
       createdAt: serializer.fromJson<int>(json['created_at']),
       softDeleted: serializer.fromJson<bool>(json['soft_deleted']),
@@ -5879,7 +5879,7 @@ class LearningResourceData extends DataClass
       'rationale': serializer.toJson<String>(rationale),
       'relevance_score': serializer.toJson<double>(relevanceScore),
       'reputation_score': serializer.toJson<double>(reputationScore),
-      'ai_generated': serializer.toJson<bool>(aiGenerated),
+      'is_ai_generated': serializer.toJson<bool>(isAiGenerated),
       'user_edited': serializer.toJson<bool>(userEdited),
       'created_at': serializer.toJson<int>(createdAt),
       'soft_deleted': serializer.toJson<bool>(softDeleted),
@@ -5898,7 +5898,7 @@ class LearningResourceData extends DataClass
     String? rationale,
     double? relevanceScore,
     double? reputationScore,
-    bool? aiGenerated,
+    bool? isAiGenerated,
     bool? userEdited,
     int? createdAt,
     bool? softDeleted,
@@ -5914,7 +5914,7 @@ class LearningResourceData extends DataClass
     rationale: rationale ?? this.rationale,
     relevanceScore: relevanceScore ?? this.relevanceScore,
     reputationScore: reputationScore ?? this.reputationScore,
-    aiGenerated: aiGenerated ?? this.aiGenerated,
+    isAiGenerated: isAiGenerated ?? this.isAiGenerated,
     userEdited: userEdited ?? this.userEdited,
     createdAt: createdAt ?? this.createdAt,
     softDeleted: softDeleted ?? this.softDeleted,
@@ -5938,9 +5938,9 @@ class LearningResourceData extends DataClass
       reputationScore: data.reputationScore.present
           ? data.reputationScore.value
           : this.reputationScore,
-      aiGenerated: data.aiGenerated.present
-          ? data.aiGenerated.value
-          : this.aiGenerated,
+      isAiGenerated: data.isAiGenerated.present
+          ? data.isAiGenerated.value
+          : this.isAiGenerated,
       userEdited: data.userEdited.present
           ? data.userEdited.value
           : this.userEdited,
@@ -5967,7 +5967,7 @@ class LearningResourceData extends DataClass
           ..write('rationale: $rationale, ')
           ..write('relevanceScore: $relevanceScore, ')
           ..write('reputationScore: $reputationScore, ')
-          ..write('aiGenerated: $aiGenerated, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('userEdited: $userEdited, ')
           ..write('createdAt: $createdAt, ')
           ..write('softDeleted: $softDeleted, ')
@@ -5988,7 +5988,7 @@ class LearningResourceData extends DataClass
     rationale,
     relevanceScore,
     reputationScore,
-    aiGenerated,
+    isAiGenerated,
     userEdited,
     createdAt,
     softDeleted,
@@ -6008,7 +6008,7 @@ class LearningResourceData extends DataClass
           other.rationale == this.rationale &&
           other.relevanceScore == this.relevanceScore &&
           other.reputationScore == this.reputationScore &&
-          other.aiGenerated == this.aiGenerated &&
+          other.isAiGenerated == this.isAiGenerated &&
           other.userEdited == this.userEdited &&
           other.createdAt == this.createdAt &&
           other.softDeleted == this.softDeleted &&
@@ -6026,7 +6026,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
   final Value<String> rationale;
   final Value<double> relevanceScore;
   final Value<double> reputationScore;
-  final Value<bool> aiGenerated;
+  final Value<bool> isAiGenerated;
   final Value<bool> userEdited;
   final Value<int> createdAt;
   final Value<bool> softDeleted;
@@ -6043,7 +6043,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     this.rationale = const Value.absent(),
     this.relevanceScore = const Value.absent(),
     this.reputationScore = const Value.absent(),
-    this.aiGenerated = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.userEdited = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.softDeleted = const Value.absent(),
@@ -6061,7 +6061,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     required String rationale,
     required double relevanceScore,
     required double reputationScore,
-    this.aiGenerated = const Value.absent(),
+    this.isAiGenerated = const Value.absent(),
     this.userEdited = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.softDeleted = const Value.absent(),
@@ -6086,7 +6086,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     Expression<String>? rationale,
     Expression<double>? relevanceScore,
     Expression<double>? reputationScore,
-    Expression<bool>? aiGenerated,
+    Expression<bool>? isAiGenerated,
     Expression<bool>? userEdited,
     Expression<int>? createdAt,
     Expression<bool>? softDeleted,
@@ -6104,7 +6104,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
       if (rationale != null) 'rationale': rationale,
       if (relevanceScore != null) 'relevance_score': relevanceScore,
       if (reputationScore != null) 'reputation_score': reputationScore,
-      if (aiGenerated != null) 'ai_generated': aiGenerated,
+      if (isAiGenerated != null) 'is_ai_generated': isAiGenerated,
       if (userEdited != null) 'user_edited': userEdited,
       if (createdAt != null) 'created_at': createdAt,
       if (softDeleted != null) 'soft_deleted': softDeleted,
@@ -6124,7 +6124,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     Value<String>? rationale,
     Value<double>? relevanceScore,
     Value<double>? reputationScore,
-    Value<bool>? aiGenerated,
+    Value<bool>? isAiGenerated,
     Value<bool>? userEdited,
     Value<int>? createdAt,
     Value<bool>? softDeleted,
@@ -6142,7 +6142,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
       rationale: rationale ?? this.rationale,
       relevanceScore: relevanceScore ?? this.relevanceScore,
       reputationScore: reputationScore ?? this.reputationScore,
-      aiGenerated: aiGenerated ?? this.aiGenerated,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
       userEdited: userEdited ?? this.userEdited,
       createdAt: createdAt ?? this.createdAt,
       softDeleted: softDeleted ?? this.softDeleted,
@@ -6184,8 +6184,8 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
     if (reputationScore.present) {
       map['reputation_score'] = Variable<double>(reputationScore.value);
     }
-    if (aiGenerated.present) {
-      map['ai_generated'] = Variable<bool>(aiGenerated.value);
+    if (isAiGenerated.present) {
+      map['is_ai_generated'] = Variable<bool>(isAiGenerated.value);
     }
     if (userEdited.present) {
       map['user_edited'] = Variable<bool>(userEdited.value);
@@ -6218,7 +6218,7 @@ class LearningResourceCompanion extends UpdateCompanion<LearningResourceData> {
           ..write('rationale: $rationale, ')
           ..write('relevanceScore: $relevanceScore, ')
           ..write('reputationScore: $reputationScore, ')
-          ..write('aiGenerated: $aiGenerated, ')
+          ..write('isAiGenerated: $isAiGenerated, ')
           ..write('userEdited: $userEdited, ')
           ..write('createdAt: $createdAt, ')
           ..write('softDeleted: $softDeleted, ')
@@ -17241,10 +17241,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_graph_node_graph_id',
     'CREATE INDEX idx_graph_node_graph_id ON graph_node (graph_id)',
   );
-  late final Index idxGraphNodeParentId = Index(
-    'idx_graph_node_parent_id',
-    'CREATE INDEX idx_graph_node_parent_id ON graph_node (parent_id)',
-  );
   late final Index idxGraphEdgeGraphId = Index(
     'idx_graph_edge_graph_id',
     'CREATE INDEX idx_graph_edge_graph_id ON graph_edge (graph_id)',
@@ -17416,7 +17412,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxKnowledgeGraphUserId,
     idxGraphVersionGraphId,
     idxGraphNodeGraphId,
-    idxGraphNodeParentId,
     idxGraphEdgeGraphId,
     idxGraphEdgeSourceNodeId,
     idxGraphEdgeTargetNodeId,
@@ -23772,7 +23767,7 @@ typedef $LearningResourceCreateCompanionBuilder =
       required String rationale,
       required double relevanceScore,
       required double reputationScore,
-      Value<bool> aiGenerated,
+      Value<bool> isAiGenerated,
       Value<bool> userEdited,
       Value<int> createdAt,
       Value<bool> softDeleted,
@@ -23791,7 +23786,7 @@ typedef $LearningResourceUpdateCompanionBuilder =
       Value<String> rationale,
       Value<double> relevanceScore,
       Value<double> reputationScore,
-      Value<bool> aiGenerated,
+      Value<bool> isAiGenerated,
       Value<bool> userEdited,
       Value<int> createdAt,
       Value<bool> softDeleted,
@@ -23876,8 +23871,8 @@ class $LearningResourceFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  ColumnFilters<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -23979,8 +23974,8 @@ class $LearningResourceOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  ColumnOrderings<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -24068,8 +24063,8 @@ class $LearningResourceAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<bool> get aiGenerated => $composableBuilder(
-    column: $table.aiGenerated,
+  GeneratedColumn<bool> get isAiGenerated => $composableBuilder(
+    column: $table.isAiGenerated,
     builder: (column) => column,
   );
 
@@ -24153,7 +24148,7 @@ class $LearningResourceTableManager
                 Value<String> rationale = const Value.absent(),
                 Value<double> relevanceScore = const Value.absent(),
                 Value<double> reputationScore = const Value.absent(),
-                Value<bool> aiGenerated = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
@@ -24170,7 +24165,7 @@ class $LearningResourceTableManager
                 rationale: rationale,
                 relevanceScore: relevanceScore,
                 reputationScore: reputationScore,
-                aiGenerated: aiGenerated,
+                isAiGenerated: isAiGenerated,
                 userEdited: userEdited,
                 createdAt: createdAt,
                 softDeleted: softDeleted,
@@ -24189,7 +24184,7 @@ class $LearningResourceTableManager
                 required String rationale,
                 required double relevanceScore,
                 required double reputationScore,
-                Value<bool> aiGenerated = const Value.absent(),
+                Value<bool> isAiGenerated = const Value.absent(),
                 Value<bool> userEdited = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<bool> softDeleted = const Value.absent(),
@@ -24206,7 +24201,7 @@ class $LearningResourceTableManager
                 rationale: rationale,
                 relevanceScore: relevanceScore,
                 reputationScore: reputationScore,
-                aiGenerated: aiGenerated,
+                isAiGenerated: isAiGenerated,
                 userEdited: userEdited,
                 createdAt: createdAt,
                 softDeleted: softDeleted,

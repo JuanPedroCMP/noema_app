@@ -23,10 +23,6 @@ class EdgeFormProvider extends Notifier<EdgeformState> {
     state = state.copyWith(type: value);
   }
 
-  void isBidirectionalChanged(bool value) {
-    state = state.copyWith(isBidirectional: value);
-  }
-
   void weightChanged(double value) {
     state = state.copyWith(weight: value);
   }

@@ -84,25 +84,11 @@ class CreateEdge extends ConsumerWidget {
             },
             label: Text("Type"),
             dropdownMenuEntries: [
-              DropdownMenuEntry(
-                value: 'STRONG_PREREQUISITE',
-                label: 'STRONG_PREREQUISITE',
-              ),
-              DropdownMenuEntry(
-                value: 'WEAK_PREREQUISITE',
-                label: 'WEAK_PREREQUISITE',
-              ),
-              DropdownMenuEntry(value: 'RELATED', label: 'RELATED'),
-              DropdownMenuEntry(value: 'APPLIES', label: 'APPLIES'),
-              DropdownMenuEntry(value: 'GENERALIZES', label: 'GENERALIZES'),
-              DropdownMenuEntry(value: 'INSTANTIATES', label: 'INSTANTIATES'),
+              DropdownMenuEntry(value: 'PREREQUISITE', label: 'PREREQUISITE'),
+              DropdownMenuEntry(value: 'SUBTOPIC', label: 'SUBTOPIC'),
             ],
           ),
 
-          Switch(
-            value: formEdge.isBidirectional,
-            onChanged: formEdgeNotifier.isBidirectionalChanged,
-          ),
           TextField(
             keyboardType: TextInputType.number,
             onChanged: (value) =>

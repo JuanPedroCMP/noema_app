@@ -22,10 +22,6 @@ class GraphFormNotifier extends Notifier<GraphFormState> {
   void isArchivedChagend(bool value) {
     state = state.copyWith(isArchived: value);
   }
-
-  void syncedChagend(bool value) {
-    state = state.copyWith(synced: value);
-  }
 }
 
 final graphFormProvider = NotifierProvider<GraphFormNotifier, GraphFormState>(GraphFormNotifier.new);

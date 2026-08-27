@@ -8,9 +8,8 @@ sealed class EdgeformState with _$EdgeformState {
   const factory EdgeformState({
     @Default("") String graphId,
     @Default("") String sourceNodeId,
-     @Default("") String targetNodeId,
+    @Default("") String targetNodeId,
     @Default("") String type,
-    @Default(false) bool isBidirectional,
     @Default(0) double weight,
   }) = _EdgeformState;
 }

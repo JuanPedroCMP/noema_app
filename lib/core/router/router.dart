@@ -6,10 +6,8 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
 import 'package:noema/feature/auth/presentation/sign_up_page.dart';
 import 'package:noema/feature/config/presentation/config_page.dart';
-import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
-import 'package:noema/feature/graph/pages/manage_graph.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
@@ -90,21 +88,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
                 routes: [
                   GoRoute(
-                    path: "/create_graph",
-                    builder: (_, _) => CreateBlankGraph(),
-                  ),
-                  GoRoute(
                     path: ':graphId',
                     builder: (context, state) {
                       final String graphId = state.pathParameters['graphId']!;
                       return GraphPage(graphId: graphId);
-                    },
-                  ),
-                  GoRoute(
-                    path: 'edit/:graphId',
-                    builder: (context, state) {
-                      final String graphId = state.pathParameters['graphId']!;
-                      return ManageGraph(graphId: graphId);
                     },
                   ),
                 ],

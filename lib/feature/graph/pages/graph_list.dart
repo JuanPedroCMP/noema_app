@@ -62,7 +62,72 @@ class _GraphListState extends ConsumerState<GraphList> {
     }
 
     if (_graphs.isEmpty) {
-      return const Center(child: Text("Nenhum grafo encontrado."));
+      return Center(
+        child: Column(
+          children: [
+            Text("Nenhum grafo encontrado, Crie seu primeiro grafo!"),
+            Align(
+              alignment: Alignment.center,
+              child: FloatingCard(
+                width: 500,
+                height: 250,
+                child: SingleChildScrollView(
+                  child: Column(
+                    spacing: context.spacing.md,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        spacing: context.spacing.md,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () {
+                              if (opc != 2) {
+                                changeOpc(2);
+                              } else {
+                                changeOpc(0);
+                              }
+                            },
+                            child: Row(children: [Text("Criar Grafo Vazio")]),
+                          ),
+                          VerticalDivider(),
+                          OutlinedButton(
+                            onPressed: () {
+                              if (opc != 3) {
+                                changeOpc(3);
+                              } else {
+                                changeOpc(0);
+                              }
+                            },
+                            child: Row(children: [Text("Gerar Grafo Com IA")]),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (opc == 2)
+              Align(
+                alignment: Alignment.center,
+                child: FloatingCard(
+                  width: 600,
+                  child: SingleChildScrollView(child: CreateBlankGraph()),
+                ),
+              ),
+            if (opc == 3)
+              Align(
+                alignment: Alignment.center,
+                child: FloatingCard(
+                  width: 600,
+                  child: SingleChildScrollView(child: CreateGraphWithAi()),
+                ),
+              ),
+          ],
+        ),
+      );
     }
 
     return Align(

@@ -9,6 +9,5 @@ sealed class GraphFormState with _$GraphFormState{
     @Default("") String title,
     @Default("") String description,
     @Default(false) bool isArchived,
-    @Default(false) bool synced,
 }) = _GraphFormState;
 }

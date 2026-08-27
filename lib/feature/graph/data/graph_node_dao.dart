@@ -11,7 +11,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> insertGraphNode({
     required String graphId,
-    String? parentId,
     required String type,
     required String title,
     String? description,
@@ -19,8 +18,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
     bool? isSkipped,
     required double positionX,
     required double positionY,
-    String? aiSynthesis,
-    bool? synthesisEdited,
     int? fsrsRating,
   }) {
     return into(attachedDatabase.graphNode).insert(
@@ -42,7 +39,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
   Future<int> updateGraphNode({
     required String id,
     String? graphId,
-    String? parentId,
     String? type,
     String? title,
     String? description,
@@ -50,8 +46,6 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
     bool? isSkipped,
     double? positionX,
     double? positionY,
-    String? aiSynthesis,
-    bool? synthesisEdited,
     int? fsrsRating,
   }) {
     return (update(

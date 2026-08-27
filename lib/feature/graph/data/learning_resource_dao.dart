@@ -18,7 +18,7 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
     required String rationale,
     required double relevanceScore,
     required double reputationScore,
-    bool? aiGenerated,
+    bool? isAiGenerated,
     bool? userEdited,
   }) {
     return into(attachedDatabase.learningResource).insert(
@@ -33,7 +33,7 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
         rationale: rationale,
         relevanceScore: relevanceScore,
         reputationScore: reputationScore,
-        aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),
+        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
         userEdited: userEdited == null ? const Value.absent() : Value(userEdited),
       ),
     );
@@ -50,7 +50,7 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
     String? rationale,
     double? relevanceScore,
     double? reputationScore,
-    bool? aiGenerated,
+    bool? isAiGenerated,
     bool? userEdited,
   }) {
     return (update(
@@ -66,7 +66,7 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
         rationale: rationale == null ? const Value.absent() : Value(rationale),
         relevanceScore: relevanceScore == null ? const Value.absent() : Value(relevanceScore),
         reputationScore: reputationScore == null ? const Value.absent() : Value(reputationScore),
-        aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),
+        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
         userEdited: userEdited == null ? const Value.absent() : Value(userEdited),
       ),
     );

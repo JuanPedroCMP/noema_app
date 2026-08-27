@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EdgeformState {
 
- String get graphId; String get sourceNodeId; String get targetNodeId; String get type; bool get isBidirectional; double get weight;
+ String get graphId; String get sourceNodeId; String get targetNodeId; String get type; double get weight;
 /// Create a copy of EdgeformState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $EdgeformStateCopyWith<EdgeformState> get copyWith => _$EdgeformStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EdgeformState&&(identical(other.graphId, graphId) || other.graphId == graphId)&&(identical(other.sourceNodeId, sourceNodeId) || other.sourceNodeId == sourceNodeId)&&(identical(other.targetNodeId, targetNodeId) || other.targetNodeId == targetNodeId)&&(identical(other.type, type) || other.type == type)&&(identical(other.isBidirectional, isBidirectional) || other.isBidirectional == isBidirectional)&&(identical(other.weight, weight) || other.weight == weight));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EdgeformState&&(identical(other.graphId, graphId) || other.graphId == graphId)&&(identical(other.sourceNodeId, sourceNodeId) || other.sourceNodeId == sourceNodeId)&&(identical(other.targetNodeId, targetNodeId) || other.targetNodeId == targetNodeId)&&(identical(other.type, type) || other.type == type)&&(identical(other.weight, weight) || other.weight == weight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,graphId,sourceNodeId,targetNodeId,type,isBidirectional,weight);
+int get hashCode => Object.hash(runtimeType,graphId,sourceNodeId,targetNodeId,type,weight);
 
 @override
 String toString() {
-  return 'EdgeformState(graphId: $graphId, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, type: $type, isBidirectional: $isBidirectional, weight: $weight)';
+  return 'EdgeformState(graphId: $graphId, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, type: $type, weight: $weight)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $EdgeformStateCopyWith<$Res>  {
   factory $EdgeformStateCopyWith(EdgeformState value, $Res Function(EdgeformState) _then) = _$EdgeformStateCopyWithImpl;
 @useResult
 $Res call({
- String graphId, String sourceNodeId, String targetNodeId, String type, bool isBidirectional, double weight
+ String graphId, String sourceNodeId, String targetNodeId, String type, double weight
 });
 
 
@@ -62,14 +62,13 @@ class _$EdgeformStateCopyWithImpl<$Res>
 
 /// Create a copy of EdgeformState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? graphId = null,Object? sourceNodeId = null,Object? targetNodeId = null,Object? type = null,Object? isBidirectional = null,Object? weight = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? graphId = null,Object? sourceNodeId = null,Object? targetNodeId = null,Object? type = null,Object? weight = null,}) {
   return _then(_self.copyWith(
 graphId: null == graphId ? _self.graphId : graphId // ignore: cast_nullable_to_non_nullable
 as String,sourceNodeId: null == sourceNodeId ? _self.sourceNodeId : sourceNodeId // ignore: cast_nullable_to_non_nullable
 as String,targetNodeId: null == targetNodeId ? _self.targetNodeId : targetNodeId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,isBidirectional: null == isBidirectional ? _self.isBidirectional : isBidirectional // ignore: cast_nullable_to_non_nullable
-as bool,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
+as String,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
 as double,
   ));
 }
@@ -152,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  bool isBidirectional,  double weight)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  double weight)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EdgeformState() when $default != null:
-return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.isBidirectional,_that.weight);case _:
+return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.weight);case _:
   return orElse();
 
 }
@@ -173,10 +172,10 @@ return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  bool isBidirectional,  double weight)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  double weight)  $default,) {final _that = this;
 switch (_that) {
 case _EdgeformState():
-return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.isBidirectional,_that.weight);}
+return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.weight);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,10 +189,10 @@ return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  bool isBidirectional,  double weight)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String graphId,  String sourceNodeId,  String targetNodeId,  String type,  double weight)?  $default,) {final _that = this;
 switch (_that) {
 case _EdgeformState() when $default != null:
-return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.isBidirectional,_that.weight);case _:
+return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_that.weight);case _:
   return null;
 
 }
@@ -205,14 +204,13 @@ return $default(_that.graphId,_that.sourceNodeId,_that.targetNodeId,_that.type,_
 
 
 class _EdgeformState implements EdgeformState {
-  const _EdgeformState({this.graphId = "", this.sourceNodeId = "", this.targetNodeId = "", this.type = "", this.isBidirectional = false, this.weight = 0});
+  const _EdgeformState({this.graphId = "", this.sourceNodeId = "", this.targetNodeId = "", this.type = "", this.weight = 0});
   
 
 @override@JsonKey() final  String graphId;
 @override@JsonKey() final  String sourceNodeId;
 @override@JsonKey() final  String targetNodeId;
 @override@JsonKey() final  String type;
-@override@JsonKey() final  bool isBidirectional;
 @override@JsonKey() final  double weight;
 
 /// Create a copy of EdgeformState
@@ -225,16 +223,16 @@ _$EdgeformStateCopyWith<_EdgeformState> get copyWith => __$EdgeformStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EdgeformState&&(identical(other.graphId, graphId) || other.graphId == graphId)&&(identical(other.sourceNodeId, sourceNodeId) || other.sourceNodeId == sourceNodeId)&&(identical(other.targetNodeId, targetNodeId) || other.targetNodeId == targetNodeId)&&(identical(other.type, type) || other.type == type)&&(identical(other.isBidirectional, isBidirectional) || other.isBidirectional == isBidirectional)&&(identical(other.weight, weight) || other.weight == weight));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EdgeformState&&(identical(other.graphId, graphId) || other.graphId == graphId)&&(identical(other.sourceNodeId, sourceNodeId) || other.sourceNodeId == sourceNodeId)&&(identical(other.targetNodeId, targetNodeId) || other.targetNodeId == targetNodeId)&&(identical(other.type, type) || other.type == type)&&(identical(other.weight, weight) || other.weight == weight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,graphId,sourceNodeId,targetNodeId,type,isBidirectional,weight);
+int get hashCode => Object.hash(runtimeType,graphId,sourceNodeId,targetNodeId,type,weight);
 
 @override
 String toString() {
-  return 'EdgeformState(graphId: $graphId, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, type: $type, isBidirectional: $isBidirectional, weight: $weight)';
+  return 'EdgeformState(graphId: $graphId, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, type: $type, weight: $weight)';
 }
 
 
@@ -245,7 +243,7 @@ abstract mixin class _$EdgeformStateCopyWith<$Res> implements $EdgeformStateCopy
   factory _$EdgeformStateCopyWith(_EdgeformState value, $Res Function(_EdgeformState) _then) = __$EdgeformStateCopyWithImpl;
 @override @useResult
 $Res call({
- String graphId, String sourceNodeId, String targetNodeId, String type, bool isBidirectional, double weight
+ String graphId, String sourceNodeId, String targetNodeId, String type, double weight
 });
 
 
@@ -262,14 +260,13 @@ class __$EdgeformStateCopyWithImpl<$Res>
 
 /// Create a copy of EdgeformState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? graphId = null,Object? sourceNodeId = null,Object? targetNodeId = null,Object? type = null,Object? isBidirectional = null,Object? weight = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? graphId = null,Object? sourceNodeId = null,Object? targetNodeId = null,Object? type = null,Object? weight = null,}) {
   return _then(_EdgeformState(
 graphId: null == graphId ? _self.graphId : graphId // ignore: cast_nullable_to_non_nullable
 as String,sourceNodeId: null == sourceNodeId ? _self.sourceNodeId : sourceNodeId // ignore: cast_nullable_to_non_nullable
 as String,targetNodeId: null == targetNodeId ? _self.targetNodeId : targetNodeId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,isBidirectional: null == isBidirectional ? _self.isBidirectional : isBidirectional // ignore: cast_nullable_to_non_nullable
-as bool,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
+as String,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
 as double,
   ));
 }

@@ -22,13 +22,17 @@ class LoginService {
     );
 
     final data = response.data?.asMap;
+    print(data);
     final token = data?["access_token"] as String;
+    print(token);
 
     if (token.isEmpty) {
+         print("vaxio");
       throw StateError("Token não veio");
     }
 
     await storage.write(key: "access_token", value: token);
+
 
     ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
 

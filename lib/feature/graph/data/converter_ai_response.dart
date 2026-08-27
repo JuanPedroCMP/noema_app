@@ -143,7 +143,7 @@ class GraphEdge {
     return GraphEdge(
       sourceNode: json['source_node'] as int,
       targetNode: json['target_node'] as int,
-      type: "APPLIES",
+      type: "PREREQUISITE",
     );
   }
 

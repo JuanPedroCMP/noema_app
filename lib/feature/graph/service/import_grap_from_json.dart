@@ -8,19 +8,19 @@ import 'package:uuid/uuid.dart';
 String _mapEdgeTypeToDb(String value) {
   switch (value.toUpperCase()) {
     case 'PREREQUISITE':
-      return 'STRONG_PREREQUISITE';
+      return 'SUBTOPIC';
     case 'SUBTOPIC':
-      return 'RELATED';
+      return 'SUBTOPIC';
     case 'RELATED':
-      return 'RELATED';
+      return 'SUBTOPIC';
     case 'APPLIES':
-      return 'APPLIES';
+      return 'SUBTOPIC';
     case 'GENERALIZES':
-      return 'GENERALIZES';
+      return 'SUBTOPIC';
     case 'INSTANTIATES':
-      return 'INSTANTIATES';
+      return 'SUBTOPIC';
     default:
-      return 'RELATED';
+      return 'SUBTOPIC';
   }
 }
 

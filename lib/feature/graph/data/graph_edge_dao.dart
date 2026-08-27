@@ -14,9 +14,7 @@ class GraphEdgeDao extends DatabaseAccessor<AppDatabase>
     required String sourceNodeId,
     required String targetNodeId,
     required String type,
-    bool? isBidirectional,
     double? weight,
-    bool? synced,
   }) {
     return into(attachedDatabase.graphEdge).insert(
       GraphEdgeCompanion.insert(
@@ -36,9 +34,7 @@ class GraphEdgeDao extends DatabaseAccessor<AppDatabase>
     String? sourceNodeId,
     String? targetNodeId,
     String? type,
-    bool? isBidirectional,
     double? weight,
-    bool? synced,
   }) {
     return (update(
       attachedDatabase.graphEdge,

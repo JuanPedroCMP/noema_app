@@ -14,10 +14,13 @@ final authStateProvider = FutureProvider<bool>((ref) async {
   if (token == null || token.isEmpty || token == "") {
     return false;
   }
+  print(token);
 
   ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
 
   try {
+  print("sem user");
+    
     var response = await ref.read(userApiProvider).currentUserApiV1UserGetGet();
 
     UserOut? remoteUser = response.data;
@@ -34,7 +37,9 @@ final authStateProvider = FutureProvider<bool>((ref) async {
       );
     }
     return true;
-  } catch (_) {
+  } catch (e) {
+    print("erro");
+    print(e.toString());
     await storage.delete(key: "access_token");
     return false;
   }
