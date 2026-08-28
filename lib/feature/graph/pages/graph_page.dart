@@ -2,9 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/database/database.dart';
-import 'package:noema/core/database/database_provider.dart';
-import 'package:noema/feature/graph/data/graph_node_dao.dart';
 import 'package:noema/feature/graph/provider/graph_states_provider.dart';
 import 'package:noema/feature/graph/widgets/create_edge.dart';
 import 'package:noema/feature/graph/widgets/create_node.dart';
@@ -12,13 +9,12 @@ import 'package:noema/feature/graph/widgets/graph.dart';
 import 'package:noema/feature/graph/widgets/graph_utils_layer.dart';
 import 'package:noema/feature/graph/provider/edge_type_provider.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
-import 'package:noema/feature/graph/provider/path_provider.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
 import 'package:noema/feature/graph/provider/transformation_controller_provider.dart';
 import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/gestureActions.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
-import 'package:noema/feature/graph/widgets/node_card.dart';
+import 'package:noema/feature/graph/widgets/node_details.dart';
 import 'package:noema/shared/floating_card/floating_card.dart';
 
 class GraphPage extends ConsumerStatefulWidget {

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/database/database.dart';
+import 'package:go_router/go_router.dart';
+import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
+import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 
 class NodeDetails extends ConsumerWidget {
   const NodeDetails({super.key, required this.node});
@@ -33,9 +35,12 @@ class NodeDetails extends ConsumerWidget {
                 spacing: context.spacing.sm,
                 children: [
                   Spacer(),
-                  IconButton(onPressed: () {
-                    selectedNotifier.selectedChanged("none");
-                  }, icon: Icon(Icons.close_rounded))
+                  IconButton(
+                    onPressed: () {
+                      selectedNotifier.selectedChanged("none");
+                    },
+                    icon: Icon(Icons.close_rounded),
+                  ),
                 ],
               ),
               Text(node.title, style: context.textTheme.headlineMedium),
@@ -68,14 +73,18 @@ class NodeDetails extends ConsumerWidget {
                   return Column(
                     children: resources
                         .map(
-                          (resource) => Row(
-                            children: [
-                              Text(resource.title)
-                          ]),
+                          (resource) => Row(children: [Text(resource.title)]),
                         )
                         .toList(),
                   );
                 },
+              ),
+              Divider(),
+              OutlinedButton(
+                onPressed: () {
+                  context.push("/graphs/${node.graphId}/exercices/${node.id}");
+                },
+                child: Text("Ir para grafo"),
               ),
             ],
           ),

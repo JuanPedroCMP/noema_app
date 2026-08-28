@@ -6,6 +6,7 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
 import 'package:noema/feature/auth/presentation/sign_up_page.dart';
 import 'package:noema/feature/config/presentation/config_page.dart';
+import 'package:noema/feature/exercises/presentation/list_exercices.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
@@ -93,6 +94,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       final String graphId = state.pathParameters['graphId']!;
                       return GraphPage(graphId: graphId);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'exercices/:nodeId',
+                        builder: (context, state) {
+                          final String nodeId = state.pathParameters['nodeId']!;
+                          return ExercicesList(nodeId: nodeId);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
