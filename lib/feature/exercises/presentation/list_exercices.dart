@@ -8,6 +8,7 @@ import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
+import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_provider.dart';
 import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
 import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/create_graph_with_ai.dart';
@@ -23,7 +24,8 @@ class ExercicesList extends ConsumerStatefulWidget {
   ConsumerState<ExercicesList> createState() => _ExercicesList();
 }
 
-class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
+class _ExercicesList extends ConsumerState<ExercicesList> {
+  // TODO Consertar
   List<OpenEndedData> _openEndeds = [];
   List<MultipleChoiceData> _multipleChoices = [];
 
@@ -78,6 +80,8 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
 
   @override
   Widget build(BuildContext context) {
+    final modeNotifier = ref.watch(modeOpenEndedProvider.notifier);
+
     if (_openEndeds.isEmpty) {
       return Center(
         child: Column(
@@ -134,7 +138,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                 child: FloatingCard(
                   width: 600,
                   child: SingleChildScrollView(
-                    child: OpenEnded(nodeId: widget.nodeId, defaultState: 1),
+                    child: OpenEnded(nodeId: widget.nodeId),
                   ),
                 ),
               ),
@@ -215,6 +219,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                                     onPressed: () {
                                       changeQuestionId(openEnded.id);
                                       changeOpc2(2);
+                                      modeNotifier.modeChanged(3);
                                     },
                                     child: Text("Visualizar"),
                                   ),
@@ -222,6 +227,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                                     onPressed: () {
                                       changeQuestionId(openEnded.id);
                                       changeOpc2(1);
+                                      modeNotifier.modeChanged(1);
                                     },
                                     child: Text("Editar"),
                                   ),
@@ -229,6 +235,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                                     onPressed: () {
                                       changeQuestionId(openEnded.id);
                                       changeOpc2(0);
+                                      modeNotifier.modeChanged(2);
                                     },
                                     child: Text("Realizar"),
                                   ),
@@ -251,7 +258,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                     child: SingleChildScrollView(
                       child: OpenEnded(
                         nodeId: widget.nodeId,
-                        defaultState: 1,
                         openEndedId: questionId,
                       ),
                     ),
@@ -265,7 +271,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                     child: SingleChildScrollView(
                       child: OpenEnded(
                         nodeId: widget.nodeId,
-                        defaultState: 2,
                         openEndedId: questionId,
                       ),
                     ),
@@ -279,7 +284,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                     child: SingleChildScrollView(
                       child: OpenEnded(
                         nodeId: widget.nodeId,
-                        defaultState: 0,
                         openEndedId: questionId,
                       ),
                     ),
@@ -291,7 +295,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> { // TODO Consertar
                   child: FloatingCard(
                     width: 600,
                     child: SingleChildScrollView(
-                      child: OpenEnded(nodeId: widget.nodeId, defaultState: 1),
+                      child: OpenEnded(nodeId: widget.nodeId),
                     ),
                   ),
                 ),

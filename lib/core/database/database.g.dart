@@ -11456,6 +11456,17 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL CHECK (is_correct IN (0, 1))',
   );
+  static const VerificationMeta _statementMeta = const VerificationMeta(
+    'statement',
+  );
+  late final GeneratedColumn<String> statement = GeneratedColumn<String>(
+    'statement',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _explanationMeta = const VerificationMeta(
     'explanation',
   );
@@ -11516,6 +11527,7 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
     id,
     multipleChoiceId,
     isCorrect,
+    statement,
     explanation,
     weight,
     aiGenerated,
@@ -11557,6 +11569,14 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
       );
     } else if (isInserting) {
       context.missing(_isCorrectMeta);
+    }
+    if (data.containsKey('statement')) {
+      context.handle(
+        _statementMeta,
+        statement.isAcceptableOrUnknown(data['statement']!, _statementMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statementMeta);
     }
     if (data.containsKey('explanation')) {
       context.handle(
@@ -11615,6 +11635,10 @@ class Choice extends Table with TableInfo<Choice, ChoiceData> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_correct'],
       )!,
+      statement: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}statement'],
+      )!,
       explanation: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}explanation'],
@@ -11651,6 +11675,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
   final String id;
   final String multipleChoiceId;
   final bool isCorrect;
+  final String statement;
   final String? explanation;
   final int? weight;
   final bool? aiGenerated;
@@ -11660,6 +11685,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     required this.id,
     required this.multipleChoiceId,
     required this.isCorrect,
+    required this.statement,
     this.explanation,
     this.weight,
     this.aiGenerated,
@@ -11672,6 +11698,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     map['id'] = Variable<String>(id);
     map['multiple_choice_id'] = Variable<String>(multipleChoiceId);
     map['is_correct'] = Variable<bool>(isCorrect);
+    map['statement'] = Variable<String>(statement);
     if (!nullToAbsent || explanation != null) {
       map['explanation'] = Variable<String>(explanation);
     }
@@ -11691,6 +11718,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
       id: Value(id),
       multipleChoiceId: Value(multipleChoiceId),
       isCorrect: Value(isCorrect),
+      statement: Value(statement),
       explanation: explanation == null && nullToAbsent
           ? const Value.absent()
           : Value(explanation),
@@ -11714,6 +11742,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
       id: serializer.fromJson<String>(json['id']),
       multipleChoiceId: serializer.fromJson<String>(json['multiple_choice_id']),
       isCorrect: serializer.fromJson<bool>(json['is_correct']),
+      statement: serializer.fromJson<String>(json['statement']),
       explanation: serializer.fromJson<String?>(json['explanation']),
       weight: serializer.fromJson<int?>(json['weight']),
       aiGenerated: serializer.fromJson<bool?>(json['ai_generated']),
@@ -11728,6 +11757,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
       'id': serializer.toJson<String>(id),
       'multiple_choice_id': serializer.toJson<String>(multipleChoiceId),
       'is_correct': serializer.toJson<bool>(isCorrect),
+      'statement': serializer.toJson<String>(statement),
       'explanation': serializer.toJson<String?>(explanation),
       'weight': serializer.toJson<int?>(weight),
       'ai_generated': serializer.toJson<bool?>(aiGenerated),
@@ -11740,6 +11770,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     String? id,
     String? multipleChoiceId,
     bool? isCorrect,
+    String? statement,
     Value<String?> explanation = const Value.absent(),
     Value<int?> weight = const Value.absent(),
     Value<bool?> aiGenerated = const Value.absent(),
@@ -11749,6 +11780,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     id: id ?? this.id,
     multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
     isCorrect: isCorrect ?? this.isCorrect,
+    statement: statement ?? this.statement,
     explanation: explanation.present ? explanation.value : this.explanation,
     weight: weight.present ? weight.value : this.weight,
     aiGenerated: aiGenerated.present ? aiGenerated.value : this.aiGenerated,
@@ -11762,6 +11794,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
           ? data.multipleChoiceId.value
           : this.multipleChoiceId,
       isCorrect: data.isCorrect.present ? data.isCorrect.value : this.isCorrect,
+      statement: data.statement.present ? data.statement.value : this.statement,
       explanation: data.explanation.present
           ? data.explanation.value
           : this.explanation,
@@ -11780,6 +11813,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
           ..write('id: $id, ')
           ..write('multipleChoiceId: $multipleChoiceId, ')
           ..write('isCorrect: $isCorrect, ')
+          ..write('statement: $statement, ')
           ..write('explanation: $explanation, ')
           ..write('weight: $weight, ')
           ..write('aiGenerated: $aiGenerated, ')
@@ -11794,6 +11828,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
     id,
     multipleChoiceId,
     isCorrect,
+    statement,
     explanation,
     weight,
     aiGenerated,
@@ -11807,6 +11842,7 @@ class ChoiceData extends DataClass implements Insertable<ChoiceData> {
           other.id == this.id &&
           other.multipleChoiceId == this.multipleChoiceId &&
           other.isCorrect == this.isCorrect &&
+          other.statement == this.statement &&
           other.explanation == this.explanation &&
           other.weight == this.weight &&
           other.aiGenerated == this.aiGenerated &&
@@ -11818,6 +11854,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
   final Value<String> id;
   final Value<String> multipleChoiceId;
   final Value<bool> isCorrect;
+  final Value<String> statement;
   final Value<String?> explanation;
   final Value<int?> weight;
   final Value<bool?> aiGenerated;
@@ -11828,6 +11865,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     this.id = const Value.absent(),
     this.multipleChoiceId = const Value.absent(),
     this.isCorrect = const Value.absent(),
+    this.statement = const Value.absent(),
     this.explanation = const Value.absent(),
     this.weight = const Value.absent(),
     this.aiGenerated = const Value.absent(),
@@ -11839,6 +11877,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     required String id,
     required String multipleChoiceId,
     required bool isCorrect,
+    required String statement,
     this.explanation = const Value.absent(),
     this.weight = const Value.absent(),
     this.aiGenerated = const Value.absent(),
@@ -11847,11 +11886,13 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        multipleChoiceId = Value(multipleChoiceId),
-       isCorrect = Value(isCorrect);
+       isCorrect = Value(isCorrect),
+       statement = Value(statement);
   static Insertable<ChoiceData> custom({
     Expression<String>? id,
     Expression<String>? multipleChoiceId,
     Expression<bool>? isCorrect,
+    Expression<String>? statement,
     Expression<String>? explanation,
     Expression<int>? weight,
     Expression<bool>? aiGenerated,
@@ -11863,6 +11904,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
       if (id != null) 'id': id,
       if (multipleChoiceId != null) 'multiple_choice_id': multipleChoiceId,
       if (isCorrect != null) 'is_correct': isCorrect,
+      if (statement != null) 'statement': statement,
       if (explanation != null) 'explanation': explanation,
       if (weight != null) 'weight': weight,
       if (aiGenerated != null) 'ai_generated': aiGenerated,
@@ -11876,6 +11918,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     Value<String>? id,
     Value<String>? multipleChoiceId,
     Value<bool>? isCorrect,
+    Value<String>? statement,
     Value<String?>? explanation,
     Value<int?>? weight,
     Value<bool?>? aiGenerated,
@@ -11887,6 +11930,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
       id: id ?? this.id,
       multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
       isCorrect: isCorrect ?? this.isCorrect,
+      statement: statement ?? this.statement,
       explanation: explanation ?? this.explanation,
       weight: weight ?? this.weight,
       aiGenerated: aiGenerated ?? this.aiGenerated,
@@ -11907,6 +11951,9 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
     }
     if (isCorrect.present) {
       map['is_correct'] = Variable<bool>(isCorrect.value);
+    }
+    if (statement.present) {
+      map['statement'] = Variable<String>(statement.value);
     }
     if (explanation.present) {
       map['explanation'] = Variable<String>(explanation.value);
@@ -11935,6 +11982,7 @@ class ChoiceCompanion extends UpdateCompanion<ChoiceData> {
           ..write('id: $id, ')
           ..write('multipleChoiceId: $multipleChoiceId, ')
           ..write('isCorrect: $isCorrect, ')
+          ..write('statement: $statement, ')
           ..write('explanation: $explanation, ')
           ..write('weight: $weight, ')
           ..write('aiGenerated: $aiGenerated, ')
@@ -29822,6 +29870,7 @@ typedef $ChoiceCreateCompanionBuilder =
       required String id,
       required String multipleChoiceId,
       required bool isCorrect,
+      required String statement,
       Value<String?> explanation,
       Value<int?> weight,
       Value<bool?> aiGenerated,
@@ -29834,6 +29883,7 @@ typedef $ChoiceUpdateCompanionBuilder =
       Value<String> id,
       Value<String> multipleChoiceId,
       Value<bool> isCorrect,
+      Value<String> statement,
       Value<String?> explanation,
       Value<int?> weight,
       Value<bool?> aiGenerated,
@@ -29880,6 +29930,11 @@ class $ChoiceFilterComposer extends Composer<_$AppDatabase, Choice> {
 
   ColumnFilters<bool> get isCorrect => $composableBuilder(
     column: $table.isCorrect,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statement => $composableBuilder(
+    column: $table.statement,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -29950,6 +30005,11 @@ class $ChoiceOrderingComposer extends Composer<_$AppDatabase, Choice> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get statement => $composableBuilder(
+    column: $table.statement,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get explanation => $composableBuilder(
     column: $table.explanation,
     builder: (column) => ColumnOrderings(column),
@@ -30012,6 +30072,9 @@ class $ChoiceAnnotationComposer extends Composer<_$AppDatabase, Choice> {
 
   GeneratedColumn<bool> get isCorrect =>
       $composableBuilder(column: $table.isCorrect, builder: (column) => column);
+
+  GeneratedColumn<String> get statement =>
+      $composableBuilder(column: $table.statement, builder: (column) => column);
 
   GeneratedColumn<String> get explanation => $composableBuilder(
     column: $table.explanation,
@@ -30087,6 +30150,7 @@ class $ChoiceTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> multipleChoiceId = const Value.absent(),
                 Value<bool> isCorrect = const Value.absent(),
+                Value<String> statement = const Value.absent(),
                 Value<String?> explanation = const Value.absent(),
                 Value<int?> weight = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
@@ -30097,6 +30161,7 @@ class $ChoiceTableManager
                 id: id,
                 multipleChoiceId: multipleChoiceId,
                 isCorrect: isCorrect,
+                statement: statement,
                 explanation: explanation,
                 weight: weight,
                 aiGenerated: aiGenerated,
@@ -30109,6 +30174,7 @@ class $ChoiceTableManager
                 required String id,
                 required String multipleChoiceId,
                 required bool isCorrect,
+                required String statement,
                 Value<String?> explanation = const Value.absent(),
                 Value<int?> weight = const Value.absent(),
                 Value<bool?> aiGenerated = const Value.absent(),
@@ -30119,6 +30185,7 @@ class $ChoiceTableManager
                 id: id,
                 multipleChoiceId: multipleChoiceId,
                 isCorrect: isCorrect,
+                statement: statement,
                 explanation: explanation,
                 weight: weight,
                 aiGenerated: aiGenerated,

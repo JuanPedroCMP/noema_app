@@ -252,6 +252,7 @@ CREATE TABLE choice (
     id                  TEXT NOT NULL PRIMARY KEY,
     multiple_choice_id  TEXT NOT NULL REFERENCES multiple_choice(id) ON DELETE CASCADE,
     is_correct          BOOLEAN NOT NULL CHECK (is_correct IN (0,1)),
+    statement           TEXT NOT NULL,
     explanation         TEXT,
     weight              INTEGER,
     ai_generated        BOOLEAN CHECK (ai_generated IN (0,1)),

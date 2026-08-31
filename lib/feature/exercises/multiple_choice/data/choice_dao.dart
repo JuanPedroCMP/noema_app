@@ -11,6 +11,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
   Future<int> insertChoice({
     required String multipleChoiceId,
     required bool isCorrect,
+    required String statement,
     String? explanation,
     int? weight,
     bool? aiGenerated,
@@ -20,6 +21,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
         id: Uuid().v4(),
         multipleChoiceId: multipleChoiceId,
         isCorrect: isCorrect,
+        statement: statement,
         explanation: Value(explanation),
         weight: Value(weight),
         aiGenerated: Value(aiGenerated),
@@ -31,6 +33,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
     required String id,
     String? multipleChoiceId,
     bool? isCorrect,
+    String? statement,
     String? explanation,
     int? weight,
     bool? aiGenerated,
@@ -41,6 +44,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
       ChoiceCompanion(
         multipleChoiceId: multipleChoiceId == null ? const Value.absent() : Value(multipleChoiceId),
         isCorrect: isCorrect == null ? const Value.absent() : Value(isCorrect),
+        statement: statement == null ? const Value.absent() : Value(statement),
         explanation: explanation == null ? const Value.absent() : Value(explanation),
         weight: weight == null ? const Value.absent() : Value(weight),
         aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),

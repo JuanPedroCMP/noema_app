@@ -7,9 +7,9 @@ import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_prov
 
 enum OpenEndedType { ESSAY, FEYNMAN }
 
-class OpenEnded extends ConsumerStatefulWidget {
+class MultipleChoise extends ConsumerStatefulWidget {
   // Refazer da forma correta
-  const OpenEnded({
+  const MultipleChoise({
     super.key,
     required this.nodeId,
     this.openEndedId,
@@ -22,10 +22,10 @@ class OpenEnded extends ConsumerStatefulWidget {
   final Function? onSendAnswer;
 
   @override
-  ConsumerState<OpenEnded> createState() => _OpenEnded();
+  ConsumerState<MultipleChoise> createState() => _MultipleChoise();
 }
 
-class _OpenEnded extends ConsumerState<OpenEnded> {
+class _MultipleChoise extends ConsumerState<MultipleChoise> {
   String title = "";
   String statement = "";
   OpenEndedType type = OpenEndedType.ESSAY;
