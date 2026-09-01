@@ -26,11 +26,9 @@ class MultipleChoise extends ConsumerStatefulWidget {
 }
 
 class _MultipleChoise extends ConsumerState<MultipleChoise> {
-  String title = "";
-  String statement = "";
-  OpenEndedType type = OpenEndedType.ESSAY;
-  String referenceCorrectAnswer = "";
-  String userAnswer = "";
+  String nodeId = "";
+     String title = "";
+     String statement = "";
 
   @override
   void initState() {
@@ -51,12 +49,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       setState(() {
         title = data?.title ?? "";
         statement = data?.statement ?? "";
-        if (data?.type.toLowerCase() == "feynman") {
-          type = OpenEndedType.FEYNMAN;
-        } else {
-          type = OpenEndedType.ESSAY;
-        }
-        referenceCorrectAnswer = data?.referenceCorrectAnswer ?? "";
+    
       });
     });
   }

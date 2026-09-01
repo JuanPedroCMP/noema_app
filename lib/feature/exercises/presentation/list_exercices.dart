@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_provider.dart';
-import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
-import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/create_graph_with_ai.dart';
-import 'package:noema/feature/graph/service/sugiyama.dart';
 import 'package:noema/shared/floating_card/floating_card.dart';
 
 class ExercicesList extends ConsumerStatefulWidget {
@@ -81,6 +76,110 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   @override
   Widget build(BuildContext context) {
     final modeNotifier = ref.watch(modeOpenEndedProvider.notifier);
+
+    final openEndedMap = _openEndeds.map((openEnded) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "ID: ${openEnded.id}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text("Título: ${openEnded.title}"),
+              const SizedBox(height: 8),
+              Text("Descrição: ${openEnded.statement}"),
+              Row(
+                spacing: context.spacing.md,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(openEnded.id);
+                      changeOpc2(2);
+                      modeNotifier.modeChanged(3);
+                    },
+                    child: Text("Visualizar"),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(openEnded.id);
+                      changeOpc2(1);
+                      modeNotifier.modeChanged(1);
+                    },
+                    child: Text("Editar"),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(openEnded.id);
+                      changeOpc2(0);
+                      modeNotifier.modeChanged(2);
+                    },
+                    child: Text("Realizar"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+
+    final multipleChoiseMap = _multipleChoices.map((multipleChoise) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "ID: ${multipleChoise.id}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text("Título: ${multipleChoise.title}"),
+              const SizedBox(height: 8),
+              Text("Descrição: ${multipleChoise.statement}"),
+              Row(
+                spacing: context.spacing.md,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(multipleChoise.id);
+                      changeOpc2(2);
+                      modeNotifier.modeChanged(3);
+                    },
+                    child: Text("Visualizar"),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(multipleChoise.id);
+                      changeOpc2(1);
+                      modeNotifier.modeChanged(1);
+                    },
+                    child: Text("Editar"),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      changeQuestionId(multipleChoise.id);
+                      changeOpc2(0);
+                      modeNotifier.modeChanged(2);
+                    },
+                    child: Text("Realizar"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
 
     if (_openEndeds.isEmpty) {
       return Center(
@@ -193,59 +292,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   child: Wrap(
                     spacing: context.spacing.sm,
                     runSpacing: context.spacing.sm,
-                    children: _openEndeds.map((openEnded) {
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "ID: ${openEnded.id}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text("Título: ${openEnded.title}"),
-                              const SizedBox(height: 8),
-                              Text("Descrição: ${openEnded.statement}"),
-                              Row(
-                                spacing: context.spacing.md,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      changeQuestionId(openEnded.id);
-                                      changeOpc2(2);
-                                      modeNotifier.modeChanged(3);
-                                    },
-                                    child: Text("Visualizar"),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      changeQuestionId(openEnded.id);
-                                      changeOpc2(1);
-                                      modeNotifier.modeChanged(1);
-                                    },
-                                    child: Text("Editar"),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      changeQuestionId(openEnded.id);
-                                      changeOpc2(0);
-                                      modeNotifier.modeChanged(2);
-                                    },
-                                    child: Text("Realizar"),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    children: [...openEndedMap, ...multipleChoiseMap],
                   ),
                 ),
               ),
@@ -286,6 +333,26 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                         nodeId: widget.nodeId,
                         openEndedId: questionId,
                       ),
+                    ),
+                  ),
+                ),
+               if (opc2 == 4) // fazer
+                Align(
+                  alignment: Alignment.center,
+                  child: FloatingCard(
+                    width: 600,
+                    child: SingleChildScrollView(
+                      child: 
+                    ),
+                  ),
+                ),
+                 if (opc2 == 5) // Criar
+                Align(
+                  alignment: Alignment.center,
+                  child: FloatingCard(
+                    width: 600,
+                    child: SingleChildScrollView(
+                      child: 
                     ),
                   ),
                 ),

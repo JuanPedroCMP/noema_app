@@ -1,10 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/database/database.dart' show ChoiceData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 
 class Choise extends ConsumerStatefulWidget {
-  const Choise({super.key, required this.choiseId});
+  const Choise({super.key, required this.choiseId, required this.onChanged});
+
+  final ValueChanged<ChoiceData> onChanged;
 
   final String choiseId;
 
@@ -19,6 +23,7 @@ class _Choise extends ConsumerState<Choise> {
   int? weight = 0;
   bool? aiGenerated = false;
 
+  bool isChecked = false;
   int mode = 0;
 
   @override
@@ -51,11 +56,52 @@ class _Choise extends ConsumerState<Choise> {
       explanation = data.explanation;
       weight = data.weight;
       aiGenerated = data.aiGenerated;
+
+      widget.onChanged(
+        ChoiceData(
+          id: data.id,
+          multipleChoiceId: data.multipleChoiceId,
+          isCorrect: data.isCorrect,
+          statement: data.statement,
+          explanation: data.explanation,
+          weight: data.weight,
+          aiGenerated: data.aiGenerated,
+          updatedAt: data.updatedAt,
+          createdAt: data.createdAt,
+        ),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Row(children: []));
+    return Center(
+      child: Row(
+        children: [
+          if (mode == 0) ...[
+            Checkbox(
+              value: isChecked,
+              onChanged: (bool? value) {
+                setState(() {
+                  isChecked = value!;
+                });
+              },
+            ),
+            Text(statement),
+          ],
+          if (mode == 1) ...[
+            Checkbox(
+              value: isChecked,
+              onChanged: (bool? value) {
+                setState(() {
+                  isChecked = value!;
+                });
+              },
+            ),
+            Text(statement),
+          ],
+        ],
+      ),
+    );
   }
 }
