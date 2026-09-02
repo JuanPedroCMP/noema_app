@@ -10,18 +10,23 @@ import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_chois
 import 'package:noema/core/database/database.dart' show ChoiceData;
 import 'package:noema/shared/floating_card/floating_card.dart';
 
+/// Parameters:
+/// Mode
+/// 1 - Edit/Create (create if any valid id is given to multipleChoiseId)
+/// 2 - Do the exercice
+/// 3 - Only view
 class MultipleChoise extends ConsumerStatefulWidget {
-  // Refazer da forma correta
   const MultipleChoise({
     super.key,
     required this.nodeId,
     this.multipleChoiseId,
     this.onSendAnswer,
+    required this.defaultMode,
   });
 
   final String nodeId;
+  final int defaultMode;
   final String? multipleChoiseId;
-
   final Function? onSendAnswer;
 
   @override
@@ -34,11 +39,14 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   List<ChoiceData> choises = [];
   bool isEditing = false;
   String editTarget = "";
+  int mode = 0;
 
   @override
   void initState() {
     super.initState();
-
+    setState(() {
+      mode = widget.defaultMode;
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       loadData();
     });
@@ -127,9 +135,6 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     titleController = TextEditingController(text: title);
     statementController = TextEditingController(text: statement);
 
-    final mode = ref.watch(modeMultipleChoiseProvider);
-    final modeNotifier = ref.watch(modeMultipleChoiseProvider.notifier);
-
     loadData();
 
     return SizedBox(
@@ -168,8 +173,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                           ),
                           IconButton(
                             onPressed: () {
-                              editTarget = choise.id;
-                              isEditing = true;
+                              setState(() {
+                                editTarget = choise.id;
+                                isEditing = true;
+                              });
                             },
                             icon: Icon(Icons.edit),
                           ),
@@ -178,8 +185,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                     ],
                     OutlinedButton(
                       onPressed: () {
-                        isEditing = true;
-                        editTarget = "";
+                        setState(() {
+                          isEditing = true;
+                          editTarget = "";
+                        });
                       },
                       child: Text("Adicionar nova opc"),
                     ),
@@ -241,11 +250,15 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
             Align(
               alignment: Alignment.center,
               child: FloatingCard(
+                width: 1000,
+                height: 1000,
                 child: ManipulateChoise(
                   multipleChoiceId: widget.multipleChoiseId!,
                   choiseId: editTarget,
                   onSave: (value) {
-                    isEditing = false;
+                    setState(() {
+                      isEditing = false;
+                    });
                     loadData();
                   },
                   onChanged: (ChoiceData value) {},

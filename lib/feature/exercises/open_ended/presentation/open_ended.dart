@@ -7,18 +7,24 @@ import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_prov
 
 enum OpenEndedType { ESSAY, FEYNMAN }
 
+
+/// Parameters:
+/// Mode
+/// 1 - Edit/Create (create if any valid id is given to openEndedId)
+/// 2 - Do the exercice
+/// 3 - Only view
 class OpenEnded extends ConsumerStatefulWidget {
-  // Refazer da forma correta
   const OpenEnded({
     super.key,
     required this.nodeId,
     this.openEndedId,
     this.onSendAnswer,
+    required this.defaultMode,
   });
 
   final String nodeId;
+  final int defaultMode;
   final String? openEndedId;
-
   final Function? onSendAnswer;
 
   @override
@@ -31,58 +37,42 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   OpenEndedType type = OpenEndedType.ESSAY;
   String referenceCorrectAnswer = "";
   String userAnswer = "";
+  int mode = 0;
 
   @override
   void initState() {
     super.initState();
+    setState(() {
+      mode = widget.defaultMode;
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (widget.openEndedId == null) {
-        return;
-      }
-
-      final db = ref.watch(appDatabaseProvider);
-      final openEndedDao = OpenEndedDao(db);
-
-      final data = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
-
-      if (!mounted) return;
-
-      setState(() {
-        title = data?.title ?? "";
-        statement = data?.statement ?? "";
-        if (data?.type.toLowerCase() == "feynman") {
-          type = OpenEndedType.FEYNMAN;
-        } else {
-          type = OpenEndedType.ESSAY;
-        }
-        referenceCorrectAnswer = data?.referenceCorrectAnswer ?? "";
-      });
+      loadData();
     });
   }
 
   void loadData() async {
     if (widget.openEndedId == null) {
-        return;
+      return;
+    }
+
+    final db = ref.watch(appDatabaseProvider);
+    final openEndedDao = OpenEndedDao(db);
+
+    final data = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
+
+    if (!mounted) return;
+
+    setState(() {
+      title = data?.title ?? "";
+      statement = data?.statement ?? "";
+      if (data?.type.toLowerCase() == "feynman") {
+        type = OpenEndedType.FEYNMAN;
+      } else {
+        type = OpenEndedType.ESSAY;
       }
-
-      final db = ref.watch(appDatabaseProvider);
-      final openEndedDao = OpenEndedDao(db);
-
-      final data = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
-
-      if (!mounted) return;
-
-      setState(() {
-        title = data?.title ?? "";
-        statement = data?.statement ?? "";
-        if (data?.type.toLowerCase() == "feynman") {
-          type = OpenEndedType.FEYNMAN;
-        } else {
-          type = OpenEndedType.ESSAY;
-        }
-        referenceCorrectAnswer = data?.referenceCorrectAnswer ?? "";
-      });
+      referenceCorrectAnswer = data?.referenceCorrectAnswer ?? "";
+    });
   }
 
   void save() async {
@@ -172,7 +162,6 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     userAnswerController = TextEditingController(text: userAnswer);
 
     final mode = ref.watch(modeOpenEndedProvider);
-    final modeNotifier = ref.watch(modeOpenEndedProvider.notifier);
 
     loadData();
 
@@ -249,9 +238,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                 ),
               ],
             )
-          : (mode == 3) ? Column(
+          : (mode == 3)
+          ? Column(
               // Visualização
-               spacing: context.spacing.md,
+              spacing: context.spacing.md,
               children: [
                 Text(title, style: context.textTheme.headlineMedium),
                 Text(type.name, style: context.textTheme.labelMedium),
@@ -268,13 +258,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                     labelText: "Sua resposta...",
                   ),
                 ),
-                OutlinedButton(
-                  onPressed: () {
-                  },
-                  child: Text("Voltar"),
-                ),
+                OutlinedButton(onPressed: () {}, child: Text("Voltar")),
               ],
-            ) : null
+            )
+          : null,
     );
   }
 }

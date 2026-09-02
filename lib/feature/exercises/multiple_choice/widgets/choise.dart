@@ -5,6 +5,10 @@ import 'package:noema/core/database/database.dart' show ChoiceData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 
+/// Parameters:
+/// Mode
+/// 1 - Do the exercice mode
+/// 2 - Only read, show the correct response(s)
 class Choise extends ConsumerStatefulWidget {
   const Choise({super.key, required this.choiseId, required this.onChanged, required this.mode});
 

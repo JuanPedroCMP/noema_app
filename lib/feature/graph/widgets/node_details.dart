@@ -84,7 +84,7 @@ class NodeDetails extends ConsumerWidget {
                 onPressed: () {
                   context.push("/graphs/${node.graphId}/exercices/${node.id}");
                 },
-                child: Text("Ir para grafo"),
+                child: Text("Ir para exercícios"),
               ),
             ],
           ),

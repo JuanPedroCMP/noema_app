@@ -6,6 +6,8 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
 import 'package:noema/feature/auth/presentation/sign_up_page.dart';
 import 'package:noema/feature/config/presentation/config_page.dart';
+import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
+import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 import 'package:noema/feature/exercises/presentation/list_exercices.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
@@ -101,6 +103,114 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           final String nodeId = state.pathParameters['nodeId']!;
                           return ExercicesList(nodeId: nodeId);
                         },
+                        routes: [
+                          GoRoute(
+                            path: 'create_open_ended/:nodeId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              return OpenEnded(nodeId: nodeId, defaultMode: 1);
+                            },
+                          ),
+                          GoRoute(
+                            path: 'updade_open_ended/:nodeId/:openEndedId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String openEndedId =
+                                  state.pathParameters['openEndedId']!;
+                              return OpenEnded(
+                                nodeId: nodeId,
+                                openEndedId: openEndedId,
+                                defaultMode: 1,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'do_open_ended/:nodeId/:openEndedId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String openEndedId =
+                                  state.pathParameters['openEndedId']!;
+                              return OpenEnded(
+                                nodeId: nodeId,
+                                openEndedId: openEndedId,
+                                defaultMode: 2,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'get_open_ended/:nodeId/:openEndedId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String openEndedId =
+                                  state.pathParameters['openEndedId']!;
+                              return OpenEnded(
+                                nodeId: nodeId,
+                                openEndedId: openEndedId,
+                                defaultMode: 3,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'create_multiple_choise/:nodeId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              return MultipleChoise(
+                                nodeId: nodeId,
+                                defaultMode: 1,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path:
+                                'updade_multiple_choise/:nodeId/:multipleChoiseId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String multipleChoiseId =
+                                  state.pathParameters['multipleChoiseId']!;
+                              return MultipleChoise(
+                                nodeId: nodeId,
+                                multipleChoiseId: multipleChoiseId,
+                                defaultMode: 1,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path:
+                                'do_multiple_choise/:nodeId/:multipleChoiseId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String multipleChoiseId =
+                                  state.pathParameters['multipleChoiseId']!;
+                              return MultipleChoise(
+                                nodeId: nodeId,
+                                multipleChoiseId: multipleChoiseId,
+                                defaultMode: 2,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path:
+                                'get_multiple_choise/:nodeId:multipleChoiseId',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              final String multipleChoiseId =
+                                  state.pathParameters['multipleChoiseId']!;
+                              return MultipleChoise(
+                                nodeId: nodeId,
+                                multipleChoiseId: multipleChoiseId,
+                                defaultMode: 3,
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

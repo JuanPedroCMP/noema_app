@@ -49,6 +49,10 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       return;
     }
 
+     if (widget.choiseId == "") {
+      return;
+    }
+
     final db = ref.watch(appDatabaseProvider);
 
     final choiseDao = ChoiceDao(db);
@@ -109,6 +113,10 @@ class _Choise extends ConsumerState<ManipulateChoise> {
 
     if (widget.choiseId!.isEmpty) {
       newQuestion = true;
+    }
+
+     if (widget.choiseId == "") {
+            newQuestion = true;
     }
 
     final db = ref.watch(appDatabaseProvider);

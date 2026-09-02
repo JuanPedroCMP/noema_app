@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -27,7 +28,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   List<MultipleChoiceData> _multipleChoices = [];
 
   int opc = 0;
-  int opc2 = 0;
   String questionId = "";
 
   @override
@@ -63,12 +63,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     });
   }
 
-  void changeOpc2(int value) {
-    setState(() {
-      opc = value;
-    });
-  }
-
   void changeQuestionId(String value) {
     setState(() {
       questionId = value;
@@ -77,10 +71,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
 
   @override
   Widget build(BuildContext context) {
-    final modeNotifier = ref.watch(modeOpenEndedProvider.notifier);
-    final modeMultipleChoiseNotifier = ref.watch(
-      modeMultipleChoiseProvider.notifier,
-    );
+    final String currentUri = GoRouterState.of(context).uri.toString();
 
     final openEndedMap = _openEndeds.map((openEnded) {
       return Card(
@@ -104,25 +95,25 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 children: [
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(openEnded.id);
-                      changeOpc2(2);
-                      modeNotifier.modeChanged(3);
+                      context.push(
+                        "$currentUri/get_open_ended/${widget.nodeId}/${openEnded.id}",
+                      );
                     },
                     child: Text("Visualizar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(openEnded.id);
-                      changeOpc2(1);
-                      modeNotifier.modeChanged(1);
+                      context.push(
+                        "$currentUri/updade_open_ended/${widget.nodeId}/${openEnded.id}",
+                      );
                     },
                     child: Text("Editar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(openEnded.id);
-                      changeOpc2(0);
-                      modeNotifier.modeChanged(2);
+                      context.push(
+                        "$currentUri/get_open_ended/${widget.nodeId}/${openEnded.id}",
+                      );
                     },
                     child: Text("Realizar"),
                   ),
@@ -156,25 +147,25 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 children: [
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(multipleChoise.id);
-                      changeOpc2(4);
-                      modeMultipleChoiseNotifier.modeChanged(3);
+                      context.push(
+                        "$currentUri/get_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                      );
                     },
                     child: Text("Visualizar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(multipleChoise.id);
-                      changeOpc2(5);
-                      modeMultipleChoiseNotifier.modeChanged(1);
+                      context.push(
+                        "$currentUri/updade_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                      );
                     },
                     child: Text("Editar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      changeQuestionId(multipleChoise.id);
-                      changeOpc2(4);
-                      modeMultipleChoiseNotifier.modeChanged(2);
+                      context.push(
+                        "$currentUri/get_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                      );
                     },
                     child: Text("Realizar"),
                   ),
@@ -208,23 +199,15 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                         children: [
                           OutlinedButton(
                             onPressed: () {
-                              if (opc != 2) {
-                                changeOpc(2);
-                              } else {
-                                changeOpc(0);
-                              }
+                              context.push(
+                                "$currentUri/create_open_ended/${widget.nodeId}",
+                              );
                             },
                             child: Row(children: [Text("Criar questão Vazia")]),
                           ),
                           VerticalDivider(),
                           OutlinedButton(
-                            onPressed: () {
-                              if (opc != 3) {
-                                changeOpc(3);
-                              } else {
-                                changeOpc(0);
-                              }
-                            },
+                            onPressed: () {},
                             child: Row(
                               children: [Text("Gerar Questão Com IA")],
                             ),
@@ -236,24 +219,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
               ),
             ),
-            if (opc == 1)
-              Align(
-                alignment: Alignment.center,
-                child: FloatingCard(
-                  width: 600,
-                  child: SingleChildScrollView(
-                    child: OpenEnded(nodeId: widget.nodeId),
-                  ),
-                ),
-              ),
-            if (opc == 3)
-              Align(
-                alignment: Alignment.center,
-                child: FloatingCard(
-                  width: 600,
-                  child: SingleChildScrollView(child: CreateGraphWithAi()),
-                ),
-              ),
           ],
         ),
       );
@@ -270,11 +235,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
             children: [
               OutlinedButton(
                 onPressed: () {
-                  if (opc != 1) {
-                    changeOpc(1);
-                  } else {
-                    changeOpc(0);
-                  }
+                  context.push(
+                    "$currentUri/create_open_ended/${widget.nodeId}",
+                  );
                 },
                 child: Row(
                   spacing: context.spacing.md,
@@ -286,11 +249,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               ),
               OutlinedButton(
                 onPressed: () {
-                  if (opc != 3) {
-                    changeOpc(3);
-                  } else {
-                    changeOpc(0);
-                  }
+                  context.push(
+                    "$currentUri/create_multiple_choise/${widget.nodeId}",
+                  );
                 },
                 child: Row(
                   spacing: context.spacing.md,
@@ -320,92 +281,6 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   ),
                 ),
               ),
-              if (opc2 == 1)
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 500,
-                    height: 250,
-                    child: SingleChildScrollView(
-                      child: OpenEnded(
-                        nodeId: widget.nodeId,
-                        openEndedId: questionId,
-                      ),
-                    ),
-                  ),
-                ),
-              if (opc2 == 2)
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: OpenEnded(
-                        nodeId: widget.nodeId,
-                        openEndedId: questionId,
-                      ),
-                    ),
-                  ),
-                ),
-              if (opc2 == 0)
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: OpenEnded(
-                        nodeId: widget.nodeId,
-                        openEndedId: questionId,
-                      ),
-                    ),
-                  ),
-                ),
-              if (opc2 == 4) // fazer
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: MultipleChoise(
-                        nodeId: widget.nodeId,
-                        multipleChoiseId: questionId,
-                      ),
-                    ),
-                  ),
-                ),
-              if (opc2 == 5) // Criar
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: MultipleChoise(
-                        nodeId: widget.nodeId,
-                        multipleChoiseId: questionId,
-                      ),
-                    ),
-                  ),
-                ),
-              if (opc == 2)
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: OpenEnded(nodeId: widget.nodeId),
-                    ),
-                  ),
-                ),
-              if (opc == 3) // Criar
-                Align(
-                  alignment: Alignment.center,
-                  child: FloatingCard(
-                    width: 600,
-                    child: SingleChildScrollView(
-                      child: MultipleChoise(nodeId: widget.nodeId),
-                    ),
-                  ),
-                ),
             ],
           ),
         ],
