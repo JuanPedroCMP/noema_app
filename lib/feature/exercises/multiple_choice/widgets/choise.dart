@@ -6,11 +6,11 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 
 class Choise extends ConsumerStatefulWidget {
-  const Choise({super.key, required this.choiseId, required this.onChanged});
+  const Choise({super.key, required this.choiseId, required this.onChanged, required this.mode});
 
   final ValueChanged<ChoiceData> onChanged;
-
   final String choiseId;
+  final int mode;
 
   @override
   ConsumerState<Choise> createState() => _Choise();
@@ -24,7 +24,6 @@ class _Choise extends ConsumerState<Choise> {
   bool? aiGenerated = false;
 
   bool isChecked = false;
-  int mode = 0;
 
   @override
   void initState() {
@@ -78,7 +77,7 @@ class _Choise extends ConsumerState<Choise> {
     return Center(
       child: Row(
         children: [
-          if (mode == 0) ...[
+          if (widget.mode == 0) ...[
             Checkbox(
               value: isChecked,
               onChanged: (bool? value) {
@@ -89,12 +88,12 @@ class _Choise extends ConsumerState<Choise> {
             ),
             Text(statement),
           ],
-          if (mode == 1) ...[
+          if (widget.mode == 1) ...[
             Checkbox(
-              value: isChecked,
+              value: isCorrect,
               onChanged: (bool? value) {
                 setState(() {
-                  isChecked = value!;
+                  isCorrect = value!;
                 });
               },
             ),

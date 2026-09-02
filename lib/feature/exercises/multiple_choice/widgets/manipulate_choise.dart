@@ -5,8 +5,8 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 
-class Choise extends ConsumerStatefulWidget {
-  const Choise({
+class ManipulateChoise extends ConsumerStatefulWidget {
+  const ManipulateChoise({
     super.key,
     this.choiseId,
     required this.onChanged,
@@ -21,10 +21,10 @@ class Choise extends ConsumerStatefulWidget {
   final Function onSave;
 
   @override
-  ConsumerState<Choise> createState() => _Choise();
+  ConsumerState<ManipulateChoise> createState() => _Choise();
 }
 
-class _Choise extends ConsumerState<Choise> {
+class _Choise extends ConsumerState<ManipulateChoise> {
   bool isCorrect = false;
   String statement = "";
   String? explanation = "";
@@ -145,7 +145,8 @@ class _Choise extends ConsumerState<Choise> {
     weightController = TextEditingController(text: weight.toString());
 
     return Center(
-      child: Row(
+      child: Column(
+        spacing: context.spacing.md,
         children: [
           TextField(
             onChanged: (value) => sChanged,

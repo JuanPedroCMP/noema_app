@@ -4,6 +4,8 @@ import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
+import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
+import 'package:noema/feature/exercises/multiple_choice/provider/open_ended_mode_provider.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_provider.dart';
@@ -76,6 +78,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   @override
   Widget build(BuildContext context) {
     final modeNotifier = ref.watch(modeOpenEndedProvider.notifier);
+    final modeMultipleChoiseNotifier = ref.watch(
+      modeMultipleChoiseProvider.notifier,
+    );
 
     final openEndedMap = _openEndeds.map((openEnded) {
       return Card(
@@ -152,24 +157,24 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       changeQuestionId(multipleChoise.id);
-                      changeOpc2(2);
-                      modeNotifier.modeChanged(3);
+                      changeOpc2(4);
+                      modeMultipleChoiseNotifier.modeChanged(3);
                     },
                     child: Text("Visualizar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
                       changeQuestionId(multipleChoise.id);
-                      changeOpc2(1);
-                      modeNotifier.modeChanged(1);
+                      changeOpc2(5);
+                      modeMultipleChoiseNotifier.modeChanged(1);
                     },
                     child: Text("Editar"),
                   ),
                   OutlinedButton(
                     onPressed: () {
                       changeQuestionId(multipleChoise.id);
-                      changeOpc2(0);
-                      modeNotifier.modeChanged(2);
+                      changeOpc2(4);
+                      modeMultipleChoiseNotifier.modeChanged(2);
                     },
                     child: Text("Realizar"),
                   ),
@@ -273,7 +278,26 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 },
                 child: Row(
                   spacing: context.spacing.md,
-                  children: [Text("Criar Novo Grafo"), Icon(Icons.add_rounded)],
+                  children: [
+                    Text("Criar Nova questão"),
+                    Icon(Icons.add_rounded),
+                  ],
+                ),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  if (opc != 3) {
+                    changeOpc(3);
+                  } else {
+                    changeOpc(0);
+                  }
+                },
+                child: Row(
+                  spacing: context.spacing.md,
+                  children: [
+                    Text("Criar Nova questão alternativa"),
+                    Icon(Icons.add_rounded),
+                  ],
                 ),
               ),
               OutlinedButton(
@@ -336,23 +360,29 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                     ),
                   ),
                 ),
-               if (opc2 == 4) // fazer
+              if (opc2 == 4) // fazer
                 Align(
                   alignment: Alignment.center,
                   child: FloatingCard(
                     width: 600,
                     child: SingleChildScrollView(
-                      child: 
+                      child: MultipleChoise(
+                        nodeId: widget.nodeId,
+                        multipleChoiseId: questionId,
+                      ),
                     ),
                   ),
                 ),
-                 if (opc2 == 5) // Criar
+              if (opc2 == 5) // Criar
                 Align(
                   alignment: Alignment.center,
                   child: FloatingCard(
                     width: 600,
                     child: SingleChildScrollView(
-                      child: 
+                      child: MultipleChoise(
+                        nodeId: widget.nodeId,
+                        multipleChoiseId: questionId,
+                      ),
                     ),
                   ),
                 ),
@@ -363,6 +393,16 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                     width: 600,
                     child: SingleChildScrollView(
                       child: OpenEnded(nodeId: widget.nodeId),
+                    ),
+                  ),
+                ),
+              if (opc == 3) // Criar
+                Align(
+                  alignment: Alignment.center,
+                  child: FloatingCard(
+                    width: 600,
+                    child: SingleChildScrollView(
+                      child: MultipleChoise(nodeId: widget.nodeId),
                     ),
                   ),
                 ),
