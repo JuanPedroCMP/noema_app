@@ -41,23 +41,30 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   String editTarget = "";
   int mode = 0;
 
+  String tempId = "";
+
+  late final TextEditingController titleController;
+  late final TextEditingController statementController;
+
   @override
   void initState() {
     super.initState();
     setState(() {
       mode = widget.defaultMode;
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      loadData();
+
+    titleController = TextEditingController();
+    statementController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
     });
   }
 
-  void loadData() async {
-    if (widget.multipleChoiseId == null) {
-      return;
-    }
-
-    if (widget.multipleChoiseId!.isEmpty) {
+  void _loadData() async {
+    if (widget.multipleChoiseId == null || widget.multipleChoiseId!.isEmpty) {
+      titleController.text = "";
+      statementController.text = "";
       return;
     }
 
@@ -72,8 +79,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     final listChoises = await choiceDao.getChoicesByQuestion(
       multipleChoiceId: widget.multipleChoiseId!,
     );
+    print("1");
 
     if (!mounted) return;
+    print("2");
 
     if (data == null) return;
 
@@ -82,35 +91,34 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       statement = data.statement;
       choises = listChoises;
     });
+
+    titleController.text = title;
+    statementController.text = statement;
   }
 
-  void save() async {
+  Future<String?> save() async {
     final db = ref.watch(appDatabaseProvider);
     final multipleChoiceDao = MultipleChoiceDao(db);
 
-    if (widget.multipleChoiseId == null) {
-      await multipleChoiceDao.insertMultipleChoice(
+    if (widget.multipleChoiseId == null || widget.multipleChoiseId!.isEmpty) {
+      final newId = await multipleChoiceDao.insertMultipleChoice(
         nodeId: widget.nodeId,
         title: title,
         statement: statement,
       );
+      setState(() {
+        tempId = newId.toString();
+      });
+      return tempId;
     } else {
       await multipleChoiceDao.updateMultipleChoice(
         id: widget.multipleChoiseId!,
         title: title,
         statement: statement,
       );
+
+      return widget.multipleChoiseId;
     }
-
-    final opc = await multipleChoiceDao.getMultipleChoicesByNode(
-      nodeId: widget.nodeId,
-    );
-
-    for (final item in opc) {
-      print(item);
-    }
-
-    print(opc.toString());
   }
 
   void sendAnswer() {}
@@ -127,16 +135,8 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     });
   }
 
-  late TextEditingController titleController;
-  late TextEditingController statementController;
-
   @override
   Widget build(BuildContext context) {
-    titleController = TextEditingController(text: title);
-    statementController = TextEditingController(text: statement);
-
-    loadData();
-
     return SizedBox(
       child: Stack(
         children: [
@@ -185,6 +185,8 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                     ],
                     OutlinedButton(
                       onPressed: () {
+                        save();
+                        _loadData();
                         setState(() {
                           isEditing = true;
                           editTarget = "";
@@ -253,13 +255,13 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                 width: 1000,
                 height: 1000,
                 child: ManipulateChoise(
-                  multipleChoiceId: widget.multipleChoiseId!,
+                  multipleChoiceId: widget.multipleChoiseId ?? tempId,
                   choiseId: editTarget,
                   onSave: (value) {
                     setState(() {
                       isEditing = false;
                     });
-                    loadData();
+                    _loadData();
                   },
                   onChanged: (ChoiceData value) {},
                 ),

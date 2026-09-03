@@ -23,7 +23,6 @@ class ExercicesList extends ConsumerStatefulWidget {
 }
 
 class _ExercicesList extends ConsumerState<ExercicesList> {
-  // TODO Consertar
   List<OpenEndedData> _openEndeds = [];
   List<MultipleChoiceData> _multipleChoices = [];
 
@@ -112,7 +111,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_open_ended/${widget.nodeId}/${openEnded.id}",
+                        "$currentUri/do_open_ended/${widget.nodeId}/${openEnded.id}",
                       );
                     },
                     child: Text("Realizar"),
@@ -148,7 +147,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/get_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
                       );
                     },
                     child: Text("Visualizar"),
@@ -156,7 +155,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/updade_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/updade_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
                       );
                     },
                     child: Text("Editar"),
@@ -164,7 +163,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_open_ended/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/do_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
                       );
                     },
                     child: Text("Realizar"),
@@ -272,13 +271,11 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
           SizedBox(height: context.spacing.sm),
           Stack(
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Wrap(
-                    spacing: context.spacing.sm,
-                    runSpacing: context.spacing.sm,
-                    children: [...openEndedMap, ...multipleChoiseMap],
-                  ),
+              SingleChildScrollView(
+                child: Wrap(
+                  spacing: context.spacing.sm,
+                  runSpacing: context.spacing.sm,
+                  children: [...openEndedMap, ...multipleChoiseMap],
                 ),
               ),
             ],

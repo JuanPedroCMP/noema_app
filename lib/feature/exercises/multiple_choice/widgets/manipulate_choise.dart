@@ -10,7 +10,8 @@ class ManipulateChoise extends ConsumerStatefulWidget {
     super.key,
     this.choiseId,
     required this.onChanged,
-    required this.multipleChoiceId, required this.onSave,
+    required this.multipleChoiceId,
+    required this.onSave,
   });
 
   final ValueChanged<ChoiceData> onChanged;
@@ -49,7 +50,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       return;
     }
 
-     if (widget.choiseId == "") {
+    if (widget.choiseId == "") {
       return;
     }
 
@@ -115,8 +116,8 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       newQuestion = true;
     }
 
-     if (widget.choiseId == "") {
-            newQuestion = true;
+    if (widget.choiseId == "") {
+      newQuestion = true;
     }
 
     final db = ref.watch(appDatabaseProvider);
@@ -157,7 +158,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
         spacing: context.spacing.md,
         children: [
           TextField(
-            onChanged: (value) => sChanged,
+            onChanged: sChanged,
             controller: statementController,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
@@ -165,7 +166,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
             ),
           ),
           TextField(
-            onChanged: (value) => eChanged,
+            onChanged: eChanged,
             controller: explanationController,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
@@ -173,7 +174,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
             ),
           ),
           TextField(
-            onChanged: (value) => wChanged,
+            onChanged: wChanged,
             controller: weightController,
             decoration: InputDecoration(
               border: OutlineInputBorder(),

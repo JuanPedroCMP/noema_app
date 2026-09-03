@@ -7,7 +7,6 @@ import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_prov
 
 enum OpenEndedType { ESSAY, FEYNMAN }
 
-
 /// Parameters:
 /// Mode
 /// 1 - Edit/Create (create if any valid id is given to openEndedId)
@@ -39,20 +38,45 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   String userAnswer = "";
   int mode = 0;
 
+  late final TextEditingController titleController;
+  late final TextEditingController statementController;
+  late final TextEditingController typeController;
+  late final TextEditingController referenceCorrectAnswerController;
+  late final TextEditingController userAnswerController;
+
   @override
   void initState() {
     super.initState();
+
     setState(() {
       mode = widget.defaultMode;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      loadData();
+    titleController = TextEditingController();
+    statementController = TextEditingController();
+    typeController = TextEditingController();
+    referenceCorrectAnswerController = TextEditingController();
+    userAnswerController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
     });
   }
 
-  void loadData() async {
-    if (widget.openEndedId == null) {
+  Future<void> _loadData() async {
+    if (widget.openEndedId == null || widget.openEndedId!.isEmpty) {
+      setState(() {
+        title = "";
+        statement = "";
+        type = OpenEndedType.ESSAY;
+        referenceCorrectAnswer = "";
+        userAnswer = "";
+      });
+      titleController.text = "";
+      statementController.text = "";
+      typeController.text = "essay";
+      referenceCorrectAnswerController.text = "";
+      print("()())()()() => 1");
       return;
     }
 
@@ -60,8 +84,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     final openEndedDao = OpenEndedDao(db);
 
     final data = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
+    print("()())()()() => 2");
 
     if (!mounted) return;
+    print("()())()()() => 4");
 
     setState(() {
       title = data?.title ?? "";
@@ -73,6 +99,12 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       }
       referenceCorrectAnswer = data?.referenceCorrectAnswer ?? "";
     });
+    print("()())()()() => 4");
+    print(widget.openEndedId);
+    titleController.text = title;
+    statementController.text = statement;
+    typeController.text = type.name;
+    referenceCorrectAnswerController.text = referenceCorrectAnswer;
   }
 
   void save() async {
@@ -145,26 +177,8 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     });
   }
 
-  late TextEditingController titleController;
-  late TextEditingController statementController;
-  late TextEditingController typeController;
-  late TextEditingController referenceCorrectAnswerController;
-  late TextEditingController userAnswerController;
-
   @override
   Widget build(BuildContext context) {
-    titleController = TextEditingController(text: title);
-    statementController = TextEditingController(text: statement);
-    typeController = TextEditingController(text: type.name);
-    referenceCorrectAnswerController = TextEditingController(
-      text: referenceCorrectAnswer,
-    );
-    userAnswerController = TextEditingController(text: userAnswer);
-
-    final mode = ref.watch(modeOpenEndedProvider);
-
-    loadData();
-
     return SizedBox(
       child: (mode == 1)
           ? Column(

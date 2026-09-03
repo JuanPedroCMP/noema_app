@@ -197,7 +197,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           ),
                           GoRoute(
                             path:
-                                'get_multiple_choise/:nodeId:multipleChoiseId',
+                                'get_multiple_choise/:nodeId/:multipleChoiseId',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
