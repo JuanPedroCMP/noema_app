@@ -12,7 +12,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
     required String nodeId,
     required String title,
     required String statement,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return into(attachedDatabase.multipleChoice).insert(
       MultipleChoiceCompanion.insert(
@@ -20,7 +20,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
         nodeId: nodeId,
         title: title,
         statement: statement,
-        aiGenerated: Value(aiGenerated),
+        isAiGenerated: Value(isAiGenerated ?? false),
       ),
     );
   }
@@ -30,7 +30,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
     String? nodeId,
     String? title,
     String? statement,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return (update(
       attachedDatabase.multipleChoice,
@@ -39,7 +39,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
         nodeId: nodeId == null ? const Value.absent() : Value(nodeId),
         title: title == null ? const Value.absent() : Value(title),
         statement: statement == null ? const Value.absent() : Value(statement),
-        aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),
+        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
       ),
     );
   }

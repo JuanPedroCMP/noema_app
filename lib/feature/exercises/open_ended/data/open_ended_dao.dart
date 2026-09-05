@@ -14,7 +14,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
     required String statement,
     required String type,
     String? referenceCorrectAnswer,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return into(attachedDatabase.openEnded).insert(
       OpenEndedCompanion.insert(
@@ -24,7 +24,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
         statement: statement,
         type: type,
         referenceCorrectAnswer: Value(referenceCorrectAnswer),
-        aiGenerated: Value(aiGenerated),
+        isAiGenerated: Value(isAiGenerated ?? false),
         createdAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -37,7 +37,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
     String? statement,
     String? type,
     String? referenceCorrectAnswer,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return (update(
       attachedDatabase.openEnded,
@@ -48,7 +48,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
         statement: statement == null ? const Value.absent() : Value(statement),
         type: type == null ? const Value.absent() : Value(type),
         referenceCorrectAnswer: referenceCorrectAnswer == null ? const Value.absent() : Value(referenceCorrectAnswer),
-        aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),
+        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );

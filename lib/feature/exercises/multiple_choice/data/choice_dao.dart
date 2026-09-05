@@ -14,7 +14,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
     required String statement,
     String? explanation,
     int? weight,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return into(attachedDatabase.choice).insert(
       ChoiceCompanion.insert(
@@ -24,7 +24,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
         statement: statement,
         explanation: Value(explanation),
         weight: Value(weight),
-        aiGenerated: Value(aiGenerated),
+        isAiGenerated: Value(isAiGenerated ?? false),
       ),
     );
   }
@@ -36,7 +36,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
     String? statement,
     String? explanation,
     int? weight,
-    bool? aiGenerated,
+    bool? isAiGenerated,
   }) {
     return (update(
       attachedDatabase.choice,
@@ -47,7 +47,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
         statement: statement == null ? const Value.absent() : Value(statement),
         explanation: explanation == null ? const Value.absent() : Value(explanation),
         weight: weight == null ? const Value.absent() : Value(weight),
-        aiGenerated: aiGenerated == null ? const Value.absent() : Value(aiGenerated),
+        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
       ),
     );
   }

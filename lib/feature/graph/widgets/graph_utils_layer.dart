@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/provider/graph_states_provider.dart';
+import 'package:noema/feature/graph/service/sugiyama.dart';
 
 class GraphUtilsLayer extends ConsumerStatefulWidget {
-  GraphUtilsLayer({super.key});
+  GraphUtilsLayer({super.key, required this.graphId});
+
+  String graphId;
 
   @override
   ConsumerState<GraphUtilsLayer> createState() => _GraphUtilsLayer();
@@ -57,7 +60,9 @@ class _GraphUtilsLayer extends ConsumerState<GraphUtilsLayer> {
           ),
 
           OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              sugiyama(widget.graphId, ref);
+            },
             child: Icon(Icons.auto_awesome_mosaic, size: context.iconSize.md),
           ),
         ]

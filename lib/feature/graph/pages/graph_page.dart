@@ -40,11 +40,15 @@ class _GraphPage extends ConsumerState<GraphPage> {
         transformationControllerProvider.notifier,
       );
 
-      sugiyama(widget.graphId, ref);
-      final seed = sugiyama(widget.graphId, ref);
+      
+      final seed = await loadGraph();
 
-      controllerNotifier.goToPoint(await seed, 0.8, size);
+      controllerNotifier.goToPoint(seed, 0.8, size);
     });
+  }
+
+  Future<Offset> loadGraph() async {
+    return await sugiyama(widget.graphId, ref);
   }
 
   @override
@@ -170,7 +174,7 @@ class _GraphPage extends ConsumerState<GraphPage> {
                     ),
                   ),
                 ),
-                Positioned(top: 10, left: 10, child: GraphUtilsLayer()),
+                Positioned(top: 10, left: 10, child: GraphUtilsLayer(graphId: widget.graphId,)),
                 nodesById[selected] == null
                     ? SizedBox()
                     : SizedBox(

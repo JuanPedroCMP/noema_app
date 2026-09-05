@@ -58,7 +58,7 @@ class _Choise extends ConsumerState<Choise> {
       statement = data.statement;
       explanation = data.explanation;
       weight = data.weight;
-      aiGenerated = data.aiGenerated;
+      aiGenerated = data.isAiGenerated;
 
       widget.onChanged(
         ChoiceData(
@@ -68,7 +68,7 @@ class _Choise extends ConsumerState<Choise> {
           statement: data.statement,
           explanation: data.explanation,
           weight: data.weight,
-          aiGenerated: data.aiGenerated,
+          isAiGenerated: data.isAiGenerated,
           updatedAt: data.updatedAt,
           createdAt: data.createdAt,
         ),
