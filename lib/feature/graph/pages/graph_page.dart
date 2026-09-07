@@ -43,12 +43,12 @@ class _GraphPage extends ConsumerState<GraphPage> {
       
       final seed = await loadGraph();
 
-      controllerNotifier.goToPoint(seed, 0.8, size);
+      controllerNotifier.goToPoint(seed.bounds!.center, 0.8, size);
     });
   }
 
-  Future<Offset> loadGraph() async {
-    return await sugiyama(widget.graphId, ref);
+  Future<SugiyamaRunResult> loadGraph() async {
+    return await sugiyama(widget.graphId, ref, config: const SugiyamaConfig(mode: SugiyamaLayoutMode.centered));
   }
 
   @override

@@ -11,7 +11,8 @@ import 'package:noema/feature/graph/provider/graph_provider.dart';
 
 // OBS.: Gerei com IA
 //
-// OBS. 2: Revisado para nunca lançar exceções durante o auto-layout.
+// OBS. 2: Revisado para nunca lançar exceções durante o auto-layout, e para
+// suportar dois modos de organização horizontal (`SugiyamaLayoutMode`).
 //
 //   - Ciclos no grafo (ex.: A pré-requisito de B e B pré-requisito de A,
 //     algo que uma IA gerando o grafo pode produzir por engano) são
@@ -22,16 +23,41 @@ import 'package:noema/feature/graph/provider/graph_provider.dart';
 //     camada de fallback em vez de lançar exceção.
 //   - `sugiyama()` (ponto de entrada público) envolve o pipeline inteiro em
 //     try/catch: qualquer erro inesperado é registrado via `debugPrint` e
-//     engolido, para nunca derrubar a tela do usuário.
+//     engolido, para nunca derrubar a tela do usuário. Em vez de não
+//     retornar nada, ela devolve um `SugiyamaRunResult` com o que
+//     aconteceu (quantos nós foram salvos, quantos falharam, quantos
+//     ciclos foram quebrados e o retângulo que envolve o grafo).
 //   - A persistência no banco é feita nó a nó, cada um com seu próprio
 //     try/catch, então a falha ao salvar um nó não impede os demais de
 //     serem salvos.
 //   - Valores de configuração inválidos (negativos, zero ou não finitos)
 //     são normalizados para os padrões seguros em `_sanitizeConfig`.
+//   - `SugiyamaLayoutMode.balanced` (padrão) posiciona cada nó na média
+//     dos vizinhos; `SugiyamaLayoutMode.centered` centraliza cada nó
+//     exatamente entre o vizinho mais à esquerda e o mais à direita,
+//     dando um visual de organograma/árvore genealógica.
 
 /// ============================================================================
 /// CONFIGURAÇÃO
 /// ============================================================================
+
+enum SugiyamaLayoutMode {
+  /// Cada nó tenta se aproximar da média de todos os seus vizinhos (pais e
+  /// filhos). Bom modo geral: minimiza o deslocamento total das arestas e
+  /// tende a se comportar bem mesmo em grafos com muitas conexões
+  /// cruzadas entre si.
+  balanced,
+
+  /// Cada nó é centralizado exatamente entre o vizinho mais à esquerda e
+  /// o mais à direita (pais na passagem para frente, filhos na passagem
+  /// para trás). Na prática isso centraliza cada pai bem em cima do
+  /// intervalo ocupado pelos seus filhos — e cada filho único fica
+  /// exatamente embaixo do seu pai — resultando num visual mais
+  /// simétrico e "arrumado", parecido com organograma ou árvore
+  /// genealógica. É o modo recomendado quando o grafo é predominantemente
+  /// hierárquico (poucos nós com múltiplos pais).
+  centered,
+}
 
 class SugiyamaConfig {
   /// Distância entre os centros dos nós na horizontal.
@@ -63,6 +89,10 @@ class SugiyamaConfig {
   /// Quando true, tenta compactar o grafo depois do posicionamento.
   final bool compact;
 
+  /// Estratégia usada para posicionar horizontalmente os nós dentro de
+  /// cada camada. Veja `SugiyamaLayoutMode`.
+  final SugiyamaLayoutMode mode;
+
   const SugiyamaConfig({
     this.horizontalSpacing = 220.0,
     this.verticalSpacing = 180.0,
@@ -72,6 +102,7 @@ class SugiyamaConfig {
     this.coordinateIterations = 6,
     this.preservePreviousOrder = true,
     this.compact = true,
+    this.mode = SugiyamaLayoutMode.centered,
   });
 }
 
@@ -116,12 +147,18 @@ class _GraphModel {
 
   final Map<String, int> indegree;
 
+  /// Quantidade de arestas removidas automaticamente por `_breakCycles`
+  /// para tornar o grafo acíclico. Só é preenchido no grafo original
+  /// (antes da inserção de dummy nodes); no grafo expandido fica 0.
+  final int cyclesBrokenCount;
+
   const _GraphModel({
     required this.nodes,
     required this.edges,
     required this.parents,
     required this.children,
     required this.indegree,
+    this.cyclesBrokenCount = 0,
   });
 }
 
@@ -145,8 +182,59 @@ class _LayerOrderResult {
 class _SugiyamaResult {
   final Map<String, Offset> positions;
   final Map<String, int> layers;
+  final int cyclesBrokenCount;
 
-  const _SugiyamaResult({required this.positions, required this.layers});
+  const _SugiyamaResult({
+    required this.positions,
+    required this.layers,
+    required this.cyclesBrokenCount,
+  });
+}
+
+/// ============================================================================
+/// RESULTADO DE UMA EXECUÇÃO
+/// ============================================================================
+///
+/// Retornado por `sugiyama()` para que quem chamou saiba o que aconteceu
+/// sem precisar consultar o banco de novo — por exemplo, para mostrar um
+/// aviso ("2 nós não puderam ser salvos") ou para centralizar a
+/// câmera/viewport no grafo usando `bounds`.
+
+class SugiyamaRunResult {
+  /// Quantidade de nós reais que tiveram a posição salva com sucesso.
+  final int nodesUpdated;
+
+  /// Quantidade de nós reais que falharam ao salvar a nova posição.
+  /// Detalhes de cada falha vão para `debugPrint`.
+  final int nodesFailed;
+
+  /// Quantidade de arestas removidas automaticamente para quebrar
+  /// ciclos no grafo (ver `_breakCycles`). Zero na grande maioria dos
+  /// grafos.
+  final int cyclesBroken;
+
+  /// Retângulo que envolve todas as posições calculadas. Útil para
+  /// centralizar a câmera/viewport no grafo depois do auto-layout.
+  ///
+  /// `null` quando nada foi processado (grafo vazio ou falha antes de
+  /// calcular qualquer posição).
+  final Rect? bounds;
+
+  const SugiyamaRunResult({
+    required this.nodesUpdated,
+    required this.nodesFailed,
+    required this.cyclesBroken,
+    required this.bounds,
+  });
+
+  /// Resultado neutro, usado quando o grafo está vazio ou quando o
+  /// auto-layout falha antes de processar qualquer nó.
+  static const empty = SugiyamaRunResult(
+    nodesUpdated: 0,
+    nodesFailed: 0,
+    cyclesBroken: 0,
+    bounds: null,
+  );
 }
 
 /// ============================================================================
@@ -229,23 +317,21 @@ class _FenwickTree {
 ///
 /// Ponto de entrada público. Nunca lança exceções: qualquer falha em
 /// qualquer etapa (carregar dados, calcular o layout, persistir) é
-/// capturada e registrada via `debugPrint`, e a função simplesmente
-/// retorna sem alterar o que já estava salvo.
+/// capturada e registrada via `debugPrint`, e a função retorna
+/// `SugiyamaRunResult.empty` sem alterar o que já estava salvo.
 ///
 
-Future<Offset> sugiyama(
+Future<SugiyamaRunResult> sugiyama(
   String graphId,
   WidgetRef ref, {
   SugiyamaConfig config = const SugiyamaConfig(),
 }) async {
   try {
-    final succeded = await _runAndPersistSugiyama(
+    return await _runAndPersistSugiyama(
       graphId: graphId,
       ref: ref,
       config: _sanitizeConfig(config),
     );
-
-    return succeded;
   } catch (error, stackTrace) {
     // --------------------------------------------------------------------------
     // Última rede de segurança: um erro no auto-layout nunca deve travar a
@@ -257,7 +343,7 @@ Future<Offset> sugiyama(
     );
     debugPrint('$stackTrace');
 
-    return Offset(0, 0);
+    return SugiyamaRunResult.empty;
   }
 }
 
@@ -265,7 +351,7 @@ Future<Offset> sugiyama(
 ///
 /// Separado de `sugiyama()` só para que o try/catch externo cubra o
 /// pipeline inteiro (carregamento incluso) em um único lugar.
-Future<Offset> _runAndPersistSugiyama({
+Future<SugiyamaRunResult> _runAndPersistSugiyama({
   required String graphId,
   required WidgetRef ref,
   required SugiyamaConfig config,
@@ -278,7 +364,7 @@ Future<Offset> _runAndPersistSugiyama({
   final edges = await ref.read(edgesProvider(graphId).future);
 
   if (nodes.isEmpty) {
-    return Offset(0, 0);
+    return SugiyamaRunResult.empty;
   }
 
   // --------------------------------------------------------------------------
@@ -303,13 +389,10 @@ Future<Offset> _runAndPersistSugiyama({
   // Converte as arestas do banco para o modelo interno.
   // --------------------------------------------------------------------------
 
-  final inputEdges = <_InputEdge>[];
-
-  for (final edge in edges) {
-    inputEdges.add(
+  final inputEdges = <_InputEdge>[
+    for (final edge in edges)
       _InputEdge(source: edge.sourceNodeId, target: edge.targetNodeId),
-    );
-  }
+  ];
 
   // --------------------------------------------------------------------------
   // Executa o algoritmo puro.
@@ -327,12 +410,17 @@ Future<Offset> _runAndPersistSugiyama({
   //
   // Cada nó é salvo com seu próprio try/catch: se um nó falhar (ex.: erro
   // transitório de banco), os demais continuam sendo salvos normalmente.
+  // Também acumulamos o retângulo que envolve todas as posições, para
+  // devolver em `SugiyamaRunResult.bounds`.
   // --------------------------------------------------------------------------
 
   var succeeded = 0;
   var failed = 0;
 
-  Offset succeeded0 = Offset(0, 0);
+  double? minX;
+  double? minY;
+  double? maxX;
+  double? maxY;
 
   for (final node in nodes) {
     final position = result.positions[node.id];
@@ -340,16 +428,18 @@ Future<Offset> _runAndPersistSugiyama({
     if (position == null) {
       continue;
     }
+
+    minX = (minX == null) ? position.dx : math.min(minX, position.dx);
+    maxX = (maxX == null) ? position.dx : math.max(maxX, position.dx);
+    minY = (minY == null) ? position.dy : math.min(minY, position.dy);
+    maxY = (maxY == null) ? position.dy : math.max(maxY, position.dy);
+
     try {
       await graphNodeDao.updateGraphNode(
         id: node.id,
         positionX: position.dx,
         positionY: position.dy,
       );
-
-      if (succeeded == 0) {
-        succeeded0 = Offset(node.positionX, node.positionY);
-      }
 
       succeeded++;
 
@@ -374,10 +464,20 @@ Future<Offset> _runAndPersistSugiyama({
   debugPrint(
     'Sugiyama finalizado: '
     '${nodes.length} nós reais '
-    '($succeeded atualizados, $failed com falha).',
+    '($succeeded atualizados, $failed com falha, '
+    '${result.cyclesBrokenCount} ciclo(s) quebrado(s)).',
   );
 
-  return succeeded0;
+  final bounds = (minX != null && minY != null && maxX != null && maxY != null)
+      ? Rect.fromLTRB(minX, minY, maxX, maxY)
+      : null;
+
+  return SugiyamaRunResult(
+    nodesUpdated: succeeded,
+    nodesFailed: failed,
+    cyclesBroken: result.cyclesBrokenCount,
+    bounds: bounds,
+  );
 }
 
 /// ============================================================================
@@ -416,6 +516,7 @@ SugiyamaConfig _sanitizeConfig(SugiyamaConfig config) {
     coordinateIterations: safeIterations(config.coordinateIterations),
     preservePreviousOrder: config.preservePreviousOrder,
     compact: config.compact,
+    mode: config.mode,
   );
 }
 
@@ -468,7 +569,7 @@ _SugiyamaResult _runSugiyama({
   );
 
   // ==========================================================================
-  // 6. Coordenadas
+  // 6. Coordenadas (respeita `config.mode`: balanced ou centered)
   // ==========================================================================
 
   final positions = _assignCoordinates(
@@ -477,7 +578,11 @@ _SugiyamaResult _runSugiyama({
     config: config,
   );
 
-  return _SugiyamaResult(positions: positions, layers: expanded.layers);
+  return _SugiyamaResult(
+    positions: positions,
+    layers: expanded.layers,
+    cyclesBrokenCount: graph.cyclesBrokenCount,
+  );
 }
 
 /// ============================================================================
@@ -585,6 +690,7 @@ _GraphModel _buildGraph({
     parents: parents,
     children: children,
     indegree: indegree,
+    cyclesBrokenCount: cycleResult.removedEdges.length,
   );
 }
 
@@ -1379,13 +1485,15 @@ int _localCrossingsForNodeLayer({
 ///
 ///     x = índice * spacing
 ///
-/// Depois:
+/// Depois, a cada iteração (alternando passagem para frente/trás):
 ///
-///     x -> média das posições dos vizinhos
+///     x -> `_computeDesiredX` dos vizinhos (média, no modo `balanced`;
+///          ponto médio entre extremos, no modo `centered`)
 ///
 /// Finalmente:
 ///
-///     projeção sobre as restrições de distância mínima.
+///     projeção sobre as restrições de distância mínima, e (opcional)
+///     compactação.
 ///
 
 Map<String, Offset> _assignCoordinates({
@@ -1432,12 +1540,14 @@ Map<String, Offset> _assignCoordinates({
         graph: graph,
         nodesByLayer: nodesByLayer,
         positions: positions,
+        mode: config.mode,
       );
     } else {
       _coordinateBackwardPass(
         graph: graph,
         nodesByLayer: nodesByLayer,
         positions: positions,
+        mode: config.mode,
       );
     }
 
@@ -1458,6 +1568,7 @@ Map<String, Offset> _assignCoordinates({
       nodesByLayer: nodesByLayer,
       positions: positions,
       minimumGap: config.minimumHorizontalGap,
+      mode: config.mode,
     );
   }
 
@@ -1473,11 +1584,15 @@ Map<String, Offset> _assignCoordinates({
 /// ============================================================================
 /// PASSAGEM PARA FRENTE
 /// ============================================================================
+///
+/// Aproxima cada nó dos seus pais (já posicionados nas camadas
+/// anteriores, processadas antes na mesma varredura).
 
 void _coordinateForwardPass({
   required _GraphModel graph,
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
+  required SugiyamaLayoutMode mode,
 }) {
   final maxLayer = _maxLayer(nodesByLayer);
 
@@ -1491,7 +1606,11 @@ void _coordinateForwardPass({
     for (final nodeId in current) {
       final neighbors = graph.parents[nodeId] ?? const [];
 
-      final desired = _desiredX(neighbors: neighbors, positions: positions);
+      final desired = _computeDesiredX(
+        neighbors: neighbors,
+        positions: positions,
+        mode: mode,
+      );
 
       if (desired == null) {
         continue;
@@ -1507,11 +1626,15 @@ void _coordinateForwardPass({
 /// ============================================================================
 /// PASSAGEM PARA TRÁS
 /// ============================================================================
+///
+/// Aproxima cada nó dos seus filhos (já posicionados nas camadas
+/// seguintes, processadas antes nesta varredura de baixo para cima).
 
 void _coordinateBackwardPass({
   required _GraphModel graph,
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
+  required SugiyamaLayoutMode mode,
 }) {
   final maxLayer = _maxLayer(nodesByLayer);
 
@@ -1525,7 +1648,11 @@ void _coordinateBackwardPass({
     for (final nodeId in current) {
       final neighbors = graph.children[nodeId] ?? const [];
 
-      final desired = _desiredX(neighbors: neighbors, positions: positions);
+      final desired = _computeDesiredX(
+        neighbors: neighbors,
+        positions: positions,
+        mode: mode,
+      );
 
       if (desired == null) {
         continue;
@@ -1541,13 +1668,27 @@ void _coordinateBackwardPass({
 /// ============================================================================
 /// X DESEJADO
 /// ============================================================================
+///
+/// Calcula a posição X que um nó "gostaria" de ter, dada a posição atual
+/// de um conjunto de vizinhos (pais, na passagem para frente; filhos, na
+/// passagem para trás; pais + filhos, na compactação).
+///
+///   - `SugiyamaLayoutMode.balanced`: média de todos os vizinhos.
+///   - `SugiyamaLayoutMode.centered`: ponto médio entre o vizinho mais à
+///     esquerda e o mais à direita — centraliza o nó exatamente sobre o
+///     intervalo ocupado pelos vizinhos, como numa árvore genealógica.
+///
 
-double? _desiredX({
+double? _computeDesiredX({
   required List<String> neighbors,
   required Map<String, Offset> positions,
+  required SugiyamaLayoutMode mode,
 }) {
   var sum = 0.0;
   var count = 0;
+
+  double? minX;
+  double? maxX;
 
   for (final neighbor in neighbors) {
     final position = positions[neighbor];
@@ -1558,10 +1699,17 @@ double? _desiredX({
 
     sum += position.dx;
     count++;
+
+    minX = (minX == null) ? position.dx : math.min(minX, position.dx);
+    maxX = (maxX == null) ? position.dx : math.max(maxX, position.dx);
   }
 
   if (count == 0) {
     return null;
+  }
+
+  if (mode == SugiyamaLayoutMode.centered && minX != null && maxX != null) {
+    return (minX + maxX) / 2;
   }
 
   return sum / count;
@@ -1647,7 +1795,9 @@ void _projectLayerPositions({
 /// Remove espaço horizontal desnecessário sem destruir a ordem.
 ///
 /// O algoritmo encontra o menor deslocamento global possível para cada
-/// camada enquanto respeita as restrições dos vizinhos.
+/// camada enquanto respeita as restrições dos vizinhos (usando a mesma
+/// lógica de `_computeDesiredX`, para ficar consistente com o modo
+/// escolhido).
 ///
 
 void _compactGraph({
@@ -1655,6 +1805,7 @@ void _compactGraph({
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
   required double minimumGap,
+  required SugiyamaLayoutMode mode,
 }) {
   final maxLayer = _maxLayer(nodesByLayer);
 
@@ -1684,26 +1835,15 @@ void _compactGraph({
         continue;
       }
 
-      var neighborSum = 0.0;
-      var neighborCount = 0;
+      final desiredX = _computeDesiredX(
+        neighbors: neighbors,
+        positions: positions,
+        mode: mode,
+      );
 
-      for (final neighbor in neighbors) {
-        final neighborPosition = positions[neighbor];
-
-        if (neighborPosition == null) {
-          continue;
-        }
-
-        neighborSum += neighborPosition.dx;
-
-        neighborCount++;
-      }
-
-      if (neighborCount == 0) {
+      if (desiredX == null) {
         continue;
       }
-
-      final desiredX = neighborSum / neighborCount;
 
       totalDesiredShift += desiredX - nodePosition.dx;
 

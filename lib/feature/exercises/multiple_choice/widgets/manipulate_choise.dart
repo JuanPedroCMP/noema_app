@@ -141,6 +141,8 @@ class _Choise extends ConsumerState<ManipulateChoise> {
         weight: weight,
       );
     }
+
+    widget.onSave();
   }
 
   late TextEditingController statementController;

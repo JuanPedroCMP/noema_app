@@ -27,7 +27,8 @@ class ColorThemeSection extends ConsumerWidget {
               spacing: 15,
               children: [
                 Expanded(
-                  child: ColorPicker(         
+                  child: ColorPicker(
+                    
                     color: Color(form.color),
                     onColorChanged: (Color color) =>
                         formNotifier.colorChanged(color.toARGB32().toString()),
@@ -54,20 +55,6 @@ class ColorThemeSection extends ConsumerWidget {
                     ref.read(colorProvider.notifier).change(color: form.color),
                   },
                   child: Text("mudar cor"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (brightnessThemeProvider == Brightness.light) {
-                      ref
-                          .read(brightnessProvider.notifier)
-                          .change(brightness: Brightness.dark);
-                    } else {
-                      ref
-                          .read(brightnessProvider.notifier)
-                          .change(brightness: Brightness.light);
-                    }
-                  },
-                  child: Text("Alternar tema"),
                 ),
               ],
             ),

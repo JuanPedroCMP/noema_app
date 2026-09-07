@@ -13,9 +13,13 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorApp = ref.watch(colorProvider);
+    final colorAsync = ref.watch(colorProvider);
     final brightnessApp = ref.watch(brightnessProvider);
 
+    final colorApp = colorAsync.maybeWhen(
+      data: (color) => color,
+      orElse: () => 0x22FF,
+    );
     final width = MediaQuery.sizeOf(context).width;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

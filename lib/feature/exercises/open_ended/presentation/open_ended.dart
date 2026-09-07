@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/database/database.dart' show OpenEndedData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
+import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
 import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_provider.dart';
 
 enum OpenEndedType { ESSAY, FEYNMAN }
@@ -18,6 +22,7 @@ class OpenEnded extends ConsumerStatefulWidget {
     required this.nodeId,
     this.openEndedId,
     this.onSendAnswer,
+    this.onSave,
     required this.defaultMode,
   });
 
@@ -25,6 +30,7 @@ class OpenEnded extends ConsumerStatefulWidget {
   final int defaultMode;
   final String? openEndedId;
   final Function? onSendAnswer;
+  final Function? onSave;
 
   @override
   ConsumerState<OpenEnded> createState() => _OpenEnded();
@@ -141,7 +147,17 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     print(questions.toString());
   }
 
-  void sendAnswer() {}
+  void sendAnswer() async {
+    final db = ref.watch(appDatabaseProvider);
+    final responseLogDao = OpenEndedResponseLogDao(db); 
+    final openEndedDao = OpenEndedDao(db);
+
+    final OpenEndedData? question = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
+    final questionSnapshot =  jsonEncode(question!.toJson());
+ // TODO Fazer sistema de fila de avaliação de questões, esperando para serem avaliadas por ia ou pelo user (default = ai, alteralvel nas preferências)
+    responseLogDao.insertOpenEndedResponseLog(openEndedId: widget.openEndedId!, questionSnapshot: questionSnapshot,userAnswer: userAnswer);
+
+  }
 
   void titleChanged(String value) {
     setState(() {

@@ -13,11 +13,17 @@ class Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(sectionTitle, style: context.textTheme.titleLarge),
         Card.outlined(
           child: Padding(
             padding: EdgeInsetsGeometry.all(context.spacing.lg),
-            child: section,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: context.spacing.lg,
+              children: [
+                Text(sectionTitle, style: context.textTheme.titleLarge),
+                section,
+              ],
+            ),
           ),
         ),
       ],

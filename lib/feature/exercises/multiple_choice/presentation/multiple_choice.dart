@@ -4,6 +4,7 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
+import 'package:noema/feature/exercises/multiple_choice/provider/choices_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/provider/open_ended_mode_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/choise.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_choise.dart';
