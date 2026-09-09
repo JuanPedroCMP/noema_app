@@ -8,8 +8,8 @@ import 'package:noema/feature/config/providers/color_form_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
-class ColorThemeSection extends ConsumerWidget {
-  const ColorThemeSection({super.key});
+class ColorSelector extends ConsumerWidget {
+  const ColorSelector({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,8 +27,7 @@ class ColorThemeSection extends ConsumerWidget {
               spacing: 15,
               children: [
                 Expanded(
-                  child: ColorPicker(
-                    
+                  child: ColorPicker(         
                     color: Color(form.color),
                     onColorChanged: (Color color) =>
                         formNotifier.colorChanged(color.toARGB32().toString()),
@@ -50,11 +49,20 @@ class ColorThemeSection extends ConsumerWidget {
                   ),
                 ),
 
+               
                 ElevatedButton(
-                  onPressed: () => {
-                    ref.read(colorProvider.notifier).change(color: form.color),
+                  onPressed: () async {
+                    if (brightnessThemeProvider == Brightness.light) {
+                      ref
+                          .read(brightnessProvider.notifier)
+                          .change(brightness: Brightness.dark);
+                    } else {
+                      ref
+                          .read(brightnessProvider.notifier)
+                          .change(brightness: Brightness.light);
+                    }
                   },
-                  child: Text("mudar cor"),
+                  child: Text("Alternar tema"),
                 ),
               ],
             ),

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
+import 'package:noema/core/design/theme/typography_theme_dao.dart';
+import 'package:noema/core/device_fingerprint.dart';
+import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 
 class SwitchColor extends AsyncNotifier<int> {
@@ -10,22 +13,55 @@ class SwitchColor extends AsyncNotifier<int> {
     final user = await ref.read(userProvider.notifier).getUser();
     final db = ref.read(appDatabaseProvider);
     final colorThemeDao = ColorThemeDao(db);
+    final typographyThemeDao = TypographyThemeDao(db);
+    final configDao = ConfigDao(db);
+    final fingerprint = await DeviceFingerprint.get();
 
-    final theme = await (db.select(
-      db.colorTheme,
-    )..where((theme) => theme.userId.equals(user.id))).getSingleOrNull();
+    final config = await configDao.getConfigByUser(userId: user.id);
 
-    if (theme == null) {
-      colorThemeDao.insertColorTheme(
+    if (config == null) {
+      final colorThemeId = await colorThemeDao.insertColorTheme(
         userId: user.id,
         name: "Default",
         seedColor: 0x0000FF,
       );
-      //TODO Caso não exista adicionar novo
+
+      final typographThemeId = await typographyThemeDao.insertTypographyTheme(
+        userId: user.id,
+        name: "Default",
+        fontScale: 1,
+      );
+
+      final configId = await configDao.insertConfig(
+        userId: user.id,
+        colorThemeId: colorThemeId.toString(),
+        typographyThemeId: typographThemeId.toString(),
+        preferences: "{}",
+        deviceFingerprint: fingerprint,
+      );
+
+      final theme =
+          await (db.select(
+                db.colorTheme,
+              )..where((theme) => theme.id.equals(typographThemeId.toString())))
+              .getSingleOrNull();
+
+      if (theme == null) {
+        return 0x22FF;
+      }
+
+      return theme.seedColor;
+    }
+
+    final theme = await (db.select(
+      db.colorTheme,
+    )..where((theme) => theme.id.equals(config.colorThemeId))).getSingleOrNull();
+
+    if (theme == null) {
       //TODO Dps fazer verificação se tem config específica para esse device
     }
 
-    return theme?.seedColor ?? 0x22FF;
+    return theme!.seedColor;
   }
 
   void change({required int color}) async {

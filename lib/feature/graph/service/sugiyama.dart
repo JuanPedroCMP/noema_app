@@ -36,6 +36,11 @@ import 'package:noema/feature/graph/provider/graph_provider.dart';
 //     dos vizinhos; `SugiyamaLayoutMode.centered` centraliza cada nó
 //     exatamente entre o vizinho mais à esquerda e o mais à direita,
 //     dando um visual de organograma/árvore genealógica.
+//   - `_projectLayerPositions` usa regressão isotônica (PAVA) em vez de
+//     só empurrar nós para a direita. Isso é o que garante que irmãos
+//     com a mesma posição desejada (ex.: filhos de um mesmo pai) fiquem
+//     distribuídos simetricamente ao redor dela, e não "grudados" à
+//     esquerda — ao custo de usar um pouco mais de espaço quando preciso.
 
 /// ============================================================================
 /// CONFIGURAÇÃO
@@ -102,7 +107,7 @@ class SugiyamaConfig {
     this.coordinateIterations = 6,
     this.preservePreviousOrder = true,
     this.compact = true,
-    this.mode = SugiyamaLayoutMode.centered,
+    this.mode = SugiyamaLayoutMode.balanced,
   });
 }
 
@@ -128,7 +133,11 @@ class _LayoutNode {
   /// null para dummy nodes.
   final String? realNodeId;
 
-  const _LayoutNode({required this.id, required this.isDummy, this.realNodeId});
+  const _LayoutNode({
+    required this.id,
+    required this.isDummy,
+    this.realNodeId,
+  });
 }
 
 class _LayoutEdge {
@@ -468,7 +477,8 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
     '${result.cyclesBrokenCount} ciclo(s) quebrado(s)).',
   );
 
-  final bounds = (minX != null && minY != null && maxX != null && maxY != null)
+  final bounds =
+      (minX != null && minY != null && maxX != null && maxY != null)
       ? Rect.fromLTRB(minX, minY, maxX, maxY)
       : null;
 
@@ -1080,7 +1090,11 @@ _LayerOrderResult _minimizeCrossings({
 
   var bestCrossings = currentCrossings;
 
-  for (var iteration = 0; iteration < config.crossingIterations; iteration++) {
+  for (
+    var iteration = 0;
+    iteration < config.crossingIterations;
+    iteration++
+  ) {
     // ========================================================================
     // Downward sweep
     // ========================================================================
@@ -1723,7 +1737,19 @@ double? _computeDesiredX({
 ///
 ///     x[i + 1] >= x[i] + minimumGap
 ///
-/// sem alterar a ordem da camada.
+/// sem alterar a ordem da camada — e o faz da forma matematicamente ótima:
+/// minimizando a soma dos deslocamentos ao quadrado em relação às posições
+/// desejadas (as posições que `_computeDesiredX` acabou de calcular).
+///
+/// Isso importa especialmente no modo `centered`: quando vários irmãos têm
+/// o mesmo pai, todos calculam a mesma posição desejada (a do próprio
+/// pai). Uma projeção ingênua que só empurra para a direita a partir do
+/// nó mais à esquerda deixaria os irmãos "grudados" à esquerda do pai, em
+/// vez de centralizados embaixo dele. A projeção abaixo (regressão
+/// isotônica via PAVA — Pool Adjacent Violators Algorithm) resolve esse
+/// tipo de empate distribuindo os nós SIMETRICAMENTE ao redor da posição
+/// desejada compartilhada, ao custo de ocupar um pouco mais de espaço
+/// quando necessário.
 ///
 
 void _projectLayerPositions({
@@ -1736,56 +1762,104 @@ void _projectLayerPositions({
       continue;
     }
 
-    // ------------------------------------------------------------------------
-    // Forward projection
-    // ------------------------------------------------------------------------
+    final desired = <double>[
+      for (final nodeId in nodes) positions[nodeId]!.dx,
+    ];
 
-    for (var i = 1; i < nodes.length; i++) {
-      final previous = positions[nodes[i - 1]]!;
+    final projected = _isotonicProject(desired, minimumGap);
 
-      final current = positions[nodes[i]]!;
+    for (var i = 0; i < nodes.length; i++) {
+      final nodeId = nodes[i];
+      final current = positions[nodeId]!;
 
-      final minimumX = previous.dx + minimumGap;
-
-      if (current.dx < minimumX) {
-        positions[nodes[i]] = Offset(minimumX, current.dy);
-      }
-    }
-
-    // ------------------------------------------------------------------------
-    // Backward projection.
-    //
-    // Isso diminui deslocamentos acumulados.
-    // ------------------------------------------------------------------------
-
-    for (var i = nodes.length - 2; i >= 0; i--) {
-      final current = positions[nodes[i]]!;
-
-      final next = positions[nodes[i + 1]]!;
-
-      final maximumX = next.dx - minimumGap;
-
-      if (current.dx > maximumX) {
-        positions[nodes[i]] = Offset(maximumX, current.dy);
-      }
-    }
-
-    // ------------------------------------------------------------------------
-    // Uma segunda projeção forward garante novamente a restrição.
-    // ------------------------------------------------------------------------
-
-    for (var i = 1; i < nodes.length; i++) {
-      final previous = positions[nodes[i - 1]]!;
-
-      final current = positions[nodes[i]]!;
-
-      final minimumX = previous.dx + minimumGap;
-
-      if (current.dx < minimumX) {
-        positions[nodes[i]] = Offset(minimumX, current.dy);
-      }
+      positions[nodeId] = Offset(projected[i], current.dy);
     }
   }
+}
+
+/// ============================================================================
+/// REGRESSÃO ISOTÔNICA (PAVA)
+/// ============================================================================
+///
+/// Dada uma lista de posições desejadas, na ordem em que os nós aparecem
+/// na camada, devolve a lista de posições finais que:
+///
+///   1. respeita a ordem: `x[i + 1] >= x[i] + minimumGap`;
+///   2. entre todas as listas que respeitam (1), é a que minimiza a soma
+///      dos quadrados dos deslocamentos em relação às posições desejadas.
+///
+/// Ideia: substituindo `y[i] = desired[i] - i * minimumGap`, a restrição
+/// vira simplesmente `y[i + 1] >= y[i]` — uma regressão isotônica comum,
+/// resolvida em O(n) com o algoritmo clássico "Pool Adjacent Violators":
+/// percorremos os pontos da esquerda para a direita mantendo uma pilha de
+/// blocos; sempre que um bloco novo violaria a ordem em relação ao
+/// anterior, fundimos os dois na média ponderada, repetindo até a pilha
+/// voltar a ficar em ordem. No fim, cada ponto recebe a média do seu
+/// bloco — por isso o resultado é sempre simétrico quando várias posições
+/// desejadas coincidem (ex.: vários irmãos querendo a posição do pai),
+/// em vez de tendencioso para um lado.
+///
+/// Sempre termina (o laço interno só reduz o tamanho da pilha, nunca
+/// aumenta o trabalho total), então não há risco de loop sem fim.
+///
+
+List<double> _isotonicProject(
+  List<double> desired,
+  double minimumGap,
+) {
+  final n = desired.length;
+
+  if (n == 0) {
+    return const [];
+  }
+
+  if (n == 1) {
+    return [desired[0]];
+  }
+
+  final y = <double>[
+    for (var i = 0; i < n; i++) desired[i] - i * minimumGap,
+  ];
+
+  // Pilha de blocos: para cada bloco guardamos a soma dos valores, o
+  // peso (quantidade de pontos) e o tamanho (quantos índices ele cobre).
+  final blockSum = <double>[];
+  final blockWeight = <int>[];
+  final blockSize = <int>[];
+
+  for (var i = 0; i < n; i++) {
+    blockSum.add(y[i]);
+    blockWeight.add(1);
+    blockSize.add(1);
+
+    while (blockSum.length > 1 &&
+        (blockSum[blockSum.length - 1] / blockWeight[blockWeight.length - 1]) <
+            (blockSum[blockSum.length - 2] /
+                blockWeight[blockWeight.length - 2])) {
+      final lastSum = blockSum.removeLast();
+      final lastWeight = blockWeight.removeLast();
+      final lastSize = blockSize.removeLast();
+
+      blockSum[blockSum.length - 1] += lastSum;
+      blockWeight[blockWeight.length - 1] += lastWeight;
+      blockSize[blockSize.length - 1] += lastSize;
+    }
+  }
+
+  final result = List<double>.filled(n, 0);
+  var index = 0;
+
+  for (var block = 0; block < blockSum.length; block++) {
+    final average = blockSum[block] / blockWeight[block];
+    final size = blockSize[block];
+
+    for (var k = 0; k < size; k++) {
+      result[index] = average + index * minimumGap;
+      index++;
+    }
+  }
+
+  return result;
 }
 
 /// ============================================================================
