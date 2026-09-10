@@ -32,7 +32,7 @@ class SwitchColor extends AsyncNotifier<int> {
         fontScale: 1,
       );
 
-      final configId = await configDao.insertConfig(
+      configDao.insertConfig(
         userId: user.id,
         colorThemeId: colorThemeId.toString(),
         typographyThemeId: typographThemeId.toString(),
@@ -53,9 +53,10 @@ class SwitchColor extends AsyncNotifier<int> {
       return theme.seedColor;
     }
 
-    final theme = await (db.select(
-      db.colorTheme,
-    )..where((theme) => theme.id.equals(config.colorThemeId))).getSingleOrNull();
+    final theme =
+        await (db.select(db.colorTheme)
+              ..where((theme) => theme.id.equals(config.colorThemeId)))
+            .getSingleOrNull();
 
     if (theme == null) {
       //TODO Dps fazer verificação se tem config específica para esse device
@@ -68,14 +69,30 @@ class SwitchColor extends AsyncNotifier<int> {
     final user = await ref.read(userProvider.notifier).getUser();
     final db = ref.read(appDatabaseProvider);
     final colorThemeDao = ColorThemeDao(db);
+    final configDao = ConfigDao(db);
 
-    final theme = await (db.select(
-      db.colorTheme,
-    )..where((theme) => theme.userId.equals(user.id))).getSingleOrNull();
+    final config = await configDao.getConfigByUser(userId: user.id);
+
+    final theme =
+        await (db.select(db.colorTheme)
+              ..where((theme) => theme.id.equals(config?.colorThemeId ?? "")))
+            .getSingleOrNull();
 
     colorThemeDao.updateColorTheme(id: theme!.id, seedColor: color);
 
     state = AsyncData(color);
+  }
+
+  void newTheme({required String name}) async {
+    final user = await ref.read(userProvider.notifier).getUser();
+    final db = ref.read(appDatabaseProvider);
+    final colorThemeDao = ColorThemeDao(db);
+
+    colorThemeDao.insertColorTheme(
+      userId: user.id,
+      name: name,
+      seedColor: state.value ?? 0x22FF,
+    );
   }
 }
 

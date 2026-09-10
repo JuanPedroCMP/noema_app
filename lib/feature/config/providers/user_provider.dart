@@ -10,13 +10,7 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
 
   @override
   Future<AppUserData> build() async {
-    final response = await ref
-        .read(userApiProvider)
-        .currentUserApiV1UserGetGet();
-
-    UserOut? remoteUser = response.data;
-
-    AppUserData? user = await AppUserDao(db).getUser(remoteId: remoteUser!.id);
+    AppUserData? user = await AppUserDao(db).getActiveUser();
 
     return user!;
   }
@@ -57,18 +51,12 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
 
     return user;
   }
-Future<AppUserData> getUser() async{
-   final response = await ref
-        .read(userApiProvider)
-        .currentUserApiV1UserGetGet();
-    UserOut? remoteUser = response.data;
 
-    final user =  await AppUserDao(db).getUser(remoteId: remoteUser!.id);
-
+  Future<AppUserData> getUser() async {
+    final user = await AppUserDao(db).getActiveUser();
     return user!;
+  }
 }
-}
-
 
 String? clean(String? value) {
   final trimmed = value?.trim();
