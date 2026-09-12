@@ -65,6 +65,12 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase> with _$Typography
         .getSingleOrNull();
   }
 
+  Future<TypographyThemeData?> getTypographyThemeByName({required String name}) {
+    return (select(attachedDatabase.typographyTheme)..where((tbl) => tbl.name.equals(name)))
+        .getSingleOrNull();
+  }
+
+
   Future<List<TypographyThemeData>> getTypographyThemesByUser({required String userId}) {
     return (select(attachedDatabase.typographyTheme)
           ..where((tbl) => tbl.userId.equals(userId)))

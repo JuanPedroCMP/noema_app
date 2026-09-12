@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/providers/section_navigator_provider.dart';
 import 'package:noema/shared/chrome_navigation_tile/chrome_navigation_tile.dart';
@@ -16,8 +17,18 @@ class PageChrome {
   });
 }
 
-PageChrome chromeForPath(String path, BuildContext context , WidgetRef ref) {
+PageChrome chromeForPath(String path, BuildContext context, WidgetRef ref) {
   final configProvider = ref.watch(sectionNavigatorProvider.notifier);
+
+  ref.listen(serverConnectionChecker, (_, next) {
+    next.whenData((isConnected) {
+      if (isConnected) {
+        debugPrint('Servidor disponível');
+      } else {
+        debugPrint('Servidor indisponível');
+      }
+    });
+  });
 
   if (path.startsWith('/notes')) {
     return PageChrome(
@@ -37,21 +48,18 @@ PageChrome chromeForPath(String path, BuildContext context , WidgetRef ref) {
             configProvider.changeCurrentSection(ConfigSections.profile);
           },
           title: Text("Profile"),
-       
         ),
-         ChromeNavigationTile(
+        ChromeNavigationTile(
           onTap: () {
             configProvider.changeCurrentSection(ConfigSections.preferences);
           },
           title: Text("Preferences"),
-
         ),
-         ChromeNavigationTile(
+        ChromeNavigationTile(
           onTap: () {
             configProvider.changeCurrentSection(ConfigSections.colorTheme);
           },
           title: Text("Color Theme"),
-         
         ),
       ],
     );

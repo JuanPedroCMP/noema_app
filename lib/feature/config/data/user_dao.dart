@@ -23,7 +23,7 @@ class AppUserDao extends DatabaseAccessor<AppDatabase> with _$AppUserDaoMixin {
         displayName: displayName!,
         primaryEmail: primaryEmail,
         lastSeenAt: DateTime.now().millisecondsSinceEpoch,
-        isActive: Value(isActive!),
+        isActive: Value(isActive ?? true),
       ),
     );
   }
@@ -53,15 +53,28 @@ class AppUserDao extends DatabaseAccessor<AppDatabase> with _$AppUserDaoMixin {
     );
   }
 
-  Future<AppUserData?> getActiveUser() {
-  return (select(attachedDatabase.appUser)
-        ..where((user) => user.isActive.equals(true)))
-      .getSingleOrNull();
-}
+  Future<AppUserData?> getUserById({required String id}) {
+    return (select(
+      attachedDatabase.appUser,
+    )..where((user) => user.id.equals(id))).getSingleOrNull();
+  }
 
-  Future<AppUserData?> getRemoteUser({
-  required String remoteId
-  }) {
-    return (select(attachedDatabase.appUser)..where((user) => user.remoteId.equals(remoteId))).getSingleOrNull();
+   Future<AppUserData?> getUserByRemoteId({required String id}) {
+    return (select(
+      attachedDatabase.appUser,
+    )..where((user) => user.remoteId.equals(id))).getSingleOrNull();
+  }
+
+
+  Future<AppUserData?> getActiveUser() {
+    return (select(
+      attachedDatabase.appUser,
+    )..where((user) => user.isActive.equals(true))).getSingleOrNull();
+  }
+
+  Future<AppUserData?> getRemoteUser({required String remoteId}) {
+    return (select(
+      attachedDatabase.appUser,
+    )..where((user) => user.remoteId.equals(remoteId))).getSingleOrNull();
   }
 }

@@ -2,6 +2,7 @@ import 'package:built_value/json_object.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/core/network/decode_jwt.dart';
 import 'package:openapi/openapi.dart';
 
 final secureSorageProvider = Provider<FlutterSecureStorage>((ref) {
@@ -27,16 +28,15 @@ class LoginService {
     print(token);
 
     if (token.isEmpty) {
-         print("vaxio");
+      print("vazio");
       throw StateError("Token não veio");
     }
 
+    final remoteId = decodeJwt(token);
     await storage.write(key: "access_token", value: token);
-
+    await storage.write(key: "access_token_remote_onwer_id", value: remoteId);
 
     ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
-
-    
 
     return token;
   }

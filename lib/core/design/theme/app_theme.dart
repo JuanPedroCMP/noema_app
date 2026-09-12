@@ -4,8 +4,6 @@ import "package:noema/core/design/tokens/elevation.dart";
 import "package:noema/core/design/tokens/icon_size.dart";
 import "package:noema/core/design/tokens/radius.dart";
 import "package:noema/core/design/tokens/spacing.dart";
-import 'package:noema/core/design/theme/theme_tokens.dart';
-import "package:path/path.dart";
 
 class AppTheme {
   const AppTheme._();

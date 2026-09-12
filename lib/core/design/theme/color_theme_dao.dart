@@ -53,6 +53,11 @@ class ColorThemeDao extends DatabaseAccessor<AppDatabase> with _$ColorThemeDaoMi
         .getSingleOrNull();
   }
 
+  Future<ColorThemeData?> getColorThemeByName({required String name}) {
+    return (select(attachedDatabase.colorTheme)..where((tbl) => tbl.name.equals(name)))
+        .getSingleOrNull();
+  }
+
   Future<List<ColorThemeData>> getColorThemesByUser({required String userId}) {
     return (select(attachedDatabase.colorTheme)
           ..where((tbl) => tbl.userId.equals(userId)))

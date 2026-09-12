@@ -14,3 +14,4 @@ final userApiProvider = Provider((ref){
 final authApiProvider = Provider((ref) {
   return ref.watch(apiClientProvider).getAuthenticationApi();
 });
+
