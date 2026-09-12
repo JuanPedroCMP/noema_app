@@ -1,4 +1,3 @@
-import 'package:built_value/json_object.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:noema/core/network/api_client.dart';
@@ -22,19 +21,18 @@ class LoginService {
       password: password,
     );
 
-    final data = response.data?.asMap;
-    print(data);
-    final token = data?["access_token"] as String;
-    print(token);
+    final token = response.data?.asMap['access_token'];
 
-    if (token.isEmpty) {
-      print("vazio");
-      throw StateError("Token não veio");
+    if (token is! String || token.isEmpty) {
+      throw StateError('Token não veio na resposta da API');
     }
 
     final remoteId = decodeJwt(token);
     await storage.write(key: "access_token", value: token);
-    await storage.write(key: "access_token_remote_onwer_id", value: remoteId);
+    await storage.write(
+      key: 'access_token_remote_owner_id',
+      value: remoteId,
+    );
 
     ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
 

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart'
     show ColorThemeData, TypographyThemeData;
@@ -22,10 +21,12 @@ final authStateProvider = FutureProvider<bool>((ref) async {
   final colorThemeDao = ColorThemeDao(db);
   final typographyThemeDao = TypographyThemeDao(db);
   final fingerprint = await DeviceFingerprint.get();
-  final connectionAsync = ref.watch(serverConnectionChecker);
+  final connectionState = ref.read(serverConnectionChecker);
 
   final token = await storage.read(key: 'access_token');
-  final tokenOnwerId = await storage.read(key: 'access_token_remote_onwer_id');
+  final tokenOwnerId =
+      await storage.read(key: 'access_token_remote_owner_id') ??
+      await storage.read(key: 'access_token_remote_onwer_id');
 
   if (token == null || token.isEmpty) {
     return false;
@@ -33,9 +34,15 @@ final authStateProvider = FutureProvider<bool>((ref) async {
 
   apiClient.setOAuthToken('OAuth2PasswordBearer', token);
 
-  final localUser = await userDao.getUserByRemoteId(id: tokenOnwerId ?? "");
+  if (tokenOwnerId == null || tokenOwnerId.isEmpty) {
+    return false;
+  }
 
-  final isConnected = connectionAsync.value ?? true;
+  await storage.write(key: 'access_token_remote_owner_id', value: tokenOwnerId);
+
+  final localUser = await userDao.getUserByRemoteId(id: tokenOwnerId);
+
+  final isConnected = connectionState.value ?? false;
 
   if (localUser != null) {
     if (isConnected) {
@@ -105,22 +112,34 @@ final authStateProvider = FutureProvider<bool>((ref) async {
       if (isConnected) {
         debugPrint("6");
 
-        final configApi = ref.watch(apiClientProvider).getUserGlobalConfigApi();
+        try {
+          final configApi = ref
+              .read(apiClientProvider)
+              .getUserGlobalConfigApi();
+          final configResponse = await configApi
+              .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
+                identificator: localUser.remoteId,
+              )
+              .timeout(const Duration(seconds: 5));
 
-        final configResponse = await configApi
-            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-              identificator: localUser.remoteId,
-            );
-
-        final configResponseData = configResponse.data;
-
-        await configDao.insertConfig(
-          userId: localUser.id,
-          colorThemeId: idColorTheme,
-          typographyThemeId: typographThemeId,
-          preferences: configResponseData?.preferences.toString() ?? "{}",
-          deviceFingerprint: fingerprint,
-        );
+          await configDao.insertConfig(
+            userId: localUser.id,
+            colorThemeId: idColorTheme,
+            typographyThemeId: typographThemeId,
+            preferences: configResponse.data?.preferences.toString() ?? "{}",
+            deviceFingerprint: fingerprint,
+          );
+        } catch (error, stackTrace) {
+          debugPrint('Falha ao sincronizar configuração: $error');
+          debugPrintStack(stackTrace: stackTrace);
+          await configDao.insertConfig(
+            userId: localUser.id,
+            colorThemeId: idColorTheme,
+            typographyThemeId: typographThemeId,
+            preferences: "{}",
+            deviceFingerprint: fingerprint,
+          );
+        }
         debugPrint("7");
       } else {
         debugPrint("8");
@@ -137,21 +156,26 @@ final authStateProvider = FutureProvider<bool>((ref) async {
       if (isConnected) {
         debugPrint("6");
 
-        final configApi = ref.watch(apiClientProvider).getUserGlobalConfigApi();
+        try {
+          final configApi = ref
+              .read(apiClientProvider)
+              .getUserGlobalConfigApi();
+          final configResponse = await configApi
+              .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
+                identificator: localUser.remoteId,
+              )
+              .timeout(const Duration(seconds: 5));
 
-        final configResponse = await configApi
-            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-              identificator: localUser.remoteId,
-            );
-
-        final configResponseData = configResponse.data;
-
-        await configDao.updateConfig(
-          id: config.id,
-          userId: localUser.id,
-          preferences: configResponseData?.preferences.toString() ?? "{}",
-          deviceFingerprint: fingerprint,
-        );
+          await configDao.updateConfig(
+            id: config.id,
+            userId: localUser.id,
+            preferences: configResponse.data?.preferences.toString() ?? "{}",
+            deviceFingerprint: fingerprint,
+          );
+        } catch (error, stackTrace) {
+          debugPrint('Falha ao atualizar configuração: $error');
+          debugPrintStack(stackTrace: stackTrace);
+        }
         debugPrint("7");
       }
     }
@@ -159,48 +183,36 @@ final authStateProvider = FutureProvider<bool>((ref) async {
 
     return true;
   }
+
   try {
-    if (isConnected) {
-      final response = await ref
-          .read(userApiProvider)
-          .currentUserApiV1UserGetGet();
+    final response = await ref
+        .read(userApiProvider)
+        .currentUserApiV1UserGetGet()
+        .timeout(const Duration(seconds: 5));
 
-      final remoteUser = response.data;
+    final remoteUser = response.data;
 
-      if (remoteUser == null) {
-        debugPrint("10");
-
-        return false;
-      }
-
-      await userDao.insertUser(
-        remoteId: remoteUser.id,
-        userName: remoteUser.userName,
-        displayName: remoteUser.userDisplayName,
-        primaryEmail: remoteUser.primaryEmail,
-        isActive: remoteUser.isActive,
-      );
-      debugPrint("11");
-
-      return true;
+    if (remoteUser == null) {
+      debugPrint('Usuário remoto não encontrado');
+      return false;
     }
-  } catch (_) {
-    debugPrint("12");
 
+    await userDao.insertUser(
+      remoteId: remoteUser.id,
+      userName: remoteUser.userName,
+      displayName: remoteUser.userDisplayName,
+      primaryEmail: remoteUser.primaryEmail,
+      isActive: true,
+    );
+    debugPrint('Usuário salvo localmente');
+
+    return true;
+  } catch (error, stackTrace) {
+    debugPrint('Falha ao criar usuário local: $error');
+    debugPrintStack(stackTrace: stackTrace);
     return false;
   }
-  debugPrint("13");
-  return false;
 });
-
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:noema/core/database/database.dart';
-// import 'package:noema/core/database/database_provider.dart';
-// import 'package:noema/core/network/api_client.dart';
-// import 'package:noema/core/network/connetction_checker.dart';
-// import 'package:noema/feature/config/data/user_dao.dart';
-// import 'package:noema/feature/auth/services/login_service.dart';
-// import 'package:openapi/openapi.dart';
 
 // final authStateProvider = FutureProvider<bool>((ref) async {
 //   final storage = ref.read(secureSorageProvider);

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +54,15 @@ class LoginPage extends ConsumerWidget {
 
                 if (context.mounted) {
                   ref.invalidate(authStateProvider);
+                  final authenticated = await ref.read(
+                    authStateProvider.future,
+                  );
+
+                  if (!authenticated) {
+                    return;
+                  }
+
+                  if (!context.mounted) return;
                   context.go("/");
                 }
               },
