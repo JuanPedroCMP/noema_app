@@ -6,10 +6,12 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/core/design/theme/color_theme_provider.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
+import 'package:noema/feature/config/presentation/color_selector.dart';
 import 'package:noema/feature/config/providers/color_form_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:noema/shared/pop_up/pop_up.dart';
 
 class ColorThemeSection extends ConsumerStatefulWidget {
   const ColorThemeSection({super.key});
@@ -20,6 +22,7 @@ class ColorThemeSection extends ConsumerStatefulWidget {
 
 class _ColorThemeSelector extends ConsumerState<ColorThemeSection> {
   Map<String, String> items = {};
+  bool isEditingTheme = false;
 
   @override
   void initState() {
@@ -80,7 +83,14 @@ class _ColorThemeSelector extends ConsumerState<ColorThemeSection> {
                   },
                 ),
 
-                OutlinedButton(onPressed: () {}, child: Text("")),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isEditingTheme = !isEditingTheme;
+                    });
+                  },
+                  icon: Icon(Icons.edit),
+                ),
                 ElevatedButton(
                   onPressed: () => {
                     ref.read(colorProvider.notifier).change(color: form.color),
@@ -89,6 +99,34 @@ class _ColorThemeSelector extends ConsumerState<ColorThemeSection> {
                 ),
               ],
             ),
+            if (isEditingTheme) ...[
+              Row(
+                children: [
+                  Text("Seed Color: "),
+                  Container(
+                    height: 12,
+                    width: 12,
+                    color: context.colors.primary,
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      showPopup(
+                        context,
+                        ColorSelector(
+                          onSave: (color) {
+                            ref
+                                .read(colorProvider.notifier)
+                                .change(color: color);
+                          },
+                        ),
+                      );
+                    },
+                    child: Text("Editar"),
+                  ),
+                ],
+              ),
+              // TODO Colocar todas as cores, dividir entre normal (Principais cores do app) e  avançado (com todas as corres)
+            ],
           ],
         ),
       ),

@@ -19,7 +19,7 @@ class AppTheme {
     );
     final radius = AppRadius.material;
 
-    return ThemeData(
+    return ThemeData( // TODO Usar lib FlexColorScheme
       useMaterial3: true,
       colorScheme: scheme,
       extensions: [

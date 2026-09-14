@@ -9,65 +9,75 @@ import 'package:noema/l10n/app_localizations.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 class ColorSelector extends ConsumerWidget {
-  const ColorSelector({super.key});
+  const ColorSelector({super.key, required this.onSave});
+
+  final void Function(int) onSave;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final brightnessThemeProvider = ref.watch(brightnessProvider);
     final formNotifier = ref.watch(colorFormProvider.notifier);
     final form = ref.watch(colorFormProvider);
-
-    return Center(
-      child: SizedBox(
-        width: 1000,
+    TextEditingController colorController = TextEditingController(
+      text: form.color.toString(),
+    );
+    return  Center(
         child: Column(
-          spacing: 15,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            ColorPicker(
+              color: Color(form.color),
+              onColorChanged: (Color color) {
+                formNotifier.colorChanged(color.toARGB32().toString());
+              },
+              wheelDiameter: 125,
+              copyPasteBehavior: ColorPickerCopyPasteBehavior(),
+              pickersEnabled: const {
+                ColorPickerType.wheel: true,
+                ColorPickerType.primary: false,
+                ColorPickerType.accent: false,
+                ColorPickerType.both: false,
+                ColorPickerType.custom: false,
+                ColorPickerType.bw: false,
+                ColorPickerType.customSecondary: false,
+              },
+              enableShadesSelection: false,
+              colorCodeHasColor: false,
+              colorCodeReadOnly: false,
+            ),
+
             Row(
+              mainAxisSize: MainAxisSize.min,
+
               spacing: 15,
               children: [
                 Expanded(
-                  child: ColorPicker(         
-                    color: Color(form.color),
-                    onColorChanged: (Color color) =>
-                        formNotifier.colorChanged(color.toARGB32().toString()),
-                    wheelDiameter: 150,
-                    copyPasteBehavior: ColorPickerCopyPasteBehavior(),
-                    pickersEnabled: const <ColorPickerType, bool>{
-                      ColorPickerType.wheel: true, // Roda de cores
-                      ColorPickerType.primary: false,
-                      ColorPickerType.accent: false,
-                      ColorPickerType.both: false,
-                      ColorPickerType.custom: false,
-                      ColorPickerType.bw: false,
-                      ColorPickerType.customSecondary: false,
-                    },
+                  child: TextField(
+                    controller: colorController,
 
-                    enableShadesSelection: false,
-                    colorCodeHasColor: true,
-                    colorCodeReadOnly: false,
+                    onChanged: (value) {
+                      final color = int.tryParse(value);
+
+                      if (color != null) {
+                        formNotifier.colorChanged(color.toString());
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Cor Atual',
+                    ),
                   ),
                 ),
 
-               
                 ElevatedButton(
-                  onPressed: () async {
-                    if (brightnessThemeProvider == Brightness.light) {
-                      ref
-                          .read(brightnessProvider.notifier)
-                          .change(brightness: Brightness.dark);
-                    } else {
-                      ref
-                          .read(brightnessProvider.notifier)
-                          .change(brightness: Brightness.light);
-                    }
+                  onPressed: () {
+                    onSave(form.color);
                   },
-                  child: Text("Alternar tema"),
+                  child: const Text('Selecionar'),
                 ),
               ],
             ),
           ],
-        ),
+      
       ),
     );
   }

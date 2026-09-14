@@ -16,10 +16,12 @@ class ConfigPage extends ConsumerStatefulWidget {
   ConsumerState<ConfigPage> createState() => _ConfigPage();
 }
 
-class _ConfigPage extends ConsumerState<ConfigPage> {
+class _ConfigPage extends ConsumerState<ConfigPage> {                                            
   final keys = {
     for (final section in ConfigSections.values) section: GlobalKey(),
   };
+
+  Function(int) setColor = (color) {};
 
   void scrollTo(ConfigSections section) {
     final context = keys[section]?.currentContext;
@@ -34,6 +36,7 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
   }
 
   bool isOpended = false;
+  bool isEditingTheme = false;
 
   @override
   void initState() {
@@ -63,6 +66,8 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
                 key: keys[ConfigSections.colorTheme],
                 sectionTitle: "Color Theme",
               ),
+
+              
             ],
           ),
           if (isOpended)
@@ -87,7 +92,7 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
                       style: context.textTheme.titleMedium,
                     ),
                     Divider(),
-                    ColorSelector(),
+                    ColorSelector(onSave: setColor,),
                   ],
                 ),
               ),
