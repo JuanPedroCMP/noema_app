@@ -3,160 +3,172 @@
 part of 'user_typography_theme_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserTypographyThemeCreate extends UserTypographyThemeCreate {
-  @override
-  final String idUser;
-  @override
-  final String name;
-  @override
-  final String displayFont;
-  @override
-  final String bodyFont;
-  @override
-  final String monoFont;
-  @override
-  final String? overrideJson;
+abstract class _$UserTypographyThemeCreateCWProxy {
+  UserTypographyThemeCreate idUser(String idUser);
 
-  factory _$UserTypographyThemeCreate(
-          [void Function(UserTypographyThemeCreateBuilder)? updates]) =>
-      (UserTypographyThemeCreateBuilder()..update(updates))._build();
+  UserTypographyThemeCreate name(String name);
 
-  _$UserTypographyThemeCreate._(
-      {required this.idUser,
-      required this.name,
-      required this.displayFont,
-      required this.bodyFont,
-      required this.monoFont,
-      this.overrideJson})
-      : super._();
-  @override
-  UserTypographyThemeCreate rebuild(
-          void Function(UserTypographyThemeCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserTypographyThemeCreate displayFont(String displayFont);
 
-  @override
-  UserTypographyThemeCreateBuilder toBuilder() =>
-      UserTypographyThemeCreateBuilder()..replace(this);
+  UserTypographyThemeCreate bodyFont(String bodyFont);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserTypographyThemeCreate &&
-        idUser == other.idUser &&
-        name == other.name &&
-        displayFont == other.displayFont &&
-        bodyFont == other.bodyFont &&
-        monoFont == other.monoFont &&
-        overrideJson == other.overrideJson;
-  }
+  UserTypographyThemeCreate monoFont(String monoFont);
+
+  UserTypographyThemeCreate overrideJson(String? overrideJson);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserTypographyThemeCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserTypographyThemeCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserTypographyThemeCreate call({
+    String idUser,
+    String name,
+    String displayFont,
+    String bodyFont,
+    String monoFont,
+    String? overrideJson,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserTypographyThemeCreate.copyWith(...)` or call `instanceOfUserTypographyThemeCreate.copyWith.fieldName(value)` for a single field.
+class _$UserTypographyThemeCreateCWProxyImpl
+    implements _$UserTypographyThemeCreateCWProxy {
+  const _$UserTypographyThemeCreateCWProxyImpl(this._value);
+
+  final UserTypographyThemeCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, displayFont.hashCode);
-    _$hash = $jc(_$hash, bodyFont.hashCode);
-    _$hash = $jc(_$hash, monoFont.hashCode);
-    _$hash = $jc(_$hash, overrideJson.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserTypographyThemeCreate idUser(String idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserTypographyThemeCreate')
-          ..add('idUser', idUser)
-          ..add('name', name)
-          ..add('displayFont', displayFont)
-          ..add('bodyFont', bodyFont)
-          ..add('monoFont', monoFont)
-          ..add('overrideJson', overrideJson))
-        .toString();
+  UserTypographyThemeCreate name(String name) => call(name: name);
+
+  @override
+  UserTypographyThemeCreate displayFont(String displayFont) =>
+      call(displayFont: displayFont);
+
+  @override
+  UserTypographyThemeCreate bodyFont(String bodyFont) =>
+      call(bodyFont: bodyFont);
+
+  @override
+  UserTypographyThemeCreate monoFont(String monoFont) =>
+      call(monoFont: monoFont);
+
+  @override
+  UserTypographyThemeCreate overrideJson(String? overrideJson) =>
+      call(overrideJson: overrideJson);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserTypographyThemeCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserTypographyThemeCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserTypographyThemeCreate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? name = const $CopyWithPlaceholder(),
+    Object? displayFont = const $CopyWithPlaceholder(),
+    Object? bodyFont = const $CopyWithPlaceholder(),
+    Object? monoFont = const $CopyWithPlaceholder(),
+    Object? overrideJson = const $CopyWithPlaceholder(),
+  }) {
+    return UserTypographyThemeCreate(
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      name: name == const $CopyWithPlaceholder() || name == null
+          ? _value.name
+          // ignore: cast_nullable_to_non_nullable
+          : name as String,
+      displayFont:
+          displayFont == const $CopyWithPlaceholder() || displayFont == null
+          ? _value.displayFont
+          // ignore: cast_nullable_to_non_nullable
+          : displayFont as String,
+      bodyFont: bodyFont == const $CopyWithPlaceholder() || bodyFont == null
+          ? _value.bodyFont
+          // ignore: cast_nullable_to_non_nullable
+          : bodyFont as String,
+      monoFont: monoFont == const $CopyWithPlaceholder() || monoFont == null
+          ? _value.monoFont
+          // ignore: cast_nullable_to_non_nullable
+          : monoFont as String,
+      overrideJson: overrideJson == const $CopyWithPlaceholder()
+          ? _value.overrideJson
+          // ignore: cast_nullable_to_non_nullable
+          : overrideJson as String?,
+    );
   }
 }
 
-class UserTypographyThemeCreateBuilder
-    implements
-        Builder<UserTypographyThemeCreate, UserTypographyThemeCreateBuilder> {
-  _$UserTypographyThemeCreate? _$v;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _name;
-  String? get name => _$this._name;
-  set name(String? name) => _$this._name = name;
-
-  String? _displayFont;
-  String? get displayFont => _$this._displayFont;
-  set displayFont(String? displayFont) => _$this._displayFont = displayFont;
-
-  String? _bodyFont;
-  String? get bodyFont => _$this._bodyFont;
-  set bodyFont(String? bodyFont) => _$this._bodyFont = bodyFont;
-
-  String? _monoFont;
-  String? get monoFont => _$this._monoFont;
-  set monoFont(String? monoFont) => _$this._monoFont = monoFont;
-
-  String? _overrideJson;
-  String? get overrideJson => _$this._overrideJson;
-  set overrideJson(String? overrideJson) => _$this._overrideJson = overrideJson;
-
-  UserTypographyThemeCreateBuilder() {
-    UserTypographyThemeCreate._defaults(this);
-  }
-
-  UserTypographyThemeCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _name = $v.name;
-      _displayFont = $v.displayFont;
-      _bodyFont = $v.bodyFont;
-      _monoFont = $v.monoFont;
-      _overrideJson = $v.overrideJson;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserTypographyThemeCreate other) {
-    _$v = other as _$UserTypographyThemeCreate;
-  }
-
-  @override
-  void update(void Function(UserTypographyThemeCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserTypographyThemeCreate build() => _build();
-
-  _$UserTypographyThemeCreate _build() {
-    final _$result = _$v ??
-        _$UserTypographyThemeCreate._(
-          idUser: BuiltValueNullFieldError.checkNotNull(
-              idUser, r'UserTypographyThemeCreate', 'idUser'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UserTypographyThemeCreate', 'name'),
-          displayFont: BuiltValueNullFieldError.checkNotNull(
-              displayFont, r'UserTypographyThemeCreate', 'displayFont'),
-          bodyFont: BuiltValueNullFieldError.checkNotNull(
-              bodyFont, r'UserTypographyThemeCreate', 'bodyFont'),
-          monoFont: BuiltValueNullFieldError.checkNotNull(
-              monoFont, r'UserTypographyThemeCreate', 'monoFont'),
-          overrideJson: overrideJson,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $UserTypographyThemeCreateCopyWith on UserTypographyThemeCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserTypographyThemeCreate.copyWith(...)` or `instanceOfUserTypographyThemeCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserTypographyThemeCreateCWProxy get copyWith =>
+      _$UserTypographyThemeCreateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserTypographyThemeCreate _$UserTypographyThemeCreateFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'UserTypographyThemeCreate',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'id_user',
+        'name',
+        'display_font',
+        'body_font',
+        'mono_font',
+        'override_json',
+      ],
+    );
+    final val = UserTypographyThemeCreate(
+      idUser: $checkedConvert('id_user', (v) => v as String),
+      name: $checkedConvert('name', (v) => v as String),
+      displayFont: $checkedConvert('display_font', (v) => v as String),
+      bodyFont: $checkedConvert('body_font', (v) => v as String),
+      monoFont: $checkedConvert('mono_font', (v) => v as String),
+      overrideJson: $checkedConvert('override_json', (v) => v as String?),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'idUser': 'id_user',
+    'displayFont': 'display_font',
+    'bodyFont': 'body_font',
+    'monoFont': 'mono_font',
+    'overrideJson': 'override_json',
+  },
+);
+
+Map<String, dynamic> _$UserTypographyThemeCreateToJson(
+  UserTypographyThemeCreate instance,
+) => <String, dynamic>{
+  'id_user': instance.idUser,
+  'name': instance.name,
+  'display_font': instance.displayFont,
+  'body_font': instance.bodyFont,
+  'mono_font': instance.monoFont,
+  'override_json': instance.overrideJson,
+};

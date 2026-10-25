@@ -16,7 +16,7 @@ void main() {
 
     // Delete Ai Model
     //
-    //Future<JsonObject> deleteAiModelApiV1AiAiModelEleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteAiModelApiV1AiAiModelEleteIdentificatorDelete(String identificator) async
     test('test deleteAiModelApiV1AiAiModelEleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Ai Models
     //
-    //Future<BuiltList<AiModelOut>> listAiModelsApiV1AiAiModelListGet({ String id, String slug, String idAiProvider, String displayName, int contextWindow, int inputTokenLimit, int outputTokenLimit, bool supportsVision, bool isActive }) async
+    //Future<List<AiModelOut>> listAiModelsApiV1AiAiModelListGet({ String id, String slug, String idAiProvider, String displayName, int contextWindow, int inputTokenLimit, int outputTokenLimit, bool supportsVision, bool isActive }) async
     test('test listAiModelsApiV1AiAiModelListGet', () async {
       // TODO
     });

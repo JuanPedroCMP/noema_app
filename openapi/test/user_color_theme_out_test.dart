@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserColorThemeOut
 void main() {
-  final instance = UserColorThemeOutBuilder();
-  // TODO add properties to the builder and call build()
+  final UserColorThemeOut? instance = /* UserColorThemeOut(...) */ null;
+  // TODO add properties to the entity
 
   group(UserColorThemeOut, () {
     // String id
@@ -27,7 +27,7 @@ void main() {
       // TODO
     });
 
-    // BuiltMap<String, JsonObject> overrideJson
+    // Map<String, Object> overrideJson
     test('to test the property `overrideJson`', () async {
       // TODO
     });

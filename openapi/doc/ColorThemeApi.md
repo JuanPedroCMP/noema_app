@@ -60,7 +60,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete**
-> JsonObject deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete(identificator)
+> Object deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete(identificator)
 
 Delete Color Theme
 
@@ -89,7 +89,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -146,7 +146,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listColorThemeApiV1UserThemeColorThemeListGet**
-> BuiltList<UserColorThemeOut> listColorThemeApiV1UserThemeColorThemeListGet(id, idUser, name, seedColor, overrideJson, createdAt, updatedAt)
+> List<UserColorThemeOut> listColorThemeApiV1UserThemeColorThemeListGet(id, idUser, name, seedColor, overrideJson, createdAt, updatedAt)
 
 List Color Theme
 
@@ -187,7 +187,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;UserColorThemeOut&gt;**](UserColorThemeOut.md)
+[**List&lt;UserColorThemeOut&gt;**](UserColorThemeOut.md)
 
 ### Authorization
 

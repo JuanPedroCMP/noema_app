@@ -16,7 +16,7 @@ void main() {
 
     // Delete User Api Key
     //
-    //Future<JsonObject> deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete(String identificator) async
     test('test deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List User Api Key
     //
-    //Future<BuiltList<UserApiKeyOut>> listUserApiKeyApiV1AiUserApiKeyListGet({ String id, String idAiProvider, String idUser, String name, String encryptedKey, bool isActive, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<UserApiKeyOut>> listUserApiKeyApiV1AiUserApiKeyListGet({ String id, String idAiProvider, String idUser, String name, String encryptedKey, bool isActive, DateTime createdAt, DateTime updatedAt }) async
     test('test listUserApiKeyApiV1AiUserApiKeyListGet', () async {
       // TODO
     });

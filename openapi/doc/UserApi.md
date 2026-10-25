@@ -55,7 +55,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteUserApiV1UserDeleteDelete**
-> JsonObject deleteUserApiV1UserDeleteDelete()
+> Object deleteUserApiV1UserDeleteDelete()
 
 Delete User
 
@@ -80,7 +80,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 

@@ -3,136 +3,88 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'provider_create.g.dart';
 
-/// ProviderCreate
-///
-/// Properties:
-/// * [slug] 
-/// * [displayName] 
-/// * [baseUrl] 
-@BuiltValue()
-abstract class ProviderCreate implements Built<ProviderCreate, ProviderCreateBuilder> {
-  @BuiltValueField(wireName: r'slug')
-  String get slug;
 
-  @BuiltValueField(wireName: r'display_name')
-  String get displayName;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class ProviderCreate {
+  /// Returns a new [ProviderCreate] instance.
+  ProviderCreate({
 
-  @BuiltValueField(wireName: r'base_url')
-  String get baseUrl;
+    required  this.slug,
 
-  ProviderCreate._();
+    required  this.displayName,
 
-  factory ProviderCreate([void updates(ProviderCreateBuilder b)]) = _$ProviderCreate;
+    required  this.baseUrl,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(ProviderCreateBuilder b) => b;
+  @JsonKey(
+    
+    name: r'slug',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<ProviderCreate> get serializer => _$ProviderCreateSerializer();
-}
 
-class _$ProviderCreateSerializer implements PrimitiveSerializer<ProviderCreate> {
-  @override
-  final Iterable<Type> types = const [ProviderCreate, _$ProviderCreate];
+  final String slug;
 
-  @override
-  final String wireName = r'ProviderCreate';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ProviderCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'slug';
-    yield serializers.serialize(
-      object.slug,
-      specifiedType: const FullType(String),
-    );
-    yield r'display_name';
-    yield serializers.serialize(
-      object.displayName,
-      specifiedType: const FullType(String),
-    );
-    yield r'base_url';
-    yield serializers.serialize(
-      object.baseUrl,
-      specifiedType: const FullType(String),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    ProviderCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'display_name',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required ProviderCreateBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'slug':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.slug = valueDes;
-          break;
-        case r'display_name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.displayName = valueDes;
-          break;
-        case r'base_url':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.baseUrl = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String displayName;
+
+
+
+  @JsonKey(
+    
+    name: r'base_url',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String baseUrl;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is ProviderCreate &&
+      other.slug == slug &&
+      other.displayName == displayName &&
+      other.baseUrl == baseUrl;
+
+    @override
+    int get hashCode =>
+        slug.hashCode +
+        displayName.hashCode +
+        baseUrl.hashCode;
+
+  factory ProviderCreate.fromJson(Map<String, dynamic> json) => _$ProviderCreateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProviderCreateToJson(this);
 
   @override
-  ProviderCreate deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = ProviderCreateBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

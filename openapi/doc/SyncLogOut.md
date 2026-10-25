@@ -16,7 +16,7 @@ Name | Type | Description | Notes
 **result** | [**SyncResult**](SyncResult.md) |  | 
 **conflictStrategy** | [**ConflictStrategy**](ConflictStrategy.md) |  | 
 **errorDetails** | **String** |  | 
-**metadata** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) |  | 
+**metadata** | **Map&lt;String, Object&gt;** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

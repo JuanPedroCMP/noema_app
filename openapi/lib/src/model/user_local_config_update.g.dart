@@ -3,156 +3,167 @@
 part of 'user_local_config_update.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserLocalConfigUpdate extends UserLocalConfigUpdate {
-  @override
-  final String? idUser;
-  @override
-  final String? idDevice;
-  @override
-  final String? idLanguage;
-  @override
-  final String? idUserColorTheme;
-  @override
-  final String? idUserTypographyTheme;
-  @override
-  final String? preferences;
+abstract class _$UserLocalConfigUpdateCWProxy {
+  UserLocalConfigUpdate idUser(String? idUser);
 
-  factory _$UserLocalConfigUpdate(
-          [void Function(UserLocalConfigUpdateBuilder)? updates]) =>
-      (UserLocalConfigUpdateBuilder()..update(updates))._build();
+  UserLocalConfigUpdate idDevice(String? idDevice);
 
-  _$UserLocalConfigUpdate._(
-      {this.idUser,
-      this.idDevice,
-      this.idLanguage,
-      this.idUserColorTheme,
-      this.idUserTypographyTheme,
-      this.preferences})
-      : super._();
-  @override
-  UserLocalConfigUpdate rebuild(
-          void Function(UserLocalConfigUpdateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserLocalConfigUpdate idLanguage(String? idLanguage);
 
-  @override
-  UserLocalConfigUpdateBuilder toBuilder() =>
-      UserLocalConfigUpdateBuilder()..replace(this);
+  UserLocalConfigUpdate idUserColorTheme(String? idUserColorTheme);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserLocalConfigUpdate &&
-        idUser == other.idUser &&
-        idDevice == other.idDevice &&
-        idLanguage == other.idLanguage &&
-        idUserColorTheme == other.idUserColorTheme &&
-        idUserTypographyTheme == other.idUserTypographyTheme &&
-        preferences == other.preferences;
-  }
+  UserLocalConfigUpdate idUserTypographyTheme(String? idUserTypographyTheme);
+
+  UserLocalConfigUpdate preferences(String? preferences);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserLocalConfigUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserLocalConfigUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserLocalConfigUpdate call({
+    String? idUser,
+    String? idDevice,
+    String? idLanguage,
+    String? idUserColorTheme,
+    String? idUserTypographyTheme,
+    String? preferences,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserLocalConfigUpdate.copyWith(...)` or call `instanceOfUserLocalConfigUpdate.copyWith.fieldName(value)` for a single field.
+class _$UserLocalConfigUpdateCWProxyImpl
+    implements _$UserLocalConfigUpdateCWProxy {
+  const _$UserLocalConfigUpdateCWProxyImpl(this._value);
+
+  final UserLocalConfigUpdate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, idDevice.hashCode);
-    _$hash = $jc(_$hash, idLanguage.hashCode);
-    _$hash = $jc(_$hash, idUserColorTheme.hashCode);
-    _$hash = $jc(_$hash, idUserTypographyTheme.hashCode);
-    _$hash = $jc(_$hash, preferences.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserLocalConfigUpdate idUser(String? idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserLocalConfigUpdate')
-          ..add('idUser', idUser)
-          ..add('idDevice', idDevice)
-          ..add('idLanguage', idLanguage)
-          ..add('idUserColorTheme', idUserColorTheme)
-          ..add('idUserTypographyTheme', idUserTypographyTheme)
-          ..add('preferences', preferences))
-        .toString();
+  UserLocalConfigUpdate idDevice(String? idDevice) => call(idDevice: idDevice);
+
+  @override
+  UserLocalConfigUpdate idLanguage(String? idLanguage) =>
+      call(idLanguage: idLanguage);
+
+  @override
+  UserLocalConfigUpdate idUserColorTheme(String? idUserColorTheme) =>
+      call(idUserColorTheme: idUserColorTheme);
+
+  @override
+  UserLocalConfigUpdate idUserTypographyTheme(String? idUserTypographyTheme) =>
+      call(idUserTypographyTheme: idUserTypographyTheme);
+
+  @override
+  UserLocalConfigUpdate preferences(String? preferences) =>
+      call(preferences: preferences);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserLocalConfigUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserLocalConfigUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserLocalConfigUpdate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? idDevice = const $CopyWithPlaceholder(),
+    Object? idLanguage = const $CopyWithPlaceholder(),
+    Object? idUserColorTheme = const $CopyWithPlaceholder(),
+    Object? idUserTypographyTheme = const $CopyWithPlaceholder(),
+    Object? preferences = const $CopyWithPlaceholder(),
+  }) {
+    return UserLocalConfigUpdate(
+      idUser: idUser == const $CopyWithPlaceholder()
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String?,
+      idDevice: idDevice == const $CopyWithPlaceholder()
+          ? _value.idDevice
+          // ignore: cast_nullable_to_non_nullable
+          : idDevice as String?,
+      idLanguage: idLanguage == const $CopyWithPlaceholder()
+          ? _value.idLanguage
+          // ignore: cast_nullable_to_non_nullable
+          : idLanguage as String?,
+      idUserColorTheme: idUserColorTheme == const $CopyWithPlaceholder()
+          ? _value.idUserColorTheme
+          // ignore: cast_nullable_to_non_nullable
+          : idUserColorTheme as String?,
+      idUserTypographyTheme:
+          idUserTypographyTheme == const $CopyWithPlaceholder()
+          ? _value.idUserTypographyTheme
+          // ignore: cast_nullable_to_non_nullable
+          : idUserTypographyTheme as String?,
+      preferences: preferences == const $CopyWithPlaceholder()
+          ? _value.preferences
+          // ignore: cast_nullable_to_non_nullable
+          : preferences as String?,
+    );
   }
 }
 
-class UserLocalConfigUpdateBuilder
-    implements Builder<UserLocalConfigUpdate, UserLocalConfigUpdateBuilder> {
-  _$UserLocalConfigUpdate? _$v;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _idDevice;
-  String? get idDevice => _$this._idDevice;
-  set idDevice(String? idDevice) => _$this._idDevice = idDevice;
-
-  String? _idLanguage;
-  String? get idLanguage => _$this._idLanguage;
-  set idLanguage(String? idLanguage) => _$this._idLanguage = idLanguage;
-
-  String? _idUserColorTheme;
-  String? get idUserColorTheme => _$this._idUserColorTheme;
-  set idUserColorTheme(String? idUserColorTheme) =>
-      _$this._idUserColorTheme = idUserColorTheme;
-
-  String? _idUserTypographyTheme;
-  String? get idUserTypographyTheme => _$this._idUserTypographyTheme;
-  set idUserTypographyTheme(String? idUserTypographyTheme) =>
-      _$this._idUserTypographyTheme = idUserTypographyTheme;
-
-  String? _preferences;
-  String? get preferences => _$this._preferences;
-  set preferences(String? preferences) => _$this._preferences = preferences;
-
-  UserLocalConfigUpdateBuilder() {
-    UserLocalConfigUpdate._defaults(this);
-  }
-
-  UserLocalConfigUpdateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _idDevice = $v.idDevice;
-      _idLanguage = $v.idLanguage;
-      _idUserColorTheme = $v.idUserColorTheme;
-      _idUserTypographyTheme = $v.idUserTypographyTheme;
-      _preferences = $v.preferences;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserLocalConfigUpdate other) {
-    _$v = other as _$UserLocalConfigUpdate;
-  }
-
-  @override
-  void update(void Function(UserLocalConfigUpdateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserLocalConfigUpdate build() => _build();
-
-  _$UserLocalConfigUpdate _build() {
-    final _$result = _$v ??
-        _$UserLocalConfigUpdate._(
-          idUser: idUser,
-          idDevice: idDevice,
-          idLanguage: idLanguage,
-          idUserColorTheme: idUserColorTheme,
-          idUserTypographyTheme: idUserTypographyTheme,
-          preferences: preferences,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $UserLocalConfigUpdateCopyWith on UserLocalConfigUpdate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserLocalConfigUpdate.copyWith(...)` or `instanceOfUserLocalConfigUpdate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserLocalConfigUpdateCWProxy get copyWith =>
+      _$UserLocalConfigUpdateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserLocalConfigUpdate _$UserLocalConfigUpdateFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'UserLocalConfigUpdate',
+  json,
+  ($checkedConvert) {
+    final val = UserLocalConfigUpdate(
+      idUser: $checkedConvert('id_user', (v) => v as String?),
+      idDevice: $checkedConvert('id_device', (v) => v as String?),
+      idLanguage: $checkedConvert('id_language', (v) => v as String?),
+      idUserColorTheme: $checkedConvert(
+        'id_user_color_theme',
+        (v) => v as String?,
+      ),
+      idUserTypographyTheme: $checkedConvert(
+        'id_user_typography_theme',
+        (v) => v as String?,
+      ),
+      preferences: $checkedConvert('preferences', (v) => v as String?),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'idUser': 'id_user',
+    'idDevice': 'id_device',
+    'idLanguage': 'id_language',
+    'idUserColorTheme': 'id_user_color_theme',
+    'idUserTypographyTheme': 'id_user_typography_theme',
+  },
+);
+
+Map<String, dynamic> _$UserLocalConfigUpdateToJson(
+  UserLocalConfigUpdate instance,
+) => <String, dynamic>{
+  'id_user': ?instance.idUser,
+  'id_device': ?instance.idDevice,
+  'id_language': ?instance.idLanguage,
+  'id_user_color_theme': ?instance.idUserColorTheme,
+  'id_user_typography_theme': ?instance.idUserTypographyTheme,
+  'preferences': ?instance.preferences,
+};

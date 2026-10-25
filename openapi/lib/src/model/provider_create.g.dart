@@ -3,116 +3,102 @@
 part of 'provider_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$ProviderCreate extends ProviderCreate {
-  @override
-  final String slug;
-  @override
-  final String displayName;
-  @override
-  final String baseUrl;
+abstract class _$ProviderCreateCWProxy {
+  ProviderCreate slug(String slug);
 
-  factory _$ProviderCreate([void Function(ProviderCreateBuilder)? updates]) =>
-      (ProviderCreateBuilder()..update(updates))._build();
+  ProviderCreate displayName(String displayName);
 
-  _$ProviderCreate._(
-      {required this.slug, required this.displayName, required this.baseUrl})
-      : super._();
-  @override
-  ProviderCreate rebuild(void Function(ProviderCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  ProviderCreate baseUrl(String baseUrl);
 
-  @override
-  ProviderCreateBuilder toBuilder() => ProviderCreateBuilder()..replace(this);
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ProviderCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  ProviderCreate call({String slug, String displayName, String baseUrl});
+}
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is ProviderCreate &&
-        slug == other.slug &&
-        displayName == other.displayName &&
-        baseUrl == other.baseUrl;
-  }
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfProviderCreate.copyWith(...)` or call `instanceOfProviderCreate.copyWith.fieldName(value)` for a single field.
+class _$ProviderCreateCWProxyImpl implements _$ProviderCreateCWProxy {
+  const _$ProviderCreateCWProxyImpl(this._value);
+
+  final ProviderCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, slug.hashCode);
-    _$hash = $jc(_$hash, displayName.hashCode);
-    _$hash = $jc(_$hash, baseUrl.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  ProviderCreate slug(String slug) => call(slug: slug);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'ProviderCreate')
-          ..add('slug', slug)
-          ..add('displayName', displayName)
-          ..add('baseUrl', baseUrl))
-        .toString();
+  ProviderCreate displayName(String displayName) =>
+      call(displayName: displayName);
+
+  @override
+  ProviderCreate baseUrl(String baseUrl) => call(baseUrl: baseUrl);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ProviderCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  ProviderCreate call({
+    Object? slug = const $CopyWithPlaceholder(),
+    Object? displayName = const $CopyWithPlaceholder(),
+    Object? baseUrl = const $CopyWithPlaceholder(),
+  }) {
+    return ProviderCreate(
+      slug: slug == const $CopyWithPlaceholder() || slug == null
+          ? _value.slug
+          // ignore: cast_nullable_to_non_nullable
+          : slug as String,
+      displayName:
+          displayName == const $CopyWithPlaceholder() || displayName == null
+          ? _value.displayName
+          // ignore: cast_nullable_to_non_nullable
+          : displayName as String,
+      baseUrl: baseUrl == const $CopyWithPlaceholder() || baseUrl == null
+          ? _value.baseUrl
+          // ignore: cast_nullable_to_non_nullable
+          : baseUrl as String,
+    );
   }
 }
 
-class ProviderCreateBuilder
-    implements Builder<ProviderCreate, ProviderCreateBuilder> {
-  _$ProviderCreate? _$v;
-
-  String? _slug;
-  String? get slug => _$this._slug;
-  set slug(String? slug) => _$this._slug = slug;
-
-  String? _displayName;
-  String? get displayName => _$this._displayName;
-  set displayName(String? displayName) => _$this._displayName = displayName;
-
-  String? _baseUrl;
-  String? get baseUrl => _$this._baseUrl;
-  set baseUrl(String? baseUrl) => _$this._baseUrl = baseUrl;
-
-  ProviderCreateBuilder() {
-    ProviderCreate._defaults(this);
-  }
-
-  ProviderCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _slug = $v.slug;
-      _displayName = $v.displayName;
-      _baseUrl = $v.baseUrl;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(ProviderCreate other) {
-    _$v = other as _$ProviderCreate;
-  }
-
-  @override
-  void update(void Function(ProviderCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  ProviderCreate build() => _build();
-
-  _$ProviderCreate _build() {
-    final _$result = _$v ??
-        _$ProviderCreate._(
-          slug: BuiltValueNullFieldError.checkNotNull(
-              slug, r'ProviderCreate', 'slug'),
-          displayName: BuiltValueNullFieldError.checkNotNull(
-              displayName, r'ProviderCreate', 'displayName'),
-          baseUrl: BuiltValueNullFieldError.checkNotNull(
-              baseUrl, r'ProviderCreate', 'baseUrl'),
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $ProviderCreateCopyWith on ProviderCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfProviderCreate.copyWith(...)` or `instanceOfProviderCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$ProviderCreateCWProxy get copyWith => _$ProviderCreateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+ProviderCreate _$ProviderCreateFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('ProviderCreate', json, ($checkedConvert) {
+  $checkKeys(json, requiredKeys: const ['slug', 'display_name', 'base_url']);
+  final val = ProviderCreate(
+    slug: $checkedConvert('slug', (v) => v as String),
+    displayName: $checkedConvert('display_name', (v) => v as String),
+    baseUrl: $checkedConvert('base_url', (v) => v as String),
+  );
+  return val;
+}, fieldKeyMap: const {'displayName': 'display_name', 'baseUrl': 'base_url'});
+
+Map<String, dynamic> _$ProviderCreateToJson(ProviderCreate instance) =>
+    <String, dynamic>{
+      'slug': instance.slug,
+      'display_name': instance.displayName,
+      'base_url': instance.baseUrl,
+    };

@@ -59,7 +59,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteAgentModelApiV1AiUserApiKeyCanUseIaModelDeleteIdentificatorDelete**
-> JsonObject deleteAgentModelApiV1AiUserApiKeyCanUseIaModelDeleteIdentificatorDelete(identificator)
+> Object deleteAgentModelApiV1AiUserApiKeyCanUseIaModelDeleteIdentificatorDelete(identificator)
 
 Delete Agent Model
 
@@ -88,7 +88,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -145,7 +145,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet**
-> BuiltList<UserApiKeyCanUseIaModelOut> listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet(id, idAiModel, idUserApiKey, createdAt)
+> List<UserApiKeyCanUseIaModelOut> listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet(id, idAiModel, idUserApiKey, createdAt)
 
 List Agent Model
 
@@ -180,7 +180,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;UserApiKeyCanUseIaModelOut&gt;**](UserApiKeyCanUseIaModelOut.md)
+[**List&lt;UserApiKeyCanUseIaModelOut&gt;**](UserApiKeyCanUseIaModelOut.md)
 
 ### Authorization
 

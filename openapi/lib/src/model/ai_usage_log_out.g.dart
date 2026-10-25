@@ -3,142 +3,160 @@
 part of 'ai_usage_log_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$AiUsageLogOut extends AiUsageLogOut {
-  @override
-  final String id;
-  @override
-  final String idUser;
-  @override
-  final String idAgentModel;
-  @override
-  final JsonObject? usageDatails;
-  @override
-  final DateTime? createdAt;
+abstract class _$AiUsageLogOutCWProxy {
+  AiUsageLogOut id(String id);
 
-  factory _$AiUsageLogOut([void Function(AiUsageLogOutBuilder)? updates]) =>
-      (AiUsageLogOutBuilder()..update(updates))._build();
+  AiUsageLogOut idUser(String idUser);
 
-  _$AiUsageLogOut._(
-      {required this.id,
-      required this.idUser,
-      required this.idAgentModel,
-      this.usageDatails,
-      this.createdAt})
-      : super._();
-  @override
-  AiUsageLogOut rebuild(void Function(AiUsageLogOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  AiUsageLogOut idAgentModel(String idAgentModel);
 
-  @override
-  AiUsageLogOutBuilder toBuilder() => AiUsageLogOutBuilder()..replace(this);
+  AiUsageLogOut usageDetails(Map<String, Object> usageDetails);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is AiUsageLogOut &&
-        id == other.id &&
-        idUser == other.idUser &&
-        idAgentModel == other.idAgentModel &&
-        usageDatails == other.usageDatails &&
-        createdAt == other.createdAt;
-  }
+  AiUsageLogOut createdAt(DateTime? createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiUsageLogOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AiUsageLogOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  AiUsageLogOut call({
+    String id,
+    String idUser,
+    String idAgentModel,
+    Map<String, Object> usageDetails,
+    DateTime? createdAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfAiUsageLogOut.copyWith(...)` or call `instanceOfAiUsageLogOut.copyWith.fieldName(value)` for a single field.
+class _$AiUsageLogOutCWProxyImpl implements _$AiUsageLogOutCWProxy {
+  const _$AiUsageLogOutCWProxyImpl(this._value);
+
+  final AiUsageLogOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, idAgentModel.hashCode);
-    _$hash = $jc(_$hash, usageDatails.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  AiUsageLogOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'AiUsageLogOut')
-          ..add('id', id)
-          ..add('idUser', idUser)
-          ..add('idAgentModel', idAgentModel)
-          ..add('usageDatails', usageDatails)
-          ..add('createdAt', createdAt))
-        .toString();
+  AiUsageLogOut idUser(String idUser) => call(idUser: idUser);
+
+  @override
+  AiUsageLogOut idAgentModel(String idAgentModel) =>
+      call(idAgentModel: idAgentModel);
+
+  @override
+  AiUsageLogOut usageDetails(Map<String, Object> usageDetails) =>
+      call(usageDetails: usageDetails);
+
+  @override
+  AiUsageLogOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiUsageLogOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AiUsageLogOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  AiUsageLogOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? idAgentModel = const $CopyWithPlaceholder(),
+    Object? usageDetails = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+  }) {
+    return AiUsageLogOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      idAgentModel:
+          idAgentModel == const $CopyWithPlaceholder() || idAgentModel == null
+          ? _value.idAgentModel
+          // ignore: cast_nullable_to_non_nullable
+          : idAgentModel as String,
+      usageDetails:
+          usageDetails == const $CopyWithPlaceholder() || usageDetails == null
+          ? _value.usageDetails
+          // ignore: cast_nullable_to_non_nullable
+          : usageDetails as Map<String, Object>,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+    );
   }
 }
 
-class AiUsageLogOutBuilder
-    implements Builder<AiUsageLogOut, AiUsageLogOutBuilder> {
-  _$AiUsageLogOut? _$v;
+extension $AiUsageLogOutCopyWith on AiUsageLogOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfAiUsageLogOut.copyWith(...)` or `instanceOfAiUsageLogOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$AiUsageLogOutCWProxy get copyWith => _$AiUsageLogOutCWProxyImpl(this);
+}
 
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _idAgentModel;
-  String? get idAgentModel => _$this._idAgentModel;
-  set idAgentModel(String? idAgentModel) => _$this._idAgentModel = idAgentModel;
-
-  JsonObject? _usageDatails;
-  JsonObject? get usageDatails => _$this._usageDatails;
-  set usageDatails(JsonObject? usageDatails) =>
-      _$this._usageDatails = usageDatails;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  AiUsageLogOutBuilder() {
-    AiUsageLogOut._defaults(this);
-  }
-
-  AiUsageLogOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idUser = $v.idUser;
-      _idAgentModel = $v.idAgentModel;
-      _usageDatails = $v.usageDatails;
-      _createdAt = $v.createdAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(AiUsageLogOut other) {
-    _$v = other as _$AiUsageLogOut;
-  }
-
-  @override
-  void update(void Function(AiUsageLogOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  AiUsageLogOut build() => _build();
-
-  _$AiUsageLogOut _build() {
-    final _$result = _$v ??
-        _$AiUsageLogOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'AiUsageLogOut', 'id'),
-          idUser: BuiltValueNullFieldError.checkNotNull(
-              idUser, r'AiUsageLogOut', 'idUser'),
-          idAgentModel: BuiltValueNullFieldError.checkNotNull(
-              idAgentModel, r'AiUsageLogOut', 'idAgentModel'),
-          usageDatails: usageDatails,
-          createdAt: createdAt,
+AiUsageLogOut _$AiUsageLogOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'AiUsageLogOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_user',
+            'id_agent_model',
+            'usage_details',
+            'created_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = AiUsageLogOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idUser: $checkedConvert('id_user', (v) => v as String),
+          idAgentModel: $checkedConvert('id_agent_model', (v) => v as String),
+          usageDetails: $checkedConvert(
+            'usage_details',
+            (v) => (v as Map<String, dynamic>).map(
+              (k, e) => MapEntry(k, e as Object),
+            ),
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'idAgentModel': 'id_agent_model',
+        'usageDetails': 'usage_details',
+        'createdAt': 'created_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$AiUsageLogOutToJson(AiUsageLogOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_user': instance.idUser,
+      'id_agent_model': instance.idAgentModel,
+      'usage_details': instance.usageDetails,
+      'created_at': instance.createdAt?.toIso8601String(),
+    };

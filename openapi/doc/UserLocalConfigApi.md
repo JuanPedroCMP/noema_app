@@ -102,7 +102,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet**
-> BuiltList<UserLocalConfigOut> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(preferences, id, idUser, idDevice, idLanguage, idUserColorTheme, idUserTypographyTheme, createdAt, updatedAt)
+> List<UserLocalConfigOut> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(preferences, id, idUser, idDevice, idLanguage, idUserColorTheme, idUserTypographyTheme, createdAt, updatedAt)
 
 List User Local Configs
 
@@ -147,7 +147,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;UserLocalConfigOut&gt;**](UserLocalConfigOut.md)
+[**List&lt;UserLocalConfigOut&gt;**](UserLocalConfigOut.md)
 
 ### Authorization
 

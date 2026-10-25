@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserApiKeyOut
 void main() {
-  final instance = UserApiKeyOutBuilder();
-  // TODO add properties to the builder and call build()
+  final UserApiKeyOut? instance = /* UserApiKeyOut(...) */ null;
+  // TODO add properties to the entity
 
   group(UserApiKeyOut, () {
     // String id
@@ -24,11 +24,6 @@ void main() {
 
     // String name
     test('to test the property `name`', () async {
-      // TODO
-    });
-
-    // String encryptedKey
-    test('to test the property `encryptedKey`', () async {
       // TODO
     });
 

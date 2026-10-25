@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for LanguageOut
 void main() {
-  final instance = LanguageOutBuilder();
-  // TODO add properties to the builder and call build()
+  final LanguageOut? instance = /* LanguageOut(...) */ null;
+  // TODO add properties to the entity
 
   group(LanguageOut, () {
     // String id

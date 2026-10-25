@@ -3,32 +3,18 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'sync_direction.g.dart';
+enum SyncDirection {
+  @JsonValue(r'upload')
+  upload(r'upload'),
+  @JsonValue(r'download')
+  download(r'download');
 
-class SyncDirection extends EnumClass {
+  const SyncDirection(this.value);
 
-  @BuiltValueEnumConst(wireName: r'upload')
-  static const SyncDirection upload = _$upload;
-  @BuiltValueEnumConst(wireName: r'download')
-  static const SyncDirection download = _$download;
+  final String value;
 
-  static Serializer<SyncDirection> get serializer => _$syncDirectionSerializer;
-
-  const SyncDirection._(String name): super(name);
-
-  static BuiltSet<SyncDirection> get values => _$values;
-  static SyncDirection valueOf(String name) => _$valueOf(name);
+  @override
+  String toString() => value;
 }
-
-/// Optionally, enum_class can generate a mixin to go with your enum for use
-/// with Angular. It exposes your enum constants as getters. So, if you mix it
-/// in to your Dart component class, the values become available to the
-/// corresponding Angular template.
-///
-/// Trigger mixin generation by writing a line like this one next to your enum.
-abstract class SyncDirectionMixin = Object with _$SyncDirectionMixin;
-

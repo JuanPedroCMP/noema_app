@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AiModelCreate
 void main() {
-  final instance = AiModelCreateBuilder();
-  // TODO add properties to the builder and call build()
+  final AiModelCreate? instance = /* AiModelCreate(...) */ null;
+  // TODO add properties to the entity
 
   group(AiModelCreate, () {
     // String slug

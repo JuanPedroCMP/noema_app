@@ -3,166 +3,204 @@
 part of 'agent_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$AgentOut extends AgentOut {
-  @override
-  final String id;
-  @override
-  final String alias;
-  @override
-  final TaskType task;
-  @override
-  final String baseSystemPrompt;
-  @override
-  final num? temperature;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$AgentOutCWProxy {
+  AgentOut id(String id);
 
-  factory _$AgentOut([void Function(AgentOutBuilder)? updates]) =>
-      (AgentOutBuilder()..update(updates))._build();
+  AgentOut alias(String alias);
 
-  _$AgentOut._(
-      {required this.id,
-      required this.alias,
-      required this.task,
-      required this.baseSystemPrompt,
-      this.temperature,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  AgentOut rebuild(void Function(AgentOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  AgentOut task(TaskType task);
 
-  @override
-  AgentOutBuilder toBuilder() => AgentOutBuilder()..replace(this);
+  AgentOut baseSystemPrompt(String baseSystemPrompt);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is AgentOut &&
-        id == other.id &&
-        alias == other.alias &&
-        task == other.task &&
-        baseSystemPrompt == other.baseSystemPrompt &&
-        temperature == other.temperature &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  AgentOut temperature(num? temperature);
+
+  AgentOut createdAt(DateTime? createdAt);
+
+  AgentOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AgentOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  AgentOut call({
+    String id,
+    String alias,
+    TaskType task,
+    String baseSystemPrompt,
+    num? temperature,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfAgentOut.copyWith(...)` or call `instanceOfAgentOut.copyWith.fieldName(value)` for a single field.
+class _$AgentOutCWProxyImpl implements _$AgentOutCWProxy {
+  const _$AgentOutCWProxyImpl(this._value);
+
+  final AgentOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, alias.hashCode);
-    _$hash = $jc(_$hash, task.hashCode);
-    _$hash = $jc(_$hash, baseSystemPrompt.hashCode);
-    _$hash = $jc(_$hash, temperature.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  AgentOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'AgentOut')
-          ..add('id', id)
-          ..add('alias', alias)
-          ..add('task', task)
-          ..add('baseSystemPrompt', baseSystemPrompt)
-          ..add('temperature', temperature)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  AgentOut alias(String alias) => call(alias: alias);
+
+  @override
+  AgentOut task(TaskType task) => call(task: task);
+
+  @override
+  AgentOut baseSystemPrompt(String baseSystemPrompt) =>
+      call(baseSystemPrompt: baseSystemPrompt);
+
+  @override
+  AgentOut temperature(num? temperature) => call(temperature: temperature);
+
+  @override
+  AgentOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  @override
+  AgentOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AgentOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  AgentOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? alias = const $CopyWithPlaceholder(),
+    Object? task = const $CopyWithPlaceholder(),
+    Object? baseSystemPrompt = const $CopyWithPlaceholder(),
+    Object? temperature = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return AgentOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      alias: alias == const $CopyWithPlaceholder() || alias == null
+          ? _value.alias
+          // ignore: cast_nullable_to_non_nullable
+          : alias as String,
+      task: task == const $CopyWithPlaceholder() || task == null
+          ? _value.task
+          // ignore: cast_nullable_to_non_nullable
+          : task as TaskType,
+      baseSystemPrompt:
+          baseSystemPrompt == const $CopyWithPlaceholder() ||
+              baseSystemPrompt == null
+          ? _value.baseSystemPrompt
+          // ignore: cast_nullable_to_non_nullable
+          : baseSystemPrompt as String,
+      temperature: temperature == const $CopyWithPlaceholder()
+          ? _value.temperature
+          // ignore: cast_nullable_to_non_nullable
+          : temperature as num?,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class AgentOutBuilder implements Builder<AgentOut, AgentOutBuilder> {
-  _$AgentOut? _$v;
-
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
-
-  String? _alias;
-  String? get alias => _$this._alias;
-  set alias(String? alias) => _$this._alias = alias;
-
-  TaskType? _task;
-  TaskType? get task => _$this._task;
-  set task(TaskType? task) => _$this._task = task;
-
-  String? _baseSystemPrompt;
-  String? get baseSystemPrompt => _$this._baseSystemPrompt;
-  set baseSystemPrompt(String? baseSystemPrompt) =>
-      _$this._baseSystemPrompt = baseSystemPrompt;
-
-  num? _temperature;
-  num? get temperature => _$this._temperature;
-  set temperature(num? temperature) => _$this._temperature = temperature;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  AgentOutBuilder() {
-    AgentOut._defaults(this);
-  }
-
-  AgentOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _alias = $v.alias;
-      _task = $v.task;
-      _baseSystemPrompt = $v.baseSystemPrompt;
-      _temperature = $v.temperature;
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(AgentOut other) {
-    _$v = other as _$AgentOut;
-  }
-
-  @override
-  void update(void Function(AgentOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  AgentOut build() => _build();
-
-  _$AgentOut _build() {
-    final _$result = _$v ??
-        _$AgentOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'AgentOut', 'id'),
-          alias: BuiltValueNullFieldError.checkNotNull(
-              alias, r'AgentOut', 'alias'),
-          task:
-              BuiltValueNullFieldError.checkNotNull(task, r'AgentOut', 'task'),
-          baseSystemPrompt: BuiltValueNullFieldError.checkNotNull(
-              baseSystemPrompt, r'AgentOut', 'baseSystemPrompt'),
-          temperature: temperature,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $AgentOutCopyWith on AgentOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfAgentOut.copyWith(...)` or `instanceOfAgentOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$AgentOutCWProxy get copyWith => _$AgentOutCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AgentOut _$AgentOutFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'AgentOut',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'id',
+        'alias',
+        'task',
+        'base_system_prompt',
+        'temperature',
+        'created_at',
+        'updated_at',
+      ],
+    );
+    final val = AgentOut(
+      id: $checkedConvert('id', (v) => v as String),
+      alias: $checkedConvert('alias', (v) => v as String),
+      task: $checkedConvert('task', (v) => $enumDecode(_$TaskTypeEnumMap, v)),
+      baseSystemPrompt: $checkedConvert(
+        'base_system_prompt',
+        (v) => v as String,
+      ),
+      temperature: $checkedConvert('temperature', (v) => v as num?),
+      createdAt: $checkedConvert(
+        'created_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      updatedAt: $checkedConvert(
+        'updated_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'baseSystemPrompt': 'base_system_prompt',
+    'createdAt': 'created_at',
+    'updatedAt': 'updated_at',
+  },
+);
+
+Map<String, dynamic> _$AgentOutToJson(AgentOut instance) => <String, dynamic>{
+  'id': instance.id,
+  'alias': instance.alias,
+  'task': _$TaskTypeEnumMap[instance.task]!,
+  'base_system_prompt': instance.baseSystemPrompt,
+  'temperature': instance.temperature,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+};
+
+const _$TaskTypeEnumMap = {
+  TaskType.manipulateGraph: 'manipulate_graph',
+  TaskType.manipulateNode: 'manipulate_node',
+  TaskType.createStudySession: 'create_study_session',
+  TaskType.evaluateEssayQuestion: 'evaluate_essay_question',
+  TaskType.createEssayQuestion: 'create_essay_question',
+  TaskType.createMultipleChoiceQuestion: 'create_multiple_choice_question',
+  TaskType.evaluateMultipleChoiceQuestion: 'evaluate_multiple_choice_question',
+  TaskType.createFeynman: 'create_feynman',
+  TaskType.evaluateFeynman: 'evaluate_feynman ',
+  TaskType.recommendStudyResource: 'recommend_study_resource',
+  TaskType.studyManager: 'study_manager',
+  TaskType.studyAssistent: 'study_assistent',
+  TaskType.createFlashcardGroup: 'create_flashcard_group',
+  TaskType.manipulateFlashcardGroup: 'manipulate_flashcard_group',
+  TaskType.createFlashcard: 'create_flashcard',
+  TaskType.createFlashcardS: 'create_flashcardS',
+};

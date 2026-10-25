@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listGenericLogApiV1GenericLogListGet**
-> BuiltList<GenericLogOut> listGenericLogApiV1GenericLogListGet(id, type, idUser, details, createdAt)
+> List<GenericLogOut> listGenericLogApiV1GenericLogListGet(id, type, idUser, details, createdAt)
 
 List Generic Log
 
@@ -138,7 +138,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;GenericLogOut&gt;**](GenericLogOut.md)
+[**List&lt;GenericLogOut&gt;**](GenericLogOut.md)
 
 ### Authorization
 

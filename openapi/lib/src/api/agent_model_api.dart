@@ -4,24 +4,22 @@
 
 import 'dart:async';
 
-import 'package:built_value/json_object.dart';
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/agent_model_create.dart';
 import 'package:openapi/src/model/agent_model_out.dart';
 import 'package:openapi/src/model/agent_model_quality.dart';
 import 'package:openapi/src/model/agent_model_update.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 
 class AgentModelApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const AgentModelApi(this._dio, this._serializers);
+  const AgentModelApi(this._dio);
 
   /// Create Agent Model
   /// 
@@ -63,8 +61,7 @@ class AgentModelApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(AgentModelCreate);
-      _bodyData = _serializers.serialize(agentModelCreate, specifiedType: _type);
+      _bodyData = jsonEncode(agentModelCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -90,11 +87,8 @@ class AgentModelApi {
     AgentModelOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentModelOut),
-      ) as AgentModelOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentModelOut, AgentModelOut>(rawData, 'AgentModelOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -130,9 +124,9 @@ class AgentModelApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [Object] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete({ 
+  Future<Response<Object>> deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -141,7 +135,7 @@ class AgentModelApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent_model/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent_model/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -162,14 +156,11 @@ class AgentModelApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    Object? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +172,7 @@ class AgentModelApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<Object>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +207,7 @@ class AgentModelApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent_model/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent_model/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -240,11 +231,8 @@ class AgentModelApi {
     AgentModelOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentModelOut),
-      ) as AgentModelOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentModelOut, AgentModelOut>(rawData, 'AgentModelOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -287,9 +275,9 @@ class AgentModelApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<AgentModelOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<AgentModelOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<AgentModelOut>>> listAgentModelApiV1AiAgentModelListGet({ 
+  Future<Response<List<AgentModelOut>>> listAgentModelApiV1AiAgentModelListGet({ 
     String? id,
     String? idAgent,
     String? idAiModel,
@@ -319,14 +307,14 @@ class AgentModelApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'id_agent': encodeQueryParameter(_serializers, idAgent, const FullType(String)),
-      r'id_ai_model': encodeQueryParameter(_serializers, idAiModel, const FullType(String)),
-      r'quality_expected': encodeQueryParameter(_serializers, qualityExpected, const FullType(AgentModelQuality)),
-      r'custom_system_prompt': encodeQueryParameter(_serializers, customSystemPrompt, const FullType(String)),
-      r'custom_temperature': encodeQueryParameter(_serializers, customTemperature, const FullType(num)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
-      r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (idAgent != null) r'id_agent': idAgent,
+      if (idAiModel != null) r'id_ai_model': idAiModel,
+      if (qualityExpected != null) r'quality_expected': qualityExpected,
+      if (customSystemPrompt != null) r'custom_system_prompt': customSystemPrompt,
+      if (customTemperature != null) r'custom_temperature': customTemperature,
+      if (createdAt != null) r'created_at': createdAt,
+      if (updatedAt != null) r'updated_at': updatedAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -338,14 +326,11 @@ class AgentModelApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<AgentModelOut>? _responseData;
+    List<AgentModelOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(AgentModelOut)]),
-      ) as BuiltList<AgentModelOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<AgentModelOut>, AgentModelOut>(rawData, 'List<AgentModelOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -357,7 +342,7 @@ class AgentModelApi {
       );
     }
 
-    return Response<BuiltList<AgentModelOut>>(
+    return Response<List<AgentModelOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -394,7 +379,7 @@ class AgentModelApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent_model/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent_model/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -411,8 +396,7 @@ class AgentModelApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(AgentModelUpdate);
-      _bodyData = _serializers.serialize(agentModelUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(agentModelUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -438,11 +422,8 @@ class AgentModelApi {
     AgentModelOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentModelOut),
-      ) as AgentModelOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentModelOut, AgentModelOut>(rawData, 'AgentModelOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

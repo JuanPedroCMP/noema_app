@@ -3,179 +3,195 @@
 part of 'ai_model_update.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$AiModelUpdate extends AiModelUpdate {
-  @override
-  final String? slug;
-  @override
-  final String? idAiProvider;
-  @override
-  final String? displayName;
-  @override
-  final int? contextWindow;
-  @override
-  final int? inputTokenLimit;
-  @override
-  final int? outputTokenLimit;
-  @override
-  final bool? supportsVision;
-  @override
-  final bool? isActive;
+abstract class _$AiModelUpdateCWProxy {
+  AiModelUpdate slug(String? slug);
 
-  factory _$AiModelUpdate([void Function(AiModelUpdateBuilder)? updates]) =>
-      (AiModelUpdateBuilder()..update(updates))._build();
+  AiModelUpdate idAiProvider(String? idAiProvider);
 
-  _$AiModelUpdate._(
-      {this.slug,
-      this.idAiProvider,
-      this.displayName,
-      this.contextWindow,
-      this.inputTokenLimit,
-      this.outputTokenLimit,
-      this.supportsVision,
-      this.isActive})
-      : super._();
-  @override
-  AiModelUpdate rebuild(void Function(AiModelUpdateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  AiModelUpdate displayName(String? displayName);
 
-  @override
-  AiModelUpdateBuilder toBuilder() => AiModelUpdateBuilder()..replace(this);
+  AiModelUpdate contextWindow(int? contextWindow);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is AiModelUpdate &&
-        slug == other.slug &&
-        idAiProvider == other.idAiProvider &&
-        displayName == other.displayName &&
-        contextWindow == other.contextWindow &&
-        inputTokenLimit == other.inputTokenLimit &&
-        outputTokenLimit == other.outputTokenLimit &&
-        supportsVision == other.supportsVision &&
-        isActive == other.isActive;
-  }
+  AiModelUpdate inputTokenLimit(int? inputTokenLimit);
+
+  AiModelUpdate outputTokenLimit(int? outputTokenLimit);
+
+  AiModelUpdate supportsVision(bool? supportsVision);
+
+  AiModelUpdate isActive(bool? isActive);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiModelUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AiModelUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  AiModelUpdate call({
+    String? slug,
+    String? idAiProvider,
+    String? displayName,
+    int? contextWindow,
+    int? inputTokenLimit,
+    int? outputTokenLimit,
+    bool? supportsVision,
+    bool? isActive,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfAiModelUpdate.copyWith(...)` or call `instanceOfAiModelUpdate.copyWith.fieldName(value)` for a single field.
+class _$AiModelUpdateCWProxyImpl implements _$AiModelUpdateCWProxy {
+  const _$AiModelUpdateCWProxyImpl(this._value);
+
+  final AiModelUpdate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, slug.hashCode);
-    _$hash = $jc(_$hash, idAiProvider.hashCode);
-    _$hash = $jc(_$hash, displayName.hashCode);
-    _$hash = $jc(_$hash, contextWindow.hashCode);
-    _$hash = $jc(_$hash, inputTokenLimit.hashCode);
-    _$hash = $jc(_$hash, outputTokenLimit.hashCode);
-    _$hash = $jc(_$hash, supportsVision.hashCode);
-    _$hash = $jc(_$hash, isActive.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  AiModelUpdate slug(String? slug) => call(slug: slug);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'AiModelUpdate')
-          ..add('slug', slug)
-          ..add('idAiProvider', idAiProvider)
-          ..add('displayName', displayName)
-          ..add('contextWindow', contextWindow)
-          ..add('inputTokenLimit', inputTokenLimit)
-          ..add('outputTokenLimit', outputTokenLimit)
-          ..add('supportsVision', supportsVision)
-          ..add('isActive', isActive))
-        .toString();
+  AiModelUpdate idAiProvider(String? idAiProvider) =>
+      call(idAiProvider: idAiProvider);
+
+  @override
+  AiModelUpdate displayName(String? displayName) =>
+      call(displayName: displayName);
+
+  @override
+  AiModelUpdate contextWindow(int? contextWindow) =>
+      call(contextWindow: contextWindow);
+
+  @override
+  AiModelUpdate inputTokenLimit(int? inputTokenLimit) =>
+      call(inputTokenLimit: inputTokenLimit);
+
+  @override
+  AiModelUpdate outputTokenLimit(int? outputTokenLimit) =>
+      call(outputTokenLimit: outputTokenLimit);
+
+  @override
+  AiModelUpdate supportsVision(bool? supportsVision) =>
+      call(supportsVision: supportsVision);
+
+  @override
+  AiModelUpdate isActive(bool? isActive) => call(isActive: isActive);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiModelUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AiModelUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  AiModelUpdate call({
+    Object? slug = const $CopyWithPlaceholder(),
+    Object? idAiProvider = const $CopyWithPlaceholder(),
+    Object? displayName = const $CopyWithPlaceholder(),
+    Object? contextWindow = const $CopyWithPlaceholder(),
+    Object? inputTokenLimit = const $CopyWithPlaceholder(),
+    Object? outputTokenLimit = const $CopyWithPlaceholder(),
+    Object? supportsVision = const $CopyWithPlaceholder(),
+    Object? isActive = const $CopyWithPlaceholder(),
+  }) {
+    return AiModelUpdate(
+      slug: slug == const $CopyWithPlaceholder()
+          ? _value.slug
+          // ignore: cast_nullable_to_non_nullable
+          : slug as String?,
+      idAiProvider: idAiProvider == const $CopyWithPlaceholder()
+          ? _value.idAiProvider
+          // ignore: cast_nullable_to_non_nullable
+          : idAiProvider as String?,
+      displayName: displayName == const $CopyWithPlaceholder()
+          ? _value.displayName
+          // ignore: cast_nullable_to_non_nullable
+          : displayName as String?,
+      contextWindow: contextWindow == const $CopyWithPlaceholder()
+          ? _value.contextWindow
+          // ignore: cast_nullable_to_non_nullable
+          : contextWindow as int?,
+      inputTokenLimit: inputTokenLimit == const $CopyWithPlaceholder()
+          ? _value.inputTokenLimit
+          // ignore: cast_nullable_to_non_nullable
+          : inputTokenLimit as int?,
+      outputTokenLimit: outputTokenLimit == const $CopyWithPlaceholder()
+          ? _value.outputTokenLimit
+          // ignore: cast_nullable_to_non_nullable
+          : outputTokenLimit as int?,
+      supportsVision: supportsVision == const $CopyWithPlaceholder()
+          ? _value.supportsVision
+          // ignore: cast_nullable_to_non_nullable
+          : supportsVision as bool?,
+      isActive: isActive == const $CopyWithPlaceholder()
+          ? _value.isActive
+          // ignore: cast_nullable_to_non_nullable
+          : isActive as bool?,
+    );
   }
 }
 
-class AiModelUpdateBuilder
-    implements Builder<AiModelUpdate, AiModelUpdateBuilder> {
-  _$AiModelUpdate? _$v;
+extension $AiModelUpdateCopyWith on AiModelUpdate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfAiModelUpdate.copyWith(...)` or `instanceOfAiModelUpdate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$AiModelUpdateCWProxy get copyWith => _$AiModelUpdateCWProxyImpl(this);
+}
 
-  String? _slug;
-  String? get slug => _$this._slug;
-  set slug(String? slug) => _$this._slug = slug;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idAiProvider;
-  String? get idAiProvider => _$this._idAiProvider;
-  set idAiProvider(String? idAiProvider) => _$this._idAiProvider = idAiProvider;
-
-  String? _displayName;
-  String? get displayName => _$this._displayName;
-  set displayName(String? displayName) => _$this._displayName = displayName;
-
-  int? _contextWindow;
-  int? get contextWindow => _$this._contextWindow;
-  set contextWindow(int? contextWindow) =>
-      _$this._contextWindow = contextWindow;
-
-  int? _inputTokenLimit;
-  int? get inputTokenLimit => _$this._inputTokenLimit;
-  set inputTokenLimit(int? inputTokenLimit) =>
-      _$this._inputTokenLimit = inputTokenLimit;
-
-  int? _outputTokenLimit;
-  int? get outputTokenLimit => _$this._outputTokenLimit;
-  set outputTokenLimit(int? outputTokenLimit) =>
-      _$this._outputTokenLimit = outputTokenLimit;
-
-  bool? _supportsVision;
-  bool? get supportsVision => _$this._supportsVision;
-  set supportsVision(bool? supportsVision) =>
-      _$this._supportsVision = supportsVision;
-
-  bool? _isActive;
-  bool? get isActive => _$this._isActive;
-  set isActive(bool? isActive) => _$this._isActive = isActive;
-
-  AiModelUpdateBuilder() {
-    AiModelUpdate._defaults(this);
-  }
-
-  AiModelUpdateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _slug = $v.slug;
-      _idAiProvider = $v.idAiProvider;
-      _displayName = $v.displayName;
-      _contextWindow = $v.contextWindow;
-      _inputTokenLimit = $v.inputTokenLimit;
-      _outputTokenLimit = $v.outputTokenLimit;
-      _supportsVision = $v.supportsVision;
-      _isActive = $v.isActive;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(AiModelUpdate other) {
-    _$v = other as _$AiModelUpdate;
-  }
-
-  @override
-  void update(void Function(AiModelUpdateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  AiModelUpdate build() => _build();
-
-  _$AiModelUpdate _build() {
-    final _$result = _$v ??
-        _$AiModelUpdate._(
-          slug: slug,
-          idAiProvider: idAiProvider,
-          displayName: displayName,
-          contextWindow: contextWindow,
-          inputTokenLimit: inputTokenLimit,
-          outputTokenLimit: outputTokenLimit,
-          supportsVision: supportsVision,
-          isActive: isActive,
+AiModelUpdate _$AiModelUpdateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'AiModelUpdate',
+      json,
+      ($checkedConvert) {
+        final val = AiModelUpdate(
+          slug: $checkedConvert('slug', (v) => v as String?),
+          idAiProvider: $checkedConvert('id_ai_provider', (v) => v as String?),
+          displayName: $checkedConvert('display_name', (v) => v as String?),
+          contextWindow: $checkedConvert(
+            'context_window',
+            (v) => (v as num?)?.toInt(),
+          ),
+          inputTokenLimit: $checkedConvert(
+            'input_token_limit',
+            (v) => (v as num?)?.toInt(),
+          ),
+          outputTokenLimit: $checkedConvert(
+            'output_token_limit',
+            (v) => (v as num?)?.toInt(),
+          ),
+          supportsVision: $checkedConvert('supports_vision', (v) => v as bool?),
+          isActive: $checkedConvert('is_active', (v) => v as bool?),
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        return val;
+      },
+      fieldKeyMap: const {
+        'idAiProvider': 'id_ai_provider',
+        'displayName': 'display_name',
+        'contextWindow': 'context_window',
+        'inputTokenLimit': 'input_token_limit',
+        'outputTokenLimit': 'output_token_limit',
+        'supportsVision': 'supports_vision',
+        'isActive': 'is_active',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$AiModelUpdateToJson(AiModelUpdate instance) =>
+    <String, dynamic>{
+      'slug': ?instance.slug,
+      'id_ai_provider': ?instance.idAiProvider,
+      'display_name': ?instance.displayName,
+      'context_window': ?instance.contextWindow,
+      'input_token_limit': ?instance.inputTokenLimit,
+      'output_token_limit': ?instance.outputTokenLimit,
+      'supports_vision': ?instance.supportsVision,
+      'is_active': ?instance.isActive,
+    };

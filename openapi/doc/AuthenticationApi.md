@@ -10,14 +10,16 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**authenticateApiV1AuthLoginPost**](AuthenticationApi.md#authenticateapiv1authloginpost) | **POST** /api/v1/auth/login | Authenticate
+[**confirmPwdResetApiV1AuthConfirmPasswordRestPost**](AuthenticationApi.md#confirmpwdresetapiv1authconfirmpasswordrestpost) | **POST** /api/v1/auth/confirm_password_rest | Confirm Pwd Reset
 [**createGoogleAccountApiV1AuthGoogleCreatePost**](AuthenticationApi.md#creategoogleaccountapiv1authgooglecreatepost) | **POST** /api/v1/auth/google/create | Create Google Account
 [**deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete**](AuthenticationApi.md#deletegoogleaccountapiv1authgoogledeleteidentificatordelete) | **DELETE** /api/v1/auth/google/delete/{identificator} | Delete Google Account
 [**getGoogleAccountApiV1AuthGoogleGetIdentificatorGet**](AuthenticationApi.md#getgoogleaccountapiv1authgooglegetidentificatorget) | **GET** /api/v1/auth/google/get/{identificator} | Get Google Account
+[**sendPwdResetApiV1AuthCallPasswordRestPost**](AuthenticationApi.md#sendpwdresetapiv1authcallpasswordrestpost) | **POST** /api/v1/auth/call_password_rest | Send Pwd Reset
 [**updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut**](AuthenticationApi.md#updategoogleaccountapiv1authgoogleupdateidentificatorput) | **PUT** /api/v1/auth/google/update/{identificator} | Update Google Account
 
 
 # **authenticateApiV1AuthLoginPost**
-> JsonObject authenticateApiV1AuthLoginPost(username, password, grantType, scope, clientId, clientSecret)
+> Object authenticateApiV1AuthLoginPost(username, password, grantType, scope, clientId, clientSecret)
 
 Authenticate
 
@@ -54,7 +56,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -63,6 +65,51 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/x-www-form-urlencoded
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **confirmPwdResetApiV1AuthConfirmPasswordRestPost**
+> Object confirmPwdResetApiV1AuthConfirmPasswordRestPost(identificator, newPassword, code)
+
+Confirm Pwd Reset
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+
+final api = Openapi().getAuthenticationApi();
+final String identificator = identificator_example; // String | 
+final String newPassword = newPassword_example; // String | 
+final String code = code_example; // String | 
+
+try {
+    final response = api.confirmPwdResetApiV1AuthConfirmPasswordRestPost(identificator, newPassword, code);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthenticationApi->confirmPwdResetApiV1AuthConfirmPasswordRestPost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **identificator** | **String**|  | 
+ **newPassword** | **String**|  | 
+ **code** | **String**|  | 
+
+### Return type
+
+**Object**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -111,7 +158,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete**
-> JsonObject deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(identificator)
+> Object deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(identificator)
 
 Delete Google Account
 
@@ -140,7 +187,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -188,6 +235,47 @@ Name | Type | Description  | Notes
 ### Authorization
 
 [OAuth2PasswordBearer](../README.md#OAuth2PasswordBearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **sendPwdResetApiV1AuthCallPasswordRestPost**
+> Object sendPwdResetApiV1AuthCallPasswordRestPost(identificator)
+
+Send Pwd Reset
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+
+final api = Openapi().getAuthenticationApi();
+final String identificator = identificator_example; // String | 
+
+try {
+    final response = api.sendPwdResetApiV1AuthCallPasswordRestPost(identificator);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthenticationApi->sendPwdResetApiV1AuthCallPasswordRestPost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **identificator** | **String**|  | 
+
+### Return type
+
+**Object**
+
+### Authorization
+
+No authorization required
 
 ### HTTP request headers
 

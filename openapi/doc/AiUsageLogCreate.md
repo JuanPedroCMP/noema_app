@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **idUser** | **String** |  | 
 **idAgentModel** | **String** |  | 
-**usageDatails** | **String** |  | 
+**usageDetails** | **Map&lt;String, Object&gt;** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

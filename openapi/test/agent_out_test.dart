@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AgentOut
 void main() {
-  final instance = AgentOutBuilder();
-  // TODO add properties to the builder and call build()
+  final AgentOut? instance = /* AgentOut(...) */ null;
+  // TODO add properties to the entity
 
   group(AgentOut, () {
     // String id

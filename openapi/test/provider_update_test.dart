@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ProviderUpdate
 void main() {
-  final instance = ProviderUpdateBuilder();
-  // TODO add properties to the builder and call build()
+  final ProviderUpdate? instance = /* ProviderUpdate(...) */ null;
+  // TODO add properties to the entity
 
   group(ProviderUpdate, () {
     // String slug

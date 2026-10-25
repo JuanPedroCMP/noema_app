@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for GenericLogOut
 void main() {
-  final instance = GenericLogOutBuilder();
-  // TODO add properties to the builder and call build()
+  final GenericLogOut? instance = /* GenericLogOut(...) */ null;
+  // TODO add properties to the entity
 
   group(GenericLogOut, () {
     // String id
@@ -22,7 +22,7 @@ void main() {
       // TODO
     });
 
-    // JsonObject details
+    // Object details
     test('to test the property `details`', () async {
       // TODO
     });

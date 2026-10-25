@@ -3,155 +3,134 @@
 part of 'validation_error.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$ValidationError extends ValidationError {
-  @override
-  final BuiltList<LocationInner> loc;
-  @override
-  final String msg;
-  @override
-  final String type;
-  @override
-  final JsonObject? input;
-  @override
-  final JsonObject? ctx;
+abstract class _$ValidationErrorCWProxy {
+  ValidationError loc(List<LocationInner> loc);
 
-  factory _$ValidationError([void Function(ValidationErrorBuilder)? updates]) =>
-      (ValidationErrorBuilder()..update(updates))._build();
+  ValidationError msg(String msg);
 
-  _$ValidationError._(
-      {required this.loc,
-      required this.msg,
-      required this.type,
-      this.input,
-      this.ctx})
-      : super._();
-  @override
-  ValidationError rebuild(void Function(ValidationErrorBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  ValidationError type(String type);
 
-  @override
-  ValidationErrorBuilder toBuilder() => ValidationErrorBuilder()..replace(this);
+  ValidationError input(Object? input);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is ValidationError &&
-        loc == other.loc &&
-        msg == other.msg &&
-        type == other.type &&
-        input == other.input &&
-        ctx == other.ctx;
-  }
+  ValidationError ctx(Object? ctx);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ValidationError(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ValidationError(...).copyWith(id: 12, name: "My name")
+  /// ```
+  ValidationError call({
+    List<LocationInner> loc,
+    String msg,
+    String type,
+    Object? input,
+    Object? ctx,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfValidationError.copyWith(...)` or call `instanceOfValidationError.copyWith.fieldName(value)` for a single field.
+class _$ValidationErrorCWProxyImpl implements _$ValidationErrorCWProxy {
+  const _$ValidationErrorCWProxyImpl(this._value);
+
+  final ValidationError _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, loc.hashCode);
-    _$hash = $jc(_$hash, msg.hashCode);
-    _$hash = $jc(_$hash, type.hashCode);
-    _$hash = $jc(_$hash, input.hashCode);
-    _$hash = $jc(_$hash, ctx.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  ValidationError loc(List<LocationInner> loc) => call(loc: loc);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'ValidationError')
-          ..add('loc', loc)
-          ..add('msg', msg)
-          ..add('type', type)
-          ..add('input', input)
-          ..add('ctx', ctx))
-        .toString();
+  ValidationError msg(String msg) => call(msg: msg);
+
+  @override
+  ValidationError type(String type) => call(type: type);
+
+  @override
+  ValidationError input(Object? input) => call(input: input);
+
+  @override
+  ValidationError ctx(Object? ctx) => call(ctx: ctx);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ValidationError(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ValidationError(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  ValidationError call({
+    Object? loc = const $CopyWithPlaceholder(),
+    Object? msg = const $CopyWithPlaceholder(),
+    Object? type = const $CopyWithPlaceholder(),
+    Object? input = const $CopyWithPlaceholder(),
+    Object? ctx = const $CopyWithPlaceholder(),
+  }) {
+    return ValidationError(
+      loc: loc == const $CopyWithPlaceholder() || loc == null
+          ? _value.loc
+          // ignore: cast_nullable_to_non_nullable
+          : loc as List<LocationInner>,
+      msg: msg == const $CopyWithPlaceholder() || msg == null
+          ? _value.msg
+          // ignore: cast_nullable_to_non_nullable
+          : msg as String,
+      type: type == const $CopyWithPlaceholder() || type == null
+          ? _value.type
+          // ignore: cast_nullable_to_non_nullable
+          : type as String,
+      input: input == const $CopyWithPlaceholder()
+          ? _value.input
+          // ignore: cast_nullable_to_non_nullable
+          : input as Object?,
+      ctx: ctx == const $CopyWithPlaceholder()
+          ? _value.ctx
+          // ignore: cast_nullable_to_non_nullable
+          : ctx as Object?,
+    );
   }
 }
 
-class ValidationErrorBuilder
-    implements Builder<ValidationError, ValidationErrorBuilder> {
-  _$ValidationError? _$v;
-
-  ListBuilder<LocationInner>? _loc;
-  ListBuilder<LocationInner> get loc =>
-      _$this._loc ??= ListBuilder<LocationInner>();
-  set loc(ListBuilder<LocationInner>? loc) => _$this._loc = loc;
-
-  String? _msg;
-  String? get msg => _$this._msg;
-  set msg(String? msg) => _$this._msg = msg;
-
-  String? _type;
-  String? get type => _$this._type;
-  set type(String? type) => _$this._type = type;
-
-  JsonObject? _input;
-  JsonObject? get input => _$this._input;
-  set input(JsonObject? input) => _$this._input = input;
-
-  JsonObject? _ctx;
-  JsonObject? get ctx => _$this._ctx;
-  set ctx(JsonObject? ctx) => _$this._ctx = ctx;
-
-  ValidationErrorBuilder() {
-    ValidationError._defaults(this);
-  }
-
-  ValidationErrorBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _loc = $v.loc.toBuilder();
-      _msg = $v.msg;
-      _type = $v.type;
-      _input = $v.input;
-      _ctx = $v.ctx;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(ValidationError other) {
-    _$v = other as _$ValidationError;
-  }
-
-  @override
-  void update(void Function(ValidationErrorBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  ValidationError build() => _build();
-
-  _$ValidationError _build() {
-    _$ValidationError _$result;
-    try {
-      _$result = _$v ??
-          _$ValidationError._(
-            loc: loc.build(),
-            msg: BuiltValueNullFieldError.checkNotNull(
-                msg, r'ValidationError', 'msg'),
-            type: BuiltValueNullFieldError.checkNotNull(
-                type, r'ValidationError', 'type'),
-            input: input,
-            ctx: ctx,
-          );
-    } catch (_) {
-      late String _$failedField;
-      try {
-        _$failedField = 'loc';
-        loc.build();
-      } catch (e) {
-        throw BuiltValueNestedFieldError(
-            r'ValidationError', _$failedField, e.toString());
-      }
-      rethrow;
-    }
-    replace(_$result);
-    return _$result;
-  }
+extension $ValidationErrorCopyWith on ValidationError {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfValidationError.copyWith(...)` or `instanceOfValidationError.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$ValidationErrorCWProxy get copyWith => _$ValidationErrorCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+ValidationError _$ValidationErrorFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ValidationError', json, ($checkedConvert) {
+      $checkKeys(json, requiredKeys: const ['loc', 'msg', 'type']);
+      final val = ValidationError(
+        loc: $checkedConvert(
+          'loc',
+          (v) => (v as List<dynamic>)
+              .map((e) => LocationInner.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+        msg: $checkedConvert('msg', (v) => v as String),
+        type: $checkedConvert('type', (v) => v as String),
+        input: $checkedConvert('input', (v) => v),
+        ctx: $checkedConvert('ctx', (v) => v),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ValidationErrorToJson(ValidationError instance) =>
+    <String, dynamic>{
+      'loc': instance.loc.map((e) => e.toJson()).toList(),
+      'msg': instance.msg,
+      'type': instance.type,
+      'input': ?instance.input,
+      'ctx': ?instance.ctx,
+    };

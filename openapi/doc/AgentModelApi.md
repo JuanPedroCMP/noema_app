@@ -58,7 +58,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete**
-> JsonObject deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete(identificator)
+> Object deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete(identificator)
 
 Delete Agent Model
 
@@ -85,7 +85,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -140,7 +140,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listAgentModelApiV1AiAgentModelListGet**
-> BuiltList<AgentModelOut> listAgentModelApiV1AiAgentModelListGet(id, idAgent, idAiModel, qualityExpected, customSystemPrompt, customTemperature, createdAt, updatedAt)
+> List<AgentModelOut> listAgentModelApiV1AiAgentModelListGet(id, idAgent, idAiModel, qualityExpected, customSystemPrompt, customTemperature, createdAt, updatedAt)
 
 List Agent Model
 
@@ -181,7 +181,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;AgentModelOut&gt;**](AgentModelOut.md)
+[**List&lt;AgentModelOut&gt;**](AgentModelOut.md)
 
 ### Authorization
 

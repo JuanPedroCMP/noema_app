@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserApiKeyCanUseIaModelCreate
 void main() {
-  final instance = UserApiKeyCanUseIaModelCreateBuilder();
-  // TODO add properties to the builder and call build()
+  final UserApiKeyCanUseIaModelCreate? instance = /* UserApiKeyCanUseIaModelCreate(...) */ null;
+  // TODO add properties to the entity
 
   group(UserApiKeyCanUseIaModelCreate, () {
     // String idAiModel

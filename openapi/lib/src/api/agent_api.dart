@@ -4,24 +4,22 @@
 
 import 'dart:async';
 
-import 'package:built_value/json_object.dart';
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/agent_create.dart';
 import 'package:openapi/src/model/agent_out.dart';
 import 'package:openapi/src/model/agent_update.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/task_type.dart';
 
 class AgentApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const AgentApi(this._dio, this._serializers);
+  const AgentApi(this._dio);
 
   /// Create Agent
   /// 
@@ -63,8 +61,7 @@ class AgentApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(AgentCreate);
-      _bodyData = _serializers.serialize(agentCreate, specifiedType: _type);
+      _bodyData = jsonEncode(agentCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -90,11 +87,8 @@ class AgentApi {
     AgentOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentOut),
-      ) as AgentOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentOut, AgentOut>(rawData, 'AgentOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -130,9 +124,9 @@ class AgentApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [Object] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> deleteAgentApiV1AiAgentDeleteIdentificatorDelete({ 
+  Future<Response<Object>> deleteAgentApiV1AiAgentDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -141,7 +135,7 @@ class AgentApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -162,14 +156,11 @@ class AgentApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    Object? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +172,7 @@ class AgentApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<Object>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +207,7 @@ class AgentApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -240,11 +231,8 @@ class AgentApi {
     AgentOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentOut),
-      ) as AgentOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentOut, AgentOut>(rawData, 'AgentOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -286,9 +274,9 @@ class AgentApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<AgentOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<AgentOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<AgentOut>>> listAgentApiV1AiAgentListGet({ 
+  Future<Response<List<AgentOut>>> listAgentApiV1AiAgentListGet({ 
     String? id,
     String? alias,
     TaskType? task,
@@ -317,13 +305,13 @@ class AgentApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'alias': encodeQueryParameter(_serializers, alias, const FullType(String)),
-      r'task': encodeQueryParameter(_serializers, task, const FullType(TaskType)),
-      r'base_system_prompt': encodeQueryParameter(_serializers, baseSystemPrompt, const FullType(String)),
-      r'temperature': encodeQueryParameter(_serializers, temperature, const FullType(num)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
-      r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (alias != null) r'alias': alias,
+      if (task != null) r'task': task,
+      if (baseSystemPrompt != null) r'base_system_prompt': baseSystemPrompt,
+      if (temperature != null) r'temperature': temperature,
+      if (createdAt != null) r'created_at': createdAt,
+      if (updatedAt != null) r'updated_at': updatedAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -335,14 +323,11 @@ class AgentApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<AgentOut>? _responseData;
+    List<AgentOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(AgentOut)]),
-      ) as BuiltList<AgentOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<AgentOut>, AgentOut>(rawData, 'List<AgentOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -354,7 +339,7 @@ class AgentApi {
       );
     }
 
-    return Response<BuiltList<AgentOut>>(
+    return Response<List<AgentOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -391,7 +376,7 @@ class AgentApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/agent/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/agent/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -408,8 +393,7 @@ class AgentApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(AgentUpdate);
-      _bodyData = _serializers.serialize(agentUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(agentUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -435,11 +419,8 @@ class AgentApi {
     AgentOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AgentOut),
-      ) as AgentOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AgentOut, AgentOut>(rawData, 'AgentOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

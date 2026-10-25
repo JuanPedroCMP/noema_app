@@ -58,7 +58,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteProviderApiV1AiProviderDeleteIdentificatorDelete**
-> JsonObject deleteProviderApiV1AiProviderDeleteIdentificatorDelete(identificator)
+> Object deleteProviderApiV1AiProviderDeleteIdentificatorDelete(identificator)
 
 Delete Provider
 
@@ -85,7 +85,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -140,7 +140,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listProvidersApiV1AiProviderListGet**
-> BuiltList<ProviderOut> listProvidersApiV1AiProviderListGet(id, slug, displayName, baseUrl, isActive, createdAt, updatedAt)
+> List<ProviderOut> listProvidersApiV1AiProviderListGet(id, slug, displayName, baseUrl, isActive, createdAt, updatedAt)
 
 List Providers
 
@@ -179,7 +179,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;ProviderOut&gt;**](ProviderOut.md)
+[**List&lt;ProviderOut&gt;**](ProviderOut.md)
 
 ### Authorization
 

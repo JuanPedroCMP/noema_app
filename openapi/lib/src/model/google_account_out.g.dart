@@ -3,233 +3,240 @@
 part of 'google_account_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$GoogleAccountOut extends GoogleAccountOut {
-  @override
-  final String id;
-  @override
-  final String idUser;
-  @override
-  final String? googleUserId;
-  @override
-  final String emailGoogle;
-  @override
-  final String? accessTokenEnc;
-  @override
-  final String? refreshTokenEnc;
-  @override
-  final String? grantedScopes;
-  @override
-  final bool isActive;
-  @override
-  final DateTime? expiresAt;
-  @override
-  final DateTime? lastRefreshAt;
-  @override
-  final DateTime? updatedAt;
-  @override
-  final DateTime? createdAt;
+abstract class _$GoogleAccountOutCWProxy {
+  GoogleAccountOut id(String id);
 
-  factory _$GoogleAccountOut(
-          [void Function(GoogleAccountOutBuilder)? updates]) =>
-      (GoogleAccountOutBuilder()..update(updates))._build();
+  GoogleAccountOut idUser(String idUser);
 
-  _$GoogleAccountOut._(
-      {required this.id,
-      required this.idUser,
-      this.googleUserId,
-      required this.emailGoogle,
-      this.accessTokenEnc,
-      this.refreshTokenEnc,
-      this.grantedScopes,
-      required this.isActive,
-      this.expiresAt,
-      this.lastRefreshAt,
-      this.updatedAt,
-      this.createdAt})
-      : super._();
-  @override
-  GoogleAccountOut rebuild(void Function(GoogleAccountOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  GoogleAccountOut googleUserId(String? googleUserId);
 
-  @override
-  GoogleAccountOutBuilder toBuilder() =>
-      GoogleAccountOutBuilder()..replace(this);
+  GoogleAccountOut emailGoogle(String emailGoogle);
+
+  GoogleAccountOut grantedScopes(String? grantedScopes);
+
+  GoogleAccountOut isActive(bool isActive);
+
+  GoogleAccountOut expiresAt(DateTime? expiresAt);
+
+  GoogleAccountOut lastRefreshAt(DateTime? lastRefreshAt);
+
+  GoogleAccountOut updatedAt(DateTime? updatedAt);
+
+  GoogleAccountOut createdAt(DateTime? createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  GoogleAccountOut call({
+    String id,
+    String idUser,
+    String? googleUserId,
+    String emailGoogle,
+    String? grantedScopes,
+    bool isActive,
+    DateTime? expiresAt,
+    DateTime? lastRefreshAt,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfGoogleAccountOut.copyWith(...)` or call `instanceOfGoogleAccountOut.copyWith.fieldName(value)` for a single field.
+class _$GoogleAccountOutCWProxyImpl implements _$GoogleAccountOutCWProxy {
+  const _$GoogleAccountOutCWProxyImpl(this._value);
+
+  final GoogleAccountOut _value;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is GoogleAccountOut &&
-        id == other.id &&
-        idUser == other.idUser &&
-        googleUserId == other.googleUserId &&
-        emailGoogle == other.emailGoogle &&
-        accessTokenEnc == other.accessTokenEnc &&
-        refreshTokenEnc == other.refreshTokenEnc &&
-        grantedScopes == other.grantedScopes &&
-        isActive == other.isActive &&
-        expiresAt == other.expiresAt &&
-        lastRefreshAt == other.lastRefreshAt &&
-        updatedAt == other.updatedAt &&
-        createdAt == other.createdAt;
-  }
+  GoogleAccountOut id(String id) => call(id: id);
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, googleUserId.hashCode);
-    _$hash = $jc(_$hash, emailGoogle.hashCode);
-    _$hash = $jc(_$hash, accessTokenEnc.hashCode);
-    _$hash = $jc(_$hash, refreshTokenEnc.hashCode);
-    _$hash = $jc(_$hash, grantedScopes.hashCode);
-    _$hash = $jc(_$hash, isActive.hashCode);
-    _$hash = $jc(_$hash, expiresAt.hashCode);
-    _$hash = $jc(_$hash, lastRefreshAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  GoogleAccountOut idUser(String idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'GoogleAccountOut')
-          ..add('id', id)
-          ..add('idUser', idUser)
-          ..add('googleUserId', googleUserId)
-          ..add('emailGoogle', emailGoogle)
-          ..add('accessTokenEnc', accessTokenEnc)
-          ..add('refreshTokenEnc', refreshTokenEnc)
-          ..add('grantedScopes', grantedScopes)
-          ..add('isActive', isActive)
-          ..add('expiresAt', expiresAt)
-          ..add('lastRefreshAt', lastRefreshAt)
-          ..add('updatedAt', updatedAt)
-          ..add('createdAt', createdAt))
-        .toString();
+  GoogleAccountOut googleUserId(String? googleUserId) =>
+      call(googleUserId: googleUserId);
+
+  @override
+  GoogleAccountOut emailGoogle(String emailGoogle) =>
+      call(emailGoogle: emailGoogle);
+
+  @override
+  GoogleAccountOut grantedScopes(String? grantedScopes) =>
+      call(grantedScopes: grantedScopes);
+
+  @override
+  GoogleAccountOut isActive(bool isActive) => call(isActive: isActive);
+
+  @override
+  GoogleAccountOut expiresAt(DateTime? expiresAt) => call(expiresAt: expiresAt);
+
+  @override
+  GoogleAccountOut lastRefreshAt(DateTime? lastRefreshAt) =>
+      call(lastRefreshAt: lastRefreshAt);
+
+  @override
+  GoogleAccountOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
+
+  @override
+  GoogleAccountOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  GoogleAccountOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? googleUserId = const $CopyWithPlaceholder(),
+    Object? emailGoogle = const $CopyWithPlaceholder(),
+    Object? grantedScopes = const $CopyWithPlaceholder(),
+    Object? isActive = const $CopyWithPlaceholder(),
+    Object? expiresAt = const $CopyWithPlaceholder(),
+    Object? lastRefreshAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+  }) {
+    return GoogleAccountOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      googleUserId: googleUserId == const $CopyWithPlaceholder()
+          ? _value.googleUserId
+          // ignore: cast_nullable_to_non_nullable
+          : googleUserId as String?,
+      emailGoogle:
+          emailGoogle == const $CopyWithPlaceholder() || emailGoogle == null
+          ? _value.emailGoogle
+          // ignore: cast_nullable_to_non_nullable
+          : emailGoogle as String,
+      grantedScopes: grantedScopes == const $CopyWithPlaceholder()
+          ? _value.grantedScopes
+          // ignore: cast_nullable_to_non_nullable
+          : grantedScopes as String?,
+      isActive: isActive == const $CopyWithPlaceholder() || isActive == null
+          ? _value.isActive
+          // ignore: cast_nullable_to_non_nullable
+          : isActive as bool,
+      expiresAt: expiresAt == const $CopyWithPlaceholder()
+          ? _value.expiresAt
+          // ignore: cast_nullable_to_non_nullable
+          : expiresAt as DateTime?,
+      lastRefreshAt: lastRefreshAt == const $CopyWithPlaceholder()
+          ? _value.lastRefreshAt
+          // ignore: cast_nullable_to_non_nullable
+          : lastRefreshAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+    );
   }
 }
 
-class GoogleAccountOutBuilder
-    implements Builder<GoogleAccountOut, GoogleAccountOutBuilder> {
-  _$GoogleAccountOut? _$v;
+extension $GoogleAccountOutCopyWith on GoogleAccountOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfGoogleAccountOut.copyWith(...)` or `instanceOfGoogleAccountOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$GoogleAccountOutCWProxy get copyWith => _$GoogleAccountOutCWProxyImpl(this);
+}
 
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _googleUserId;
-  String? get googleUserId => _$this._googleUserId;
-  set googleUserId(String? googleUserId) => _$this._googleUserId = googleUserId;
-
-  String? _emailGoogle;
-  String? get emailGoogle => _$this._emailGoogle;
-  set emailGoogle(String? emailGoogle) => _$this._emailGoogle = emailGoogle;
-
-  String? _accessTokenEnc;
-  String? get accessTokenEnc => _$this._accessTokenEnc;
-  set accessTokenEnc(String? accessTokenEnc) =>
-      _$this._accessTokenEnc = accessTokenEnc;
-
-  String? _refreshTokenEnc;
-  String? get refreshTokenEnc => _$this._refreshTokenEnc;
-  set refreshTokenEnc(String? refreshTokenEnc) =>
-      _$this._refreshTokenEnc = refreshTokenEnc;
-
-  String? _grantedScopes;
-  String? get grantedScopes => _$this._grantedScopes;
-  set grantedScopes(String? grantedScopes) =>
-      _$this._grantedScopes = grantedScopes;
-
-  bool? _isActive;
-  bool? get isActive => _$this._isActive;
-  set isActive(bool? isActive) => _$this._isActive = isActive;
-
-  DateTime? _expiresAt;
-  DateTime? get expiresAt => _$this._expiresAt;
-  set expiresAt(DateTime? expiresAt) => _$this._expiresAt = expiresAt;
-
-  DateTime? _lastRefreshAt;
-  DateTime? get lastRefreshAt => _$this._lastRefreshAt;
-  set lastRefreshAt(DateTime? lastRefreshAt) =>
-      _$this._lastRefreshAt = lastRefreshAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  GoogleAccountOutBuilder() {
-    GoogleAccountOut._defaults(this);
-  }
-
-  GoogleAccountOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idUser = $v.idUser;
-      _googleUserId = $v.googleUserId;
-      _emailGoogle = $v.emailGoogle;
-      _accessTokenEnc = $v.accessTokenEnc;
-      _refreshTokenEnc = $v.refreshTokenEnc;
-      _grantedScopes = $v.grantedScopes;
-      _isActive = $v.isActive;
-      _expiresAt = $v.expiresAt;
-      _lastRefreshAt = $v.lastRefreshAt;
-      _updatedAt = $v.updatedAt;
-      _createdAt = $v.createdAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(GoogleAccountOut other) {
-    _$v = other as _$GoogleAccountOut;
-  }
-
-  @override
-  void update(void Function(GoogleAccountOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  GoogleAccountOut build() => _build();
-
-  _$GoogleAccountOut _build() {
-    final _$result = _$v ??
-        _$GoogleAccountOut._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'GoogleAccountOut', 'id'),
-          idUser: BuiltValueNullFieldError.checkNotNull(
-              idUser, r'GoogleAccountOut', 'idUser'),
-          googleUserId: googleUserId,
-          emailGoogle: BuiltValueNullFieldError.checkNotNull(
-              emailGoogle, r'GoogleAccountOut', 'emailGoogle'),
-          accessTokenEnc: accessTokenEnc,
-          refreshTokenEnc: refreshTokenEnc,
-          grantedScopes: grantedScopes,
-          isActive: BuiltValueNullFieldError.checkNotNull(
-              isActive, r'GoogleAccountOut', 'isActive'),
-          expiresAt: expiresAt,
-          lastRefreshAt: lastRefreshAt,
-          updatedAt: updatedAt,
-          createdAt: createdAt,
+GoogleAccountOut _$GoogleAccountOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'GoogleAccountOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_user',
+            'google_user_id',
+            'email_google',
+            'granted_scopes',
+            'is_active',
+            'expires_at',
+            'last_refresh_at',
+            'updated_at',
+            'created_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = GoogleAccountOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idUser: $checkedConvert('id_user', (v) => v as String),
+          googleUserId: $checkedConvert('google_user_id', (v) => v as String?),
+          emailGoogle: $checkedConvert('email_google', (v) => v as String),
+          grantedScopes: $checkedConvert('granted_scopes', (v) => v as String?),
+          isActive: $checkedConvert('is_active', (v) => v as bool),
+          expiresAt: $checkedConvert(
+            'expires_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          lastRefreshAt: $checkedConvert(
+            'last_refresh_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          updatedAt: $checkedConvert(
+            'updated_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'googleUserId': 'google_user_id',
+        'emailGoogle': 'email_google',
+        'grantedScopes': 'granted_scopes',
+        'isActive': 'is_active',
+        'expiresAt': 'expires_at',
+        'lastRefreshAt': 'last_refresh_at',
+        'updatedAt': 'updated_at',
+        'createdAt': 'created_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$GoogleAccountOutToJson(GoogleAccountOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_user': instance.idUser,
+      'google_user_id': instance.googleUserId,
+      'email_google': instance.emailGoogle,
+      'granted_scopes': instance.grantedScopes,
+      'is_active': instance.isActive,
+      'expires_at': instance.expiresAt?.toIso8601String(),
+      'last_refresh_at': instance.lastRefreshAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+    };

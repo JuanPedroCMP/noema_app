@@ -4,10 +4,12 @@
 
 import 'dart:async';
 
-import 'package:built_value/json_object.dart';
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_create.dart';
 import 'package:openapi/src/model/user_out.dart';
 import 'package:openapi/src/model/user_update.dart';
@@ -16,9 +18,7 @@ class UserApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const UserApi(this._dio, this._serializers);
+  const UserApi(this._dio);
 
   /// Current User
   /// 
@@ -70,11 +70,8 @@ class UserApi {
     UserOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserOut),
-      ) as UserOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -109,9 +106,9 @@ class UserApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [Object] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> deleteUserApiV1UserDeleteDelete({ 
+  Future<Response<Object>> deleteUserApiV1UserDeleteDelete({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -145,14 +142,11 @@ class UserApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    Object? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -164,7 +158,7 @@ class UserApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<Object>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,8 +210,7 @@ class UserApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserCreate);
-      _bodyData = _serializers.serialize(userCreate, specifiedType: _type);
+      _bodyData = jsonEncode(userCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -243,11 +236,8 @@ class UserApi {
     UserOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserOut),
-      ) as UserOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -316,8 +306,7 @@ class UserApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserUpdate);
-      _bodyData = _serializers.serialize(userUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(userUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -343,11 +332,8 @@ class UserApi {
     UserOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserOut),
-      ) as UserOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

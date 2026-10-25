@@ -3,128 +3,130 @@
 part of 'user_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserCreate extends UserCreate {
-  @override
-  final String? userName;
-  @override
-  final String primaryEmail;
-  @override
-  final String? userDisplayName;
-  @override
-  final String? password;
+abstract class _$UserCreateCWProxy {
+  UserCreate userName(String? userName);
 
-  factory _$UserCreate([void Function(UserCreateBuilder)? updates]) =>
-      (UserCreateBuilder()..update(updates))._build();
+  UserCreate primaryEmail(String primaryEmail);
 
-  _$UserCreate._(
-      {this.userName,
-      required this.primaryEmail,
-      this.userDisplayName,
-      this.password})
-      : super._();
-  @override
-  UserCreate rebuild(void Function(UserCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserCreate userDisplayName(String? userDisplayName);
 
-  @override
-  UserCreateBuilder toBuilder() => UserCreateBuilder()..replace(this);
+  UserCreate password(String? password);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserCreate &&
-        userName == other.userName &&
-        primaryEmail == other.primaryEmail &&
-        userDisplayName == other.userDisplayName &&
-        password == other.password;
-  }
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserCreate call({
+    String? userName,
+    String primaryEmail,
+    String? userDisplayName,
+    String? password,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserCreate.copyWith(...)` or call `instanceOfUserCreate.copyWith.fieldName(value)` for a single field.
+class _$UserCreateCWProxyImpl implements _$UserCreateCWProxy {
+  const _$UserCreateCWProxyImpl(this._value);
+
+  final UserCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, userName.hashCode);
-    _$hash = $jc(_$hash, primaryEmail.hashCode);
-    _$hash = $jc(_$hash, userDisplayName.hashCode);
-    _$hash = $jc(_$hash, password.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserCreate userName(String? userName) => call(userName: userName);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserCreate')
-          ..add('userName', userName)
-          ..add('primaryEmail', primaryEmail)
-          ..add('userDisplayName', userDisplayName)
-          ..add('password', password))
-        .toString();
+  UserCreate primaryEmail(String primaryEmail) =>
+      call(primaryEmail: primaryEmail);
+
+  @override
+  UserCreate userDisplayName(String? userDisplayName) =>
+      call(userDisplayName: userDisplayName);
+
+  @override
+  UserCreate password(String? password) => call(password: password);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserCreate call({
+    Object? userName = const $CopyWithPlaceholder(),
+    Object? primaryEmail = const $CopyWithPlaceholder(),
+    Object? userDisplayName = const $CopyWithPlaceholder(),
+    Object? password = const $CopyWithPlaceholder(),
+  }) {
+    return UserCreate(
+      userName: userName == const $CopyWithPlaceholder()
+          ? _value.userName
+          // ignore: cast_nullable_to_non_nullable
+          : userName as String?,
+      primaryEmail:
+          primaryEmail == const $CopyWithPlaceholder() || primaryEmail == null
+          ? _value.primaryEmail
+          // ignore: cast_nullable_to_non_nullable
+          : primaryEmail as String,
+      userDisplayName: userDisplayName == const $CopyWithPlaceholder()
+          ? _value.userDisplayName
+          // ignore: cast_nullable_to_non_nullable
+          : userDisplayName as String?,
+      password: password == const $CopyWithPlaceholder()
+          ? _value.password
+          // ignore: cast_nullable_to_non_nullable
+          : password as String?,
+    );
   }
 }
 
-class UserCreateBuilder implements Builder<UserCreate, UserCreateBuilder> {
-  _$UserCreate? _$v;
-
-  String? _userName;
-  String? get userName => _$this._userName;
-  set userName(String? userName) => _$this._userName = userName;
-
-  String? _primaryEmail;
-  String? get primaryEmail => _$this._primaryEmail;
-  set primaryEmail(String? primaryEmail) => _$this._primaryEmail = primaryEmail;
-
-  String? _userDisplayName;
-  String? get userDisplayName => _$this._userDisplayName;
-  set userDisplayName(String? userDisplayName) =>
-      _$this._userDisplayName = userDisplayName;
-
-  String? _password;
-  String? get password => _$this._password;
-  set password(String? password) => _$this._password = password;
-
-  UserCreateBuilder() {
-    UserCreate._defaults(this);
-  }
-
-  UserCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _userName = $v.userName;
-      _primaryEmail = $v.primaryEmail;
-      _userDisplayName = $v.userDisplayName;
-      _password = $v.password;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserCreate other) {
-    _$v = other as _$UserCreate;
-  }
-
-  @override
-  void update(void Function(UserCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserCreate build() => _build();
-
-  _$UserCreate _build() {
-    final _$result = _$v ??
-        _$UserCreate._(
-          userName: userName,
-          primaryEmail: BuiltValueNullFieldError.checkNotNull(
-              primaryEmail, r'UserCreate', 'primaryEmail'),
-          userDisplayName: userDisplayName,
-          password: password,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $UserCreateCopyWith on UserCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserCreate.copyWith(...)` or `instanceOfUserCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserCreateCWProxy get copyWith => _$UserCreateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserCreate _$UserCreateFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'UserCreate',
+  json,
+  ($checkedConvert) {
+    $checkKeys(json, requiredKeys: const ['primary_email']);
+    final val = UserCreate(
+      userName: $checkedConvert('user_name', (v) => v as String? ?? ''),
+      primaryEmail: $checkedConvert('primary_email', (v) => v as String),
+      userDisplayName: $checkedConvert(
+        'user_display_name',
+        (v) => v as String?,
+      ),
+      password: $checkedConvert('password', (v) => v as String? ?? ''),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'userName': 'user_name',
+    'primaryEmail': 'primary_email',
+    'userDisplayName': 'user_display_name',
+  },
+);
+
+Map<String, dynamic> _$UserCreateToJson(UserCreate instance) =>
+    <String, dynamic>{
+      'user_name': ?instance.userName,
+      'primary_email': instance.primaryEmail,
+      'user_display_name': ?instance.userDisplayName,
+      'password': ?instance.password,
+    };

@@ -3,11 +3,11 @@ import 'package:openapi/openapi.dart';
 
 // tests for HTTPValidationError
 void main() {
-  final instance = HTTPValidationErrorBuilder();
-  // TODO add properties to the builder and call build()
+  final HTTPValidationError? instance = /* HTTPValidationError(...) */ null;
+  // TODO add properties to the entity
 
   group(HTTPValidationError, () {
-    // BuiltList<ValidationError> detail
+    // List<ValidationError> detail
     test('to test the property `detail`', () async {
       // TODO
     });

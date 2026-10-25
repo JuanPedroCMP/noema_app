@@ -3,171 +3,120 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/json_object.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'ai_usage_log_out.g.dart';
 
-/// AiUsageLogOut
-///
-/// Properties:
-/// * [id] 
-/// * [idUser] 
-/// * [idAgentModel] 
-/// * [usageDatails] 
-/// * [createdAt] 
-@BuiltValue()
-abstract class AiUsageLogOut implements Built<AiUsageLogOut, AiUsageLogOutBuilder> {
-  @BuiltValueField(wireName: r'id')
-  String get id;
 
-  @BuiltValueField(wireName: r'id_user')
-  String get idUser;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class AiUsageLogOut {
+  /// Returns a new [AiUsageLogOut] instance.
+  AiUsageLogOut({
 
-  @BuiltValueField(wireName: r'id_agent_model')
-  String get idAgentModel;
+    required  this.id,
 
-  @BuiltValueField(wireName: r'usage_datails')
-  JsonObject? get usageDatails;
+    required  this.idUser,
 
-  @BuiltValueField(wireName: r'created_at')
-  DateTime? get createdAt;
+    required  this.idAgentModel,
 
-  AiUsageLogOut._();
+    required  this.usageDetails,
 
-  factory AiUsageLogOut([void updates(AiUsageLogOutBuilder b)]) = _$AiUsageLogOut;
+    required  this.createdAt,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(AiUsageLogOutBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<AiUsageLogOut> get serializer => _$AiUsageLogOutSerializer();
-}
 
-class _$AiUsageLogOutSerializer implements PrimitiveSerializer<AiUsageLogOut> {
-  @override
-  final Iterable<Type> types = const [AiUsageLogOut, _$AiUsageLogOut];
+  final String id;
 
-  @override
-  final String wireName = r'AiUsageLogOut';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    AiUsageLogOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id';
-    yield serializers.serialize(
-      object.id,
-      specifiedType: const FullType(String),
-    );
-    yield r'id_user';
-    yield serializers.serialize(
-      object.idUser,
-      specifiedType: const FullType(String),
-    );
-    yield r'id_agent_model';
-    yield serializers.serialize(
-      object.idAgentModel,
-      specifiedType: const FullType(String),
-    );
-    yield r'usage_datails';
-    yield object.usageDatails == null ? null : serializers.serialize(
-      object.usageDatails,
-      specifiedType: const FullType.nullable(JsonObject),
-    );
-    yield r'created_at';
-    yield object.createdAt == null ? null : serializers.serialize(
-      object.createdAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    AiUsageLogOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'id_user',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required AiUsageLogOutBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'id_user':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idUser = valueDes;
-          break;
-        case r'id_agent_model':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idAgentModel = valueDes;
-          break;
-        case r'usage_datails':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(JsonObject),
-          ) as JsonObject?;
-          if (valueDes == null) continue;
-          result.usageDatails = valueDes;
-          break;
-        case r'created_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.createdAt = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String idUser;
+
+
+
+  @JsonKey(
+    
+    name: r'id_agent_model',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String idAgentModel;
+
+
+
+  @JsonKey(
+    
+    name: r'usage_details',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final Map<String, Object> usageDetails;
+
+
+
+  @JsonKey(
+    
+    name: r'created_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? createdAt;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is AiUsageLogOut &&
+      other.id == id &&
+      other.idUser == idUser &&
+      other.idAgentModel == idAgentModel &&
+      other.usageDetails == usageDetails &&
+      other.createdAt == createdAt;
+
+    @override
+    int get hashCode =>
+        id.hashCode +
+        idUser.hashCode +
+        idAgentModel.hashCode +
+        usageDetails.hashCode +
+        (createdAt == null ? 0 : createdAt.hashCode);
+
+  factory AiUsageLogOut.fromJson(Map<String, dynamic> json) => _$AiUsageLogOutFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AiUsageLogOutToJson(this);
 
   @override
-  AiUsageLogOut deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = AiUsageLogOutBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

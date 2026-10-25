@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listSyncLogApiV1GoogleDriveSyncLogListGet**
-> BuiltList<SyncLogOut> listSyncLogApiV1GoogleDriveSyncLogListGet(id, idDevice, idBackupFile, event, derection, result, conflictStrategy, errorDetails, metadata, createdAt)
+> List<SyncLogOut> listSyncLogApiV1GoogleDriveSyncLogListGet(id, idDevice, idBackupFile, event, derection, result, conflictStrategy, errorDetails, metadata, createdAt)
 
 List Sync Log
 
@@ -148,7 +148,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;SyncLogOut&gt;**](SyncLogOut.md)
+[**List&lt;SyncLogOut&gt;**](SyncLogOut.md)
 
 ### Authorization
 

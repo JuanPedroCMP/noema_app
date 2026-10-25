@@ -12,7 +12,6 @@ Name | Type | Description | Notes
 **idAiProvider** | **String** |  | 
 **idUser** | **String** |  | 
 **name** | **String** |  | 
-**encryptedKey** | **String** |  | 
 **isActive** | **bool** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 

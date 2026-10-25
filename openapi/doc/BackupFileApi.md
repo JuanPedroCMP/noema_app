@@ -59,7 +59,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete**
-> JsonObject deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(identificator)
+> Object deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(identificator)
 
 Delete Backup File
 
@@ -88,7 +88,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -145,7 +145,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listBackupFileApiV1GoogleDriveBackupFileListGet**
-> BuiltList<BackupFileOut> listBackupFileApiV1GoogleDriveBackupFileListGet(id, idGoogleAccount, driveFileId, localRef, driveVersion, contentHash, createdAt)
+> List<BackupFileOut> listBackupFileApiV1GoogleDriveBackupFileListGet(id, idGoogleAccount, driveFileId, localRef, driveVersion, contentHash, createdAt)
 
 List Backup File
 
@@ -186,7 +186,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;BackupFileOut&gt;**](BackupFileOut.md)
+[**List&lt;BackupFileOut&gt;**](BackupFileOut.md)
 
 ### Authorization
 

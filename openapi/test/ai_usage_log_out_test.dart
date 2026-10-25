@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AiUsageLogOut
 void main() {
-  final instance = AiUsageLogOutBuilder();
-  // TODO add properties to the builder and call build()
+  final AiUsageLogOut? instance = /* AiUsageLogOut(...) */ null;
+  // TODO add properties to the entity
 
   group(AiUsageLogOut, () {
     // String id
@@ -22,8 +22,8 @@ void main() {
       // TODO
     });
 
-    // JsonObject usageDatails
-    test('to test the property `usageDatails`', () async {
+    // Map<String, Object> usageDetails
+    test('to test the property `usageDetails`', () async {
       // TODO
     });
 

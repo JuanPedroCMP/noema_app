@@ -16,7 +16,7 @@ void main() {
 
     // Delete Backup File
     //
-    //Future<JsonObject> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(String identificator) async
     test('test deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Backup File
     //
-    //Future<BuiltList<BackupFileOut>> listBackupFileApiV1GoogleDriveBackupFileListGet({ String id, String idGoogleAccount, String driveFileId, String localRef, String driveVersion, String contentHash, DateTime createdAt }) async
+    //Future<List<BackupFileOut>> listBackupFileApiV1GoogleDriveBackupFileListGet({ String id, String idGoogleAccount, String driveFileId, String localRef, String driveVersion, String contentHash, DateTime createdAt }) async
     test('test listBackupFileApiV1GoogleDriveBackupFileListGet', () async {
       // TODO
     });

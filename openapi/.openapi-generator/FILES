@@ -2,6 +2,7 @@
 .openapi-generator-ignore
 README.md
 analysis_options.yaml
+build.yaml
 doc/AgentApi.md
 doc/AgentCreate.md
 doc/AgentModelApi.md
@@ -15,6 +16,7 @@ doc/AiModelApi.md
 doc/AiModelCreate.md
 doc/AiModelOut.md
 doc/AiModelUpdate.md
+doc/AiRouterApi.md
 doc/AiUsageLogApi.md
 doc/AiUsageLogCreate.md
 doc/AiUsageLogOut.md
@@ -35,6 +37,7 @@ doc/GenericLogOut.md
 doc/GoogleAccountCreate.md
 doc/GoogleAccountOut.md
 doc/GoogleAccountUpdate.md
+doc/GoogleOAuthApi.md
 doc/HTTPValidationError.md
 doc/LanguageApi.md
 doc/LanguageCreate.md
@@ -87,6 +90,7 @@ lib/src/api.dart
 lib/src/api/agent_api.dart
 lib/src/api/agent_model_api.dart
 lib/src/api/ai_model_api.dart
+lib/src/api/ai_router_api.dart
 lib/src/api/ai_usage_log_api.dart
 lib/src/api/authentication_api.dart
 lib/src/api/backup_file_api.dart
@@ -94,6 +98,7 @@ lib/src/api/color_theme_api.dart
 lib/src/api/default_api.dart
 lib/src/api/device_api.dart
 lib/src/api/generic_log_api.dart
+lib/src/api/google_o_auth_api.dart
 lib/src/api/language_api.dart
 lib/src/api/provider_api.dart
 lib/src/api/response_response_language_preference_order_api.dart
@@ -104,13 +109,12 @@ lib/src/api/user_api_key_api.dart
 lib/src/api/user_api_key_can_use_ia_model_api.dart
 lib/src/api/user_global_config_api.dart
 lib/src/api/user_local_config_api.dart
-lib/src/api_util.dart
 lib/src/auth/api_key_auth.dart
 lib/src/auth/auth.dart
 lib/src/auth/basic_auth.dart
 lib/src/auth/bearer_auth.dart
 lib/src/auth/oauth.dart
-lib/src/date_serializer.dart
+lib/src/deserialize.dart
 lib/src/model/agent_create.dart
 lib/src/model/agent_model_create.dart
 lib/src/model/agent_model_out.dart
@@ -126,7 +130,6 @@ lib/src/model/ai_usage_log_out.dart
 lib/src/model/backup_file_create.dart
 lib/src/model/backup_file_out.dart
 lib/src/model/conflict_strategy.dart
-lib/src/model/date.dart
 lib/src/model/device_create.dart
 lib/src/model/device_out.dart
 lib/src/model/device_update.dart
@@ -172,7 +175,6 @@ lib/src/model/user_typography_theme_out.dart
 lib/src/model/user_typography_theme_update.dart
 lib/src/model/user_update.dart
 lib/src/model/validation_error.dart
-lib/src/serializers.dart
 pubspec.yaml
 test/agent_api_test.dart
 test/agent_create_test.dart
@@ -187,6 +189,7 @@ test/ai_model_api_test.dart
 test/ai_model_create_test.dart
 test/ai_model_out_test.dart
 test/ai_model_update_test.dart
+test/ai_router_api_test.dart
 test/ai_usage_log_api_test.dart
 test/ai_usage_log_create_test.dart
 test/ai_usage_log_out_test.dart
@@ -207,6 +210,7 @@ test/generic_log_out_test.dart
 test/google_account_create_test.dart
 test/google_account_out_test.dart
 test/google_account_update_test.dart
+test/google_o_auth_api_test.dart
 test/http_validation_error_test.dart
 test/language_api_test.dart
 test/language_create_test.dart

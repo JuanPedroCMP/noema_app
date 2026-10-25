@@ -3,203 +3,152 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'provider_out.g.dart';
 
-/// ProviderOut
-///
-/// Properties:
-/// * [id] 
-/// * [slug] 
-/// * [displayName] 
-/// * [baseUrl] 
-/// * [isActive] 
-/// * [createdAt] 
-/// * [updatedAt] 
-@BuiltValue()
-abstract class ProviderOut implements Built<ProviderOut, ProviderOutBuilder> {
-  @BuiltValueField(wireName: r'id')
-  String get id;
 
-  @BuiltValueField(wireName: r'slug')
-  String get slug;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class ProviderOut {
+  /// Returns a new [ProviderOut] instance.
+  ProviderOut({
 
-  @BuiltValueField(wireName: r'display_name')
-  String get displayName;
+    required  this.id,
 
-  @BuiltValueField(wireName: r'base_url')
-  String get baseUrl;
+    required  this.slug,
 
-  @BuiltValueField(wireName: r'is_active')
-  bool? get isActive;
+    required  this.displayName,
 
-  @BuiltValueField(wireName: r'created_at')
-  DateTime? get createdAt;
+    required  this.baseUrl,
 
-  @BuiltValueField(wireName: r'updated_at')
-  DateTime? get updatedAt;
+    required  this.isActive,
 
-  ProviderOut._();
+    required  this.createdAt,
 
-  factory ProviderOut([void updates(ProviderOutBuilder b)]) = _$ProviderOut;
+    required  this.updatedAt,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(ProviderOutBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<ProviderOut> get serializer => _$ProviderOutSerializer();
-}
 
-class _$ProviderOutSerializer implements PrimitiveSerializer<ProviderOut> {
-  @override
-  final Iterable<Type> types = const [ProviderOut, _$ProviderOut];
+  final String id;
 
-  @override
-  final String wireName = r'ProviderOut';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ProviderOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id';
-    yield serializers.serialize(
-      object.id,
-      specifiedType: const FullType(String),
-    );
-    yield r'slug';
-    yield serializers.serialize(
-      object.slug,
-      specifiedType: const FullType(String),
-    );
-    yield r'display_name';
-    yield serializers.serialize(
-      object.displayName,
-      specifiedType: const FullType(String),
-    );
-    yield r'base_url';
-    yield serializers.serialize(
-      object.baseUrl,
-      specifiedType: const FullType(String),
-    );
-    yield r'is_active';
-    yield object.isActive == null ? null : serializers.serialize(
-      object.isActive,
-      specifiedType: const FullType.nullable(bool),
-    );
-    yield r'created_at';
-    yield object.createdAt == null ? null : serializers.serialize(
-      object.createdAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-    yield r'updated_at';
-    yield object.updatedAt == null ? null : serializers.serialize(
-      object.updatedAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    ProviderOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'slug',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required ProviderOutBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'slug':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.slug = valueDes;
-          break;
-        case r'display_name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.displayName = valueDes;
-          break;
-        case r'base_url':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.baseUrl = valueDes;
-          break;
-        case r'is_active':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(bool),
-          ) as bool?;
-          if (valueDes == null) continue;
-          result.isActive = valueDes;
-          break;
-        case r'created_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.createdAt = valueDes;
-          break;
-        case r'updated_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.updatedAt = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String slug;
+
+
+
+  @JsonKey(
+    
+    name: r'display_name',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String displayName;
+
+
+
+  @JsonKey(
+    
+    name: r'base_url',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String baseUrl;
+
+
+
+  @JsonKey(
+    
+    name: r'is_active',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final bool? isActive;
+
+
+
+  @JsonKey(
+    
+    name: r'created_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? createdAt;
+
+
+
+  @JsonKey(
+    
+    name: r'updated_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? updatedAt;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is ProviderOut &&
+      other.id == id &&
+      other.slug == slug &&
+      other.displayName == displayName &&
+      other.baseUrl == baseUrl &&
+      other.isActive == isActive &&
+      other.createdAt == createdAt &&
+      other.updatedAt == updatedAt;
+
+    @override
+    int get hashCode =>
+        id.hashCode +
+        slug.hashCode +
+        displayName.hashCode +
+        baseUrl.hashCode +
+        (isActive == null ? 0 : isActive.hashCode) +
+        (createdAt == null ? 0 : createdAt.hashCode) +
+        (updatedAt == null ? 0 : updatedAt.hashCode);
+
+  factory ProviderOut.fromJson(Map<String, dynamic> json) => _$ProviderOutFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProviderOutToJson(this);
 
   @override
-  ProviderOut deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = ProviderOutBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

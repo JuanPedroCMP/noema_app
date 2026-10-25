@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ProviderOut
 void main() {
-  final instance = ProviderOutBuilder();
-  // TODO add properties to the builder and call build()
+  final ProviderOut? instance = /* ProviderOut(...) */ null;
+  // TODO add properties to the entity
 
   group(ProviderOut, () {
     // String id

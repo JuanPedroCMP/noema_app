@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_local_config_create.dart';
 import 'package:openapi/src/model/user_local_config_out.dart';
 import 'package:openapi/src/model/user_local_config_update.dart';
@@ -17,9 +18,7 @@ class UserLocalConfigApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const UserLocalConfigApi(this._dio, this._serializers);
+  const UserLocalConfigApi(this._dio);
 
   /// Create User Local Config
   /// 
@@ -66,8 +65,7 @@ class UserLocalConfigApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserLocalConfigCreate);
-      _bodyData = _serializers.serialize(userLocalConfigCreate, specifiedType: _type);
+      _bodyData = jsonEncode(userLocalConfigCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -93,11 +91,8 @@ class UserLocalConfigApi {
     UserLocalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserLocalConfigOut),
-      ) as UserLocalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -144,7 +139,7 @@ class UserLocalConfigApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_local_config/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/user_local_config/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -173,11 +168,8 @@ class UserLocalConfigApi {
     UserLocalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserLocalConfigOut),
-      ) as UserLocalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -221,9 +213,9 @@ class UserLocalConfigApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<UserLocalConfigOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<UserLocalConfigOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<UserLocalConfigOut>>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet({ 
+  Future<Response<List<UserLocalConfigOut>>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet({ 
     required String preferences,
     String? id,
     String? idUser,
@@ -259,15 +251,15 @@ class UserLocalConfigApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
-      r'id_device': encodeQueryParameter(_serializers, idDevice, const FullType(String)),
-      r'id_language': encodeQueryParameter(_serializers, idLanguage, const FullType(String)),
-      r'id_user_color_theme': encodeQueryParameter(_serializers, idUserColorTheme, const FullType(String)),
-      r'id_user_typography_theme': encodeQueryParameter(_serializers, idUserTypographyTheme, const FullType(String)),
-      r'preferences': encodeQueryParameter(_serializers, preferences, const FullType(String)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
-      r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (idUser != null) r'id_user': idUser,
+      if (idDevice != null) r'id_device': idDevice,
+      if (idLanguage != null) r'id_language': idLanguage,
+      if (idUserColorTheme != null) r'id_user_color_theme': idUserColorTheme,
+      if (idUserTypographyTheme != null) r'id_user_typography_theme': idUserTypographyTheme,
+      r'preferences': preferences,
+      if (createdAt != null) r'created_at': createdAt,
+      if (updatedAt != null) r'updated_at': updatedAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -279,14 +271,11 @@ class UserLocalConfigApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<UserLocalConfigOut>? _responseData;
+    List<UserLocalConfigOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(UserLocalConfigOut)]),
-      ) as BuiltList<UserLocalConfigOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, UserLocalConfigOut>(rawData, 'List<UserLocalConfigOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -298,7 +287,7 @@ class UserLocalConfigApi {
       );
     }
 
-    return Response<BuiltList<UserLocalConfigOut>>(
+    return Response<List<UserLocalConfigOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -335,7 +324,7 @@ class UserLocalConfigApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_local_config/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/user_local_config/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -357,8 +346,7 @@ class UserLocalConfigApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserLocalConfigUpdate);
-      _bodyData = _serializers.serialize(userLocalConfigUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(userLocalConfigUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -384,11 +372,8 @@ class UserLocalConfigApi {
     UserLocalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserLocalConfigOut),
-      ) as UserLocalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

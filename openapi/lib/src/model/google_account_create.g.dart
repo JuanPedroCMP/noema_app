@@ -3,184 +3,212 @@
 part of 'google_account_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$GoogleAccountCreate extends GoogleAccountCreate {
-  @override
-  final String idUser;
-  @override
-  final String? googleUserId;
-  @override
-  final String emailGoogle;
-  @override
-  final String? accessTokenEnc;
-  @override
-  final String? refreshTokenEnc;
-  @override
-  final String? grantedScopes;
-  @override
-  final bool isActive;
-  @override
-  final DateTime? expiresAt;
+abstract class _$GoogleAccountCreateCWProxy {
+  GoogleAccountCreate idUser(String idUser);
 
-  factory _$GoogleAccountCreate(
-          [void Function(GoogleAccountCreateBuilder)? updates]) =>
-      (GoogleAccountCreateBuilder()..update(updates))._build();
+  GoogleAccountCreate googleUserId(String? googleUserId);
 
-  _$GoogleAccountCreate._(
-      {required this.idUser,
-      this.googleUserId,
-      required this.emailGoogle,
-      this.accessTokenEnc,
-      this.refreshTokenEnc,
-      this.grantedScopes,
-      required this.isActive,
-      this.expiresAt})
-      : super._();
-  @override
-  GoogleAccountCreate rebuild(
-          void Function(GoogleAccountCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  GoogleAccountCreate emailGoogle(String emailGoogle);
 
-  @override
-  GoogleAccountCreateBuilder toBuilder() =>
-      GoogleAccountCreateBuilder()..replace(this);
+  GoogleAccountCreate accessTokenEnc(String? accessTokenEnc);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is GoogleAccountCreate &&
-        idUser == other.idUser &&
-        googleUserId == other.googleUserId &&
-        emailGoogle == other.emailGoogle &&
-        accessTokenEnc == other.accessTokenEnc &&
-        refreshTokenEnc == other.refreshTokenEnc &&
-        grantedScopes == other.grantedScopes &&
-        isActive == other.isActive &&
-        expiresAt == other.expiresAt;
-  }
+  GoogleAccountCreate refreshTokenEnc(String? refreshTokenEnc);
+
+  GoogleAccountCreate grantedScopes(String? grantedScopes);
+
+  GoogleAccountCreate isActive(bool isActive);
+
+  GoogleAccountCreate expiresAt(DateTime? expiresAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  GoogleAccountCreate call({
+    String idUser,
+    String? googleUserId,
+    String emailGoogle,
+    String? accessTokenEnc,
+    String? refreshTokenEnc,
+    String? grantedScopes,
+    bool isActive,
+    DateTime? expiresAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfGoogleAccountCreate.copyWith(...)` or call `instanceOfGoogleAccountCreate.copyWith.fieldName(value)` for a single field.
+class _$GoogleAccountCreateCWProxyImpl implements _$GoogleAccountCreateCWProxy {
+  const _$GoogleAccountCreateCWProxyImpl(this._value);
+
+  final GoogleAccountCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, googleUserId.hashCode);
-    _$hash = $jc(_$hash, emailGoogle.hashCode);
-    _$hash = $jc(_$hash, accessTokenEnc.hashCode);
-    _$hash = $jc(_$hash, refreshTokenEnc.hashCode);
-    _$hash = $jc(_$hash, grantedScopes.hashCode);
-    _$hash = $jc(_$hash, isActive.hashCode);
-    _$hash = $jc(_$hash, expiresAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  GoogleAccountCreate idUser(String idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'GoogleAccountCreate')
-          ..add('idUser', idUser)
-          ..add('googleUserId', googleUserId)
-          ..add('emailGoogle', emailGoogle)
-          ..add('accessTokenEnc', accessTokenEnc)
-          ..add('refreshTokenEnc', refreshTokenEnc)
-          ..add('grantedScopes', grantedScopes)
-          ..add('isActive', isActive)
-          ..add('expiresAt', expiresAt))
-        .toString();
+  GoogleAccountCreate googleUserId(String? googleUserId) =>
+      call(googleUserId: googleUserId);
+
+  @override
+  GoogleAccountCreate emailGoogle(String emailGoogle) =>
+      call(emailGoogle: emailGoogle);
+
+  @override
+  GoogleAccountCreate accessTokenEnc(String? accessTokenEnc) =>
+      call(accessTokenEnc: accessTokenEnc);
+
+  @override
+  GoogleAccountCreate refreshTokenEnc(String? refreshTokenEnc) =>
+      call(refreshTokenEnc: refreshTokenEnc);
+
+  @override
+  GoogleAccountCreate grantedScopes(String? grantedScopes) =>
+      call(grantedScopes: grantedScopes);
+
+  @override
+  GoogleAccountCreate isActive(bool isActive) => call(isActive: isActive);
+
+  @override
+  GoogleAccountCreate expiresAt(DateTime? expiresAt) =>
+      call(expiresAt: expiresAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  GoogleAccountCreate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? googleUserId = const $CopyWithPlaceholder(),
+    Object? emailGoogle = const $CopyWithPlaceholder(),
+    Object? accessTokenEnc = const $CopyWithPlaceholder(),
+    Object? refreshTokenEnc = const $CopyWithPlaceholder(),
+    Object? grantedScopes = const $CopyWithPlaceholder(),
+    Object? isActive = const $CopyWithPlaceholder(),
+    Object? expiresAt = const $CopyWithPlaceholder(),
+  }) {
+    return GoogleAccountCreate(
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      googleUserId: googleUserId == const $CopyWithPlaceholder()
+          ? _value.googleUserId
+          // ignore: cast_nullable_to_non_nullable
+          : googleUserId as String?,
+      emailGoogle:
+          emailGoogle == const $CopyWithPlaceholder() || emailGoogle == null
+          ? _value.emailGoogle
+          // ignore: cast_nullable_to_non_nullable
+          : emailGoogle as String,
+      accessTokenEnc: accessTokenEnc == const $CopyWithPlaceholder()
+          ? _value.accessTokenEnc
+          // ignore: cast_nullable_to_non_nullable
+          : accessTokenEnc as String?,
+      refreshTokenEnc: refreshTokenEnc == const $CopyWithPlaceholder()
+          ? _value.refreshTokenEnc
+          // ignore: cast_nullable_to_non_nullable
+          : refreshTokenEnc as String?,
+      grantedScopes: grantedScopes == const $CopyWithPlaceholder()
+          ? _value.grantedScopes
+          // ignore: cast_nullable_to_non_nullable
+          : grantedScopes as String?,
+      isActive: isActive == const $CopyWithPlaceholder() || isActive == null
+          ? _value.isActive
+          // ignore: cast_nullable_to_non_nullable
+          : isActive as bool,
+      expiresAt: expiresAt == const $CopyWithPlaceholder()
+          ? _value.expiresAt
+          // ignore: cast_nullable_to_non_nullable
+          : expiresAt as DateTime?,
+    );
   }
 }
 
-class GoogleAccountCreateBuilder
-    implements Builder<GoogleAccountCreate, GoogleAccountCreateBuilder> {
-  _$GoogleAccountCreate? _$v;
+extension $GoogleAccountCreateCopyWith on GoogleAccountCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfGoogleAccountCreate.copyWith(...)` or `instanceOfGoogleAccountCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$GoogleAccountCreateCWProxy get copyWith =>
+      _$GoogleAccountCreateCWProxyImpl(this);
+}
 
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _googleUserId;
-  String? get googleUserId => _$this._googleUserId;
-  set googleUserId(String? googleUserId) => _$this._googleUserId = googleUserId;
-
-  String? _emailGoogle;
-  String? get emailGoogle => _$this._emailGoogle;
-  set emailGoogle(String? emailGoogle) => _$this._emailGoogle = emailGoogle;
-
-  String? _accessTokenEnc;
-  String? get accessTokenEnc => _$this._accessTokenEnc;
-  set accessTokenEnc(String? accessTokenEnc) =>
-      _$this._accessTokenEnc = accessTokenEnc;
-
-  String? _refreshTokenEnc;
-  String? get refreshTokenEnc => _$this._refreshTokenEnc;
-  set refreshTokenEnc(String? refreshTokenEnc) =>
-      _$this._refreshTokenEnc = refreshTokenEnc;
-
-  String? _grantedScopes;
-  String? get grantedScopes => _$this._grantedScopes;
-  set grantedScopes(String? grantedScopes) =>
-      _$this._grantedScopes = grantedScopes;
-
-  bool? _isActive;
-  bool? get isActive => _$this._isActive;
-  set isActive(bool? isActive) => _$this._isActive = isActive;
-
-  DateTime? _expiresAt;
-  DateTime? get expiresAt => _$this._expiresAt;
-  set expiresAt(DateTime? expiresAt) => _$this._expiresAt = expiresAt;
-
-  GoogleAccountCreateBuilder() {
-    GoogleAccountCreate._defaults(this);
-  }
-
-  GoogleAccountCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _googleUserId = $v.googleUserId;
-      _emailGoogle = $v.emailGoogle;
-      _accessTokenEnc = $v.accessTokenEnc;
-      _refreshTokenEnc = $v.refreshTokenEnc;
-      _grantedScopes = $v.grantedScopes;
-      _isActive = $v.isActive;
-      _expiresAt = $v.expiresAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(GoogleAccountCreate other) {
-    _$v = other as _$GoogleAccountCreate;
-  }
-
-  @override
-  void update(void Function(GoogleAccountCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  GoogleAccountCreate build() => _build();
-
-  _$GoogleAccountCreate _build() {
-    final _$result = _$v ??
-        _$GoogleAccountCreate._(
-          idUser: BuiltValueNullFieldError.checkNotNull(
-              idUser, r'GoogleAccountCreate', 'idUser'),
-          googleUserId: googleUserId,
-          emailGoogle: BuiltValueNullFieldError.checkNotNull(
-              emailGoogle, r'GoogleAccountCreate', 'emailGoogle'),
-          accessTokenEnc: accessTokenEnc,
-          refreshTokenEnc: refreshTokenEnc,
-          grantedScopes: grantedScopes,
-          isActive: BuiltValueNullFieldError.checkNotNull(
-              isActive, r'GoogleAccountCreate', 'isActive'),
-          expiresAt: expiresAt,
+GoogleAccountCreate _$GoogleAccountCreateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'GoogleAccountCreate',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id_user',
+            'google_user_id',
+            'email_google',
+            'access_token_enc',
+            'refresh_token_enc',
+            'granted_scopes',
+            'is_active',
+            'expires_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = GoogleAccountCreate(
+          idUser: $checkedConvert('id_user', (v) => v as String),
+          googleUserId: $checkedConvert('google_user_id', (v) => v as String?),
+          emailGoogle: $checkedConvert('email_google', (v) => v as String),
+          accessTokenEnc: $checkedConvert(
+            'access_token_enc',
+            (v) => v as String?,
+          ),
+          refreshTokenEnc: $checkedConvert(
+            'refresh_token_enc',
+            (v) => v as String?,
+          ),
+          grantedScopes: $checkedConvert('granted_scopes', (v) => v as String?),
+          isActive: $checkedConvert('is_active', (v) => v as bool),
+          expiresAt: $checkedConvert(
+            'expires_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'googleUserId': 'google_user_id',
+        'emailGoogle': 'email_google',
+        'accessTokenEnc': 'access_token_enc',
+        'refreshTokenEnc': 'refresh_token_enc',
+        'grantedScopes': 'granted_scopes',
+        'isActive': 'is_active',
+        'expiresAt': 'expires_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$GoogleAccountCreateToJson(
+  GoogleAccountCreate instance,
+) => <String, dynamic>{
+  'id_user': instance.idUser,
+  'google_user_id': instance.googleUserId,
+  'email_google': instance.emailGoogle,
+  'access_token_enc': instance.accessTokenEnc,
+  'refresh_token_enc': instance.refreshTokenEnc,
+  'granted_scopes': instance.grantedScopes,
+  'is_active': instance.isActive,
+  'expires_at': instance.expiresAt?.toIso8601String(),
+};

@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserGlobalConfigOut
 void main() {
-  final instance = UserGlobalConfigOutBuilder();
-  // TODO add properties to the builder and call build()
+  final UserGlobalConfigOut? instance = /* UserGlobalConfigOut(...) */ null;
+  // TODO add properties to the entity
 
   group(UserGlobalConfigOut, () {
     // String id
@@ -32,7 +32,7 @@ void main() {
       // TODO
     });
 
-    // BuiltMap<String, JsonObject> preferences
+    // Map<String, Object> preferences
     test('to test the property `preferences`', () async {
       // TODO
     });

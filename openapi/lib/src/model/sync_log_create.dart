@@ -6,219 +6,168 @@
 import 'package:openapi/src/model/sync_result.dart';
 import 'package:openapi/src/model/sync_direction.dart';
 import 'package:openapi/src/model/conflict_strategy.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'sync_log_create.g.dart';
 
-/// SyncLogCreate
-///
-/// Properties:
-/// * [idDevice] 
-/// * [idBackupFile] 
-/// * [event] 
-/// * [derection] 
-/// * [result] 
-/// * [conflictStrategy] 
-/// * [errorDetails] 
-/// * [metadata] 
-@BuiltValue()
-abstract class SyncLogCreate implements Built<SyncLogCreate, SyncLogCreateBuilder> {
-  @BuiltValueField(wireName: r'id_device')
-  String get idDevice;
 
-  @BuiltValueField(wireName: r'id_backup_file')
-  String get idBackupFile;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class SyncLogCreate {
+  /// Returns a new [SyncLogCreate] instance.
+  SyncLogCreate({
 
-  @BuiltValueField(wireName: r'event')
-  String get event;
+    required  this.idDevice,
 
-  @BuiltValueField(wireName: r'derection')
-  SyncDirection get derection;
-  // enum derectionEnum {  upload,  download,  };
+    required  this.idBackupFile,
 
-  @BuiltValueField(wireName: r'result')
-  SyncResult get result;
-  // enum resultEnum {  success,  failure,  in_conflict,  };
+    required  this.event,
 
-  @BuiltValueField(wireName: r'conflict_strategy')
-  ConflictStrategy get conflictStrategy;
-  // enum conflictStrategyEnum {  keep_local,  keep_remote,  merge,  duplicate,  };
+    required  this.derection,
 
-  @BuiltValueField(wireName: r'error_details')
-  String get errorDetails;
+    required  this.result,
 
-  @BuiltValueField(wireName: r'metadata')
-  String get metadata;
+    required  this.conflictStrategy,
 
-  SyncLogCreate._();
+    required  this.errorDetails,
 
-  factory SyncLogCreate([void updates(SyncLogCreateBuilder b)]) = _$SyncLogCreate;
+    required  this.metadata,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(SyncLogCreateBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id_device',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<SyncLogCreate> get serializer => _$SyncLogCreateSerializer();
-}
 
-class _$SyncLogCreateSerializer implements PrimitiveSerializer<SyncLogCreate> {
-  @override
-  final Iterable<Type> types = const [SyncLogCreate, _$SyncLogCreate];
+  final String idDevice;
 
-  @override
-  final String wireName = r'SyncLogCreate';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    SyncLogCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id_device';
-    yield serializers.serialize(
-      object.idDevice,
-      specifiedType: const FullType(String),
-    );
-    yield r'id_backup_file';
-    yield serializers.serialize(
-      object.idBackupFile,
-      specifiedType: const FullType(String),
-    );
-    yield r'event';
-    yield serializers.serialize(
-      object.event,
-      specifiedType: const FullType(String),
-    );
-    yield r'derection';
-    yield serializers.serialize(
-      object.derection,
-      specifiedType: const FullType(SyncDirection),
-    );
-    yield r'result';
-    yield serializers.serialize(
-      object.result,
-      specifiedType: const FullType(SyncResult),
-    );
-    yield r'conflict_strategy';
-    yield serializers.serialize(
-      object.conflictStrategy,
-      specifiedType: const FullType(ConflictStrategy),
-    );
-    yield r'error_details';
-    yield serializers.serialize(
-      object.errorDetails,
-      specifiedType: const FullType(String),
-    );
-    yield r'metadata';
-    yield serializers.serialize(
-      object.metadata,
-      specifiedType: const FullType(String),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    SyncLogCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'id_backup_file',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required SyncLogCreateBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id_device':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idDevice = valueDes;
-          break;
-        case r'id_backup_file':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idBackupFile = valueDes;
-          break;
-        case r'event':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.event = valueDes;
-          break;
-        case r'derection':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(SyncDirection),
-          ) as SyncDirection;
-          result.derection = valueDes;
-          break;
-        case r'result':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(SyncResult),
-          ) as SyncResult;
-          result.result = valueDes;
-          break;
-        case r'conflict_strategy':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(ConflictStrategy),
-          ) as ConflictStrategy;
-          result.conflictStrategy = valueDes;
-          break;
-        case r'error_details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.errorDetails = valueDes;
-          break;
-        case r'metadata':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.metadata = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String idBackupFile;
+
+
+
+  @JsonKey(
+    
+    name: r'event',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String event;
+
+
+
+  @JsonKey(
+    
+    name: r'derection',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final SyncDirection derection;
+
+
+
+  @JsonKey(
+    
+    name: r'result',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final SyncResult result;
+
+
+
+  @JsonKey(
+    
+    name: r'conflict_strategy',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final ConflictStrategy conflictStrategy;
+
+
+
+  @JsonKey(
+    
+    name: r'error_details',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String errorDetails;
+
+
+
+  @JsonKey(
+    
+    name: r'metadata',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String metadata;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is SyncLogCreate &&
+      other.idDevice == idDevice &&
+      other.idBackupFile == idBackupFile &&
+      other.event == event &&
+      other.derection == derection &&
+      other.result == result &&
+      other.conflictStrategy == conflictStrategy &&
+      other.errorDetails == errorDetails &&
+      other.metadata == metadata;
+
+    @override
+    int get hashCode =>
+        idDevice.hashCode +
+        idBackupFile.hashCode +
+        event.hashCode +
+        derection.hashCode +
+        result.hashCode +
+        conflictStrategy.hashCode +
+        errorDetails.hashCode +
+        metadata.hashCode;
+
+  factory SyncLogCreate.fromJson(Map<String, dynamic> json) => _$SyncLogCreateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SyncLogCreateToJson(this);
 
   @override
-  SyncLogCreate deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = SyncLogCreateBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

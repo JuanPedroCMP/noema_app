@@ -3,184 +3,193 @@
 part of 'user_color_theme_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserColorThemeOut extends UserColorThemeOut {
-  @override
-  final String id;
-  @override
-  final String idUser;
-  @override
-  final String name;
-  @override
-  final int seedColor;
-  @override
-  final BuiltMap<String, JsonObject?> overrideJson;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$UserColorThemeOutCWProxy {
+  UserColorThemeOut id(String id);
 
-  factory _$UserColorThemeOut(
-          [void Function(UserColorThemeOutBuilder)? updates]) =>
-      (UserColorThemeOutBuilder()..update(updates))._build();
+  UserColorThemeOut idUser(String idUser);
 
-  _$UserColorThemeOut._(
-      {required this.id,
-      required this.idUser,
-      required this.name,
-      required this.seedColor,
-      required this.overrideJson,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  UserColorThemeOut rebuild(void Function(UserColorThemeOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserColorThemeOut name(String name);
 
-  @override
-  UserColorThemeOutBuilder toBuilder() =>
-      UserColorThemeOutBuilder()..replace(this);
+  UserColorThemeOut seedColor(int seedColor);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserColorThemeOut &&
-        id == other.id &&
-        idUser == other.idUser &&
-        name == other.name &&
-        seedColor == other.seedColor &&
-        overrideJson == other.overrideJson &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  UserColorThemeOut overrideJson(Map<String, Object> overrideJson);
+
+  UserColorThemeOut createdAt(DateTime? createdAt);
+
+  UserColorThemeOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserColorThemeOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserColorThemeOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserColorThemeOut call({
+    String id,
+    String idUser,
+    String name,
+    int seedColor,
+    Map<String, Object> overrideJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserColorThemeOut.copyWith(...)` or call `instanceOfUserColorThemeOut.copyWith.fieldName(value)` for a single field.
+class _$UserColorThemeOutCWProxyImpl implements _$UserColorThemeOutCWProxy {
+  const _$UserColorThemeOutCWProxyImpl(this._value);
+
+  final UserColorThemeOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, seedColor.hashCode);
-    _$hash = $jc(_$hash, overrideJson.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserColorThemeOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserColorThemeOut')
-          ..add('id', id)
-          ..add('idUser', idUser)
-          ..add('name', name)
-          ..add('seedColor', seedColor)
-          ..add('overrideJson', overrideJson)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  UserColorThemeOut idUser(String idUser) => call(idUser: idUser);
+
+  @override
+  UserColorThemeOut name(String name) => call(name: name);
+
+  @override
+  UserColorThemeOut seedColor(int seedColor) => call(seedColor: seedColor);
+
+  @override
+  UserColorThemeOut overrideJson(Map<String, Object> overrideJson) =>
+      call(overrideJson: overrideJson);
+
+  @override
+  UserColorThemeOut createdAt(DateTime? createdAt) =>
+      call(createdAt: createdAt);
+
+  @override
+  UserColorThemeOut updatedAt(DateTime? updatedAt) =>
+      call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserColorThemeOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserColorThemeOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserColorThemeOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? name = const $CopyWithPlaceholder(),
+    Object? seedColor = const $CopyWithPlaceholder(),
+    Object? overrideJson = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return UserColorThemeOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      name: name == const $CopyWithPlaceholder() || name == null
+          ? _value.name
+          // ignore: cast_nullable_to_non_nullable
+          : name as String,
+      seedColor: seedColor == const $CopyWithPlaceholder() || seedColor == null
+          ? _value.seedColor
+          // ignore: cast_nullable_to_non_nullable
+          : seedColor as int,
+      overrideJson:
+          overrideJson == const $CopyWithPlaceholder() || overrideJson == null
+          ? _value.overrideJson
+          // ignore: cast_nullable_to_non_nullable
+          : overrideJson as Map<String, Object>,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class UserColorThemeOutBuilder
-    implements Builder<UserColorThemeOut, UserColorThemeOutBuilder> {
-  _$UserColorThemeOut? _$v;
-
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _name;
-  String? get name => _$this._name;
-  set name(String? name) => _$this._name = name;
-
-  int? _seedColor;
-  int? get seedColor => _$this._seedColor;
-  set seedColor(int? seedColor) => _$this._seedColor = seedColor;
-
-  MapBuilder<String, JsonObject?>? _overrideJson;
-  MapBuilder<String, JsonObject?> get overrideJson =>
-      _$this._overrideJson ??= MapBuilder<String, JsonObject?>();
-  set overrideJson(MapBuilder<String, JsonObject?>? overrideJson) =>
-      _$this._overrideJson = overrideJson;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  UserColorThemeOutBuilder() {
-    UserColorThemeOut._defaults(this);
-  }
-
-  UserColorThemeOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idUser = $v.idUser;
-      _name = $v.name;
-      _seedColor = $v.seedColor;
-      _overrideJson = $v.overrideJson.toBuilder();
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserColorThemeOut other) {
-    _$v = other as _$UserColorThemeOut;
-  }
-
-  @override
-  void update(void Function(UserColorThemeOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserColorThemeOut build() => _build();
-
-  _$UserColorThemeOut _build() {
-    _$UserColorThemeOut _$result;
-    try {
-      _$result = _$v ??
-          _$UserColorThemeOut._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'UserColorThemeOut', 'id'),
-            idUser: BuiltValueNullFieldError.checkNotNull(
-                idUser, r'UserColorThemeOut', 'idUser'),
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, r'UserColorThemeOut', 'name'),
-            seedColor: BuiltValueNullFieldError.checkNotNull(
-                seedColor, r'UserColorThemeOut', 'seedColor'),
-            overrideJson: overrideJson.build(),
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-          );
-    } catch (_) {
-      late String _$failedField;
-      try {
-        _$failedField = 'overrideJson';
-        overrideJson.build();
-      } catch (e) {
-        throw BuiltValueNestedFieldError(
-            r'UserColorThemeOut', _$failedField, e.toString());
-      }
-      rethrow;
-    }
-    replace(_$result);
-    return _$result;
-  }
+extension $UserColorThemeOutCopyWith on UserColorThemeOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserColorThemeOut.copyWith(...)` or `instanceOfUserColorThemeOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserColorThemeOutCWProxy get copyWith =>
+      _$UserColorThemeOutCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserColorThemeOut _$UserColorThemeOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'UserColorThemeOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_user',
+            'name',
+            'seed_color',
+            'override_json',
+            'created_at',
+            'updated_at',
+          ],
+        );
+        final val = UserColorThemeOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idUser: $checkedConvert('id_user', (v) => v as String),
+          name: $checkedConvert('name', (v) => v as String),
+          seedColor: $checkedConvert('seed_color', (v) => (v as num).toInt()),
+          overrideJson: $checkedConvert(
+            'override_json',
+            (v) => (v as Map<String, dynamic>).map(
+              (k, e) => MapEntry(k, e as Object),
+            ),
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          updatedAt: $checkedConvert(
+            'updated_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'seedColor': 'seed_color',
+        'overrideJson': 'override_json',
+        'createdAt': 'created_at',
+        'updatedAt': 'updated_at',
+      },
+    );
+
+Map<String, dynamic> _$UserColorThemeOutToJson(UserColorThemeOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_user': instance.idUser,
+      'name': instance.name,
+      'seed_color': instance.seedColor,
+      'override_json': instance.overrideJson,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+    };

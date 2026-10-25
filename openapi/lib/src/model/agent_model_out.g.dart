@@ -3,182 +3,224 @@
 part of 'agent_model_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$AgentModelOut extends AgentModelOut {
-  @override
-  final String id;
-  @override
-  final String idAgent;
-  @override
-  final String idAiModel;
-  @override
-  final AgentModelQuality qualityExpected;
-  @override
-  final String customSystemPrompt;
-  @override
-  final num? customTemperature;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$AgentModelOutCWProxy {
+  AgentModelOut id(String id);
 
-  factory _$AgentModelOut([void Function(AgentModelOutBuilder)? updates]) =>
-      (AgentModelOutBuilder()..update(updates))._build();
+  AgentModelOut idAgent(String idAgent);
 
-  _$AgentModelOut._(
-      {required this.id,
-      required this.idAgent,
-      required this.idAiModel,
-      required this.qualityExpected,
-      required this.customSystemPrompt,
-      this.customTemperature,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  AgentModelOut rebuild(void Function(AgentModelOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  AgentModelOut idAiModel(String idAiModel);
 
-  @override
-  AgentModelOutBuilder toBuilder() => AgentModelOutBuilder()..replace(this);
+  AgentModelOut qualityExpected(AgentModelQuality qualityExpected);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is AgentModelOut &&
-        id == other.id &&
-        idAgent == other.idAgent &&
-        idAiModel == other.idAiModel &&
-        qualityExpected == other.qualityExpected &&
-        customSystemPrompt == other.customSystemPrompt &&
-        customTemperature == other.customTemperature &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  AgentModelOut customSystemPrompt(String customSystemPrompt);
+
+  AgentModelOut customTemperature(num? customTemperature);
+
+  AgentModelOut createdAt(DateTime? createdAt);
+
+  AgentModelOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AgentModelOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  AgentModelOut call({
+    String id,
+    String idAgent,
+    String idAiModel,
+    AgentModelQuality qualityExpected,
+    String customSystemPrompt,
+    num? customTemperature,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfAgentModelOut.copyWith(...)` or call `instanceOfAgentModelOut.copyWith.fieldName(value)` for a single field.
+class _$AgentModelOutCWProxyImpl implements _$AgentModelOutCWProxy {
+  const _$AgentModelOutCWProxyImpl(this._value);
+
+  final AgentModelOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idAgent.hashCode);
-    _$hash = $jc(_$hash, idAiModel.hashCode);
-    _$hash = $jc(_$hash, qualityExpected.hashCode);
-    _$hash = $jc(_$hash, customSystemPrompt.hashCode);
-    _$hash = $jc(_$hash, customTemperature.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  AgentModelOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'AgentModelOut')
-          ..add('id', id)
-          ..add('idAgent', idAgent)
-          ..add('idAiModel', idAiModel)
-          ..add('qualityExpected', qualityExpected)
-          ..add('customSystemPrompt', customSystemPrompt)
-          ..add('customTemperature', customTemperature)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  AgentModelOut idAgent(String idAgent) => call(idAgent: idAgent);
+
+  @override
+  AgentModelOut idAiModel(String idAiModel) => call(idAiModel: idAiModel);
+
+  @override
+  AgentModelOut qualityExpected(AgentModelQuality qualityExpected) =>
+      call(qualityExpected: qualityExpected);
+
+  @override
+  AgentModelOut customSystemPrompt(String customSystemPrompt) =>
+      call(customSystemPrompt: customSystemPrompt);
+
+  @override
+  AgentModelOut customTemperature(num? customTemperature) =>
+      call(customTemperature: customTemperature);
+
+  @override
+  AgentModelOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  @override
+  AgentModelOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// AgentModelOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  AgentModelOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idAgent = const $CopyWithPlaceholder(),
+    Object? idAiModel = const $CopyWithPlaceholder(),
+    Object? qualityExpected = const $CopyWithPlaceholder(),
+    Object? customSystemPrompt = const $CopyWithPlaceholder(),
+    Object? customTemperature = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return AgentModelOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idAgent: idAgent == const $CopyWithPlaceholder() || idAgent == null
+          ? _value.idAgent
+          // ignore: cast_nullable_to_non_nullable
+          : idAgent as String,
+      idAiModel: idAiModel == const $CopyWithPlaceholder() || idAiModel == null
+          ? _value.idAiModel
+          // ignore: cast_nullable_to_non_nullable
+          : idAiModel as String,
+      qualityExpected:
+          qualityExpected == const $CopyWithPlaceholder() ||
+              qualityExpected == null
+          ? _value.qualityExpected
+          // ignore: cast_nullable_to_non_nullable
+          : qualityExpected as AgentModelQuality,
+      customSystemPrompt:
+          customSystemPrompt == const $CopyWithPlaceholder() ||
+              customSystemPrompt == null
+          ? _value.customSystemPrompt
+          // ignore: cast_nullable_to_non_nullable
+          : customSystemPrompt as String,
+      customTemperature: customTemperature == const $CopyWithPlaceholder()
+          ? _value.customTemperature
+          // ignore: cast_nullable_to_non_nullable
+          : customTemperature as num?,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class AgentModelOutBuilder
-    implements Builder<AgentModelOut, AgentModelOutBuilder> {
-  _$AgentModelOut? _$v;
+extension $AgentModelOutCopyWith on AgentModelOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfAgentModelOut.copyWith(...)` or `instanceOfAgentModelOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$AgentModelOutCWProxy get copyWith => _$AgentModelOutCWProxyImpl(this);
+}
 
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idAgent;
-  String? get idAgent => _$this._idAgent;
-  set idAgent(String? idAgent) => _$this._idAgent = idAgent;
-
-  String? _idAiModel;
-  String? get idAiModel => _$this._idAiModel;
-  set idAiModel(String? idAiModel) => _$this._idAiModel = idAiModel;
-
-  AgentModelQuality? _qualityExpected;
-  AgentModelQuality? get qualityExpected => _$this._qualityExpected;
-  set qualityExpected(AgentModelQuality? qualityExpected) =>
-      _$this._qualityExpected = qualityExpected;
-
-  String? _customSystemPrompt;
-  String? get customSystemPrompt => _$this._customSystemPrompt;
-  set customSystemPrompt(String? customSystemPrompt) =>
-      _$this._customSystemPrompt = customSystemPrompt;
-
-  num? _customTemperature;
-  num? get customTemperature => _$this._customTemperature;
-  set customTemperature(num? customTemperature) =>
-      _$this._customTemperature = customTemperature;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  AgentModelOutBuilder() {
-    AgentModelOut._defaults(this);
-  }
-
-  AgentModelOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idAgent = $v.idAgent;
-      _idAiModel = $v.idAiModel;
-      _qualityExpected = $v.qualityExpected;
-      _customSystemPrompt = $v.customSystemPrompt;
-      _customTemperature = $v.customTemperature;
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(AgentModelOut other) {
-    _$v = other as _$AgentModelOut;
-  }
-
-  @override
-  void update(void Function(AgentModelOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  AgentModelOut build() => _build();
-
-  _$AgentModelOut _build() {
-    final _$result = _$v ??
-        _$AgentModelOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'AgentModelOut', 'id'),
-          idAgent: BuiltValueNullFieldError.checkNotNull(
-              idAgent, r'AgentModelOut', 'idAgent'),
-          idAiModel: BuiltValueNullFieldError.checkNotNull(
-              idAiModel, r'AgentModelOut', 'idAiModel'),
-          qualityExpected: BuiltValueNullFieldError.checkNotNull(
-              qualityExpected, r'AgentModelOut', 'qualityExpected'),
-          customSystemPrompt: BuiltValueNullFieldError.checkNotNull(
-              customSystemPrompt, r'AgentModelOut', 'customSystemPrompt'),
-          customTemperature: customTemperature,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
+AgentModelOut _$AgentModelOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'AgentModelOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_agent',
+            'id_ai_model',
+            'quality_expected',
+            'custom_system_prompt',
+            'custom_temperature',
+            'created_at',
+            'updated_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = AgentModelOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idAgent: $checkedConvert('id_agent', (v) => v as String),
+          idAiModel: $checkedConvert('id_ai_model', (v) => v as String),
+          qualityExpected: $checkedConvert(
+            'quality_expected',
+            (v) => $enumDecode(_$AgentModelQualityEnumMap, v),
+          ),
+          customSystemPrompt: $checkedConvert(
+            'custom_system_prompt',
+            (v) => v as String,
+          ),
+          customTemperature: $checkedConvert(
+            'custom_temperature',
+            (v) => v as num?,
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          updatedAt: $checkedConvert(
+            'updated_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idAgent': 'id_agent',
+        'idAiModel': 'id_ai_model',
+        'qualityExpected': 'quality_expected',
+        'customSystemPrompt': 'custom_system_prompt',
+        'customTemperature': 'custom_temperature',
+        'createdAt': 'created_at',
+        'updatedAt': 'updated_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$AgentModelOutToJson(AgentModelOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_agent': instance.idAgent,
+      'id_ai_model': instance.idAiModel,
+      'quality_expected': _$AgentModelQualityEnumMap[instance.qualityExpected]!,
+      'custom_system_prompt': instance.customSystemPrompt,
+      'custom_temperature': instance.customTemperature,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+    };
+
+const _$AgentModelQualityEnumMap = {
+  AgentModelQuality.unusable: 'unusable',
+  AgentModelQuality.poor: 'poor',
+  AgentModelQuality.fair: 'fair',
+  AgentModelQuality.good: 'good',
+  AgentModelQuality.veryGood: 'very_good',
+  AgentModelQuality.excellent: 'excellent',
+};

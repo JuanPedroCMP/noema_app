@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:built_value/json_object.dart';
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/provider_create.dart';
 import 'package:openapi/src/model/provider_out.dart';
 import 'package:openapi/src/model/provider_update.dart';
@@ -18,9 +18,7 @@ class ProviderApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const ProviderApi(this._dio, this._serializers);
+  const ProviderApi(this._dio);
 
   /// Create Provider
   /// 
@@ -62,8 +60,7 @@ class ProviderApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(ProviderCreate);
-      _bodyData = _serializers.serialize(providerCreate, specifiedType: _type);
+      _bodyData = jsonEncode(providerCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -89,11 +86,8 @@ class ProviderApi {
     ProviderOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(ProviderOut),
-      ) as ProviderOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<ProviderOut, ProviderOut>(rawData, 'ProviderOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -129,9 +123,9 @@ class ProviderApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [Object] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> deleteProviderApiV1AiProviderDeleteIdentificatorDelete({ 
+  Future<Response<Object>> deleteProviderApiV1AiProviderDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -140,7 +134,7 @@ class ProviderApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/provider/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/provider/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -161,14 +155,11 @@ class ProviderApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    Object? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -180,7 +171,7 @@ class ProviderApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<Object>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -215,7 +206,7 @@ class ProviderApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/provider/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/provider/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -239,11 +230,8 @@ class ProviderApi {
     ProviderOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(ProviderOut),
-      ) as ProviderOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<ProviderOut, ProviderOut>(rawData, 'ProviderOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -285,9 +273,9 @@ class ProviderApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<ProviderOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<ProviderOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<ProviderOut>>> listProvidersApiV1AiProviderListGet({ 
+  Future<Response<List<ProviderOut>>> listProvidersApiV1AiProviderListGet({ 
     String? id,
     String? slug,
     String? displayName,
@@ -316,13 +304,13 @@ class ProviderApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'slug': encodeQueryParameter(_serializers, slug, const FullType(String)),
-      r'display_name': encodeQueryParameter(_serializers, displayName, const FullType(String)),
-      r'base_url': encodeQueryParameter(_serializers, baseUrl, const FullType(String)),
-      r'is_active': encodeQueryParameter(_serializers, isActive, const FullType(bool)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
-      r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (slug != null) r'slug': slug,
+      if (displayName != null) r'display_name': displayName,
+      if (baseUrl != null) r'base_url': baseUrl,
+      if (isActive != null) r'is_active': isActive,
+      if (createdAt != null) r'created_at': createdAt,
+      if (updatedAt != null) r'updated_at': updatedAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -334,14 +322,11 @@ class ProviderApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<ProviderOut>? _responseData;
+    List<ProviderOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(ProviderOut)]),
-      ) as BuiltList<ProviderOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<ProviderOut>, ProviderOut>(rawData, 'List<ProviderOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -353,7 +338,7 @@ class ProviderApi {
       );
     }
 
-    return Response<BuiltList<ProviderOut>>(
+    return Response<List<ProviderOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -390,7 +375,7 @@ class ProviderApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/provider/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/provider/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -407,8 +392,7 @@ class ProviderApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(ProviderUpdate);
-      _bodyData = _serializers.serialize(providerUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(providerUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -434,11 +418,8 @@ class ProviderApi {
     ProviderOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(ProviderOut),
-      ) as ProviderOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<ProviderOut, ProviderOut>(rawData, 'ProviderOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

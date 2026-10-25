@@ -4,21 +4,20 @@
 
 import 'dart:async';
 
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/ai_usage_log_create.dart';
 import 'package:openapi/src/model/ai_usage_log_out.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 
 class AiUsageLogApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const AiUsageLogApi(this._dio, this._serializers);
+  const AiUsageLogApi(this._dio);
 
   /// Create Agent Model
   /// 
@@ -65,8 +64,7 @@ class AiUsageLogApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(AiUsageLogCreate);
-      _bodyData = _serializers.serialize(aiUsageLogCreate, specifiedType: _type);
+      _bodyData = jsonEncode(aiUsageLogCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -92,11 +90,8 @@ class AiUsageLogApi {
     AiUsageLogOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AiUsageLogOut),
-      ) as AiUsageLogOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AiUsageLogOut, AiUsageLogOut>(rawData, 'AiUsageLogOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -143,7 +138,7 @@ class AiUsageLogApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/ai_usage_log/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/ai/ai_usage_log/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -172,11 +167,8 @@ class AiUsageLogApi {
     AiUsageLogOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(AiUsageLogOut),
-      ) as AiUsageLogOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<AiUsageLogOut, AiUsageLogOut>(rawData, 'AiUsageLogOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -207,7 +199,7 @@ class AiUsageLogApi {
   /// * [id] 
   /// * [idUser] 
   /// * [idAgentModel] 
-  /// * [usageDatails] 
+  /// * [usageDetails] 
   /// * [createdAt] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -216,13 +208,13 @@ class AiUsageLogApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<AiUsageLogOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<AiUsageLogOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<AiUsageLogOut>>> listAgentModelApiV1AiAiUsageLogListGet({ 
+  Future<Response<List<AiUsageLogOut>>> listAgentModelApiV1AiAiUsageLogListGet({ 
     String? id,
     String? idUser,
     String? idAgentModel,
-    String? usageDatails,
+    Map<String, Object?>? usageDetails,
     DateTime? createdAt,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -250,11 +242,11 @@ class AiUsageLogApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
-      r'id_agent_model': encodeQueryParameter(_serializers, idAgentModel, const FullType(String)),
-      r'usage_datails': encodeQueryParameter(_serializers, usageDatails, const FullType(String)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (idUser != null) r'id_user': idUser,
+      if (idAgentModel != null) r'id_agent_model': idAgentModel,
+      if (usageDetails != null) r'usage_details': usageDetails,
+      if (createdAt != null) r'created_at': createdAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -266,14 +258,11 @@ class AiUsageLogApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<AiUsageLogOut>? _responseData;
+    List<AiUsageLogOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(AiUsageLogOut)]),
-      ) as BuiltList<AiUsageLogOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<AiUsageLogOut>, AiUsageLogOut>(rawData, 'List<AiUsageLogOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -285,7 +274,7 @@ class AiUsageLogApi {
       );
     }
 
-    return Response<BuiltList<AiUsageLogOut>>(
+    return Response<List<AiUsageLogOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

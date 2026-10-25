@@ -3,202 +3,152 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'language_out.g.dart';
 
-/// LanguageOut
-///
-/// Properties:
-/// * [id] 
-/// * [name] 
-/// * [percentageTranslated] 
-/// * [verifiedTranslation] 
-/// * [automaticTranslation] 
-/// * [createdAt] 
-/// * [updatedAt] 
-@BuiltValue()
-abstract class LanguageOut implements Built<LanguageOut, LanguageOutBuilder> {
-  @BuiltValueField(wireName: r'id')
-  String get id;
 
-  @BuiltValueField(wireName: r'name')
-  String get name;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class LanguageOut {
+  /// Returns a new [LanguageOut] instance.
+  LanguageOut({
 
-  @BuiltValueField(wireName: r'percentage_translated')
-  int get percentageTranslated;
+    required  this.id,
 
-  @BuiltValueField(wireName: r'verified_translation')
-  bool get verifiedTranslation;
+    required  this.name,
 
-  @BuiltValueField(wireName: r'automatic_translation')
-  bool get automaticTranslation;
+    required  this.percentageTranslated,
 
-  @BuiltValueField(wireName: r'created_at')
-  DateTime? get createdAt;
+    required  this.verifiedTranslation,
 
-  @BuiltValueField(wireName: r'updated_at')
-  DateTime? get updatedAt;
+    required  this.automaticTranslation,
 
-  LanguageOut._();
+    required  this.createdAt,
 
-  factory LanguageOut([void updates(LanguageOutBuilder b)]) = _$LanguageOut;
+    required  this.updatedAt,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(LanguageOutBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<LanguageOut> get serializer => _$LanguageOutSerializer();
-}
 
-class _$LanguageOutSerializer implements PrimitiveSerializer<LanguageOut> {
-  @override
-  final Iterable<Type> types = const [LanguageOut, _$LanguageOut];
+  final String id;
 
-  @override
-  final String wireName = r'LanguageOut';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    LanguageOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id';
-    yield serializers.serialize(
-      object.id,
-      specifiedType: const FullType(String),
-    );
-    yield r'name';
-    yield serializers.serialize(
-      object.name,
-      specifiedType: const FullType(String),
-    );
-    yield r'percentage_translated';
-    yield serializers.serialize(
-      object.percentageTranslated,
-      specifiedType: const FullType(int),
-    );
-    yield r'verified_translation';
-    yield serializers.serialize(
-      object.verifiedTranslation,
-      specifiedType: const FullType(bool),
-    );
-    yield r'automatic_translation';
-    yield serializers.serialize(
-      object.automaticTranslation,
-      specifiedType: const FullType(bool),
-    );
-    yield r'created_at';
-    yield object.createdAt == null ? null : serializers.serialize(
-      object.createdAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-    yield r'updated_at';
-    yield object.updatedAt == null ? null : serializers.serialize(
-      object.updatedAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    LanguageOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'name',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required LanguageOutBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.name = valueDes;
-          break;
-        case r'percentage_translated':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
-          result.percentageTranslated = valueDes;
-          break;
-        case r'verified_translation':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
-          result.verifiedTranslation = valueDes;
-          break;
-        case r'automatic_translation':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
-          result.automaticTranslation = valueDes;
-          break;
-        case r'created_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.createdAt = valueDes;
-          break;
-        case r'updated_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.updatedAt = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String name;
+
+
+
+  @JsonKey(
+    
+    name: r'percentage_translated',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final int percentageTranslated;
+
+
+
+  @JsonKey(
+    
+    name: r'verified_translation',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final bool verifiedTranslation;
+
+
+
+  @JsonKey(
+    
+    name: r'automatic_translation',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final bool automaticTranslation;
+
+
+
+  @JsonKey(
+    
+    name: r'created_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? createdAt;
+
+
+
+  @JsonKey(
+    
+    name: r'updated_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? updatedAt;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is LanguageOut &&
+      other.id == id &&
+      other.name == name &&
+      other.percentageTranslated == percentageTranslated &&
+      other.verifiedTranslation == verifiedTranslation &&
+      other.automaticTranslation == automaticTranslation &&
+      other.createdAt == createdAt &&
+      other.updatedAt == updatedAt;
+
+    @override
+    int get hashCode =>
+        id.hashCode +
+        name.hashCode +
+        percentageTranslated.hashCode +
+        verifiedTranslation.hashCode +
+        automaticTranslation.hashCode +
+        (createdAt == null ? 0 : createdAt.hashCode) +
+        (updatedAt == null ? 0 : updatedAt.hashCode);
+
+  factory LanguageOut.fromJson(Map<String, dynamic> json) => _$LanguageOutFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LanguageOutToJson(this);
 
   @override
-  LanguageOut deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = LanguageOutBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

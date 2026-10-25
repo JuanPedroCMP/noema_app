@@ -3,202 +3,223 @@
 part of 'user_global_config_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserGlobalConfigOut extends UserGlobalConfigOut {
-  @override
-  final String id;
-  @override
-  final String idUser;
-  @override
-  final String idLanguage;
-  @override
-  final String idUserColorTheme;
-  @override
-  final String idUserTypographyTheme;
-  @override
-  final BuiltMap<String, JsonObject?> preferences;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$UserGlobalConfigOutCWProxy {
+  UserGlobalConfigOut id(String id);
 
-  factory _$UserGlobalConfigOut(
-          [void Function(UserGlobalConfigOutBuilder)? updates]) =>
-      (UserGlobalConfigOutBuilder()..update(updates))._build();
+  UserGlobalConfigOut idUser(String idUser);
 
-  _$UserGlobalConfigOut._(
-      {required this.id,
-      required this.idUser,
-      required this.idLanguage,
-      required this.idUserColorTheme,
-      required this.idUserTypographyTheme,
-      required this.preferences,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  UserGlobalConfigOut rebuild(
-          void Function(UserGlobalConfigOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserGlobalConfigOut idLanguage(String idLanguage);
 
-  @override
-  UserGlobalConfigOutBuilder toBuilder() =>
-      UserGlobalConfigOutBuilder()..replace(this);
+  UserGlobalConfigOut idUserColorTheme(String idUserColorTheme);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserGlobalConfigOut &&
-        id == other.id &&
-        idUser == other.idUser &&
-        idLanguage == other.idLanguage &&
-        idUserColorTheme == other.idUserColorTheme &&
-        idUserTypographyTheme == other.idUserTypographyTheme &&
-        preferences == other.preferences &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  UserGlobalConfigOut idUserTypographyTheme(String idUserTypographyTheme);
+
+  UserGlobalConfigOut preferences(Map<String, Object> preferences);
+
+  UserGlobalConfigOut createdAt(DateTime? createdAt);
+
+  UserGlobalConfigOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserGlobalConfigOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserGlobalConfigOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserGlobalConfigOut call({
+    String id,
+    String idUser,
+    String idLanguage,
+    String idUserColorTheme,
+    String idUserTypographyTheme,
+    Map<String, Object> preferences,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserGlobalConfigOut.copyWith(...)` or call `instanceOfUserGlobalConfigOut.copyWith.fieldName(value)` for a single field.
+class _$UserGlobalConfigOutCWProxyImpl implements _$UserGlobalConfigOutCWProxy {
+  const _$UserGlobalConfigOutCWProxyImpl(this._value);
+
+  final UserGlobalConfigOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, idLanguage.hashCode);
-    _$hash = $jc(_$hash, idUserColorTheme.hashCode);
-    _$hash = $jc(_$hash, idUserTypographyTheme.hashCode);
-    _$hash = $jc(_$hash, preferences.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserGlobalConfigOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserGlobalConfigOut')
-          ..add('id', id)
-          ..add('idUser', idUser)
-          ..add('idLanguage', idLanguage)
-          ..add('idUserColorTheme', idUserColorTheme)
-          ..add('idUserTypographyTheme', idUserTypographyTheme)
-          ..add('preferences', preferences)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  UserGlobalConfigOut idUser(String idUser) => call(idUser: idUser);
+
+  @override
+  UserGlobalConfigOut idLanguage(String idLanguage) =>
+      call(idLanguage: idLanguage);
+
+  @override
+  UserGlobalConfigOut idUserColorTheme(String idUserColorTheme) =>
+      call(idUserColorTheme: idUserColorTheme);
+
+  @override
+  UserGlobalConfigOut idUserTypographyTheme(String idUserTypographyTheme) =>
+      call(idUserTypographyTheme: idUserTypographyTheme);
+
+  @override
+  UserGlobalConfigOut preferences(Map<String, Object> preferences) =>
+      call(preferences: preferences);
+
+  @override
+  UserGlobalConfigOut createdAt(DateTime? createdAt) =>
+      call(createdAt: createdAt);
+
+  @override
+  UserGlobalConfigOut updatedAt(DateTime? updatedAt) =>
+      call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserGlobalConfigOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserGlobalConfigOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserGlobalConfigOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? idLanguage = const $CopyWithPlaceholder(),
+    Object? idUserColorTheme = const $CopyWithPlaceholder(),
+    Object? idUserTypographyTheme = const $CopyWithPlaceholder(),
+    Object? preferences = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return UserGlobalConfigOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      idLanguage:
+          idLanguage == const $CopyWithPlaceholder() || idLanguage == null
+          ? _value.idLanguage
+          // ignore: cast_nullable_to_non_nullable
+          : idLanguage as String,
+      idUserColorTheme:
+          idUserColorTheme == const $CopyWithPlaceholder() ||
+              idUserColorTheme == null
+          ? _value.idUserColorTheme
+          // ignore: cast_nullable_to_non_nullable
+          : idUserColorTheme as String,
+      idUserTypographyTheme:
+          idUserTypographyTheme == const $CopyWithPlaceholder() ||
+              idUserTypographyTheme == null
+          ? _value.idUserTypographyTheme
+          // ignore: cast_nullable_to_non_nullable
+          : idUserTypographyTheme as String,
+      preferences:
+          preferences == const $CopyWithPlaceholder() || preferences == null
+          ? _value.preferences
+          // ignore: cast_nullable_to_non_nullable
+          : preferences as Map<String, Object>,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class UserGlobalConfigOutBuilder
-    implements Builder<UserGlobalConfigOut, UserGlobalConfigOutBuilder> {
-  _$UserGlobalConfigOut? _$v;
-
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _idLanguage;
-  String? get idLanguage => _$this._idLanguage;
-  set idLanguage(String? idLanguage) => _$this._idLanguage = idLanguage;
-
-  String? _idUserColorTheme;
-  String? get idUserColorTheme => _$this._idUserColorTheme;
-  set idUserColorTheme(String? idUserColorTheme) =>
-      _$this._idUserColorTheme = idUserColorTheme;
-
-  String? _idUserTypographyTheme;
-  String? get idUserTypographyTheme => _$this._idUserTypographyTheme;
-  set idUserTypographyTheme(String? idUserTypographyTheme) =>
-      _$this._idUserTypographyTheme = idUserTypographyTheme;
-
-  MapBuilder<String, JsonObject?>? _preferences;
-  MapBuilder<String, JsonObject?> get preferences =>
-      _$this._preferences ??= MapBuilder<String, JsonObject?>();
-  set preferences(MapBuilder<String, JsonObject?>? preferences) =>
-      _$this._preferences = preferences;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  UserGlobalConfigOutBuilder() {
-    UserGlobalConfigOut._defaults(this);
-  }
-
-  UserGlobalConfigOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idUser = $v.idUser;
-      _idLanguage = $v.idLanguage;
-      _idUserColorTheme = $v.idUserColorTheme;
-      _idUserTypographyTheme = $v.idUserTypographyTheme;
-      _preferences = $v.preferences.toBuilder();
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserGlobalConfigOut other) {
-    _$v = other as _$UserGlobalConfigOut;
-  }
-
-  @override
-  void update(void Function(UserGlobalConfigOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserGlobalConfigOut build() => _build();
-
-  _$UserGlobalConfigOut _build() {
-    _$UserGlobalConfigOut _$result;
-    try {
-      _$result = _$v ??
-          _$UserGlobalConfigOut._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'UserGlobalConfigOut', 'id'),
-            idUser: BuiltValueNullFieldError.checkNotNull(
-                idUser, r'UserGlobalConfigOut', 'idUser'),
-            idLanguage: BuiltValueNullFieldError.checkNotNull(
-                idLanguage, r'UserGlobalConfigOut', 'idLanguage'),
-            idUserColorTheme: BuiltValueNullFieldError.checkNotNull(
-                idUserColorTheme, r'UserGlobalConfigOut', 'idUserColorTheme'),
-            idUserTypographyTheme: BuiltValueNullFieldError.checkNotNull(
-                idUserTypographyTheme,
-                r'UserGlobalConfigOut',
-                'idUserTypographyTheme'),
-            preferences: preferences.build(),
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-          );
-    } catch (_) {
-      late String _$failedField;
-      try {
-        _$failedField = 'preferences';
-        preferences.build();
-      } catch (e) {
-        throw BuiltValueNestedFieldError(
-            r'UserGlobalConfigOut', _$failedField, e.toString());
-      }
-      rethrow;
-    }
-    replace(_$result);
-    return _$result;
-  }
+extension $UserGlobalConfigOutCopyWith on UserGlobalConfigOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserGlobalConfigOut.copyWith(...)` or `instanceOfUserGlobalConfigOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserGlobalConfigOutCWProxy get copyWith =>
+      _$UserGlobalConfigOutCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserGlobalConfigOut _$UserGlobalConfigOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'UserGlobalConfigOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_user',
+            'id_language',
+            'id_user_color_theme',
+            'id_user_typography_theme',
+            'preferences',
+            'created_at',
+            'updated_at',
+          ],
+        );
+        final val = UserGlobalConfigOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idUser: $checkedConvert('id_user', (v) => v as String),
+          idLanguage: $checkedConvert('id_language', (v) => v as String),
+          idUserColorTheme: $checkedConvert(
+            'id_user_color_theme',
+            (v) => v as String,
+          ),
+          idUserTypographyTheme: $checkedConvert(
+            'id_user_typography_theme',
+            (v) => v as String,
+          ),
+          preferences: $checkedConvert(
+            'preferences',
+            (v) => (v as Map<String, dynamic>).map(
+              (k, e) => MapEntry(k, e as Object),
+            ),
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          updatedAt: $checkedConvert(
+            'updated_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'idLanguage': 'id_language',
+        'idUserColorTheme': 'id_user_color_theme',
+        'idUserTypographyTheme': 'id_user_typography_theme',
+        'createdAt': 'created_at',
+        'updatedAt': 'updated_at',
+      },
+    );
+
+Map<String, dynamic> _$UserGlobalConfigOutToJson(
+  UserGlobalConfigOut instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'id_user': instance.idUser,
+  'id_language': instance.idLanguage,
+  'id_user_color_theme': instance.idUserColorTheme,
+  'id_user_typography_theme': instance.idUserTypographyTheme,
+  'preferences': instance.preferences,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+};

@@ -23,7 +23,7 @@ void main() {
 
     // List Agent Model
     //
-    //Future<BuiltList<AiUsageLogOut>> listAgentModelApiV1AiAiUsageLogListGet({ String id, String idUser, String idAgentModel, String usageDatails, DateTime createdAt }) async
+    //Future<List<AiUsageLogOut>> listAgentModelApiV1AiAiUsageLogListGet({ String id, String idUser, String idAgentModel, Map<String, Object?> usageDetails, DateTime createdAt }) async
     test('test listAgentModelApiV1AiAiUsageLogListGet', () async {
       // TODO
     });

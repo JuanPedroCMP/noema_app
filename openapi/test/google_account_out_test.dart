@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for GoogleAccountOut
 void main() {
-  final instance = GoogleAccountOutBuilder();
-  // TODO add properties to the builder and call build()
+  final GoogleAccountOut? instance = /* GoogleAccountOut(...) */ null;
+  // TODO add properties to the entity
 
   group(GoogleAccountOut, () {
     // String id
@@ -24,16 +24,6 @@ void main() {
 
     // String emailGoogle
     test('to test the property `emailGoogle`', () async {
-      // TODO
-    });
-
-    // String accessTokenEnc
-    test('to test the property `accessTokenEnc`', () async {
-      // TODO
-    });
-
-    // String refreshTokenEnc
-    test('to test the property `refreshTokenEnc`', () async {
       // TODO
     });
 

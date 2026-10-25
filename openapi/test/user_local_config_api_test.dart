@@ -23,7 +23,7 @@ void main() {
 
     // List User Local Configs
     //
-    //Future<BuiltList<UserLocalConfigOut>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(String preferences, { String id, String idUser, String idDevice, String idLanguage, String idUserColorTheme, String idUserTypographyTheme, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<UserLocalConfigOut>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(String preferences, { String id, String idUser, String idDevice, String idLanguage, String idUserColorTheme, String idUserTypographyTheme, DateTime createdAt, DateTime updatedAt }) async
     test('test listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet', () async {
       // TODO
     });

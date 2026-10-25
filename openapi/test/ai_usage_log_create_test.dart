@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AiUsageLogCreate
 void main() {
-  final instance = AiUsageLogCreateBuilder();
-  // TODO add properties to the builder and call build()
+  final AiUsageLogCreate? instance = /* AiUsageLogCreate(...) */ null;
+  // TODO add properties to the entity
 
   group(AiUsageLogCreate, () {
     // String idUser
@@ -17,8 +17,8 @@ void main() {
       // TODO
     });
 
-    // String usageDatails
-    test('to test the property `usageDatails`', () async {
+    // Map<String, Object> usageDetails
+    test('to test the property `usageDetails`', () async {
       // TODO
     });
 

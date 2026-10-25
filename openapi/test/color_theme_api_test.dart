@@ -16,7 +16,7 @@ void main() {
 
     // Delete Color Theme
     //
-    //Future<JsonObject> deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete(String identificator) async
     test('test deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Color Theme
     //
-    //Future<BuiltList<UserColorThemeOut>> listColorThemeApiV1UserThemeColorThemeListGet({ String id, String idUser, String name, int seedColor, String overrideJson, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<UserColorThemeOut>> listColorThemeApiV1UserThemeColorThemeListGet({ String id, String idUser, String name, int seedColor, String overrideJson, DateTime createdAt, DateTime updatedAt }) async
     test('test listColorThemeApiV1UserThemeColorThemeListGet', () async {
       // TODO
     });

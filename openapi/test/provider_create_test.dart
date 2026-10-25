@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ProviderCreate
 void main() {
-  final instance = ProviderCreateBuilder();
-  // TODO add properties to the builder and call build()
+  final ProviderCreate? instance = /* ProviderCreate(...) */ null;
+  // TODO add properties to the entity
 
   group(ProviderCreate, () {
     // String slug

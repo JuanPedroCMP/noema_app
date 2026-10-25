@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AgentModelCreate
 void main() {
-  final instance = AgentModelCreateBuilder();
-  // TODO add properties to the builder and call build()
+  final AgentModelCreate? instance = /* AgentModelCreate(...) */ null;
+  // TODO add properties to the entity
 
   group(AgentModelCreate, () {
     // String idAgent

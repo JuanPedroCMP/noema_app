@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserTypographyThemeUpdate
 void main() {
-  final instance = UserTypographyThemeUpdateBuilder();
-  // TODO add properties to the builder and call build()
+  final UserTypographyThemeUpdate? instance = /* UserTypographyThemeUpdate(...) */ null;
+  // TODO add properties to the entity
 
   group(UserTypographyThemeUpdate, () {
     // String idUser

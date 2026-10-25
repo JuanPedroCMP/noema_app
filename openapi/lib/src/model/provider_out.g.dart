@@ -3,165 +3,183 @@
 part of 'provider_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$ProviderOut extends ProviderOut {
-  @override
-  final String id;
-  @override
-  final String slug;
-  @override
-  final String displayName;
-  @override
-  final String baseUrl;
-  @override
-  final bool? isActive;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$ProviderOutCWProxy {
+  ProviderOut id(String id);
 
-  factory _$ProviderOut([void Function(ProviderOutBuilder)? updates]) =>
-      (ProviderOutBuilder()..update(updates))._build();
+  ProviderOut slug(String slug);
 
-  _$ProviderOut._(
-      {required this.id,
-      required this.slug,
-      required this.displayName,
-      required this.baseUrl,
-      this.isActive,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  ProviderOut rebuild(void Function(ProviderOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  ProviderOut displayName(String displayName);
 
-  @override
-  ProviderOutBuilder toBuilder() => ProviderOutBuilder()..replace(this);
+  ProviderOut baseUrl(String baseUrl);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is ProviderOut &&
-        id == other.id &&
-        slug == other.slug &&
-        displayName == other.displayName &&
-        baseUrl == other.baseUrl &&
-        isActive == other.isActive &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  ProviderOut isActive(bool? isActive);
+
+  ProviderOut createdAt(DateTime? createdAt);
+
+  ProviderOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ProviderOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  ProviderOut call({
+    String id,
+    String slug,
+    String displayName,
+    String baseUrl,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfProviderOut.copyWith(...)` or call `instanceOfProviderOut.copyWith.fieldName(value)` for a single field.
+class _$ProviderOutCWProxyImpl implements _$ProviderOutCWProxy {
+  const _$ProviderOutCWProxyImpl(this._value);
+
+  final ProviderOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, slug.hashCode);
-    _$hash = $jc(_$hash, displayName.hashCode);
-    _$hash = $jc(_$hash, baseUrl.hashCode);
-    _$hash = $jc(_$hash, isActive.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  ProviderOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'ProviderOut')
-          ..add('id', id)
-          ..add('slug', slug)
-          ..add('displayName', displayName)
-          ..add('baseUrl', baseUrl)
-          ..add('isActive', isActive)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  ProviderOut slug(String slug) => call(slug: slug);
+
+  @override
+  ProviderOut displayName(String displayName) => call(displayName: displayName);
+
+  @override
+  ProviderOut baseUrl(String baseUrl) => call(baseUrl: baseUrl);
+
+  @override
+  ProviderOut isActive(bool? isActive) => call(isActive: isActive);
+
+  @override
+  ProviderOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  @override
+  ProviderOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// ProviderOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  ProviderOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? slug = const $CopyWithPlaceholder(),
+    Object? displayName = const $CopyWithPlaceholder(),
+    Object? baseUrl = const $CopyWithPlaceholder(),
+    Object? isActive = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return ProviderOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      slug: slug == const $CopyWithPlaceholder() || slug == null
+          ? _value.slug
+          // ignore: cast_nullable_to_non_nullable
+          : slug as String,
+      displayName:
+          displayName == const $CopyWithPlaceholder() || displayName == null
+          ? _value.displayName
+          // ignore: cast_nullable_to_non_nullable
+          : displayName as String,
+      baseUrl: baseUrl == const $CopyWithPlaceholder() || baseUrl == null
+          ? _value.baseUrl
+          // ignore: cast_nullable_to_non_nullable
+          : baseUrl as String,
+      isActive: isActive == const $CopyWithPlaceholder()
+          ? _value.isActive
+          // ignore: cast_nullable_to_non_nullable
+          : isActive as bool?,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class ProviderOutBuilder implements Builder<ProviderOut, ProviderOutBuilder> {
-  _$ProviderOut? _$v;
-
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
-
-  String? _slug;
-  String? get slug => _$this._slug;
-  set slug(String? slug) => _$this._slug = slug;
-
-  String? _displayName;
-  String? get displayName => _$this._displayName;
-  set displayName(String? displayName) => _$this._displayName = displayName;
-
-  String? _baseUrl;
-  String? get baseUrl => _$this._baseUrl;
-  set baseUrl(String? baseUrl) => _$this._baseUrl = baseUrl;
-
-  bool? _isActive;
-  bool? get isActive => _$this._isActive;
-  set isActive(bool? isActive) => _$this._isActive = isActive;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  ProviderOutBuilder() {
-    ProviderOut._defaults(this);
-  }
-
-  ProviderOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _slug = $v.slug;
-      _displayName = $v.displayName;
-      _baseUrl = $v.baseUrl;
-      _isActive = $v.isActive;
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(ProviderOut other) {
-    _$v = other as _$ProviderOut;
-  }
-
-  @override
-  void update(void Function(ProviderOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  ProviderOut build() => _build();
-
-  _$ProviderOut _build() {
-    final _$result = _$v ??
-        _$ProviderOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'ProviderOut', 'id'),
-          slug: BuiltValueNullFieldError.checkNotNull(
-              slug, r'ProviderOut', 'slug'),
-          displayName: BuiltValueNullFieldError.checkNotNull(
-              displayName, r'ProviderOut', 'displayName'),
-          baseUrl: BuiltValueNullFieldError.checkNotNull(
-              baseUrl, r'ProviderOut', 'baseUrl'),
-          isActive: isActive,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $ProviderOutCopyWith on ProviderOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfProviderOut.copyWith(...)` or `instanceOfProviderOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$ProviderOutCWProxy get copyWith => _$ProviderOutCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+ProviderOut _$ProviderOutFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'ProviderOut',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'id',
+        'slug',
+        'display_name',
+        'base_url',
+        'is_active',
+        'created_at',
+        'updated_at',
+      ],
+    );
+    final val = ProviderOut(
+      id: $checkedConvert('id', (v) => v as String),
+      slug: $checkedConvert('slug', (v) => v as String),
+      displayName: $checkedConvert('display_name', (v) => v as String),
+      baseUrl: $checkedConvert('base_url', (v) => v as String),
+      isActive: $checkedConvert('is_active', (v) => v as bool?),
+      createdAt: $checkedConvert(
+        'created_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      updatedAt: $checkedConvert(
+        'updated_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'displayName': 'display_name',
+    'baseUrl': 'base_url',
+    'isActive': 'is_active',
+    'createdAt': 'created_at',
+    'updatedAt': 'updated_at',
+  },
+);
+
+Map<String, dynamic> _$ProviderOutToJson(ProviderOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'slug': instance.slug,
+      'display_name': instance.displayName,
+      'base_url': instance.baseUrl,
+      'is_active': instance.isActive,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+    };

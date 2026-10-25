@@ -16,7 +16,7 @@ void main() {
 
     // Delete Agent Model
     //
-    //Future<JsonObject> deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete(String identificator) async
     test('test deleteAgentModelApiV1AiAgentModelDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Agent Model
     //
-    //Future<BuiltList<AgentModelOut>> listAgentModelApiV1AiAgentModelListGet({ String id, String idAgent, String idAiModel, AgentModelQuality qualityExpected, String customSystemPrompt, num customTemperature, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<AgentModelOut>> listAgentModelApiV1AiAgentModelListGet({ String id, String idAgent, String idAiModel, AgentModelQuality qualityExpected, String customSystemPrompt, num customTemperature, DateTime createdAt, DateTime updatedAt }) async
     test('test listAgentModelApiV1AiAgentModelListGet', () async {
       // TODO
     });

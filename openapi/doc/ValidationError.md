@@ -8,11 +8,11 @@ import 'package:openapi/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**loc** | [**BuiltList&lt;LocationInner&gt;**](LocationInner.md) |  | 
+**loc** | [**List&lt;LocationInner&gt;**](LocationInner.md) |  | 
 **msg** | **String** |  | 
 **type** | **String** |  | 
-**input** | [**JsonObject**](.md) |  | [optional] 
-**ctx** | [**JsonObject**](.md) |  | [optional] 
+**input** | **Object** |  | [optional] 
+**ctx** | **Object** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

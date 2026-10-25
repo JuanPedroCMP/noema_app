@@ -3,11 +3,11 @@ import 'package:openapi/openapi.dart';
 
 // tests for ValidationError
 void main() {
-  final instance = ValidationErrorBuilder();
-  // TODO add properties to the builder and call build()
+  final ValidationError? instance = /* ValidationError(...) */ null;
+  // TODO add properties to the entity
 
   group(ValidationError, () {
-    // BuiltList<LocationInner> loc
+    // List<LocationInner> loc
     test('to test the property `loc`', () async {
       // TODO
     });
@@ -22,12 +22,12 @@ void main() {
       // TODO
     });
 
-    // JsonObject input
+    // Object input
     test('to test the property `input`', () async {
       // TODO
     });
 
-    // JsonObject ctx
+    // Object ctx
     test('to test the property `ctx`', () async {
       // TODO
     });

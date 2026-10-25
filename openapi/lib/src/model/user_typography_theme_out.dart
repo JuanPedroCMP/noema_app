@@ -3,236 +3,184 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/json_object.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'user_typography_theme_out.g.dart';
 
-/// UserTypographyThemeOut
-///
-/// Properties:
-/// * [id] 
-/// * [idUser] 
-/// * [name] 
-/// * [displayFont] 
-/// * [bodyFont] 
-/// * [monoFont] 
-/// * [overrideJson] 
-/// * [createdAt] 
-/// * [updatedAt] 
-@BuiltValue()
-abstract class UserTypographyThemeOut implements Built<UserTypographyThemeOut, UserTypographyThemeOutBuilder> {
-  @BuiltValueField(wireName: r'id')
-  String get id;
 
-  @BuiltValueField(wireName: r'id_user')
-  String get idUser;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class UserTypographyThemeOut {
+  /// Returns a new [UserTypographyThemeOut] instance.
+  UserTypographyThemeOut({
 
-  @BuiltValueField(wireName: r'name')
-  String get name;
+    required  this.id,
 
-  @BuiltValueField(wireName: r'display_font')
-  String get displayFont;
+    required  this.idUser,
 
-  @BuiltValueField(wireName: r'body_font')
-  String get bodyFont;
+    required  this.name,
 
-  @BuiltValueField(wireName: r'mono_font')
-  String get monoFont;
+    required  this.displayFont,
 
-  @BuiltValueField(wireName: r'override_json')
-  BuiltMap<String, JsonObject?> get overrideJson;
+    required  this.bodyFont,
 
-  @BuiltValueField(wireName: r'created_at')
-  DateTime? get createdAt;
+    required  this.monoFont,
 
-  @BuiltValueField(wireName: r'updated_at')
-  DateTime? get updatedAt;
+    required  this.overrideJson,
 
-  UserTypographyThemeOut._();
+    required  this.createdAt,
 
-  factory UserTypographyThemeOut([void updates(UserTypographyThemeOutBuilder b)]) = _$UserTypographyThemeOut;
+    required  this.updatedAt,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(UserTypographyThemeOutBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<UserTypographyThemeOut> get serializer => _$UserTypographyThemeOutSerializer();
-}
 
-class _$UserTypographyThemeOutSerializer implements PrimitiveSerializer<UserTypographyThemeOut> {
-  @override
-  final Iterable<Type> types = const [UserTypographyThemeOut, _$UserTypographyThemeOut];
+  final String id;
 
-  @override
-  final String wireName = r'UserTypographyThemeOut';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    UserTypographyThemeOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id';
-    yield serializers.serialize(
-      object.id,
-      specifiedType: const FullType(String),
-    );
-    yield r'id_user';
-    yield serializers.serialize(
-      object.idUser,
-      specifiedType: const FullType(String),
-    );
-    yield r'name';
-    yield serializers.serialize(
-      object.name,
-      specifiedType: const FullType(String),
-    );
-    yield r'display_font';
-    yield serializers.serialize(
-      object.displayFont,
-      specifiedType: const FullType(String),
-    );
-    yield r'body_font';
-    yield serializers.serialize(
-      object.bodyFont,
-      specifiedType: const FullType(String),
-    );
-    yield r'mono_font';
-    yield serializers.serialize(
-      object.monoFont,
-      specifiedType: const FullType(String),
-    );
-    yield r'override_json';
-    yield serializers.serialize(
-      object.overrideJson,
-      specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
-    );
-    yield r'created_at';
-    yield object.createdAt == null ? null : serializers.serialize(
-      object.createdAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-    yield r'updated_at';
-    yield object.updatedAt == null ? null : serializers.serialize(
-      object.updatedAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    UserTypographyThemeOut object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'id_user',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required UserTypographyThemeOutBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'id_user':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idUser = valueDes;
-          break;
-        case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.name = valueDes;
-          break;
-        case r'display_font':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.displayFont = valueDes;
-          break;
-        case r'body_font':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.bodyFont = valueDes;
-          break;
-        case r'mono_font':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.monoFont = valueDes;
-          break;
-        case r'override_json':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
-          ) as BuiltMap<String, JsonObject?>;
-          result.overrideJson.replace(valueDes);
-          break;
-        case r'created_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.createdAt = valueDes;
-          break;
-        case r'updated_at':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(DateTime),
-          ) as DateTime?;
-          if (valueDes == null) continue;
-          result.updatedAt = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String idUser;
+
+
+
+  @JsonKey(
+    
+    name: r'name',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String name;
+
+
+
+  @JsonKey(
+    
+    name: r'display_font',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String displayFont;
+
+
+
+  @JsonKey(
+    
+    name: r'body_font',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String bodyFont;
+
+
+
+  @JsonKey(
+    
+    name: r'mono_font',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String monoFont;
+
+
+
+  @JsonKey(
+    
+    name: r'override_json',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final Map<String, Object> overrideJson;
+
+
+
+  @JsonKey(
+    
+    name: r'created_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? createdAt;
+
+
+
+  @JsonKey(
+    
+    name: r'updated_at',
+    required: true,
+    includeIfNull: true,
+  )
+
+
+  final DateTime? updatedAt;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is UserTypographyThemeOut &&
+      other.id == id &&
+      other.idUser == idUser &&
+      other.name == name &&
+      other.displayFont == displayFont &&
+      other.bodyFont == bodyFont &&
+      other.monoFont == monoFont &&
+      other.overrideJson == overrideJson &&
+      other.createdAt == createdAt &&
+      other.updatedAt == updatedAt;
+
+    @override
+    int get hashCode =>
+        id.hashCode +
+        idUser.hashCode +
+        name.hashCode +
+        displayFont.hashCode +
+        bodyFont.hashCode +
+        monoFont.hashCode +
+        overrideJson.hashCode +
+        (createdAt == null ? 0 : createdAt.hashCode) +
+        (updatedAt == null ? 0 : updatedAt.hashCode);
+
+  factory UserTypographyThemeOut.fromJson(Map<String, dynamic> json) => _$UserTypographyThemeOutFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserTypographyThemeOutToJson(this);
 
   @override
-  UserTypographyThemeOut deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = UserTypographyThemeOutBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

@@ -3,140 +3,145 @@
 part of 'device_update.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$DeviceUpdate extends DeviceUpdate {
-  @override
-  final String? idUser;
-  @override
-  final String? deviceName;
-  @override
-  final String? deviceFingerprint;
-  @override
-  final String? platform;
-  @override
-  final DateTime? lastSeenAt;
+abstract class _$DeviceUpdateCWProxy {
+  DeviceUpdate idUser(String? idUser);
 
-  factory _$DeviceUpdate([void Function(DeviceUpdateBuilder)? updates]) =>
-      (DeviceUpdateBuilder()..update(updates))._build();
+  DeviceUpdate deviceName(String? deviceName);
 
-  _$DeviceUpdate._(
-      {this.idUser,
-      this.deviceName,
-      this.deviceFingerprint,
-      this.platform,
-      this.lastSeenAt})
-      : super._();
-  @override
-  DeviceUpdate rebuild(void Function(DeviceUpdateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  DeviceUpdate deviceFingerprint(String? deviceFingerprint);
 
-  @override
-  DeviceUpdateBuilder toBuilder() => DeviceUpdateBuilder()..replace(this);
+  DeviceUpdate platform(String? platform);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is DeviceUpdate &&
-        idUser == other.idUser &&
-        deviceName == other.deviceName &&
-        deviceFingerprint == other.deviceFingerprint &&
-        platform == other.platform &&
-        lastSeenAt == other.lastSeenAt;
-  }
+  DeviceUpdate lastSeenAt(DateTime? lastSeenAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `DeviceUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// DeviceUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  DeviceUpdate call({
+    String? idUser,
+    String? deviceName,
+    String? deviceFingerprint,
+    String? platform,
+    DateTime? lastSeenAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfDeviceUpdate.copyWith(...)` or call `instanceOfDeviceUpdate.copyWith.fieldName(value)` for a single field.
+class _$DeviceUpdateCWProxyImpl implements _$DeviceUpdateCWProxy {
+  const _$DeviceUpdateCWProxyImpl(this._value);
+
+  final DeviceUpdate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, deviceName.hashCode);
-    _$hash = $jc(_$hash, deviceFingerprint.hashCode);
-    _$hash = $jc(_$hash, platform.hashCode);
-    _$hash = $jc(_$hash, lastSeenAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  DeviceUpdate idUser(String? idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'DeviceUpdate')
-          ..add('idUser', idUser)
-          ..add('deviceName', deviceName)
-          ..add('deviceFingerprint', deviceFingerprint)
-          ..add('platform', platform)
-          ..add('lastSeenAt', lastSeenAt))
-        .toString();
+  DeviceUpdate deviceName(String? deviceName) => call(deviceName: deviceName);
+
+  @override
+  DeviceUpdate deviceFingerprint(String? deviceFingerprint) =>
+      call(deviceFingerprint: deviceFingerprint);
+
+  @override
+  DeviceUpdate platform(String? platform) => call(platform: platform);
+
+  @override
+  DeviceUpdate lastSeenAt(DateTime? lastSeenAt) => call(lastSeenAt: lastSeenAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `DeviceUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// DeviceUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  DeviceUpdate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? deviceName = const $CopyWithPlaceholder(),
+    Object? deviceFingerprint = const $CopyWithPlaceholder(),
+    Object? platform = const $CopyWithPlaceholder(),
+    Object? lastSeenAt = const $CopyWithPlaceholder(),
+  }) {
+    return DeviceUpdate(
+      idUser: idUser == const $CopyWithPlaceholder()
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String?,
+      deviceName: deviceName == const $CopyWithPlaceholder()
+          ? _value.deviceName
+          // ignore: cast_nullable_to_non_nullable
+          : deviceName as String?,
+      deviceFingerprint: deviceFingerprint == const $CopyWithPlaceholder()
+          ? _value.deviceFingerprint
+          // ignore: cast_nullable_to_non_nullable
+          : deviceFingerprint as String?,
+      platform: platform == const $CopyWithPlaceholder()
+          ? _value.platform
+          // ignore: cast_nullable_to_non_nullable
+          : platform as String?,
+      lastSeenAt: lastSeenAt == const $CopyWithPlaceholder()
+          ? _value.lastSeenAt
+          // ignore: cast_nullable_to_non_nullable
+          : lastSeenAt as DateTime?,
+    );
   }
 }
 
-class DeviceUpdateBuilder
-    implements Builder<DeviceUpdate, DeviceUpdateBuilder> {
-  _$DeviceUpdate? _$v;
+extension $DeviceUpdateCopyWith on DeviceUpdate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfDeviceUpdate.copyWith(...)` or `instanceOfDeviceUpdate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$DeviceUpdateCWProxy get copyWith => _$DeviceUpdateCWProxyImpl(this);
+}
 
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _deviceName;
-  String? get deviceName => _$this._deviceName;
-  set deviceName(String? deviceName) => _$this._deviceName = deviceName;
-
-  String? _deviceFingerprint;
-  String? get deviceFingerprint => _$this._deviceFingerprint;
-  set deviceFingerprint(String? deviceFingerprint) =>
-      _$this._deviceFingerprint = deviceFingerprint;
-
-  String? _platform;
-  String? get platform => _$this._platform;
-  set platform(String? platform) => _$this._platform = platform;
-
-  DateTime? _lastSeenAt;
-  DateTime? get lastSeenAt => _$this._lastSeenAt;
-  set lastSeenAt(DateTime? lastSeenAt) => _$this._lastSeenAt = lastSeenAt;
-
-  DeviceUpdateBuilder() {
-    DeviceUpdate._defaults(this);
-  }
-
-  DeviceUpdateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _deviceName = $v.deviceName;
-      _deviceFingerprint = $v.deviceFingerprint;
-      _platform = $v.platform;
-      _lastSeenAt = $v.lastSeenAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(DeviceUpdate other) {
-    _$v = other as _$DeviceUpdate;
-  }
-
-  @override
-  void update(void Function(DeviceUpdateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  DeviceUpdate build() => _build();
-
-  _$DeviceUpdate _build() {
-    final _$result = _$v ??
-        _$DeviceUpdate._(
-          idUser: idUser,
-          deviceName: deviceName,
-          deviceFingerprint: deviceFingerprint,
-          platform: platform,
-          lastSeenAt: lastSeenAt,
+DeviceUpdate _$DeviceUpdateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'DeviceUpdate',
+      json,
+      ($checkedConvert) {
+        final val = DeviceUpdate(
+          idUser: $checkedConvert('id_user', (v) => v as String?),
+          deviceName: $checkedConvert('device_name', (v) => v as String?),
+          deviceFingerprint: $checkedConvert(
+            'device_fingerprint',
+            (v) => v as String?,
+          ),
+          platform: $checkedConvert('platform', (v) => v as String?),
+          lastSeenAt: $checkedConvert(
+            'last_seen_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'deviceName': 'device_name',
+        'deviceFingerprint': 'device_fingerprint',
+        'lastSeenAt': 'last_seen_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$DeviceUpdateToJson(DeviceUpdate instance) =>
+    <String, dynamic>{
+      'id_user': ?instance.idUser,
+      'device_name': ?instance.deviceName,
+      'device_fingerprint': ?instance.deviceFingerprint,
+      'platform': ?instance.platform,
+      'last_seen_at': ?instance.lastSeenAt?.toIso8601String(),
+    };

@@ -103,7 +103,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet**
-> BuiltList<ResponseLanguagePreferenceOrderOut> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet(id, name, percentageTranslated, verifiedTranslation, automaticTranslation, createdAt, updatedAt)
+> List<ResponseLanguagePreferenceOrderOut> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet(id, name, percentageTranslated, verifiedTranslation, automaticTranslation, createdAt, updatedAt)
 
 List Response Language Preference Orders
 
@@ -144,7 +144,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;ResponseLanguagePreferenceOrderOut&gt;**](ResponseLanguagePreferenceOrderOut.md)
+[**List&lt;ResponseLanguagePreferenceOrderOut&gt;**](ResponseLanguagePreferenceOrderOut.md)
 
 ### Authorization
 

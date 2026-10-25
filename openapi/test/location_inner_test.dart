@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for LocationInner
 void main() {
-  final instance = LocationInnerBuilder();
-  // TODO add properties to the builder and call build()
+  final LocationInner? instance = /* LocationInner(...) */ null;
+  // TODO add properties to the entity
 
   group(LocationInner, () {
   });

@@ -13,7 +13,7 @@ Method | HTTP request | Description
 
 
 # **rootGet**
-> JsonObject rootGet()
+> Map<String, String> rootGet()
 
 Root
 
@@ -36,7 +36,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Map&lt;String, String&gt;**
 
 ### Authorization
 

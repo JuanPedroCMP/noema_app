@@ -3,194 +3,230 @@
 part of 'google_account_update.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$GoogleAccountUpdate extends GoogleAccountUpdate {
-  @override
-  final String? idUser;
-  @override
-  final String? googleUserId;
-  @override
-  final String? emailGoogle;
-  @override
-  final String? accessTokenEnc;
-  @override
-  final String? refreshTokenEnc;
-  @override
-  final String? grantedScopes;
-  @override
-  final bool? isActive;
-  @override
-  final DateTime? expiresAt;
-  @override
-  final DateTime? lastRefreshAt;
+abstract class _$GoogleAccountUpdateCWProxy {
+  GoogleAccountUpdate idUser(String? idUser);
 
-  factory _$GoogleAccountUpdate(
-          [void Function(GoogleAccountUpdateBuilder)? updates]) =>
-      (GoogleAccountUpdateBuilder()..update(updates))._build();
+  GoogleAccountUpdate googleUserId(String? googleUserId);
 
-  _$GoogleAccountUpdate._(
-      {this.idUser,
-      this.googleUserId,
-      this.emailGoogle,
-      this.accessTokenEnc,
-      this.refreshTokenEnc,
-      this.grantedScopes,
-      this.isActive,
-      this.expiresAt,
-      this.lastRefreshAt})
-      : super._();
-  @override
-  GoogleAccountUpdate rebuild(
-          void Function(GoogleAccountUpdateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  GoogleAccountUpdate emailGoogle(String? emailGoogle);
 
-  @override
-  GoogleAccountUpdateBuilder toBuilder() =>
-      GoogleAccountUpdateBuilder()..replace(this);
+  GoogleAccountUpdate accessTokenEnc(String? accessTokenEnc);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is GoogleAccountUpdate &&
-        idUser == other.idUser &&
-        googleUserId == other.googleUserId &&
-        emailGoogle == other.emailGoogle &&
-        accessTokenEnc == other.accessTokenEnc &&
-        refreshTokenEnc == other.refreshTokenEnc &&
-        grantedScopes == other.grantedScopes &&
-        isActive == other.isActive &&
-        expiresAt == other.expiresAt &&
-        lastRefreshAt == other.lastRefreshAt;
-  }
+  GoogleAccountUpdate refreshTokenEnc(String? refreshTokenEnc);
+
+  GoogleAccountUpdate grantedScopes(String? grantedScopes);
+
+  GoogleAccountUpdate isActive(bool? isActive);
+
+  GoogleAccountUpdate expiresAt(DateTime? expiresAt);
+
+  GoogleAccountUpdate lastRefreshAt(DateTime? lastRefreshAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  GoogleAccountUpdate call({
+    String? idUser,
+    String? googleUserId,
+    String? emailGoogle,
+    String? accessTokenEnc,
+    String? refreshTokenEnc,
+    String? grantedScopes,
+    bool? isActive,
+    DateTime? expiresAt,
+    DateTime? lastRefreshAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfGoogleAccountUpdate.copyWith(...)` or call `instanceOfGoogleAccountUpdate.copyWith.fieldName(value)` for a single field.
+class _$GoogleAccountUpdateCWProxyImpl implements _$GoogleAccountUpdateCWProxy {
+  const _$GoogleAccountUpdateCWProxyImpl(this._value);
+
+  final GoogleAccountUpdate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, googleUserId.hashCode);
-    _$hash = $jc(_$hash, emailGoogle.hashCode);
-    _$hash = $jc(_$hash, accessTokenEnc.hashCode);
-    _$hash = $jc(_$hash, refreshTokenEnc.hashCode);
-    _$hash = $jc(_$hash, grantedScopes.hashCode);
-    _$hash = $jc(_$hash, isActive.hashCode);
-    _$hash = $jc(_$hash, expiresAt.hashCode);
-    _$hash = $jc(_$hash, lastRefreshAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  GoogleAccountUpdate idUser(String? idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'GoogleAccountUpdate')
-          ..add('idUser', idUser)
-          ..add('googleUserId', googleUserId)
-          ..add('emailGoogle', emailGoogle)
-          ..add('accessTokenEnc', accessTokenEnc)
-          ..add('refreshTokenEnc', refreshTokenEnc)
-          ..add('grantedScopes', grantedScopes)
-          ..add('isActive', isActive)
-          ..add('expiresAt', expiresAt)
-          ..add('lastRefreshAt', lastRefreshAt))
-        .toString();
+  GoogleAccountUpdate googleUserId(String? googleUserId) =>
+      call(googleUserId: googleUserId);
+
+  @override
+  GoogleAccountUpdate emailGoogle(String? emailGoogle) =>
+      call(emailGoogle: emailGoogle);
+
+  @override
+  GoogleAccountUpdate accessTokenEnc(String? accessTokenEnc) =>
+      call(accessTokenEnc: accessTokenEnc);
+
+  @override
+  GoogleAccountUpdate refreshTokenEnc(String? refreshTokenEnc) =>
+      call(refreshTokenEnc: refreshTokenEnc);
+
+  @override
+  GoogleAccountUpdate grantedScopes(String? grantedScopes) =>
+      call(grantedScopes: grantedScopes);
+
+  @override
+  GoogleAccountUpdate isActive(bool? isActive) => call(isActive: isActive);
+
+  @override
+  GoogleAccountUpdate expiresAt(DateTime? expiresAt) =>
+      call(expiresAt: expiresAt);
+
+  @override
+  GoogleAccountUpdate lastRefreshAt(DateTime? lastRefreshAt) =>
+      call(lastRefreshAt: lastRefreshAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GoogleAccountUpdate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GoogleAccountUpdate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  GoogleAccountUpdate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? googleUserId = const $CopyWithPlaceholder(),
+    Object? emailGoogle = const $CopyWithPlaceholder(),
+    Object? accessTokenEnc = const $CopyWithPlaceholder(),
+    Object? refreshTokenEnc = const $CopyWithPlaceholder(),
+    Object? grantedScopes = const $CopyWithPlaceholder(),
+    Object? isActive = const $CopyWithPlaceholder(),
+    Object? expiresAt = const $CopyWithPlaceholder(),
+    Object? lastRefreshAt = const $CopyWithPlaceholder(),
+  }) {
+    return GoogleAccountUpdate(
+      idUser: idUser == const $CopyWithPlaceholder()
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String?,
+      googleUserId: googleUserId == const $CopyWithPlaceholder()
+          ? _value.googleUserId
+          // ignore: cast_nullable_to_non_nullable
+          : googleUserId as String?,
+      emailGoogle: emailGoogle == const $CopyWithPlaceholder()
+          ? _value.emailGoogle
+          // ignore: cast_nullable_to_non_nullable
+          : emailGoogle as String?,
+      accessTokenEnc: accessTokenEnc == const $CopyWithPlaceholder()
+          ? _value.accessTokenEnc
+          // ignore: cast_nullable_to_non_nullable
+          : accessTokenEnc as String?,
+      refreshTokenEnc: refreshTokenEnc == const $CopyWithPlaceholder()
+          ? _value.refreshTokenEnc
+          // ignore: cast_nullable_to_non_nullable
+          : refreshTokenEnc as String?,
+      grantedScopes: grantedScopes == const $CopyWithPlaceholder()
+          ? _value.grantedScopes
+          // ignore: cast_nullable_to_non_nullable
+          : grantedScopes as String?,
+      isActive: isActive == const $CopyWithPlaceholder()
+          ? _value.isActive
+          // ignore: cast_nullable_to_non_nullable
+          : isActive as bool?,
+      expiresAt: expiresAt == const $CopyWithPlaceholder()
+          ? _value.expiresAt
+          // ignore: cast_nullable_to_non_nullable
+          : expiresAt as DateTime?,
+      lastRefreshAt: lastRefreshAt == const $CopyWithPlaceholder()
+          ? _value.lastRefreshAt
+          // ignore: cast_nullable_to_non_nullable
+          : lastRefreshAt as DateTime?,
+    );
   }
 }
 
-class GoogleAccountUpdateBuilder
-    implements Builder<GoogleAccountUpdate, GoogleAccountUpdateBuilder> {
-  _$GoogleAccountUpdate? _$v;
+extension $GoogleAccountUpdateCopyWith on GoogleAccountUpdate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfGoogleAccountUpdate.copyWith(...)` or `instanceOfGoogleAccountUpdate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$GoogleAccountUpdateCWProxy get copyWith =>
+      _$GoogleAccountUpdateCWProxyImpl(this);
+}
 
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _googleUserId;
-  String? get googleUserId => _$this._googleUserId;
-  set googleUserId(String? googleUserId) => _$this._googleUserId = googleUserId;
-
-  String? _emailGoogle;
-  String? get emailGoogle => _$this._emailGoogle;
-  set emailGoogle(String? emailGoogle) => _$this._emailGoogle = emailGoogle;
-
-  String? _accessTokenEnc;
-  String? get accessTokenEnc => _$this._accessTokenEnc;
-  set accessTokenEnc(String? accessTokenEnc) =>
-      _$this._accessTokenEnc = accessTokenEnc;
-
-  String? _refreshTokenEnc;
-  String? get refreshTokenEnc => _$this._refreshTokenEnc;
-  set refreshTokenEnc(String? refreshTokenEnc) =>
-      _$this._refreshTokenEnc = refreshTokenEnc;
-
-  String? _grantedScopes;
-  String? get grantedScopes => _$this._grantedScopes;
-  set grantedScopes(String? grantedScopes) =>
-      _$this._grantedScopes = grantedScopes;
-
-  bool? _isActive;
-  bool? get isActive => _$this._isActive;
-  set isActive(bool? isActive) => _$this._isActive = isActive;
-
-  DateTime? _expiresAt;
-  DateTime? get expiresAt => _$this._expiresAt;
-  set expiresAt(DateTime? expiresAt) => _$this._expiresAt = expiresAt;
-
-  DateTime? _lastRefreshAt;
-  DateTime? get lastRefreshAt => _$this._lastRefreshAt;
-  set lastRefreshAt(DateTime? lastRefreshAt) =>
-      _$this._lastRefreshAt = lastRefreshAt;
-
-  GoogleAccountUpdateBuilder() {
-    GoogleAccountUpdate._defaults(this);
-  }
-
-  GoogleAccountUpdateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _googleUserId = $v.googleUserId;
-      _emailGoogle = $v.emailGoogle;
-      _accessTokenEnc = $v.accessTokenEnc;
-      _refreshTokenEnc = $v.refreshTokenEnc;
-      _grantedScopes = $v.grantedScopes;
-      _isActive = $v.isActive;
-      _expiresAt = $v.expiresAt;
-      _lastRefreshAt = $v.lastRefreshAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(GoogleAccountUpdate other) {
-    _$v = other as _$GoogleAccountUpdate;
-  }
-
-  @override
-  void update(void Function(GoogleAccountUpdateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  GoogleAccountUpdate build() => _build();
-
-  _$GoogleAccountUpdate _build() {
-    final _$result = _$v ??
-        _$GoogleAccountUpdate._(
-          idUser: idUser,
-          googleUserId: googleUserId,
-          emailGoogle: emailGoogle,
-          accessTokenEnc: accessTokenEnc,
-          refreshTokenEnc: refreshTokenEnc,
-          grantedScopes: grantedScopes,
-          isActive: isActive,
-          expiresAt: expiresAt,
-          lastRefreshAt: lastRefreshAt,
+GoogleAccountUpdate _$GoogleAccountUpdateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'GoogleAccountUpdate',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id_user',
+            'google_user_id',
+            'email_google',
+            'access_token_enc',
+            'refresh_token_enc',
+            'granted_scopes',
+            'is_active',
+            'expires_at',
+            'last_refresh_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = GoogleAccountUpdate(
+          idUser: $checkedConvert('id_user', (v) => v as String?),
+          googleUserId: $checkedConvert('google_user_id', (v) => v as String?),
+          emailGoogle: $checkedConvert('email_google', (v) => v as String?),
+          accessTokenEnc: $checkedConvert(
+            'access_token_enc',
+            (v) => v as String?,
+          ),
+          refreshTokenEnc: $checkedConvert(
+            'refresh_token_enc',
+            (v) => v as String?,
+          ),
+          grantedScopes: $checkedConvert('granted_scopes', (v) => v as String?),
+          isActive: $checkedConvert('is_active', (v) => v as bool?),
+          expiresAt: $checkedConvert(
+            'expires_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          lastRefreshAt: $checkedConvert(
+            'last_refresh_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idUser': 'id_user',
+        'googleUserId': 'google_user_id',
+        'emailGoogle': 'email_google',
+        'accessTokenEnc': 'access_token_enc',
+        'refreshTokenEnc': 'refresh_token_enc',
+        'grantedScopes': 'granted_scopes',
+        'isActive': 'is_active',
+        'expiresAt': 'expires_at',
+        'lastRefreshAt': 'last_refresh_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$GoogleAccountUpdateToJson(
+  GoogleAccountUpdate instance,
+) => <String, dynamic>{
+  'id_user': instance.idUser,
+  'google_user_id': instance.googleUserId,
+  'email_google': instance.emailGoogle,
+  'access_token_enc': instance.accessTokenEnc,
+  'refresh_token_enc': instance.refreshTokenEnc,
+  'granted_scopes': instance.grantedScopes,
+  'is_active': instance.isActive,
+  'expires_at': instance.expiresAt?.toIso8601String(),
+  'last_refresh_at': instance.lastRefreshAt?.toIso8601String(),
+};

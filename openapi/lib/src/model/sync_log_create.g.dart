@@ -3,184 +3,226 @@
 part of 'sync_log_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$SyncLogCreate extends SyncLogCreate {
-  @override
-  final String idDevice;
-  @override
-  final String idBackupFile;
-  @override
-  final String event;
-  @override
-  final SyncDirection derection;
-  @override
-  final SyncResult result;
-  @override
-  final ConflictStrategy conflictStrategy;
-  @override
-  final String errorDetails;
-  @override
-  final String metadata;
+abstract class _$SyncLogCreateCWProxy {
+  SyncLogCreate idDevice(String idDevice);
 
-  factory _$SyncLogCreate([void Function(SyncLogCreateBuilder)? updates]) =>
-      (SyncLogCreateBuilder()..update(updates))._build();
+  SyncLogCreate idBackupFile(String idBackupFile);
 
-  _$SyncLogCreate._(
-      {required this.idDevice,
-      required this.idBackupFile,
-      required this.event,
-      required this.derection,
-      required this.result,
-      required this.conflictStrategy,
-      required this.errorDetails,
-      required this.metadata})
-      : super._();
-  @override
-  SyncLogCreate rebuild(void Function(SyncLogCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  SyncLogCreate event(String event);
 
-  @override
-  SyncLogCreateBuilder toBuilder() => SyncLogCreateBuilder()..replace(this);
+  SyncLogCreate derection(SyncDirection derection);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is SyncLogCreate &&
-        idDevice == other.idDevice &&
-        idBackupFile == other.idBackupFile &&
-        event == other.event &&
-        derection == other.derection &&
-        result == other.result &&
-        conflictStrategy == other.conflictStrategy &&
-        errorDetails == other.errorDetails &&
-        metadata == other.metadata;
-  }
+  SyncLogCreate result(SyncResult result);
+
+  SyncLogCreate conflictStrategy(ConflictStrategy conflictStrategy);
+
+  SyncLogCreate errorDetails(String errorDetails);
+
+  SyncLogCreate metadata(String metadata);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `SyncLogCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// SyncLogCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  SyncLogCreate call({
+    String idDevice,
+    String idBackupFile,
+    String event,
+    SyncDirection derection,
+    SyncResult result,
+    ConflictStrategy conflictStrategy,
+    String errorDetails,
+    String metadata,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfSyncLogCreate.copyWith(...)` or call `instanceOfSyncLogCreate.copyWith.fieldName(value)` for a single field.
+class _$SyncLogCreateCWProxyImpl implements _$SyncLogCreateCWProxy {
+  const _$SyncLogCreateCWProxyImpl(this._value);
+
+  final SyncLogCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idDevice.hashCode);
-    _$hash = $jc(_$hash, idBackupFile.hashCode);
-    _$hash = $jc(_$hash, event.hashCode);
-    _$hash = $jc(_$hash, derection.hashCode);
-    _$hash = $jc(_$hash, result.hashCode);
-    _$hash = $jc(_$hash, conflictStrategy.hashCode);
-    _$hash = $jc(_$hash, errorDetails.hashCode);
-    _$hash = $jc(_$hash, metadata.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  SyncLogCreate idDevice(String idDevice) => call(idDevice: idDevice);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'SyncLogCreate')
-          ..add('idDevice', idDevice)
-          ..add('idBackupFile', idBackupFile)
-          ..add('event', event)
-          ..add('derection', derection)
-          ..add('result', result)
-          ..add('conflictStrategy', conflictStrategy)
-          ..add('errorDetails', errorDetails)
-          ..add('metadata', metadata))
-        .toString();
+  SyncLogCreate idBackupFile(String idBackupFile) =>
+      call(idBackupFile: idBackupFile);
+
+  @override
+  SyncLogCreate event(String event) => call(event: event);
+
+  @override
+  SyncLogCreate derection(SyncDirection derection) =>
+      call(derection: derection);
+
+  @override
+  SyncLogCreate result(SyncResult result) => call(result: result);
+
+  @override
+  SyncLogCreate conflictStrategy(ConflictStrategy conflictStrategy) =>
+      call(conflictStrategy: conflictStrategy);
+
+  @override
+  SyncLogCreate errorDetails(String errorDetails) =>
+      call(errorDetails: errorDetails);
+
+  @override
+  SyncLogCreate metadata(String metadata) => call(metadata: metadata);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `SyncLogCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// SyncLogCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  SyncLogCreate call({
+    Object? idDevice = const $CopyWithPlaceholder(),
+    Object? idBackupFile = const $CopyWithPlaceholder(),
+    Object? event = const $CopyWithPlaceholder(),
+    Object? derection = const $CopyWithPlaceholder(),
+    Object? result = const $CopyWithPlaceholder(),
+    Object? conflictStrategy = const $CopyWithPlaceholder(),
+    Object? errorDetails = const $CopyWithPlaceholder(),
+    Object? metadata = const $CopyWithPlaceholder(),
+  }) {
+    return SyncLogCreate(
+      idDevice: idDevice == const $CopyWithPlaceholder() || idDevice == null
+          ? _value.idDevice
+          // ignore: cast_nullable_to_non_nullable
+          : idDevice as String,
+      idBackupFile:
+          idBackupFile == const $CopyWithPlaceholder() || idBackupFile == null
+          ? _value.idBackupFile
+          // ignore: cast_nullable_to_non_nullable
+          : idBackupFile as String,
+      event: event == const $CopyWithPlaceholder() || event == null
+          ? _value.event
+          // ignore: cast_nullable_to_non_nullable
+          : event as String,
+      derection: derection == const $CopyWithPlaceholder() || derection == null
+          ? _value.derection
+          // ignore: cast_nullable_to_non_nullable
+          : derection as SyncDirection,
+      result: result == const $CopyWithPlaceholder() || result == null
+          ? _value.result
+          // ignore: cast_nullable_to_non_nullable
+          : result as SyncResult,
+      conflictStrategy:
+          conflictStrategy == const $CopyWithPlaceholder() ||
+              conflictStrategy == null
+          ? _value.conflictStrategy
+          // ignore: cast_nullable_to_non_nullable
+          : conflictStrategy as ConflictStrategy,
+      errorDetails:
+          errorDetails == const $CopyWithPlaceholder() || errorDetails == null
+          ? _value.errorDetails
+          // ignore: cast_nullable_to_non_nullable
+          : errorDetails as String,
+      metadata: metadata == const $CopyWithPlaceholder() || metadata == null
+          ? _value.metadata
+          // ignore: cast_nullable_to_non_nullable
+          : metadata as String,
+    );
   }
 }
 
-class SyncLogCreateBuilder
-    implements Builder<SyncLogCreate, SyncLogCreateBuilder> {
-  _$SyncLogCreate? _$v;
+extension $SyncLogCreateCopyWith on SyncLogCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfSyncLogCreate.copyWith(...)` or `instanceOfSyncLogCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$SyncLogCreateCWProxy get copyWith => _$SyncLogCreateCWProxyImpl(this);
+}
 
-  String? _idDevice;
-  String? get idDevice => _$this._idDevice;
-  set idDevice(String? idDevice) => _$this._idDevice = idDevice;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idBackupFile;
-  String? get idBackupFile => _$this._idBackupFile;
-  set idBackupFile(String? idBackupFile) => _$this._idBackupFile = idBackupFile;
-
-  String? _event;
-  String? get event => _$this._event;
-  set event(String? event) => _$this._event = event;
-
-  SyncDirection? _derection;
-  SyncDirection? get derection => _$this._derection;
-  set derection(SyncDirection? derection) => _$this._derection = derection;
-
-  SyncResult? _result;
-  SyncResult? get result => _$this._result;
-  set result(SyncResult? result) => _$this._result = result;
-
-  ConflictStrategy? _conflictStrategy;
-  ConflictStrategy? get conflictStrategy => _$this._conflictStrategy;
-  set conflictStrategy(ConflictStrategy? conflictStrategy) =>
-      _$this._conflictStrategy = conflictStrategy;
-
-  String? _errorDetails;
-  String? get errorDetails => _$this._errorDetails;
-  set errorDetails(String? errorDetails) => _$this._errorDetails = errorDetails;
-
-  String? _metadata;
-  String? get metadata => _$this._metadata;
-  set metadata(String? metadata) => _$this._metadata = metadata;
-
-  SyncLogCreateBuilder() {
-    SyncLogCreate._defaults(this);
-  }
-
-  SyncLogCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idDevice = $v.idDevice;
-      _idBackupFile = $v.idBackupFile;
-      _event = $v.event;
-      _derection = $v.derection;
-      _result = $v.result;
-      _conflictStrategy = $v.conflictStrategy;
-      _errorDetails = $v.errorDetails;
-      _metadata = $v.metadata;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(SyncLogCreate other) {
-    _$v = other as _$SyncLogCreate;
-  }
-
-  @override
-  void update(void Function(SyncLogCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  SyncLogCreate build() => _build();
-
-  _$SyncLogCreate _build() {
-    final _$result = _$v ??
-        _$SyncLogCreate._(
-          idDevice: BuiltValueNullFieldError.checkNotNull(
-              idDevice, r'SyncLogCreate', 'idDevice'),
-          idBackupFile: BuiltValueNullFieldError.checkNotNull(
-              idBackupFile, r'SyncLogCreate', 'idBackupFile'),
-          event: BuiltValueNullFieldError.checkNotNull(
-              event, r'SyncLogCreate', 'event'),
-          derection: BuiltValueNullFieldError.checkNotNull(
-              derection, r'SyncLogCreate', 'derection'),
-          result: BuiltValueNullFieldError.checkNotNull(
-              result, r'SyncLogCreate', 'result'),
-          conflictStrategy: BuiltValueNullFieldError.checkNotNull(
-              conflictStrategy, r'SyncLogCreate', 'conflictStrategy'),
-          errorDetails: BuiltValueNullFieldError.checkNotNull(
-              errorDetails, r'SyncLogCreate', 'errorDetails'),
-          metadata: BuiltValueNullFieldError.checkNotNull(
-              metadata, r'SyncLogCreate', 'metadata'),
+SyncLogCreate _$SyncLogCreateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'SyncLogCreate',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id_device',
+            'id_backup_file',
+            'event',
+            'derection',
+            'result',
+            'conflict_strategy',
+            'error_details',
+            'metadata',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = SyncLogCreate(
+          idDevice: $checkedConvert('id_device', (v) => v as String),
+          idBackupFile: $checkedConvert('id_backup_file', (v) => v as String),
+          event: $checkedConvert('event', (v) => v as String),
+          derection: $checkedConvert(
+            'derection',
+            (v) => $enumDecode(_$SyncDirectionEnumMap, v),
+          ),
+          result: $checkedConvert(
+            'result',
+            (v) => $enumDecode(_$SyncResultEnumMap, v),
+          ),
+          conflictStrategy: $checkedConvert(
+            'conflict_strategy',
+            (v) => $enumDecode(_$ConflictStrategyEnumMap, v),
+          ),
+          errorDetails: $checkedConvert('error_details', (v) => v as String),
+          metadata: $checkedConvert('metadata', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idDevice': 'id_device',
+        'idBackupFile': 'id_backup_file',
+        'conflictStrategy': 'conflict_strategy',
+        'errorDetails': 'error_details',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$SyncLogCreateToJson(
+  SyncLogCreate instance,
+) => <String, dynamic>{
+  'id_device': instance.idDevice,
+  'id_backup_file': instance.idBackupFile,
+  'event': instance.event,
+  'derection': _$SyncDirectionEnumMap[instance.derection]!,
+  'result': _$SyncResultEnumMap[instance.result]!,
+  'conflict_strategy': _$ConflictStrategyEnumMap[instance.conflictStrategy]!,
+  'error_details': instance.errorDetails,
+  'metadata': instance.metadata,
+};
+
+const _$SyncDirectionEnumMap = {
+  SyncDirection.upload: 'upload',
+  SyncDirection.download: 'download',
+};
+
+const _$SyncResultEnumMap = {
+  SyncResult.success: 'success',
+  SyncResult.failure: 'failure',
+  SyncResult.inConflict: 'in_conflict',
+};
+
+const _$ConflictStrategyEnumMap = {
+  ConflictStrategy.keepLocal: 'keep_local',
+  ConflictStrategy.keepRemote: 'keep_remote',
+  ConflictStrategy.merge: 'merge',
+  ConflictStrategy.duplicate: 'duplicate',
+};

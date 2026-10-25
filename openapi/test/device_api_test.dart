@@ -16,7 +16,7 @@ void main() {
 
     // Delete Device
     //
-    //Future<JsonObject> deleteDeviceApiV1DeviceDeleteIdentificatorDelete(String identificator) async
+    //Future<Object> deleteDeviceApiV1DeviceDeleteIdentificatorDelete(String identificator) async
     test('test deleteDeviceApiV1DeviceDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Device
     //
-    //Future<BuiltList<DeviceOut>> listDeviceApiV1DeviceListGet({ String id, String idUser, String deviceName, String deviceFingerprint, String platform, DateTime lastSeenAt, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<DeviceOut>> listDeviceApiV1DeviceListGet({ String id, String idUser, String deviceName, String deviceFingerprint, String platform, DateTime lastSeenAt, DateTime createdAt, DateTime updatedAt }) async
     test('test listDeviceApiV1DeviceListGet', () async {
       // TODO
     });

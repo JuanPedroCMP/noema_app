@@ -3,134 +3,134 @@
 part of 'user_color_theme_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$UserColorThemeCreate extends UserColorThemeCreate {
-  @override
-  final String idUser;
-  @override
-  final String name;
-  @override
-  final int seedColor;
-  @override
-  final String overrideJson;
+abstract class _$UserColorThemeCreateCWProxy {
+  UserColorThemeCreate idUser(String idUser);
 
-  factory _$UserColorThemeCreate(
-          [void Function(UserColorThemeCreateBuilder)? updates]) =>
-      (UserColorThemeCreateBuilder()..update(updates))._build();
+  UserColorThemeCreate name(String name);
 
-  _$UserColorThemeCreate._(
-      {required this.idUser,
-      required this.name,
-      required this.seedColor,
-      required this.overrideJson})
-      : super._();
-  @override
-  UserColorThemeCreate rebuild(
-          void Function(UserColorThemeCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  UserColorThemeCreate seedColor(int seedColor);
 
-  @override
-  UserColorThemeCreateBuilder toBuilder() =>
-      UserColorThemeCreateBuilder()..replace(this);
+  UserColorThemeCreate overrideJson(String overrideJson);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is UserColorThemeCreate &&
-        idUser == other.idUser &&
-        name == other.name &&
-        seedColor == other.seedColor &&
-        overrideJson == other.overrideJson;
-  }
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserColorThemeCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserColorThemeCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  UserColorThemeCreate call({
+    String idUser,
+    String name,
+    int seedColor,
+    String overrideJson,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfUserColorThemeCreate.copyWith(...)` or call `instanceOfUserColorThemeCreate.copyWith.fieldName(value)` for a single field.
+class _$UserColorThemeCreateCWProxyImpl
+    implements _$UserColorThemeCreateCWProxy {
+  const _$UserColorThemeCreateCWProxyImpl(this._value);
+
+  final UserColorThemeCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, seedColor.hashCode);
-    _$hash = $jc(_$hash, overrideJson.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  UserColorThemeCreate idUser(String idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'UserColorThemeCreate')
-          ..add('idUser', idUser)
-          ..add('name', name)
-          ..add('seedColor', seedColor)
-          ..add('overrideJson', overrideJson))
-        .toString();
+  UserColorThemeCreate name(String name) => call(name: name);
+
+  @override
+  UserColorThemeCreate seedColor(int seedColor) => call(seedColor: seedColor);
+
+  @override
+  UserColorThemeCreate overrideJson(String overrideJson) =>
+      call(overrideJson: overrideJson);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserColorThemeCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// UserColorThemeCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  UserColorThemeCreate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? name = const $CopyWithPlaceholder(),
+    Object? seedColor = const $CopyWithPlaceholder(),
+    Object? overrideJson = const $CopyWithPlaceholder(),
+  }) {
+    return UserColorThemeCreate(
+      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String,
+      name: name == const $CopyWithPlaceholder() || name == null
+          ? _value.name
+          // ignore: cast_nullable_to_non_nullable
+          : name as String,
+      seedColor: seedColor == const $CopyWithPlaceholder() || seedColor == null
+          ? _value.seedColor
+          // ignore: cast_nullable_to_non_nullable
+          : seedColor as int,
+      overrideJson:
+          overrideJson == const $CopyWithPlaceholder() || overrideJson == null
+          ? _value.overrideJson
+          // ignore: cast_nullable_to_non_nullable
+          : overrideJson as String,
+    );
   }
 }
 
-class UserColorThemeCreateBuilder
-    implements Builder<UserColorThemeCreate, UserColorThemeCreateBuilder> {
-  _$UserColorThemeCreate? _$v;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _name;
-  String? get name => _$this._name;
-  set name(String? name) => _$this._name = name;
-
-  int? _seedColor;
-  int? get seedColor => _$this._seedColor;
-  set seedColor(int? seedColor) => _$this._seedColor = seedColor;
-
-  String? _overrideJson;
-  String? get overrideJson => _$this._overrideJson;
-  set overrideJson(String? overrideJson) => _$this._overrideJson = overrideJson;
-
-  UserColorThemeCreateBuilder() {
-    UserColorThemeCreate._defaults(this);
-  }
-
-  UserColorThemeCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _name = $v.name;
-      _seedColor = $v.seedColor;
-      _overrideJson = $v.overrideJson;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(UserColorThemeCreate other) {
-    _$v = other as _$UserColorThemeCreate;
-  }
-
-  @override
-  void update(void Function(UserColorThemeCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  UserColorThemeCreate build() => _build();
-
-  _$UserColorThemeCreate _build() {
-    final _$result = _$v ??
-        _$UserColorThemeCreate._(
-          idUser: BuiltValueNullFieldError.checkNotNull(
-              idUser, r'UserColorThemeCreate', 'idUser'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UserColorThemeCreate', 'name'),
-          seedColor: BuiltValueNullFieldError.checkNotNull(
-              seedColor, r'UserColorThemeCreate', 'seedColor'),
-          overrideJson: BuiltValueNullFieldError.checkNotNull(
-              overrideJson, r'UserColorThemeCreate', 'overrideJson'),
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $UserColorThemeCreateCopyWith on UserColorThemeCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfUserColorThemeCreate.copyWith(...)` or `instanceOfUserColorThemeCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$UserColorThemeCreateCWProxy get copyWith =>
+      _$UserColorThemeCreateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+UserColorThemeCreate _$UserColorThemeCreateFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'UserColorThemeCreate',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const ['id_user', 'name', 'seed_color', 'override_json'],
+    );
+    final val = UserColorThemeCreate(
+      idUser: $checkedConvert('id_user', (v) => v as String),
+      name: $checkedConvert('name', (v) => v as String),
+      seedColor: $checkedConvert('seed_color', (v) => (v as num).toInt()),
+      overrideJson: $checkedConvert('override_json', (v) => v as String),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'idUser': 'id_user',
+    'seedColor': 'seed_color',
+    'overrideJson': 'override_json',
+  },
+);
+
+Map<String, dynamic> _$UserColorThemeCreateToJson(
+  UserColorThemeCreate instance,
+) => <String, dynamic>{
+  'id_user': instance.idUser,
+  'name': instance.name,
+  'seed_color': instance.seedColor,
+  'override_json': instance.overrideJson,
+};

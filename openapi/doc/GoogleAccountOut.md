@@ -12,8 +12,6 @@ Name | Type | Description | Notes
 **idUser** | **String** |  | 
 **googleUserId** | **String** |  | 
 **emailGoogle** | **String** |  | 
-**accessTokenEnc** | **String** |  | 
-**refreshTokenEnc** | **String** |  | 
 **grantedScopes** | **String** |  | 
 **isActive** | **bool** |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 

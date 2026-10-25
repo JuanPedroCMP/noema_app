@@ -4,10 +4,12 @@
 
 import 'dart:async';
 
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:openapi/src/api_util.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_global_config_create.dart';
 import 'package:openapi/src/model/user_global_config_out.dart';
 import 'package:openapi/src/model/user_global_config_update.dart';
@@ -16,9 +18,7 @@ class UserGlobalConfigApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const UserGlobalConfigApi(this._dio, this._serializers);
+  const UserGlobalConfigApi(this._dio);
 
   /// Create User Global Config
   /// 
@@ -65,8 +65,7 @@ class UserGlobalConfigApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserGlobalConfigCreate);
-      _bodyData = _serializers.serialize(userGlobalConfigCreate, specifiedType: _type);
+      _bodyData = jsonEncode(userGlobalConfigCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -92,11 +91,8 @@ class UserGlobalConfigApi {
     UserGlobalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserGlobalConfigOut),
-      ) as UserGlobalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserGlobalConfigOut, UserGlobalConfigOut>(rawData, 'UserGlobalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -143,7 +139,7 @@ class UserGlobalConfigApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_global_config/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/user_global_config/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -172,11 +168,8 @@ class UserGlobalConfigApi {
     UserGlobalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserGlobalConfigOut),
-      ) as UserGlobalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserGlobalConfigOut, UserGlobalConfigOut>(rawData, 'UserGlobalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -225,7 +218,7 @@ class UserGlobalConfigApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_global_config/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/user_global_config/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -247,8 +240,7 @@ class UserGlobalConfigApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(UserGlobalConfigUpdate);
-      _bodyData = _serializers.serialize(userGlobalConfigUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(userGlobalConfigUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -274,11 +266,8 @@ class UserGlobalConfigApi {
     UserGlobalConfigOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(UserGlobalConfigOut),
-      ) as UserGlobalConfigOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<UserGlobalConfigOut, UserGlobalConfigOut>(rawData, 'UserGlobalConfigOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

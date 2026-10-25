@@ -3,152 +3,104 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'device_create.g.dart';
 
-/// DeviceCreate
-///
-/// Properties:
-/// * [idUser] 
-/// * [deviceName] 
-/// * [deviceFingerprint] 
-/// * [platform] 
-@BuiltValue()
-abstract class DeviceCreate implements Built<DeviceCreate, DeviceCreateBuilder> {
-  @BuiltValueField(wireName: r'id_user')
-  String get idUser;
 
-  @BuiltValueField(wireName: r'device_name')
-  String get deviceName;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class DeviceCreate {
+  /// Returns a new [DeviceCreate] instance.
+  DeviceCreate({
 
-  @BuiltValueField(wireName: r'device_fingerprint')
-  String get deviceFingerprint;
+    required  this.idUser,
 
-  @BuiltValueField(wireName: r'platform')
-  String get platform;
+    required  this.deviceName,
 
-  DeviceCreate._();
+    required  this.deviceFingerprint,
 
-  factory DeviceCreate([void updates(DeviceCreateBuilder b)]) = _$DeviceCreate;
+    required  this.platform,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(DeviceCreateBuilder b) => b;
+  @JsonKey(
+    
+    name: r'id_user',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<DeviceCreate> get serializer => _$DeviceCreateSerializer();
-}
 
-class _$DeviceCreateSerializer implements PrimitiveSerializer<DeviceCreate> {
-  @override
-  final Iterable<Type> types = const [DeviceCreate, _$DeviceCreate];
+  final String idUser;
 
-  @override
-  final String wireName = r'DeviceCreate';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    DeviceCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'id_user';
-    yield serializers.serialize(
-      object.idUser,
-      specifiedType: const FullType(String),
-    );
-    yield r'device_name';
-    yield serializers.serialize(
-      object.deviceName,
-      specifiedType: const FullType(String),
-    );
-    yield r'device_fingerprint';
-    yield serializers.serialize(
-      object.deviceFingerprint,
-      specifiedType: const FullType(String),
-    );
-    yield r'platform';
-    yield serializers.serialize(
-      object.platform,
-      specifiedType: const FullType(String),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    DeviceCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'device_name',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required DeviceCreateBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'id_user':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idUser = valueDes;
-          break;
-        case r'device_name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.deviceName = valueDes;
-          break;
-        case r'device_fingerprint':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.deviceFingerprint = valueDes;
-          break;
-        case r'platform':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.platform = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String deviceName;
+
+
+
+  @JsonKey(
+    
+    name: r'device_fingerprint',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String deviceFingerprint;
+
+
+
+  @JsonKey(
+    
+    name: r'platform',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String platform;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is DeviceCreate &&
+      other.idUser == idUser &&
+      other.deviceName == deviceName &&
+      other.deviceFingerprint == deviceFingerprint &&
+      other.platform == platform;
+
+    @override
+    int get hashCode =>
+        idUser.hashCode +
+        deviceName.hashCode +
+        deviceFingerprint.hashCode +
+        platform.hashCode;
+
+  factory DeviceCreate.fromJson(Map<String, dynamic> json) => _$DeviceCreateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DeviceCreateToJson(this);
 
   @override
-  DeviceCreate deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = DeviceCreateBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

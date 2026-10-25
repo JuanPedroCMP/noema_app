@@ -3,136 +3,88 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'response_language_preference_order_create.g.dart';
 
-/// ResponseLanguagePreferenceOrderCreate
-///
-/// Properties:
-/// * [preferenceOrder] 
-/// * [idUser] 
-/// * [idLanguage] 
-@BuiltValue()
-abstract class ResponseLanguagePreferenceOrderCreate implements Built<ResponseLanguagePreferenceOrderCreate, ResponseLanguagePreferenceOrderCreateBuilder> {
-  @BuiltValueField(wireName: r'preference_order')
-  int get preferenceOrder;
 
-  @BuiltValueField(wireName: r'id_user')
-  String get idUser;
+@CopyWith()
+@JsonSerializable(
+  checked: true,
+  createToJson: true,
+  disallowUnrecognizedKeys: false,
+  explicitToJson: true,
+)
+class ResponseLanguagePreferenceOrderCreate {
+  /// Returns a new [ResponseLanguagePreferenceOrderCreate] instance.
+  ResponseLanguagePreferenceOrderCreate({
 
-  @BuiltValueField(wireName: r'id_language')
-  String get idLanguage;
+    required  this.preferenceOrder,
 
-  ResponseLanguagePreferenceOrderCreate._();
+    required  this.idUser,
 
-  factory ResponseLanguagePreferenceOrderCreate([void updates(ResponseLanguagePreferenceOrderCreateBuilder b)]) = _$ResponseLanguagePreferenceOrderCreate;
+    required  this.idLanguage,
+  });
 
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(ResponseLanguagePreferenceOrderCreateBuilder b) => b;
+  @JsonKey(
+    
+    name: r'preference_order',
+    required: true,
+    includeIfNull: false,
+  )
 
-  @BuiltValueSerializer(custom: true)
-  static Serializer<ResponseLanguagePreferenceOrderCreate> get serializer => _$ResponseLanguagePreferenceOrderCreateSerializer();
-}
 
-class _$ResponseLanguagePreferenceOrderCreateSerializer implements PrimitiveSerializer<ResponseLanguagePreferenceOrderCreate> {
-  @override
-  final Iterable<Type> types = const [ResponseLanguagePreferenceOrderCreate, _$ResponseLanguagePreferenceOrderCreate];
+  final int preferenceOrder;
 
-  @override
-  final String wireName = r'ResponseLanguagePreferenceOrderCreate';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ResponseLanguagePreferenceOrderCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
-    yield r'preference_order';
-    yield serializers.serialize(
-      object.preferenceOrder,
-      specifiedType: const FullType(int),
-    );
-    yield r'id_user';
-    yield serializers.serialize(
-      object.idUser,
-      specifiedType: const FullType(String),
-    );
-    yield r'id_language';
-    yield serializers.serialize(
-      object.idLanguage,
-      specifiedType: const FullType(String),
-    );
-  }
 
-  @override
-  Object serialize(
-    Serializers serializers,
-    ResponseLanguagePreferenceOrderCreate object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
-  }
+  @JsonKey(
+    
+    name: r'id_user',
+    required: true,
+    includeIfNull: false,
+  )
 
-  void _deserializeProperties(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-    required List<Object?> serializedList,
-    required ResponseLanguagePreferenceOrderCreateBuilder result,
-    required List<Object?> unhandled,
-  }) {
-    for (var i = 0; i < serializedList.length; i += 2) {
-      final key = serializedList[i] as String;
-      final value = serializedList[i + 1];
-      switch (key) {
-        case r'preference_order':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
-          result.preferenceOrder = valueDes;
-          break;
-        case r'id_user':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idUser = valueDes;
-          break;
-        case r'id_language':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.idLanguage = valueDes;
-          break;
-        default:
-          unhandled.add(key);
-          unhandled.add(value);
-          break;
-      }
-    }
-  }
+
+  final String idUser;
+
+
+
+  @JsonKey(
+    
+    name: r'id_language',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String idLanguage;
+
+
+
+
+
+    @override
+    bool operator ==(Object other) => identical(this, other) || other is ResponseLanguagePreferenceOrderCreate &&
+      other.preferenceOrder == preferenceOrder &&
+      other.idUser == idUser &&
+      other.idLanguage == idLanguage;
+
+    @override
+    int get hashCode =>
+        preferenceOrder.hashCode +
+        idUser.hashCode +
+        idLanguage.hashCode;
+
+  factory ResponseLanguagePreferenceOrderCreate.fromJson(Map<String, dynamic> json) => _$ResponseLanguagePreferenceOrderCreateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ResponseLanguagePreferenceOrderCreateToJson(this);
 
   @override
-  ResponseLanguagePreferenceOrderCreate deserialize(
-    Serializers serializers,
-    Object serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
-    final result = ResponseLanguagePreferenceOrderCreateBuilder();
-    final serializedList = (serialized as Iterable<Object?>).toList();
-    final unhandled = <Object?>[];
-    _deserializeProperties(
-      serializers,
-      serialized,
-      specifiedType: specifiedType,
-      serializedList: serializedList,
-      unhandled: unhandled,
-      result: result,
-    );
-    return result.build();
+  String toString() {
+    return toJson().toString();
   }
+
 }
 

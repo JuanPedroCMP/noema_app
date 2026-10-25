@@ -3,169 +3,200 @@
 part of 'language_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$LanguageOut extends LanguageOut {
-  @override
-  final String id;
-  @override
-  final String name;
-  @override
-  final int percentageTranslated;
-  @override
-  final bool verifiedTranslation;
-  @override
-  final bool automaticTranslation;
-  @override
-  final DateTime? createdAt;
-  @override
-  final DateTime? updatedAt;
+abstract class _$LanguageOutCWProxy {
+  LanguageOut id(String id);
 
-  factory _$LanguageOut([void Function(LanguageOutBuilder)? updates]) =>
-      (LanguageOutBuilder()..update(updates))._build();
+  LanguageOut name(String name);
 
-  _$LanguageOut._(
-      {required this.id,
-      required this.name,
-      required this.percentageTranslated,
-      required this.verifiedTranslation,
-      required this.automaticTranslation,
-      this.createdAt,
-      this.updatedAt})
-      : super._();
-  @override
-  LanguageOut rebuild(void Function(LanguageOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  LanguageOut percentageTranslated(int percentageTranslated);
 
-  @override
-  LanguageOutBuilder toBuilder() => LanguageOutBuilder()..replace(this);
+  LanguageOut verifiedTranslation(bool verifiedTranslation);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is LanguageOut &&
-        id == other.id &&
-        name == other.name &&
-        percentageTranslated == other.percentageTranslated &&
-        verifiedTranslation == other.verifiedTranslation &&
-        automaticTranslation == other.automaticTranslation &&
-        createdAt == other.createdAt &&
-        updatedAt == other.updatedAt;
-  }
+  LanguageOut automaticTranslation(bool automaticTranslation);
+
+  LanguageOut createdAt(DateTime? createdAt);
+
+  LanguageOut updatedAt(DateTime? updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `LanguageOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// LanguageOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  LanguageOut call({
+    String id,
+    String name,
+    int percentageTranslated,
+    bool verifiedTranslation,
+    bool automaticTranslation,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfLanguageOut.copyWith(...)` or call `instanceOfLanguageOut.copyWith.fieldName(value)` for a single field.
+class _$LanguageOutCWProxyImpl implements _$LanguageOutCWProxy {
+  const _$LanguageOutCWProxyImpl(this._value);
+
+  final LanguageOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, percentageTranslated.hashCode);
-    _$hash = $jc(_$hash, verifiedTranslation.hashCode);
-    _$hash = $jc(_$hash, automaticTranslation.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jc(_$hash, updatedAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  LanguageOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'LanguageOut')
-          ..add('id', id)
-          ..add('name', name)
-          ..add('percentageTranslated', percentageTranslated)
-          ..add('verifiedTranslation', verifiedTranslation)
-          ..add('automaticTranslation', automaticTranslation)
-          ..add('createdAt', createdAt)
-          ..add('updatedAt', updatedAt))
-        .toString();
+  LanguageOut name(String name) => call(name: name);
+
+  @override
+  LanguageOut percentageTranslated(int percentageTranslated) =>
+      call(percentageTranslated: percentageTranslated);
+
+  @override
+  LanguageOut verifiedTranslation(bool verifiedTranslation) =>
+      call(verifiedTranslation: verifiedTranslation);
+
+  @override
+  LanguageOut automaticTranslation(bool automaticTranslation) =>
+      call(automaticTranslation: automaticTranslation);
+
+  @override
+  LanguageOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  @override
+  LanguageOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `LanguageOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// LanguageOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  LanguageOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? name = const $CopyWithPlaceholder(),
+    Object? percentageTranslated = const $CopyWithPlaceholder(),
+    Object? verifiedTranslation = const $CopyWithPlaceholder(),
+    Object? automaticTranslation = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+    Object? updatedAt = const $CopyWithPlaceholder(),
+  }) {
+    return LanguageOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      name: name == const $CopyWithPlaceholder() || name == null
+          ? _value.name
+          // ignore: cast_nullable_to_non_nullable
+          : name as String,
+      percentageTranslated:
+          percentageTranslated == const $CopyWithPlaceholder() ||
+              percentageTranslated == null
+          ? _value.percentageTranslated
+          // ignore: cast_nullable_to_non_nullable
+          : percentageTranslated as int,
+      verifiedTranslation:
+          verifiedTranslation == const $CopyWithPlaceholder() ||
+              verifiedTranslation == null
+          ? _value.verifiedTranslation
+          // ignore: cast_nullable_to_non_nullable
+          : verifiedTranslation as bool,
+      automaticTranslation:
+          automaticTranslation == const $CopyWithPlaceholder() ||
+              automaticTranslation == null
+          ? _value.automaticTranslation
+          // ignore: cast_nullable_to_non_nullable
+          : automaticTranslation as bool,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+      updatedAt: updatedAt == const $CopyWithPlaceholder()
+          ? _value.updatedAt
+          // ignore: cast_nullable_to_non_nullable
+          : updatedAt as DateTime?,
+    );
   }
 }
 
-class LanguageOutBuilder implements Builder<LanguageOut, LanguageOutBuilder> {
-  _$LanguageOut? _$v;
-
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
-
-  String? _name;
-  String? get name => _$this._name;
-  set name(String? name) => _$this._name = name;
-
-  int? _percentageTranslated;
-  int? get percentageTranslated => _$this._percentageTranslated;
-  set percentageTranslated(int? percentageTranslated) =>
-      _$this._percentageTranslated = percentageTranslated;
-
-  bool? _verifiedTranslation;
-  bool? get verifiedTranslation => _$this._verifiedTranslation;
-  set verifiedTranslation(bool? verifiedTranslation) =>
-      _$this._verifiedTranslation = verifiedTranslation;
-
-  bool? _automaticTranslation;
-  bool? get automaticTranslation => _$this._automaticTranslation;
-  set automaticTranslation(bool? automaticTranslation) =>
-      _$this._automaticTranslation = automaticTranslation;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  DateTime? _updatedAt;
-  DateTime? get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
-
-  LanguageOutBuilder() {
-    LanguageOut._defaults(this);
-  }
-
-  LanguageOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _name = $v.name;
-      _percentageTranslated = $v.percentageTranslated;
-      _verifiedTranslation = $v.verifiedTranslation;
-      _automaticTranslation = $v.automaticTranslation;
-      _createdAt = $v.createdAt;
-      _updatedAt = $v.updatedAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(LanguageOut other) {
-    _$v = other as _$LanguageOut;
-  }
-
-  @override
-  void update(void Function(LanguageOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  LanguageOut build() => _build();
-
-  _$LanguageOut _build() {
-    final _$result = _$v ??
-        _$LanguageOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'LanguageOut', 'id'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'LanguageOut', 'name'),
-          percentageTranslated: BuiltValueNullFieldError.checkNotNull(
-              percentageTranslated, r'LanguageOut', 'percentageTranslated'),
-          verifiedTranslation: BuiltValueNullFieldError.checkNotNull(
-              verifiedTranslation, r'LanguageOut', 'verifiedTranslation'),
-          automaticTranslation: BuiltValueNullFieldError.checkNotNull(
-              automaticTranslation, r'LanguageOut', 'automaticTranslation'),
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $LanguageOutCopyWith on LanguageOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfLanguageOut.copyWith(...)` or `instanceOfLanguageOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$LanguageOutCWProxy get copyWith => _$LanguageOutCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+LanguageOut _$LanguageOutFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'LanguageOut',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'id',
+        'name',
+        'percentage_translated',
+        'verified_translation',
+        'automatic_translation',
+        'created_at',
+        'updated_at',
+      ],
+    );
+    final val = LanguageOut(
+      id: $checkedConvert('id', (v) => v as String),
+      name: $checkedConvert('name', (v) => v as String),
+      percentageTranslated: $checkedConvert(
+        'percentage_translated',
+        (v) => (v as num).toInt(),
+      ),
+      verifiedTranslation: $checkedConvert(
+        'verified_translation',
+        (v) => v as bool,
+      ),
+      automaticTranslation: $checkedConvert(
+        'automatic_translation',
+        (v) => v as bool,
+      ),
+      createdAt: $checkedConvert(
+        'created_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      updatedAt: $checkedConvert(
+        'updated_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'percentageTranslated': 'percentage_translated',
+    'verifiedTranslation': 'verified_translation',
+    'automaticTranslation': 'automatic_translation',
+    'createdAt': 'created_at',
+    'updatedAt': 'updated_at',
+  },
+);
+
+Map<String, dynamic> _$LanguageOutToJson(LanguageOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'percentage_translated': instance.percentageTranslated,
+      'verified_translation': instance.verifiedTranslation,
+      'automatic_translation': instance.automaticTranslation,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+    };

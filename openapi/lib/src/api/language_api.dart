@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/language_create.dart';
 import 'package:openapi/src/model/language_out.dart';
 import 'package:openapi/src/model/language_update.dart';
@@ -17,9 +18,7 @@ class LanguageApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const LanguageApi(this._dio, this._serializers);
+  const LanguageApi(this._dio);
 
   /// Create Language
   /// 
@@ -61,8 +60,7 @@ class LanguageApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(LanguageCreate);
-      _bodyData = _serializers.serialize(languageCreate, specifiedType: _type);
+      _bodyData = jsonEncode(languageCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -88,11 +86,8 @@ class LanguageApi {
     LanguageOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(LanguageOut),
-      ) as LanguageOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<LanguageOut, LanguageOut>(rawData, 'LanguageOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -139,7 +134,7 @@ class LanguageApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/language/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/language/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -163,11 +158,8 @@ class LanguageApi {
     LanguageOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(LanguageOut),
-      ) as LanguageOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<LanguageOut, LanguageOut>(rawData, 'LanguageOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -209,9 +201,9 @@ class LanguageApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<LanguageOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<LanguageOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<LanguageOut>>> listLanguagesApiV1UserConfigLanguageListGet({ 
+  Future<Response<List<LanguageOut>>> listLanguagesApiV1UserConfigLanguageListGet({ 
     String? id,
     String? name,
     int? percentageTranslated,
@@ -240,13 +232,13 @@ class LanguageApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'name': encodeQueryParameter(_serializers, name, const FullType(String)),
-      r'percentage_translated': encodeQueryParameter(_serializers, percentageTranslated, const FullType(int)),
-      r'verified_translation': encodeQueryParameter(_serializers, verifiedTranslation, const FullType(bool)),
-      r'automatic_translation': encodeQueryParameter(_serializers, automaticTranslation, const FullType(bool)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
-      r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (name != null) r'name': name,
+      if (percentageTranslated != null) r'percentage_translated': percentageTranslated,
+      if (verifiedTranslation != null) r'verified_translation': verifiedTranslation,
+      if (automaticTranslation != null) r'automatic_translation': automaticTranslation,
+      if (createdAt != null) r'created_at': createdAt,
+      if (updatedAt != null) r'updated_at': updatedAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -258,14 +250,11 @@ class LanguageApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<LanguageOut>? _responseData;
+    List<LanguageOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(LanguageOut)]),
-      ) as BuiltList<LanguageOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<LanguageOut>, LanguageOut>(rawData, 'List<LanguageOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -277,7 +266,7 @@ class LanguageApi {
       );
     }
 
-    return Response<BuiltList<LanguageOut>>(
+    return Response<List<LanguageOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -314,7 +303,7 @@ class LanguageApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/language/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/user_config/language/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -331,8 +320,7 @@ class LanguageApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(LanguageUpdate);
-      _bodyData = _serializers.serialize(languageUpdate, specifiedType: _type);
+      _bodyData = jsonEncode(languageUpdate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -358,11 +346,8 @@ class LanguageApi {
     LanguageOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(LanguageOut),
-      ) as LanguageOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<LanguageOut, LanguageOut>(rawData, 'LanguageOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(

@@ -60,7 +60,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete**
-> JsonObject deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete(identificator)
+> Object deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete(identificator)
 
 Delete User Api Key
 
@@ -89,7 +89,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -146,7 +146,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listUserApiKeyApiV1AiUserApiKeyListGet**
-> BuiltList<UserApiKeyOut> listUserApiKeyApiV1AiUserApiKeyListGet(id, idAiProvider, idUser, name, encryptedKey, isActive, createdAt, updatedAt)
+> List<UserApiKeyOut> listUserApiKeyApiV1AiUserApiKeyListGet(id, idAiProvider, idUser, name, encryptedKey, isActive, createdAt, updatedAt)
 
 List User Api Key
 
@@ -189,7 +189,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;UserApiKeyOut&gt;**](UserApiKeyOut.md)
+[**List&lt;UserApiKeyOut&gt;**](UserApiKeyOut.md)
 
 ### Authorization
 

@@ -9,7 +9,7 @@ void main() {
   group(DefaultApi, () {
     // Root
     //
-    //Future<JsonObject> rootGet() async
+    //Future<Map<String, String>> rootGet() async
     test('test rootGet', () async {
       // TODO
     });

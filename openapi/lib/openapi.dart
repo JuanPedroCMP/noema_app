@@ -7,12 +7,12 @@ export 'package:openapi/src/auth/api_key_auth.dart';
 export 'package:openapi/src/auth/basic_auth.dart';
 export 'package:openapi/src/auth/bearer_auth.dart';
 export 'package:openapi/src/auth/oauth.dart';
-export 'package:openapi/src/serializers.dart';
-export 'package:openapi/src/model/date.dart';
+
 
 export 'package:openapi/src/api/agent_api.dart';
 export 'package:openapi/src/api/agent_model_api.dart';
 export 'package:openapi/src/api/ai_model_api.dart';
+export 'package:openapi/src/api/ai_router_api.dart';
 export 'package:openapi/src/api/ai_usage_log_api.dart';
 export 'package:openapi/src/api/authentication_api.dart';
 export 'package:openapi/src/api/backup_file_api.dart';
@@ -20,6 +20,7 @@ export 'package:openapi/src/api/color_theme_api.dart';
 export 'package:openapi/src/api/default_api.dart';
 export 'package:openapi/src/api/device_api.dart';
 export 'package:openapi/src/api/generic_log_api.dart';
+export 'package:openapi/src/api/google_o_auth_api.dart';
 export 'package:openapi/src/api/language_api.dart';
 export 'package:openapi/src/api/provider_api.dart';
 export 'package:openapi/src/api/response_response_language_preference_order_api.dart';

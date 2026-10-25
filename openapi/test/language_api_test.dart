@@ -23,7 +23,7 @@ void main() {
 
     // List Languages
     //
-    //Future<BuiltList<LanguageOut>> listLanguagesApiV1UserConfigLanguageListGet({ String id, String name, int percentageTranslated, bool verifiedTranslation, bool automaticTranslation, DateTime createdAt, DateTime updatedAt }) async
+    //Future<List<LanguageOut>> listLanguagesApiV1UserConfigLanguageListGet({ String id, String name, int percentageTranslated, bool verifiedTranslation, bool automaticTranslation, DateTime createdAt, DateTime updatedAt }) async
     test('test listLanguagesApiV1UserConfigLanguageListGet', () async {
       // TODO
     });

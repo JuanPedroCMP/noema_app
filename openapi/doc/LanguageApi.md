@@ -98,7 +98,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listLanguagesApiV1UserConfigLanguageListGet**
-> BuiltList<LanguageOut> listLanguagesApiV1UserConfigLanguageListGet(id, name, percentageTranslated, verifiedTranslation, automaticTranslation, createdAt, updatedAt)
+> List<LanguageOut> listLanguagesApiV1UserConfigLanguageListGet(id, name, percentageTranslated, verifiedTranslation, automaticTranslation, createdAt, updatedAt)
 
 List Languages
 
@@ -137,7 +137,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;LanguageOut&gt;**](LanguageOut.md)
+[**List&lt;LanguageOut&gt;**](LanguageOut.md)
 
 ### Authorization
 

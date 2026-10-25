@@ -60,7 +60,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete**
-> JsonObject deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete(identificator)
+> Object deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete(identificator)
 
 Delete Typography Theme
 
@@ -89,7 +89,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**Object**
 
 ### Authorization
 
@@ -146,7 +146,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listTypographyThemeApiV1UserThemeTypographyThemeListGet**
-> BuiltList<UserTypographyThemeOut> listTypographyThemeApiV1UserThemeTypographyThemeListGet(id, idUser, name, displayFont, bodyFont, monoFont, overrideJson, createdAt, updatedAt)
+> List<UserTypographyThemeOut> listTypographyThemeApiV1UserThemeTypographyThemeListGet(id, idUser, name, displayFont, bodyFont, monoFont, overrideJson, createdAt, updatedAt)
 
 List Typography Theme
 
@@ -191,7 +191,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**BuiltList&lt;UserTypographyThemeOut&gt;**](UserTypographyThemeOut.md)
+[**List&lt;UserTypographyThemeOut&gt;**](UserTypographyThemeOut.md)
 
 ### Authorization
 

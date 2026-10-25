@@ -3,116 +3,99 @@
 part of 'generic_log_create.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$GenericLogCreate extends GenericLogCreate {
-  @override
-  final String? idUser;
-  @override
-  final String type;
-  @override
-  final String details;
+abstract class _$GenericLogCreateCWProxy {
+  GenericLogCreate idUser(String? idUser);
 
-  factory _$GenericLogCreate(
-          [void Function(GenericLogCreateBuilder)? updates]) =>
-      (GenericLogCreateBuilder()..update(updates))._build();
+  GenericLogCreate type(String type);
 
-  _$GenericLogCreate._({this.idUser, required this.type, required this.details})
-      : super._();
-  @override
-  GenericLogCreate rebuild(void Function(GenericLogCreateBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  GenericLogCreate details(String details);
 
-  @override
-  GenericLogCreateBuilder toBuilder() =>
-      GenericLogCreateBuilder()..replace(this);
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GenericLogCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GenericLogCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  GenericLogCreate call({String? idUser, String type, String details});
+}
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is GenericLogCreate &&
-        idUser == other.idUser &&
-        type == other.type &&
-        details == other.details;
-  }
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfGenericLogCreate.copyWith(...)` or call `instanceOfGenericLogCreate.copyWith.fieldName(value)` for a single field.
+class _$GenericLogCreateCWProxyImpl implements _$GenericLogCreateCWProxy {
+  const _$GenericLogCreateCWProxyImpl(this._value);
+
+  final GenericLogCreate _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, idUser.hashCode);
-    _$hash = $jc(_$hash, type.hashCode);
-    _$hash = $jc(_$hash, details.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  GenericLogCreate idUser(String? idUser) => call(idUser: idUser);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'GenericLogCreate')
-          ..add('idUser', idUser)
-          ..add('type', type)
-          ..add('details', details))
-        .toString();
+  GenericLogCreate type(String type) => call(type: type);
+
+  @override
+  GenericLogCreate details(String details) => call(details: details);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `GenericLogCreate(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// GenericLogCreate(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  GenericLogCreate call({
+    Object? idUser = const $CopyWithPlaceholder(),
+    Object? type = const $CopyWithPlaceholder(),
+    Object? details = const $CopyWithPlaceholder(),
+  }) {
+    return GenericLogCreate(
+      idUser: idUser == const $CopyWithPlaceholder()
+          ? _value.idUser
+          // ignore: cast_nullable_to_non_nullable
+          : idUser as String?,
+      type: type == const $CopyWithPlaceholder() || type == null
+          ? _value.type
+          // ignore: cast_nullable_to_non_nullable
+          : type as String,
+      details: details == const $CopyWithPlaceholder() || details == null
+          ? _value.details
+          // ignore: cast_nullable_to_non_nullable
+          : details as String,
+    );
   }
 }
 
-class GenericLogCreateBuilder
-    implements Builder<GenericLogCreate, GenericLogCreateBuilder> {
-  _$GenericLogCreate? _$v;
-
-  String? _idUser;
-  String? get idUser => _$this._idUser;
-  set idUser(String? idUser) => _$this._idUser = idUser;
-
-  String? _type;
-  String? get type => _$this._type;
-  set type(String? type) => _$this._type = type;
-
-  String? _details;
-  String? get details => _$this._details;
-  set details(String? details) => _$this._details = details;
-
-  GenericLogCreateBuilder() {
-    GenericLogCreate._defaults(this);
-  }
-
-  GenericLogCreateBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _idUser = $v.idUser;
-      _type = $v.type;
-      _details = $v.details;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(GenericLogCreate other) {
-    _$v = other as _$GenericLogCreate;
-  }
-
-  @override
-  void update(void Function(GenericLogCreateBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  GenericLogCreate build() => _build();
-
-  _$GenericLogCreate _build() {
-    final _$result = _$v ??
-        _$GenericLogCreate._(
-          idUser: idUser,
-          type: BuiltValueNullFieldError.checkNotNull(
-              type, r'GenericLogCreate', 'type'),
-          details: BuiltValueNullFieldError.checkNotNull(
-              details, r'GenericLogCreate', 'details'),
-        );
-    replace(_$result);
-    return _$result;
-  }
+extension $GenericLogCreateCopyWith on GenericLogCreate {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfGenericLogCreate.copyWith(...)` or `instanceOfGenericLogCreate.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$GenericLogCreateCWProxy get copyWith => _$GenericLogCreateCWProxyImpl(this);
 }
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+GenericLogCreate _$GenericLogCreateFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('GenericLogCreate', json, ($checkedConvert) {
+      $checkKeys(json, requiredKeys: const ['id_user', 'type', 'details']);
+      final val = GenericLogCreate(
+        idUser: $checkedConvert('id_user', (v) => v as String?),
+        type: $checkedConvert('type', (v) => v as String),
+        details: $checkedConvert('details', (v) => v as String),
+      );
+      return val;
+    }, fieldKeyMap: const {'idUser': 'id_user'});
+
+Map<String, dynamic> _$GenericLogCreateToJson(GenericLogCreate instance) =>
+    <String, dynamic>{
+      'id_user': instance.idUser,
+      'type': instance.type,
+      'details': instance.details,
+    };

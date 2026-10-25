@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **idLanguage** | **String** |  | 
 **idUserColorTheme** | **String** |  | 
 **idUserTypographyTheme** | **String** |  | 
-**preferences** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) |  | 
+**preferences** | **Map&lt;String, Object&gt;** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

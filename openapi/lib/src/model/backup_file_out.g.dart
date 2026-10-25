@@ -3,169 +3,193 @@
 part of 'backup_file_out.dart';
 
 // **************************************************************************
-// BuiltValueGenerator
+// CopyWithGenerator
 // **************************************************************************
 
-class _$BackupFileOut extends BackupFileOut {
-  @override
-  final String id;
-  @override
-  final String idGoogleAccount;
-  @override
-  final String driveFileId;
-  @override
-  final String localRef;
-  @override
-  final String driveVersion;
-  @override
-  final String contentHash;
-  @override
-  final DateTime? createdAt;
+abstract class _$BackupFileOutCWProxy {
+  BackupFileOut id(String id);
 
-  factory _$BackupFileOut([void Function(BackupFileOutBuilder)? updates]) =>
-      (BackupFileOutBuilder()..update(updates))._build();
+  BackupFileOut idGoogleAccount(String idGoogleAccount);
 
-  _$BackupFileOut._(
-      {required this.id,
-      required this.idGoogleAccount,
-      required this.driveFileId,
-      required this.localRef,
-      required this.driveVersion,
-      required this.contentHash,
-      this.createdAt})
-      : super._();
-  @override
-  BackupFileOut rebuild(void Function(BackupFileOutBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  BackupFileOut driveFileId(String driveFileId);
 
-  @override
-  BackupFileOutBuilder toBuilder() => BackupFileOutBuilder()..replace(this);
+  BackupFileOut localRef(String localRef);
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is BackupFileOut &&
-        id == other.id &&
-        idGoogleAccount == other.idGoogleAccount &&
-        driveFileId == other.driveFileId &&
-        localRef == other.localRef &&
-        driveVersion == other.driveVersion &&
-        contentHash == other.contentHash &&
-        createdAt == other.createdAt;
-  }
+  BackupFileOut driveVersion(String driveVersion);
+
+  BackupFileOut contentHash(String contentHash);
+
+  BackupFileOut createdAt(DateTime? createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `BackupFileOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// BackupFileOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  BackupFileOut call({
+    String id,
+    String idGoogleAccount,
+    String driveFileId,
+    String localRef,
+    String driveVersion,
+    String contentHash,
+    DateTime? createdAt,
+  });
+}
+
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfBackupFileOut.copyWith(...)` or call `instanceOfBackupFileOut.copyWith.fieldName(value)` for a single field.
+class _$BackupFileOutCWProxyImpl implements _$BackupFileOutCWProxy {
+  const _$BackupFileOutCWProxyImpl(this._value);
+
+  final BackupFileOut _value;
 
   @override
-  int get hashCode {
-    var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, idGoogleAccount.hashCode);
-    _$hash = $jc(_$hash, driveFileId.hashCode);
-    _$hash = $jc(_$hash, localRef.hashCode);
-    _$hash = $jc(_$hash, driveVersion.hashCode);
-    _$hash = $jc(_$hash, contentHash.hashCode);
-    _$hash = $jc(_$hash, createdAt.hashCode);
-    _$hash = $jf(_$hash);
-    return _$hash;
-  }
+  BackupFileOut id(String id) => call(id: id);
 
   @override
-  String toString() {
-    return (newBuiltValueToStringHelper(r'BackupFileOut')
-          ..add('id', id)
-          ..add('idGoogleAccount', idGoogleAccount)
-          ..add('driveFileId', driveFileId)
-          ..add('localRef', localRef)
-          ..add('driveVersion', driveVersion)
-          ..add('contentHash', contentHash)
-          ..add('createdAt', createdAt))
-        .toString();
+  BackupFileOut idGoogleAccount(String idGoogleAccount) =>
+      call(idGoogleAccount: idGoogleAccount);
+
+  @override
+  BackupFileOut driveFileId(String driveFileId) =>
+      call(driveFileId: driveFileId);
+
+  @override
+  BackupFileOut localRef(String localRef) => call(localRef: localRef);
+
+  @override
+  BackupFileOut driveVersion(String driveVersion) =>
+      call(driveVersion: driveVersion);
+
+  @override
+  BackupFileOut contentHash(String contentHash) =>
+      call(contentHash: contentHash);
+
+  @override
+  BackupFileOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
+
+  /// Creates a new instance with the provided field values.
+  /// Omitted fields keep their values; explicit `null` clears nullable fields.
+  /// The public API rejects `null` for non-nullable fields. To update a single field use `BackupFileOut(...).copyWith.fieldName(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// BackupFileOut(...).copyWith(id: 12, name: "My name")
+  /// ```
+  @override
+  BackupFileOut call({
+    Object? id = const $CopyWithPlaceholder(),
+    Object? idGoogleAccount = const $CopyWithPlaceholder(),
+    Object? driveFileId = const $CopyWithPlaceholder(),
+    Object? localRef = const $CopyWithPlaceholder(),
+    Object? driveVersion = const $CopyWithPlaceholder(),
+    Object? contentHash = const $CopyWithPlaceholder(),
+    Object? createdAt = const $CopyWithPlaceholder(),
+  }) {
+    return BackupFileOut(
+      id: id == const $CopyWithPlaceholder() || id == null
+          ? _value.id
+          // ignore: cast_nullable_to_non_nullable
+          : id as String,
+      idGoogleAccount:
+          idGoogleAccount == const $CopyWithPlaceholder() ||
+              idGoogleAccount == null
+          ? _value.idGoogleAccount
+          // ignore: cast_nullable_to_non_nullable
+          : idGoogleAccount as String,
+      driveFileId:
+          driveFileId == const $CopyWithPlaceholder() || driveFileId == null
+          ? _value.driveFileId
+          // ignore: cast_nullable_to_non_nullable
+          : driveFileId as String,
+      localRef: localRef == const $CopyWithPlaceholder() || localRef == null
+          ? _value.localRef
+          // ignore: cast_nullable_to_non_nullable
+          : localRef as String,
+      driveVersion:
+          driveVersion == const $CopyWithPlaceholder() || driveVersion == null
+          ? _value.driveVersion
+          // ignore: cast_nullable_to_non_nullable
+          : driveVersion as String,
+      contentHash:
+          contentHash == const $CopyWithPlaceholder() || contentHash == null
+          ? _value.contentHash
+          // ignore: cast_nullable_to_non_nullable
+          : contentHash as String,
+      createdAt: createdAt == const $CopyWithPlaceholder()
+          ? _value.createdAt
+          // ignore: cast_nullable_to_non_nullable
+          : createdAt as DateTime?,
+    );
   }
 }
 
-class BackupFileOutBuilder
-    implements Builder<BackupFileOut, BackupFileOutBuilder> {
-  _$BackupFileOut? _$v;
+extension $BackupFileOutCopyWith on BackupFileOut {
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfBackupFileOut.copyWith(...)` or `instanceOfBackupFileOut.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$BackupFileOutCWProxy get copyWith => _$BackupFileOutCWProxyImpl(this);
+}
 
-  String? _id;
-  String? get id => _$this._id;
-  set id(String? id) => _$this._id = id;
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  String? _idGoogleAccount;
-  String? get idGoogleAccount => _$this._idGoogleAccount;
-  set idGoogleAccount(String? idGoogleAccount) =>
-      _$this._idGoogleAccount = idGoogleAccount;
-
-  String? _driveFileId;
-  String? get driveFileId => _$this._driveFileId;
-  set driveFileId(String? driveFileId) => _$this._driveFileId = driveFileId;
-
-  String? _localRef;
-  String? get localRef => _$this._localRef;
-  set localRef(String? localRef) => _$this._localRef = localRef;
-
-  String? _driveVersion;
-  String? get driveVersion => _$this._driveVersion;
-  set driveVersion(String? driveVersion) => _$this._driveVersion = driveVersion;
-
-  String? _contentHash;
-  String? get contentHash => _$this._contentHash;
-  set contentHash(String? contentHash) => _$this._contentHash = contentHash;
-
-  DateTime? _createdAt;
-  DateTime? get createdAt => _$this._createdAt;
-  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
-
-  BackupFileOutBuilder() {
-    BackupFileOut._defaults(this);
-  }
-
-  BackupFileOutBuilder get _$this {
-    final $v = _$v;
-    if ($v != null) {
-      _id = $v.id;
-      _idGoogleAccount = $v.idGoogleAccount;
-      _driveFileId = $v.driveFileId;
-      _localRef = $v.localRef;
-      _driveVersion = $v.driveVersion;
-      _contentHash = $v.contentHash;
-      _createdAt = $v.createdAt;
-      _$v = null;
-    }
-    return this;
-  }
-
-  @override
-  void replace(BackupFileOut other) {
-    _$v = other as _$BackupFileOut;
-  }
-
-  @override
-  void update(void Function(BackupFileOutBuilder)? updates) {
-    if (updates != null) updates(this);
-  }
-
-  @override
-  BackupFileOut build() => _build();
-
-  _$BackupFileOut _build() {
-    final _$result = _$v ??
-        _$BackupFileOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'BackupFileOut', 'id'),
-          idGoogleAccount: BuiltValueNullFieldError.checkNotNull(
-              idGoogleAccount, r'BackupFileOut', 'idGoogleAccount'),
-          driveFileId: BuiltValueNullFieldError.checkNotNull(
-              driveFileId, r'BackupFileOut', 'driveFileId'),
-          localRef: BuiltValueNullFieldError.checkNotNull(
-              localRef, r'BackupFileOut', 'localRef'),
-          driveVersion: BuiltValueNullFieldError.checkNotNull(
-              driveVersion, r'BackupFileOut', 'driveVersion'),
-          contentHash: BuiltValueNullFieldError.checkNotNull(
-              contentHash, r'BackupFileOut', 'contentHash'),
-          createdAt: createdAt,
+BackupFileOut _$BackupFileOutFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BackupFileOut',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'id',
+            'id_google_account',
+            'drive_file_id',
+            'local_ref',
+            'drive_version',
+            'content_hash',
+            'created_at',
+          ],
         );
-    replace(_$result);
-    return _$result;
-  }
-}
+        final val = BackupFileOut(
+          id: $checkedConvert('id', (v) => v as String),
+          idGoogleAccount: $checkedConvert(
+            'id_google_account',
+            (v) => v as String,
+          ),
+          driveFileId: $checkedConvert('drive_file_id', (v) => v as String),
+          localRef: $checkedConvert('local_ref', (v) => v as String),
+          driveVersion: $checkedConvert('drive_version', (v) => v as String),
+          contentHash: $checkedConvert('content_hash', (v) => v as String),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'idGoogleAccount': 'id_google_account',
+        'driveFileId': 'drive_file_id',
+        'localRef': 'local_ref',
+        'driveVersion': 'drive_version',
+        'contentHash': 'content_hash',
+        'createdAt': 'created_at',
+      },
+    );
 
-// ignore_for_file: deprecated_member_use_from_same_package,type=lint
+Map<String, dynamic> _$BackupFileOutToJson(BackupFileOut instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_google_account': instance.idGoogleAccount,
+      'drive_file_id': instance.driveFileId,
+      'local_ref': instance.localRef,
+      'drive_version': instance.driveVersion,
+      'content_hash': instance.contentHash,
+      'created_at': instance.createdAt?.toIso8601String(),
+    };

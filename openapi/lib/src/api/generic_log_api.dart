@@ -4,21 +4,20 @@
 
 import 'dart:async';
 
-import 'package:built_value/serializer.dart';
+// ignore: unused_import
+import 'dart:convert';
+import 'package:openapi/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/generic_log_create.dart';
 import 'package:openapi/src/model/generic_log_out.dart';
+import 'package:openapi/src/model/http_validation_error.dart';
 
 class GenericLogApi {
 
   final Dio _dio;
 
-  final Serializers _serializers;
-
-  const GenericLogApi(this._dio, this._serializers);
+  const GenericLogApi(this._dio);
 
   /// Create Generic Log
   /// 
@@ -65,8 +64,7 @@ class GenericLogApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(GenericLogCreate);
-      _bodyData = _serializers.serialize(genericLogCreate, specifiedType: _type);
+      _bodyData = jsonEncode(genericLogCreate);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -92,11 +90,8 @@ class GenericLogApi {
     GenericLogOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(GenericLogOut),
-      ) as GenericLogOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<GenericLogOut, GenericLogOut>(rawData, 'GenericLogOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -143,7 +138,7 @@ class GenericLogApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/generic_log/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
+    final _path = r'/api/v1/generic_log/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -172,11 +167,8 @@ class GenericLogApi {
     GenericLogOut? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(GenericLogOut),
-      ) as GenericLogOut;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<GenericLogOut, GenericLogOut>(rawData, 'GenericLogOut', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -216,9 +208,9 @@ class GenericLogApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [BuiltList<GenericLogOut>] as data
+  /// Returns a [Future] containing a [Response] with a [List<GenericLogOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<GenericLogOut>>> listGenericLogApiV1GenericLogListGet({ 
+  Future<Response<List<GenericLogOut>>> listGenericLogApiV1GenericLogListGet({ 
     String? id,
     String? type,
     String? idUser,
@@ -250,11 +242,11 @@ class GenericLogApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      r'type': encodeQueryParameter(_serializers, type, const FullType(String)),
-      r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
-      r'details': encodeQueryParameter(_serializers, details, const FullType(String)),
-      r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (id != null) r'id': id,
+      if (type != null) r'type': type,
+      if (idUser != null) r'id_user': idUser,
+      if (details != null) r'details': details,
+      if (createdAt != null) r'created_at': createdAt,
     };
 
     final _response = await _dio.request<Object>(
@@ -266,14 +258,11 @@ class GenericLogApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    BuiltList<GenericLogOut>? _responseData;
+    List<GenericLogOut>? _responseData;
 
     try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null ? null : _serializers.deserialize(
-        rawResponse,
-        specifiedType: const FullType(BuiltList, [FullType(GenericLogOut)]),
-      ) as BuiltList<GenericLogOut>;
+final rawData = _response.data;
+_responseData = rawData == null ? null : deserialize<List<GenericLogOut>, GenericLogOut>(rawData, 'List<GenericLogOut>', growable: true);
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -285,7 +274,7 @@ class GenericLogApi {
       );
     }
 
-    return Response<BuiltList<GenericLogOut>>(
+    return Response<List<GenericLogOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
