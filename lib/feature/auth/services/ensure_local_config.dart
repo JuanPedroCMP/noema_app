@@ -20,8 +20,7 @@ Future<void> ensureLocalConfig({
     seedColor: 0xFF0000FF,
   );
 
-  final typographyThemeId =
-      await typographyThemeDao.insertTypographyTheme(
+  final typographyThemeId = await typographyThemeDao.insertTypographyTheme(
     userId: user.id,
     name: 'Default',
     fontScale: 1,
@@ -29,10 +28,9 @@ Future<void> ensureLocalConfig({
 
   await configDao.insertConfig(
     userId: user.id,
-    colorThemeId: colorThemeId.toString(),
-    typographyThemeId: typographyThemeId.toString(),
+    colorThemeId: colorThemeId,
+    typographyThemeId: typographyThemeId,
     preferences: '{}',
     deviceFingerprint: fingerprint,
   );
 }
-

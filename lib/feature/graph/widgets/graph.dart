@@ -17,6 +17,7 @@ class GraphPainter extends CustomPainter {
     required this.edges,
     required this.selected,
     required this.option,
+    required this.origin,
   });
 
   final BuildContext context;
@@ -24,10 +25,12 @@ class GraphPainter extends CustomPainter {
   final List<GraphEdgeData> edges;
   final String selected;
   final int option;
+  final Offset origin;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.translate(origin.dx, origin.dy);
 
     final edgePaint = Paint()
       ..color = context.colorScheme.tertiary
@@ -59,8 +62,8 @@ class GraphPainter extends CustomPainter {
 
     final nodesById = {for (final node in nodes) node.id: node};
 
-    final double nodeWidth = 200;
-    final double nodeHeigth = 80;
+    const nodeWidth = 200.0;
+    const nodeHeight = 80.0;
 
     if (option == 1) {
       //// Direto
@@ -74,9 +77,9 @@ class GraphPainter extends CustomPainter {
 
         final path = Path();
 
-        path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
+        path.moveTo(source.positionX, source.positionY + nodeHeight / 2);
 
-        path.lineTo(target.positionX, target.positionY - nodeHeigth / 2);
+        path.lineTo(target.positionX, target.positionY - nodeHeight / 2);
 
         if (edge.id == selected) {
           canvas.drawPath(path, edgePaintSelected);
@@ -97,10 +100,10 @@ class GraphPainter extends CustomPainter {
         final path = Path();
 
         path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY + nodeHeigth / 2),
+          Offset(source.positionX, source.positionY + nodeHeight / 2),
           Offset(source.positionX, (target.positionY + source.positionY) / 2),
           Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY - nodeHeigth / 2),
+          Offset(target.positionX, target.positionY - nodeHeight / 2),
         ], false);
 
         if (edge.id == selected) {
@@ -122,9 +125,9 @@ class GraphPainter extends CustomPainter {
         final path = Path();
 
         path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY + nodeHeigth / 2),
+          Offset(source.positionX, source.positionY + nodeHeight / 2),
           Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY - nodeHeigth / 2),
+          Offset(target.positionX, target.positionY - nodeHeight / 2),
         ], false);
 
         if (edge.id == selected) {
@@ -145,13 +148,13 @@ class GraphPainter extends CustomPainter {
 
         final path = Path();
 
-        path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
+        path.moveTo(source.positionX, source.positionY + nodeHeight / 2);
 
         path.quadraticBezierTo(
           source.positionX,
           (source.positionY + target.positionY) / 2,
           target.positionX,
-          target.positionY - nodeHeigth / 2,
+          target.positionY - nodeHeight / 2,
         );
 
         if (edge.id == selected) {
@@ -166,9 +169,9 @@ class GraphPainter extends CustomPainter {
     for (final node in nodes) {
       final rect = Rect.fromLTWH(
         node.positionX - nodeWidth / 2,
-        node.positionY - nodeHeigth / 2,
+        node.positionY - nodeHeight / 2,
         nodeWidth,
-        nodeHeigth,
+        nodeHeight,
       );
 
       final rrect = RRect.fromRectAndRadius(
@@ -197,19 +200,31 @@ class GraphPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
         textAlign: TextAlign.center,
         maxLines: 2,
-        ellipsis: "..." // Required parameter
+        ellipsis: '...',
       );
 
       // 4. Compute constraints and layout the paragraph geometry
       textPainter.layout(maxWidth: nodeWidth - 20);
 
       // 6. Paint the computed text paragraph onto the canvas
-      textPainter.paint(canvas, Offset(node.positionX - textPainter.width/2, node.positionY - textPainter.height/2));
+      textPainter.paint(
+        canvas,
+        Offset(
+          node.positionX - textPainter.width / 2,
+          node.positionY - textPainter.height / 2,
+        ),
+      );
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+    final oldPainter = oldDelegate as GraphPainter;
+    return oldPainter.nodes != nodes ||
+        oldPainter.edges != edges ||
+        oldPainter.selected != selected ||
+        oldPainter.option != option ||
+        oldPainter.origin != origin ||
+        oldPainter.context != context;
   }
 }

@@ -42,6 +42,10 @@ class NodeFormProvider extends Notifier<NodeformState> {
   void aiSynthesisChanged(String value) {
     state = state.copyWith(aiSynthesis: value);
   }
+
+  void reset() {
+    state = const NodeformState();
+  }
 }
 
 final nodeFormProvider = NotifierProvider<NodeFormProvider, NodeformState>(

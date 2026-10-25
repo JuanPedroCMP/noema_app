@@ -8,7 +8,11 @@ class ColorFormNotifier extends Notifier<ColorUpFormState> {
   }
 
   void colorChanged(String color) {
-    state = state.copyWith(color: int.parse(color));
+    final parsed = int.tryParse(color);
+    if (parsed == null || parsed < 0 || parsed > 0xFFFFFFFF) {
+      return;
+    }
+    state = state.copyWith(color: parsed);
   }
 }
 

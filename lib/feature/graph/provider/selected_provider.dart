@@ -10,6 +10,10 @@ class SelectedNotifier extends Notifier<String> {
   void selectedChanged(String value){
     state = value;
   }
+
+  void clear() {
+    state = '';
+  }
 }
 
 final selectedProvider = NotifierProvider<SelectedNotifier, String>(SelectedNotifier.new);

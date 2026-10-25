@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/router/widgets/app_side_bar/provider/app_side_bar_state.dart';
 
 class AppSideBarNotifier extends Notifier<AppSideBarState>{
+  @override
   AppSideBarState build() {
     return const AppSideBarState();
   }

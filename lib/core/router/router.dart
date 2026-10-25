@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/router/app_shell.dart';
+import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/auth/providers/auth_base_page.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
@@ -12,6 +13,7 @@ import 'package:noema/feature/exercises/presentation/list_exercices.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
+import 'package:noema/feature/flashcards/presentation/flashcard.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
 import 'package:noema/teste_page.dart';
@@ -20,24 +22,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
-    initialLocation: "/",
+    initialLocation: RoutePaths.home,
 
     redirect: (context, state) {
-      final isLoggingIn = state.matchedLocation == "/login";
-      final isSigninUp = state.matchedLocation == "/sign_up";
+      final isLoggingIn = state.matchedLocation == RoutePaths.login;
+      final isSigninUp = state.matchedLocation == RoutePaths.signUp;
       final isAuthLoading = authState.isLoading;
       final isLoggedIn = authState.value == true;
 
       if (isAuthLoading) {
-        return "/splash";
+        return RoutePaths.splash;
       }
 
       if (!isLoggedIn && !isLoggingIn && !isSigninUp) {
-        return "/login";
+        return RoutePaths.login;
       }
 
       if (isLoggedIn && (isLoggingIn || state.matchedLocation == "/splash")) {
-        return "/";
+        return RoutePaths.home;
       }
 
       return null;
@@ -49,10 +51,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return AuthBasePage(child: child);
         },
         routes: [
-          GoRoute(path: "/splash", builder: (_, _) => SplashPage()),
-          GoRoute(path: "/login", builder: (_, _) => LoginPage()),
-
-          GoRoute(path: "/sign_up", builder: (_, _) => SignUpPage()),
+          GoRoute(path: RoutePaths.splash, builder: (_, _) => SplashPage()),
+          GoRoute(path: RoutePaths.login, builder: (_, _) => LoginPage()),
+          GoRoute(path: RoutePaths.signUp, builder: (_, _) => SignUpPage()),
         ],
       ),
 
@@ -66,27 +67,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
         branches: [
           StatefulShellBranch(
-            routes: [GoRoute(path: "/", builder: (_, _) => const HomePage())],
+            routes: [GoRoute(path: RoutePaths.home, builder: (_, _) => const HomePage())],
           ),
 
           StatefulShellBranch(
-            routes: [GoRoute(path: "/notes", builder: (_, _) => NotesPage())],
+            routes: [GoRoute(path: RoutePaths.notes, builder: (_, _) => NotesPage())],
           ),
 
           StatefulShellBranch(
-            routes: [GoRoute(path: "/config", builder: (_, _) => ConfigPage())],
+            routes: [GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage())],
           ),
 
           StatefulShellBranch(
             routes: [
-              GoRoute(path: "/teste", builder: (_, _) => M3ShowcaseApp()),
+              GoRoute(path: RoutePaths.test, builder: (_, _) => M3ShowcaseApp()),
             ],
           ),
 
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: "/graphs",
+                path: RoutePaths.graphs,
                 builder: (_, _) =>
                     GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
                 routes: [
@@ -98,14 +99,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     },
                     routes: [
                       GoRoute(
-                        path: 'exercices/:nodeId',
+                        path: 'exercises/:nodeId',
                         builder: (context, state) {
                           final String nodeId = state.pathParameters['nodeId']!;
                           return ExercicesList(nodeId: nodeId);
                         },
                         routes: [
                           GoRoute(
-                            path: 'create_open_ended/:nodeId',
+                            path: 'open-ended/create',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -113,7 +114,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path: 'updade_open_ended/:nodeId/:openEndedId',
+                            path: 'open-ended/:openEndedId/edit',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -127,7 +128,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path: 'do_open_ended/:nodeId/:openEndedId',
+                            path: 'open-ended/:openEndedId/answer',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -141,7 +142,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path: 'get_open_ended/:nodeId/:openEndedId',
+                            path: 'open-ended/:openEndedId/view',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -155,7 +156,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path: 'create_multiple_choise/:nodeId',
+                            path: 'multiple-choice/create',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -166,8 +167,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path:
-                                'updade_multiple_choise/:nodeId/:multipleChoiseId',
+                            path: 'multiple-choice/:multipleChoiseId/edit',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -181,8 +181,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path:
-                                'do_multiple_choise/:nodeId/:multipleChoiseId',
+                            path: 'multiple-choice/:multipleChoiseId/answer',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -196,8 +195,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                           GoRoute(
-                            path:
-                                'get_multiple_choise/:nodeId/:multipleChoiseId',
+                            path: 'multiple-choice/:multipleChoiseId/view',
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
@@ -215,6 +213,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.flashcards,
+                builder: (_, _) => const FlashcardPage(),
               ),
             ],
           ),

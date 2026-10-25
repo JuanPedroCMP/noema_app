@@ -1,1 +1,1 @@
-enum ConfigSections { profile, colorTheme, typograpyTheme, preferences }
+enum ConfigSections { profile, colorTheme, typographyTheme, preferences }

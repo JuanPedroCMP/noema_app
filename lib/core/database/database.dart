@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -30,19 +31,20 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  Future<void> deleteDatabase() async { //TODO Apagar antes de lançar
+  Future<void> deleteDatabase() async {
+    //TODO Apagar antes de lançar
     await close();
 
     final directory = await getApplicationSupportDirectory();
     final file = File(p.join(directory.path, 'noema_db.sqlite'));
 
-    print('Banco: ${file.path}');
+    developer.log('Banco: ${file.path}', name: 'AppDatabase');
 
     if (await file.exists()) {
       await file.delete();
-      print('Banco apagado com sucesso!');
+      developer.log('Banco apagado com sucesso!', name: 'AppDatabase');
     } else {
-      print('Banco não encontrado!');
+      developer.log('Banco não encontrado!', name: 'AppDatabase');
     }
   }
 }

@@ -8,16 +8,17 @@ part 'knowledge_graph_dao.g.dart';
 class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGraphDaoMixin {
   KnowledgeGraphDao(super.db);
 
-  Future<int> insertKnowledgeGraph({
+  Future<String> insertKnowledgeGraph({
     required String userId,
     required String title,
     String? description,
     bool? isArchived,
     bool? synced,
-  }) {
-    return into(attachedDatabase.knowledgeGraph).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.knowledgeGraph).insert(
       KnowledgeGraphCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         userId: userId,
         title: title,
         description: Value(description),
@@ -25,6 +26,7 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
         synced: synced == null ? const Value.absent() : Value(synced),
       ),
     );
+    return id;
   }
 
   Future<int> updateKnowledgeGraph({
@@ -49,7 +51,9 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
   }
 
   Future<KnowledgeGraphData?> getKnowledgeGraph({required String id}) {
-    return (select(attachedDatabase.knowledgeGraph)..where((tbl) => tbl.id.equals(id)))
+    return (select(attachedDatabase.knowledgeGraph)
+          ..where((tbl) => tbl.id.equals(id))
+          ..where((tbl) => tbl.softDeleted.equals(false)))
         .getSingleOrNull();
   }
 
@@ -60,15 +64,16 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
         .get();
   }
 
-  Future<int> deleteKnowledgeGraph({required String id}) {
-    return (update(
+  Future<bool> deleteKnowledgeGraph({required String id}) async {
+    final changed = await (update(
       attachedDatabase.knowledgeGraph,
     )..where((tbl) => tbl.id.equals(id))).write(
       KnowledgeGraphCompanion(
         softDeleted: const Value(true),
-        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch,),
+        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+    return changed > 0;
   }
 
   DeleteStatement<KnowledgeGraph, KnowledgeGraphData> deleteAllKnowledgeGraph() {

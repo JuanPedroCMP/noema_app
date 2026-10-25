@@ -3,7 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/app_theme.dart' show AppTheme;
 import 'package:noema/core/design/theme/color_theme_provider.dart'
-    show colorProvider, brightnessProvider;
+    show activeColorThemeProvider, brightnessProvider, colorProvider;
+import 'package:noema/core/design/theme/typography_theme_provider.dart';
 import 'package:noema/core/design/theme/display_width_provider.dart';
 import 'package:noema/core/router/router.dart';
 import 'package:noema/l10n/app_localizations.dart';
@@ -14,6 +15,8 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorAsync = ref.watch(colorProvider);
+    final activeTheme = ref.watch(activeColorThemeProvider);
+    final activeTypography = ref.watch(activeTypographyThemeProvider);
     final brightnessApp = ref.watch(brightnessProvider);
 
     final colorApp = colorAsync.maybeWhen(
@@ -49,6 +52,26 @@ class App extends ConsumerWidget {
         seedColor: colorApp,
         brightness: brightnessApp,
         displayWidth: displayWidth,
+        overridesJson: activeTheme.maybeWhen(
+          data: (theme) => theme?.overridesJson,
+          orElse: () => null,
+        ),
+        displayFont: activeTypography.maybeWhen(
+          data: (theme) => theme?.displayFont,
+          orElse: () => null,
+        ),
+        bodyFont: activeTypography.maybeWhen(
+          data: (theme) => theme?.bodyFont,
+          orElse: () => null,
+        ),
+        monoFont: activeTypography.maybeWhen(
+          data: (theme) => theme?.monoFont,
+          orElse: () => null,
+        ),
+        fontScale: activeTypography.maybeWhen(
+          data: (theme) => theme?.fontScale ?? 100,
+          orElse: () => 100,
+        ),
       ),
     );
   }

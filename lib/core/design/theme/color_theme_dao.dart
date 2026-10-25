@@ -5,26 +5,31 @@ import 'package:uuid/uuid.dart';
 part 'color_theme_dao.g.dart';
 
 @DriftAccessor(tables: [ColorTheme])
-class ColorThemeDao extends DatabaseAccessor<AppDatabase> with _$ColorThemeDaoMixin {
+class ColorThemeDao extends DatabaseAccessor<AppDatabase>
+    with _$ColorThemeDaoMixin {
   ColorThemeDao(super.db);
 
-  Future<int> insertColorTheme({
+  Future<String> insertColorTheme({
     required String userId,
     required String name,
     required int seedColor,
     String? overridesJson,
     bool? systemDefault,
-  }) {
-    return into(attachedDatabase.colorTheme).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.colorTheme).insert(
       ColorThemeCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         userId: userId,
         name: name,
         seedColor: seedColor,
         overridesJson: Value(overridesJson),
-        systemDefault: systemDefault == null ? const Value.absent() : Value(systemDefault),
+        systemDefault: systemDefault == null
+            ? const Value.absent()
+            : Value(systemDefault),
       ),
     );
+    return id;
   }
 
   Future<int> updateColorTheme({
@@ -42,31 +47,37 @@ class ColorThemeDao extends DatabaseAccessor<AppDatabase> with _$ColorThemeDaoMi
         userId: userId == null ? const Value.absent() : Value(userId),
         name: name == null ? const Value.absent() : Value(name),
         seedColor: seedColor == null ? const Value.absent() : Value(seedColor),
-        overridesJson: overridesJson == null ? const Value.absent() : Value(overridesJson),
-        systemDefault: systemDefault == null ? const Value.absent() : Value(systemDefault),
+        overridesJson: overridesJson == null
+            ? const Value.absent()
+            : Value(overridesJson),
+        systemDefault: systemDefault == null
+            ? const Value.absent()
+            : Value(systemDefault),
       ),
     );
   }
 
   Future<ColorThemeData?> getColorTheme({required String id}) {
-    return (select(attachedDatabase.colorTheme)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.colorTheme,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<ColorThemeData?> getColorThemeByName({required String name}) {
-    return (select(attachedDatabase.colorTheme)..where((tbl) => tbl.name.equals(name)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.colorTheme,
+    )..where((tbl) => tbl.name.equals(name))).getSingleOrNull();
   }
 
   Future<List<ColorThemeData>> getColorThemesByUser({required String userId}) {
-    return (select(attachedDatabase.colorTheme)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .get();
+    return (select(
+      attachedDatabase.colorTheme,
+    )..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
   Future<int> deleteColorTheme({required String id}) {
-    return (delete(attachedDatabase.colorTheme)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (delete(
+      attachedDatabase.colorTheme,
+    )..where((tbl) => tbl.id.equals(id))).go();
   }
 }

@@ -10,9 +10,11 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
 
   @override
   Future<AppUserData> build() async {
-    AppUserData? user = await AppUserDao(db).getActiveUser();
-
-    return user!;
+    final user = await AppUserDao(db).getActiveUser();
+    if (user == null) {
+      throw StateError('Nenhum usuário autenticado encontrado');
+    }
+    return user;
   }
 
   Future<int> updateUser({
@@ -54,7 +56,10 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
 
   Future<AppUserData> getUser() async {
     final user = await AppUserDao(db).getActiveUser();
-    return user!;
+    if (user == null) {
+      throw StateError('Nenhum usuário autenticado encontrado');
+    }
+    return user;
   }
 }
 

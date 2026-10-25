@@ -5,7 +5,9 @@ class DisplayWidth extends Notifier<double> {
   double build() => 0;
 
   void update(double width) {
-    state = width;
+    if (state != width) {
+      state = width;
+    }
   }
 }
 

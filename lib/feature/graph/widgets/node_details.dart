@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
-import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 
 class NodeDetails extends ConsumerWidget {
   const NodeDetails({super.key, required this.node});
@@ -82,7 +82,7 @@ class NodeDetails extends ConsumerWidget {
               Divider(),
               OutlinedButton(
                 onPressed: () {
-                  context.push("/graphs/${node.graphId}/exercices/${node.id}");
+                  context.push(RoutePaths.exercises(node.graphId, node.id));
                 },
                 child: Text("Ir para exercícios"),
               ),

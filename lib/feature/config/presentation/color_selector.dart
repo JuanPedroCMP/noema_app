@@ -1,33 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/feature/auth/providers/auth_state_provider.dart';
-import 'package:noema/core/design/theme/color_theme_provider.dart';
-import 'package:noema/feature/auth/services/login_service.dart';
 import 'package:noema/feature/config/providers/color_form_provider.dart';
-import 'package:noema/l10n/app_localizations.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
-class ColorSelector extends ConsumerWidget {
+class ColorSelector extends ConsumerStatefulWidget {
   const ColorSelector({super.key, required this.onSave});
 
   final void Function(int) onSave;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formNotifier = ref.watch(colorFormProvider.notifier);
+  ConsumerState<ColorSelector> createState() => _ColorSelectorState();
+}
+
+class _ColorSelectorState extends ConsumerState<ColorSelector> {
+  late final TextEditingController colorController;
+
+  @override
+  void initState() {
+    super.initState();
+    final form = ref.read(colorFormProvider);
+    colorController = TextEditingController(text: form.color.toString());
+  }
+
+  @override
+  void dispose() {
+    colorController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formNotifier = ref.read(colorFormProvider.notifier);
     final form = ref.watch(colorFormProvider);
-    TextEditingController colorController = TextEditingController(
-      text: form.color.toString(),
-    );
-    return  Center(
-        child: Column(
+    return Center(
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ColorPicker(
               color: Color(form.color),
               onColorChanged: (Color color) {
                 formNotifier.colorChanged(color.toARGB32().toString());
+                colorController.text = color.toARGB32().toString();
               },
               wheelDiameter: 125,
               copyPasteBehavior: ColorPickerCopyPasteBehavior(),
@@ -50,7 +63,8 @@ class ColorSelector extends ConsumerWidget {
 
               spacing: 15,
               children: [
-                Expanded(
+                SizedBox(
+                  width: 180,
                   child: TextField(
                     controller: colorController,
 
@@ -70,7 +84,7 @@ class ColorSelector extends ConsumerWidget {
 
                 ElevatedButton(
                   onPressed: () {
-                    onSave(form.color);
+                    widget.onSave(form.color);
                   },
                   child: const Text('Selecionar'),
                 ),

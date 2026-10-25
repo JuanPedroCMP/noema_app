@@ -388,7 +388,7 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
     for (final node in nodes) {
       final x = node.positionX;
 
-      if (x != null && x.isFinite) {
+      if (x.isFinite) {
         previousX[node.id] = x;
       }
     }

@@ -36,9 +36,7 @@ class _$LocationInnerSerializer implements PrimitiveSerializer<LocationInner> {
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    LocationInner object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {
+    LocationInner object) sync* {
   }
 
   @override

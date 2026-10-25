@@ -22,7 +22,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   int opc = 0;
   String questionId = "";
 
-  @override 
+  @override
   void initState() {
     super.initState();
     carregar();
@@ -32,11 +32,13 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
     final db = ref.read(appDatabaseProvider);
 
     final openEndedLogs = await db.select(db.openEndedResponseLog).get();
-    final multipleChoiceLogs = await db.select(db.multipleChoiceResponseLog).get();
+    final multipleChoiceLogs = await db
+        .select(db.multipleChoiceResponseLog)
+        .get();
 
     if (!mounted) return;
 
-    setState(() async {
+    setState(() {
       _openEndedLogs = openEndedLogs;
       _multipleChoiceLogs = multipleChoiceLogs;
     });
@@ -81,7 +83,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_open_ended/${widget.nodeId}/${openEndedLog.id}",
+                        "$currentUri/open-ended/${openEndedLog.id}/view",
                       );
                     },
                     child: Text("Visualizar"),
@@ -89,7 +91,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/updade_open_ended/${widget.nodeId}/${openEndedLog.id}",
+                        "$currentUri/open-ended/${openEndedLog.id}/edit",
                       );
                     },
                     child: Text("Editar"),
@@ -97,7 +99,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/do_open_ended/${widget.nodeId}/${openEndedLog.id}",
+                        "$currentUri/open-ended/${openEndedLog.id}/answer",
                       );
                     },
                     child: Text("Realizar"),
@@ -133,7 +135,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_multiple_choise/${widget.nodeId}/${multipleChoiseLog.id}",
+                        "$currentUri/multiple-choice/${multipleChoiseLog.id}/view",
                       );
                     },
                     child: Text("Visualizar"),
@@ -141,7 +143,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/updade_multiple_choise/${widget.nodeId}/${multipleChoiseLog.id}",
+                        "$currentUri/multiple-choice/${multipleChoiseLog.id}/edit",
                       );
                     },
                     child: Text("Editar"),
@@ -149,7 +151,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/do_multiple_choise/${widget.nodeId}/${multipleChoiseLog.id}",
+                        "$currentUri/multiple-choice/${multipleChoiseLog.id}/answer",
                       );
                     },
                     child: Text("Realizar"),
@@ -162,7 +164,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
       );
     }).toList();
 
-    if (_openEndedLogs.isEmpty) {
+    if (_openEndedLogs.isEmpty && _multipleChoiceLogs.isEmpty) {
       return Center(
         child: Column(
           children: [
@@ -185,7 +187,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                           OutlinedButton(
                             onPressed: () {
                               context.push(
-                                "$currentUri/create_open_ended/${widget.nodeId}",
+                                "$currentUri/open-ended/create",
                               );
                             },
                             child: Row(children: [Text("Criar questão Vazia")]),
@@ -221,7 +223,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
               OutlinedButton(
                 onPressed: () {
                   context.push(
-                    "$currentUri/create_open_ended/${widget.nodeId}",
+                    "$currentUri/open-ended/create",
                   );
                 },
                 child: Row(
@@ -235,7 +237,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
               OutlinedButton(
                 onPressed: () {
                   context.push(
-                    "$currentUri/create_multiple_choise/${widget.nodeId}",
+                    "$currentUri/multiple-choice/create",
                   );
                 },
                 child: Row(

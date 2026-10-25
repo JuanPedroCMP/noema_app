@@ -1,21 +1,18 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart';
-import 'package:noema/core/design/theme/display_width_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/page_chrome.dart';
+import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/core/router/widgets/app_side_bar/app_side_bar.dart';
 import 'package:noema/core/router/widgets/navigation_item/navigation_item.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
-import 'package:noema/teste_page.dart';
 
 List<String> buildCumulativePaths(BuildContext context) {
   final segments = GoRouterState.of(context).uri.pathSegments;
 
-  final cumulative = <String>[];
+  final cumulative = <String>['/'];
   var current = '';
 
   for (final segment in segments) {
@@ -24,6 +21,54 @@ List<String> buildCumulativePaths(BuildContext context) {
   }
 
   return cumulative;
+}
+
+String breadcrumbLabel(String path) {
+  if (path == '/') return 'Início';
+
+  final segments = Uri.parse(path).pathSegments;
+  final segment = segments.last;
+
+  switch (segment) {
+    case 'notes':
+      return 'Notas';
+    case 'config':
+      return 'Configuração';
+    case 'test':
+      return 'Teste';
+    case 'graphs':
+      return 'Grafos';
+    case 'flashcards':
+      return 'Flashcards';
+    case 'exercises':
+      return 'Exercícios';
+    case 'open-ended':
+      return 'Questão aberta';
+    case 'multiple-choice':
+      return 'Múltipla escolha';
+    case 'create':
+      return 'Criar questão';
+    case 'edit':
+      return 'Editar questão';
+    case 'answer':
+      return 'Responder questão';
+    case 'view':
+      return 'Visualizar questão';
+    default:
+      if (segments.length >= 2 && segments[segments.length - 2] == 'graphs') {
+        return 'Grafo';
+      }
+      if (segments.length >= 2 &&
+          segments[segments.length - 2] == 'exercises') {
+        return 'Nó';
+      }
+      if (segments.length >= 2 &&
+          (segments[segments.length - 2] == 'open-ended' ||
+              segments[segments.length - 2] == 'multiple-choice')) {
+        return 'Questão';
+      }
+      return Uri.decodeComponent(segment);
+  }
 }
 
 enum DisplaySize { mobile, tablet, desktop }
@@ -39,7 +84,6 @@ class AppShell extends ConsumerWidget {
   });
 
   static DisplaySize spacingFor(double width) {
-    return DisplaySize.desktop; //TODO temp, tirar dps
     if (width >= 900) return DisplaySize.desktop;
     if (width >= 600) return DisplaySize.tablet;
 
@@ -48,87 +92,112 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chrome = chromeForPath(currentPath, context, ref);
+    final chrome = chromeForPath(currentPath);
     final user = ref.watch(userProvider);
 
     final width = MediaQuery.sizeOf(context).width;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(displayWidthProvider.notifier).update(width);
-    });
+    final displaySize = spacingFor(width);
 
-    final displayWidth = ref.watch(displayWidthProvider);
-
-    final matchList = GoRouter.of(context).routerDelegate.currentConfiguration;
     final paths = buildCumulativePaths(context);
-
-    final List<Widget> navItens = [];
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Text(chrome.title),
-            SizedBox(width: 25),
-            for (final path in paths) ...[
-              GestureDetector(
-                onTap: () => context.go(path),
-                child: Text(
-                  path,
-                  style: BuildContextThemeExtension(context)
-                      .textTheme
-                      .labelLarge
-                      ?.copyWith(color: context.colorScheme.primary),
-                ), // pega o label correspondente
+            Flexible(
+              flex: 2,
+              child: Text(chrome.title, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var index = 0; index < paths.length; index++) ...[
+                      if (index > 0)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Icon(
+                            Icons.chevron_right,
+                            size: 18,
+                            color: context.colors.outline,
+                          ),
+                        ),
+                      Builder(
+                        builder: (context) {
+                          final path = paths[index];
+                          final isCurrent = index == paths.length - 1;
+                          final label = breadcrumbLabel(path);
+
+                          return Semantics(
+                            button: !isCurrent,
+                            label: isCurrent
+                                ? 'Localização atual: $label'
+                                : 'Navegar para $label',
+                            child: Tooltip(
+                              message: isCurrent
+                                  ? 'Localização atual'
+                                  : 'Navegar para $label',
+                              child: TextButton(
+                                onPressed: isCurrent
+                                    ? null
+                                    : () => context.go(path),
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 6,
+                                  ),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  label,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: BuildContextThemeExtension(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: isCurrent
+                                            ? context.colors.onSurface
+                                            : context.colors.primary,
+                                        fontWeight: isCurrent
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ],
-            Spacer(),
-            ...chrome.actions,
+            ),
           ],
         ),
+        actions: chrome.actions,
       ),
 
-      drawer: (spacingFor(displayWidth) == DisplaySize.mobile)
+      drawer: displaySize == DisplaySize.mobile
           ? _buildDrawer(context, chrome, navigationShell, user)
           : null,
 
-      body: (spacingFor(displayWidth) == DisplaySize.mobile)
+      bottomNavigationBar: displaySize == DisplaySize.mobile
+          ? _buildBottomNavigationBar(navigationShell)
+          : null,
+
+      body: displaySize == DisplaySize.mobile
           ? _buildBody(context, navigationShell)
           : Row(
               children: [
                 AppSideBar(
-                  navigationWidgets: [
-                    NavigationItem(
-                      index: 0,
-                      label: "Home",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.home_rounded),
-                    ),
-                    NavigationItem(
-                      index: 1,
-                      label: "notes",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.notes),
-                    ),
-                    NavigationItem(
-                      index: 2,
-                      label: "Config",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.settings_rounded),
-                    ),
-                    NavigationItem(
-                      index: 3,
-                      label: "Teste",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.smart_button),
-                    ),
-                    NavigationItem(
-                      index: 4,
-                      label: "Graph",
-                      navigationShell: navigationShell,
-                      icon: Icon(Icons.graphic_eq_rounded),
-                    ),
-                  ],
+                  navigationWidgets: _navigationItems(navigationShell),
                   pageWidgets: chrome.pageItens,
                   bottonWidgets: [
                     Icon(Icons.more_vert_rounded),
@@ -143,6 +212,67 @@ class AppShell extends ConsumerWidget {
             ),
     );
   }
+}
+
+List<Widget> _navigationItems(StatefulNavigationShell navigationShell) {
+  const items = [
+    (0, 'Início', Icons.home_rounded),
+    (1, 'Notas', Icons.notes_rounded),
+    (2, 'Configuração', Icons.settings_rounded),
+    (3, 'Teste', Icons.smart_button_rounded),
+    (4, 'Grafos', Icons.account_tree_rounded),
+    (5, 'Flashcards', Icons.style_rounded),
+  ];
+
+  return [
+    for (final item in items)
+      NavigationItem(
+        index: item.$1,
+        label: item.$2,
+        navigationShell: navigationShell,
+        icon: Icon(item.$3),
+      ),
+  ];
+}
+
+Widget _buildBottomNavigationBar(StatefulNavigationShell navigationShell) {
+  return NavigationBar(
+    selectedIndex: navigationShell.currentIndex,
+    onDestinationSelected: navigationShell.goBranch,
+    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+    destinations: const [
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home_rounded),
+        label: 'Início',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.notes_outlined),
+        selectedIcon: Icon(Icons.notes_rounded),
+        label: 'Notas',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings_rounded),
+        label: 'Configuração',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.smart_button_outlined),
+        selectedIcon: Icon(Icons.smart_button_rounded),
+        label: 'Teste',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.account_tree_outlined),
+        selectedIcon: Icon(Icons.account_tree_rounded),
+        label: 'Grafos',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.style_outlined),
+        selectedIcon: Icon(Icons.style_rounded),
+        label: 'Flashcards',
+      ),
+    ],
+  );
 }
 
 Widget _buildBody(
@@ -174,16 +304,36 @@ Widget _buildDrawer(
                         onTap: () {
                           navigationShell.goBranch(0);
                         },
-                        selected: (chrome.title == "Home"),
-                        title: const Text("Home"),
+                        selected: navigationShell.currentIndex == 0,
+                        title: const Text("Início"),
                       ),
 
                       ListTile(
                         onTap: () {
                           navigationShell.goBranch(1);
                         },
-                        selected: (chrome.title == "Notes"),
-                        title: const Text("Notes"),
+                        selected: navigationShell.currentIndex == 1,
+                        title: const Text("Notas"),
+                      ),
+                      ListTile(
+                        onTap: () => navigationShell.goBranch(2),
+                        selected: navigationShell.currentIndex == 2,
+                        title: const Text("Configuração"),
+                      ),
+                      ListTile(
+                        onTap: () => navigationShell.goBranch(3),
+                        selected: navigationShell.currentIndex == 3,
+                        title: const Text("Teste"),
+                      ),
+                      ListTile(
+                        onTap: () => navigationShell.goBranch(4),
+                        selected: navigationShell.currentIndex == 4,
+                        title: const Text("Grafos"),
+                      ),
+                      ListTile(
+                        onTap: () => navigationShell.goBranch(5),
+                        selected: navigationShell.currentIndex == 5,
+                        title: const Text("Flashcards"),
                       ),
                     ],
                   ),
@@ -204,7 +354,7 @@ Widget _buildDrawer(
                 GestureDetector(
                   onTap: () {
                     navigationShell.goBranch(2);
-                    context.go("/profile");
+                    context.go(RoutePaths.config);
                   },
                   child: const Icon(Icons.person),
                 ),

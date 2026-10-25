@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/presentation/color_theme_section.dart';
-import 'package:noema/feature/config/presentation/color_selector.dart';
 import 'package:noema/feature/config/presentation/profile_section.dart';
+import 'package:noema/feature/config/presentation/typography_theme_section.dart';
 import 'package:noema/feature/config/providers/section_navigator_provider.dart';
-import 'package:noema/feature/config/widgets/section.dart';
-import 'package:noema/shared/floating_card/floating_card.dart';
+import 'package:noema/shared/widgets/app_section.dart';
+import 'package:noema/shared/widgets/responsive_content.dart';
 
 class ConfigPage extends ConsumerStatefulWidget {
   const ConfigPage({super.key});
@@ -16,12 +16,10 @@ class ConfigPage extends ConsumerStatefulWidget {
   ConsumerState<ConfigPage> createState() => _ConfigPage();
 }
 
-class _ConfigPage extends ConsumerState<ConfigPage> {                                            
+class _ConfigPage extends ConsumerState<ConfigPage> {
   final keys = {
     for (final section in ConfigSections.values) section: GlobalKey(),
   };
-
-  Function(int) setColor = (color) {};
 
   void scrollTo(ConfigSections section) {
     final context = keys[section]?.currentContext;
@@ -35,9 +33,6 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
     }
   }
 
-  bool isOpended = false;
-  bool isEditingTheme = false;
-
   @override
   void initState() {
     super.initState();
@@ -50,54 +45,33 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Stack(
-        children: [
-          Column(
-            spacing: context.spacing.md,
-            children: [
-              Section(
-                section: ProfileSection(),
+      child: AppResponsiveContent(
+        maxWidth: 1200,
+        child: Column(
+          spacing: context.spacing.md,
+          children: [
+              AppSection(
+                title: "Perfil",
+                description: "Gerencie seus dados e preferências de conta.",
                 key: keys[ConfigSections.profile],
-                sectionTitle: "Profile",
+                child: ProfileSection(),
               ),
 
-              Section(
-                section: ColorThemeSection(),
+              AppSection(
+                title: "Tema de cores",
+                description:
+                    "Escolha uma paleta para personalizar o aplicativo.",
                 key: keys[ConfigSections.colorTheme],
-                sectionTitle: "Color Theme",
+                child: ColorThemeSection(),
               ),
-
-              
-            ],
-          ),
-          if (isOpended)
-            Align(
-              alignment: Alignment.center,
-              child: FloatingCard(
-                child: Column(
-                  children: [
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            isOpended = !isOpended;
-                          });
-                        },
-                        icon: Icon(Icons.close_rounded),
-                      ),
-                    ),
-                    Text(
-                      "Selecione a cor principal",
-                      style: context.textTheme.titleMedium,
-                    ),
-                    Divider(),
-                    ColorSelector(onSave: setColor,),
-                  ],
-                ),
+              AppSection(
+                title: "Tipografia",
+                description: "Defina fontes e escala para melhorar a leitura.",
+                key: keys[ConfigSections.typographyTheme],
+                child: const TypographyThemeSection(),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

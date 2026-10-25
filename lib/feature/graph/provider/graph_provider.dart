@@ -13,7 +13,10 @@ final knowledgeGraphsProvider = StreamProvider<List<KnowledgeGraphData>>((
 
   yield* (db.select(
     db.knowledgeGraph,
-  )..where((graph) => graph.userId.equals(user.id))).watch();
+  )
+        ..where((graph) => graph.userId.equals(user.id))
+        ..where((graph) => graph.softDeleted.equals(false)))
+      .watch();
 });
 
 final nodesProvider = StreamProvider.family<List<GraphNodeData>, String>((
@@ -24,7 +27,10 @@ final nodesProvider = StreamProvider.family<List<GraphNodeData>, String>((
 
   return (db.select(
     db.graphNode,
-  )..where((node) => node.graphId.equals(graphId))).watch();
+  )
+        ..where((node) => node.graphId.equals(graphId))
+        ..where((node) => node.softDeleted.equals(false)))
+      .watch();
 });
 
 final edgesProvider = StreamProvider.family<List<GraphEdgeData>, String>((

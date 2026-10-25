@@ -14,11 +14,11 @@ class CreateNode extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formNode = ref.watch(nodeFormProvider);
-    final formNodeNotifier = ref.watch(nodeFormProvider.notifier);
-    final db = ref.watch(appDatabaseProvider);
+    final formNodeNotifier = ref.read(nodeFormProvider.notifier);
+    final db = ref.read(appDatabaseProvider);
     final nodeDao = GraphNodeDao(db);
 
-    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
+    final graphStatesNotifier = ref.read(graphStatesProvider.notifier);
 
     return SingleChildScrollView(
       child: Column(
@@ -27,14 +27,18 @@ class CreateNode extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("Node id: ${formNode.isSkipped}"),
+          Text(
+            "Novo nó",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           DropdownMenu<String>(
+            expandedInsets: EdgeInsets.zero,
             onSelected: (value) {
               if (value != null) {
                 formNodeNotifier.typeChanged(value);
               }
             },
-            label: Text("Tipo"),
+            label: const Text("Tipo do nó"),
             dropdownMenuEntries: [
               DropdownMenuEntry(value: 'AREA', label: 'AREA'),
               DropdownMenuEntry(value: 'TOPIC', label: 'TOPIC'),
@@ -43,6 +47,7 @@ class CreateNode extends ConsumerWidget {
             ],
           ),
           TextField(
+            autofocus: true,
             onChanged: formNodeNotifier.titleChanged,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
@@ -62,13 +67,42 @@ class CreateNode extends ConsumerWidget {
             children: [
               OutlinedButton(
                 onPressed: () async {
-                  await nodeDao.insertGraphNode(
-                    graphId: graphId,
-                    type: formNode.type,
-                    title: formNode.title,
-                    positionX: 10,
-                    positionY: 10,
-                  );
+                  if (formNode.type.isEmpty || formNode.title.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Informe o tipo e o título do nó."),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    await nodeDao.insertGraphNode(
+                      graphId: graphId,
+                      type: formNode.type,
+                      title: formNode.title.trim(),
+                      description: formNode.description.trim().isEmpty
+                          ? null
+                          : formNode.description.trim(),
+                      positionX: 10,
+                      positionY: 10,
+                    );
+                    formNodeNotifier.reset();
+                    if (context.mounted) {
+                      graphStatesNotifier.isCreatingNodeChanged(false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Nó adicionado.")),
+                      );
+                    }
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Não foi possível adicionar o nó."),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Text("Criar"),
               ),

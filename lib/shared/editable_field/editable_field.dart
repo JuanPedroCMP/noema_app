@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 
@@ -14,8 +16,8 @@ class EditableField extends StatefulWidget {
 
   final String inputLabel;
   final ValueChanged<String> onChanged;
-  final Function() onConfirm;
-  final Function() onCancel;
+  final FutureOr<void> Function() onConfirm;
+  final FutureOr<void> Function() onCancel;
   final Widget? displayLabel;
   final Widget display;
 
@@ -25,6 +27,19 @@ class EditableField extends StatefulWidget {
 
 class _EditableFieldState extends State<EditableField> {
   bool isEditing = false;
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +70,7 @@ class _EditableFieldState extends State<EditableField> {
               Expanded(
                 child: TextField(
                   onChanged: widget.onChanged,
+                  controller: _controller,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: widget.inputLabel,
@@ -62,8 +78,8 @@ class _EditableFieldState extends State<EditableField> {
                 ),
               ),
               OutlinedButton(
-                onPressed: () {
-                  widget.onConfirm();
+                onPressed: () async {
+                  await widget.onConfirm();
                   setState(() {
                     isEditing = false;
                   });
@@ -77,8 +93,8 @@ class _EditableFieldState extends State<EditableField> {
                 ),
               ),
               OutlinedButton(
-                onPressed: () {
-                  widget.onCancel();
+                onPressed: () async {
+                  await widget.onCancel();
                   setState(() {
                     isEditing = false;
                   });

@@ -1,4 +1,3 @@
-import 'package:built_value/json_object.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:openapi/openapi.dart';

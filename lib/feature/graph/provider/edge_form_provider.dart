@@ -26,6 +26,12 @@ class EdgeFormProvider extends Notifier<EdgeformState> {
   void weightChanged(double value) {
     state = state.copyWith(weight: value);
   }
+
+  void reset() {
+    state = const EdgeformState();
+  }
 }
 
-final edgeFormProvider = NotifierProvider<EdgeFormProvider, EdgeformState>(EdgeFormProvider.new);
+final edgeFormProvider = NotifierProvider<EdgeFormProvider, EdgeformState>(
+  EdgeFormProvider.new,
+);

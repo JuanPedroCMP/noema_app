@@ -1,16 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/database/database.dart';
-import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
-import 'package:noema/feature/config/providers/user_provider.dart';
-import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
 import 'package:noema/l10n/app_localizations.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:noema/shared/widgets/responsive_content.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,53 +11,49 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storage = ref.read(secureSorageProvider);
-    final db = ref.read(appDatabaseProvider);
-    final graph = KnowledgeGraphDao(db);
-    final userNotifier = ref.watch(userProvider.notifier);
-
-    return Center(
-      child: SizedBox(
-        width: 1000,
-        child: Column(
-          spacing: 15,
-          children: [
-            Row(
-              spacing: 15,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.helloWorld,
-                ), // Recurso de tradução... Aplicar no restante do app
-                OutlinedButton(
-                  onPressed: () async {
-                    await storage.delete(key: "access_token");
-                    ref.invalidate(authStateProvider);
-                  },
-                  child: Text("Sair"),
-                ),
-
-                OutlinedButton(
-                  onPressed: () async {
-                    await db.deleteDatabase();
-                  },
-                  child: Text("Apagar DB"),
-                ),
-                 OutlinedButton(
-                  onPressed: () async {
-                    var user = await userNotifier.getUser();
-                    var graphs = graph.getKnowledgeGraphsByUser(
-                      userId: user.id,
-                    );
-                    for (KnowledgeGraphData grph in await graphs) {
-                      print(grph);
-                      graph.deleteKnowledgeGraph(id: grph.id);
-                    }
-                  },
-                  child: Text("Limpar KGraphs"),
-                ),
-              ],
+    return AppResponsiveContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 24,
+        children: [
+          AppPageHeader(
+            title: AppLocalizations.of(context)!.helloWorld,
+            subtitle: "Organize seus estudos e continue de onde parou.",
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 420;
+                  final message = const Text(
+                    "Sua área de estudos está pronta para você.",
+                  );
+                  final logout = OutlinedButton.icon(
+                    onPressed: () async {
+                      await storage.delete(key: "access_token");
+                      ref.invalidate(authStateProvider);
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text("Sair"),
+                  );
+                  return compact
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 16,
+                          children: [message, logout],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(child: message),
+                            logout,
+                          ],
+                        );
+                },
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/teste_page.dart';
 
-class FloatingCard extends ConsumerWidget {
-  const FloatingCard({super.key, this.width, this.height, this.padding, required this.child,});
+class FloatingCard extends StatelessWidget {
+  const FloatingCard({
+    super.key,
+    this.width,
+    this.height,
+    this.padding,
+    required this.child,
+  });
 
   final double? width;
   final double? height;
@@ -11,7 +15,7 @@ class FloatingCard extends ConsumerWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SizedBox(
       width: width,
       height: height,
@@ -19,10 +23,7 @@ class FloatingCard extends ConsumerWidget {
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(padding ?? 16),
-          child:  Align(
-                alignment: Alignment.center,
-                child: child,
-          ),
+          child: Align(alignment: Alignment.center, child: child),
         ),
       ),
     );

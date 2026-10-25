@@ -5,10 +5,11 @@ import 'package:uuid/uuid.dart';
 part 'typography_theme_dao.g.dart';
 
 @DriftAccessor(tables: [TypographyTheme])
-class TypographyThemeDao extends DatabaseAccessor<AppDatabase> with _$TypographyThemeDaoMixin {
+class TypographyThemeDao extends DatabaseAccessor<AppDatabase>
+    with _$TypographyThemeDaoMixin {
   TypographyThemeDao(super.db);
 
-  Future<int> insertTypographyTheme({
+  Future<String> insertTypographyTheme({
     required String userId,
     required String name,
     String? displayFont,
@@ -17,10 +18,11 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase> with _$Typography
     required int fontScale,
     String? overridesJson,
     bool? systemDefault,
-  }) {
-    return into(attachedDatabase.typographyTheme).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.typographyTheme).insert(
       TypographyThemeCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         userId: userId,
         name: name,
         displayFont: Value(displayFont),
@@ -28,9 +30,12 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase> with _$Typography
         monoFont: Value(monoFont),
         fontScale: fontScale,
         overridesJson: Value(overridesJson),
-        systemDefault: systemDefault == null ? const Value.absent() : Value(systemDefault),
+        systemDefault: systemDefault == null
+            ? const Value.absent()
+            : Value(systemDefault),
       ),
     );
+    return id;
   }
 
   Future<int> updateTypographyTheme({
@@ -50,36 +55,47 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase> with _$Typography
       TypographyThemeCompanion(
         userId: userId == null ? const Value.absent() : Value(userId),
         name: name == null ? const Value.absent() : Value(name),
-        displayFont: displayFont == null ? const Value.absent() : Value(displayFont),
+        displayFont: displayFont == null
+            ? const Value.absent()
+            : Value(displayFont),
         bodyFont: bodyFont == null ? const Value.absent() : Value(bodyFont),
         monoFont: monoFont == null ? const Value.absent() : Value(monoFont),
         fontScale: fontScale == null ? const Value.absent() : Value(fontScale),
-        overridesJson: overridesJson == null ? const Value.absent() : Value(overridesJson),
-        systemDefault: systemDefault == null ? const Value.absent() : Value(systemDefault),
+        overridesJson: overridesJson == null
+            ? const Value.absent()
+            : Value(overridesJson),
+        systemDefault: systemDefault == null
+            ? const Value.absent()
+            : Value(systemDefault),
       ),
     );
   }
 
   Future<TypographyThemeData?> getTypographyTheme({required String id}) {
-    return (select(attachedDatabase.typographyTheme)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.typographyTheme,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-  Future<TypographyThemeData?> getTypographyThemeByName({required String name}) {
-    return (select(attachedDatabase.typographyTheme)..where((tbl) => tbl.name.equals(name)))
-        .getSingleOrNull();
+  Future<TypographyThemeData?> getTypographyThemeByName({
+    required String name,
+  }) {
+    return (select(
+      attachedDatabase.typographyTheme,
+    )..where((tbl) => tbl.name.equals(name))).getSingleOrNull();
   }
 
-
-  Future<List<TypographyThemeData>> getTypographyThemesByUser({required String userId}) {
-    return (select(attachedDatabase.typographyTheme)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .get();
+  Future<List<TypographyThemeData>> getTypographyThemesByUser({
+    required String userId,
+  }) {
+    return (select(
+      attachedDatabase.typographyTheme,
+    )..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
   Future<int> deleteTypographyTheme({required String id}) {
-    return (delete(attachedDatabase.typographyTheme)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (delete(
+      attachedDatabase.typographyTheme,
+    )..where((tbl) => tbl.id.equals(id))).go();
   }
 }

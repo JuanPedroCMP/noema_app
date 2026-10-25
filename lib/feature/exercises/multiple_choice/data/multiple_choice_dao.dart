@@ -8,21 +8,23 @@ part 'multiple_choice_dao.g.dart';
 class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleChoiceDaoMixin {
   MultipleChoiceDao(super.db);
 
-  Future<int> insertMultipleChoice({
+  Future<String> insertMultipleChoice({
     required String nodeId,
     required String title,
     required String statement,
     bool? isAiGenerated,
-  }) {
-    return into(attachedDatabase.multipleChoice).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.multipleChoice).insert(
       MultipleChoiceCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         nodeId: nodeId,
         title: title,
         statement: statement,
         isAiGenerated: Value(isAiGenerated ?? false),
       ),
     );
+    return id;
   }
 
   Future<int> updateMultipleChoice({

@@ -19,7 +19,7 @@ class ManipulateChoise extends ConsumerStatefulWidget {
   final String? choiseId;
   final String multipleChoiceId;
 
-  final Function onSave;
+  final VoidCallback onSave;
 
   @override
   ConsumerState<ManipulateChoise> createState() => _Choise();
@@ -31,6 +31,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
   String? explanation = "";
   int? weight = 0;
   bool? aiGenerated = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -41,24 +42,17 @@ class _Choise extends ConsumerState<ManipulateChoise> {
     });
   }
 
-  void loadData() async {
-    if (widget.choiseId == null) {
+  Future<void> loadData() async {
+    final choiseId = widget.choiseId;
+    if (choiseId == null || choiseId.isEmpty) {
       return;
     }
 
-    if (widget.choiseId!.isEmpty) {
-      return;
-    }
-
-    if (widget.choiseId == "") {
-      return;
-    }
-
-    final db = ref.watch(appDatabaseProvider);
+    final db = ref.read(appDatabaseProvider);
 
     final choiseDao = ChoiceDao(db);
 
-    final data = await choiseDao.getChoice(id: widget.choiseId!);
+    final data = await choiseDao.getChoice(id: choiseId);
 
     if (!mounted) return;
 
@@ -70,21 +64,11 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       explanation = data.explanation;
       weight = data.weight;
       aiGenerated = data.isAiGenerated;
-
-      widget.onChanged(
-        ChoiceData(
-          id: data.id,
-          multipleChoiceId: data.multipleChoiceId,
-          isCorrect: data.isCorrect,
-          statement: data.statement,
-          explanation: data.explanation,
-          weight: data.weight,
-          isAiGenerated: data.isAiGenerated,
-          updatedAt: data.updatedAt,
-          createdAt: data.createdAt,
-        ),
-      );
     });
+    widget.onChanged(data);
+    statementController.text = statement;
+    explanationController.text = explanation ?? '';
+    weightController.text = weight?.toString() ?? '';
   }
 
   void sChanged(String value) {
@@ -101,60 +85,80 @@ class _Choise extends ConsumerState<ManipulateChoise> {
 
   void wChanged(String value) {
     setState(() {
-      weight = int.parse(value);
+      weight = int.tryParse(value);
     });
   }
 
-  void save() async {
-    bool newQuestion = false;
-
-    if (widget.choiseId == null) {
-      newQuestion = true;
-    }
-
-    if (widget.choiseId!.isEmpty) {
-      newQuestion = true;
-    }
-
-    if (widget.choiseId == "") {
-      newQuestion = true;
-    }
-
-    final db = ref.watch(appDatabaseProvider);
-
-    final choiseDao = ChoiceDao(db);
-
-    if (newQuestion) {
-      choiseDao.insertChoice(
-        multipleChoiceId: widget.multipleChoiceId,
-        isCorrect: isCorrect,
-        statement: statement,
-        explanation: explanation,
-        weight: weight,
+  Future<void> save() async {
+    if (statement.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Informe o texto da alternativa.")),
       );
-    } else {
-      choiseDao.updateChoice(
-        id: widget.choiseId!,
-        isCorrect: isCorrect,
-        statement: statement,
-        explanation: explanation,
-        weight: weight,
-      );
+      return;
     }
+    if (weight != null && weight! < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("O peso não pode ser negativo.")),
+      );
+      return;
+    }
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
 
-    widget.onSave();
+    try {
+      final newQuestion = widget.choiseId == null || widget.choiseId!.isEmpty;
+      final db = ref.read(appDatabaseProvider);
+      final choiseDao = ChoiceDao(db);
+
+      if (newQuestion) {
+        await choiseDao.insertChoice(
+          multipleChoiceId: widget.multipleChoiceId,
+          isCorrect: isCorrect,
+          statement: statement.trim(),
+          explanation: explanation?.trim().isEmpty == true
+              ? null
+              : explanation?.trim(),
+          weight: weight,
+        );
+      } else {
+        await choiseDao.updateChoice(
+          id: widget.choiseId!,
+          isCorrect: isCorrect,
+          statement: statement.trim(),
+          explanation: explanation?.trim().isEmpty == true
+              ? null
+              : explanation?.trim(),
+          weight: weight,
+        );
+      }
+      if (mounted) widget.onSave();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Não foi possível salvar a alternativa.")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
-  late TextEditingController statementController;
-  late TextEditingController explanationController;
-  late TextEditingController weightController;
+  late final TextEditingController statementController =
+      TextEditingController();
+  late final TextEditingController explanationController =
+      TextEditingController();
+  late final TextEditingController weightController = TextEditingController();
+
+  @override
+  void dispose() {
+    statementController.dispose();
+    explanationController.dispose();
+    weightController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    statementController = TextEditingController(text: statement);
-    explanationController = TextEditingController(text: explanation);
-    weightController = TextEditingController(text: weight.toString());
-
     return Center(
       child: Column(
         spacing: context.spacing.md,
@@ -162,6 +166,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
           TextField(
             onChanged: sChanged,
             controller: statementController,
+            maxLines: 3,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
               labelText: "Enunciado",
@@ -187,20 +192,15 @@ class _Choise extends ConsumerState<ManipulateChoise> {
             "Peso define o quanto a nota vai ser alterada caso essa questão seja marcada como correta ou errada",
             style: context.textTheme.labelSmall,
           ),
-          Checkbox(
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text("Alternativa correta"),
             value: isCorrect,
-            onChanged: (bool? value) {
-              setState(() {
-                isCorrect = value!;
-              });
-            },
+            onChanged: (value) => setState(() => isCorrect = value ?? false),
           ),
-          OutlinedButton(
-            onPressed: () {
-              save();
-              widget.onSave();
-            },
-            child: Text("Salvar"),
+          FilledButton(
+            onPressed: _isSaving ? null : save,
+            child: Text(_isSaving ? "Salvando..." : "Salvar alternativa"),
           ),
         ],
       ),

@@ -34,21 +34,34 @@ class _GraphPage extends ConsumerState<GraphPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // These providers are shared with the graph toolbar. Updating them
+      // during initState can coincide with the first provider build and
+      // trigger Riverpod's "modify a provider while the widget tree was
+      // building" assertion.
+      ref.read(selectedProvider.notifier).clear();
+      ref.read(graphStatesProvider.notifier).closeDialogs();
+
       final size = MediaQuery.sizeOf(context);
 
       final controllerNotifier = ref.read(
         transformationControllerProvider.notifier,
       );
 
-      
       final seed = await loadGraph();
 
-      controllerNotifier.goToPoint(seed.bounds!.center, 0.8, size);
+      final bounds = seed.bounds;
+      if (bounds != null && bounds.isFinite) {
+        controllerNotifier.goToPoint(bounds.center, 0.8, size);
+      }
     });
   }
 
   Future<SugiyamaRunResult> loadGraph() async {
-    return await sugiyama(widget.graphId, ref, config: const SugiyamaConfig(mode: SugiyamaLayoutMode.centered));
+    return sugiyama(
+      widget.graphId,
+      ref,
+      config: const SugiyamaConfig(mode: SugiyamaLayoutMode.centered),
+    );
   }
 
   @override
@@ -58,8 +71,6 @@ class _GraphPage extends ConsumerState<GraphPage> {
     final selected = ref.watch(selectedProvider);
     final selectedNotifier = ref.watch(selectedProvider.notifier);
     final edgeType = ref.watch(edgeTypeProvider);
-    final edgeTypeNotifier = ref.watch(edgeTypeProvider.notifier);
-    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
     final graphStates = ref.watch(graphStatesProvider);
     final controller = ref.watch(transformationControllerProvider);
     final controllerNotifier = ref.watch(
@@ -75,10 +86,6 @@ class _GraphPage extends ConsumerState<GraphPage> {
           error: (error, stack) => Text('Erro: $error'),
           data: (edges) {
             final paths = calculatePaths(nodes, edges, edgeType);
-
-            if (nodes.isEmpty) {
-              return const SizedBox.expand();
-            }
 
             final nodesById = {for (final node in nodes) node.id: node};
 
@@ -99,16 +106,29 @@ class _GraphPage extends ConsumerState<GraphPage> {
               maxY = max(maxY, node.positionY);
             }
 
-            if (!minX.isFinite ||
-                !maxX.isFinite ||
-                !minY.isFinite ||
-                !maxY.isFinite) {
-              return const SizedBox.expand();
-            }
-
-            final graphWidth = max(1.0, maxX * 2);
-
-            final graphHeight = max(1.0, maxY * 2);
+            const nodeWidth = 200.0;
+            const nodeHeight = 80.0;
+            const canvasPadding = 120.0;
+            final hasFiniteBounds =
+                minX.isFinite &&
+                maxX.isFinite &&
+                minY.isFinite &&
+                maxY.isFinite;
+            final origin = hasFiniteBounds
+                ? Offset(canvasPadding - minX, canvasPadding - minY)
+                : const Offset(canvasPadding, canvasPadding);
+            final graphWidth = max(
+              600.0,
+              hasFiniteBounds
+                  ? maxX - minX + nodeWidth + canvasPadding * 2
+                  : canvasPadding * 2 + nodeWidth,
+            );
+            final graphHeight = max(
+              400.0,
+              hasFiniteBounds
+                  ? maxY - minY + nodeHeight + canvasPadding * 2
+                  : canvasPadding * 2 + nodeHeight,
+            );
 
             return Stack(
               fit: StackFit.loose,
@@ -125,11 +145,9 @@ class _GraphPage extends ConsumerState<GraphPage> {
                     child: GestureDetector(
                       onTapDown: (details) {
                         final result = getTapTarget(
-                          details.localPosition,
+                          details.localPosition - origin,
                           nodes,
-                          edges,
                           paths,
-                          selectedNotifier,
                           context,
                         );
 
@@ -141,25 +159,23 @@ class _GraphPage extends ConsumerState<GraphPage> {
                               return;
                             }
                             controllerNotifier.goToPoint(
-                              Offset(node.positionX, node.positionY),
+                              Offset(
+                                node.positionX + origin.dx,
+                                node.positionY + origin.dy,
+                              ),
                               1.0,
                               size,
                             );
-                            print('Node id ${result.$1}');
+                            debugPrint('Node id ${result.$1}');
                             selectedNotifier.selectedChanged(result.$1);
 
                             // controller.toScene(
                             //   Offset(node.positionX, node.positionY),
                             // );
                           } else {
-                            print('Edge id ${result.$1}');
+                            debugPrint('Edge id ${result.$1}');
+                            selectedNotifier.selectedChanged(result.$1);
                           }
-                        }
-
-                        if (edgeType >= 3) {
-                          edgeTypeNotifier.edgeTypeChanged(0);
-                        } else {
-                          edgeTypeNotifier.edgeTypeChanged(edgeType + 1);
                         }
                       },
                       child: CustomPaint(
@@ -169,41 +185,43 @@ class _GraphPage extends ConsumerState<GraphPage> {
                           edges: edges,
                           selected: selected,
                           option: edgeType,
+                          origin: origin,
                         ),
                       ),
                     ),
                   ),
                 ),
-                Positioned(top: 10, left: 10, child: GraphUtilsLayer(graphId: widget.graphId,)),
+                if (nodes.isEmpty)
+                  const Center(
+                    child: Text(
+                      'Este grafo está vazio.\nEntre no modo de edição para adicionar um nó.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  right: 10,
+                  child: GraphUtilsLayer(graphId: widget.graphId),
+                ),
                 nodesById[selected] == null
-                    ? SizedBox()
+                    ? const SizedBox.shrink()
                     : SizedBox(
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: NodeDetails(node: nodesById[selected]!),
                         ),
                       ),
-                !graphStates
-                        .isCreatingNode // Concertar os erros cabulosos causador pelos dois widgets a
-                    ? SizedBox()
-                    : SizedBox(
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: FloatingCard(
-                            width: 800,
-                            child: CreateNode(graphId: widget.graphId),
-                          ),
-                        ),
-                      ),
-                !graphStates.isCreatingEdge
-                    ? SizedBox()
-                    : Align(
-                        alignment: Alignment.center,
-                        child: FloatingCard(
-                          width: 800,
-                          child: CreateEdge(graphId: widget.graphId),
-                        ),
-                      ),
+                if (graphStates.isCreatingNode)
+                  _buildEditorPanel(
+                    context,
+                    CreateNode(graphId: widget.graphId),
+                  ),
+                if (graphStates.isCreatingEdge)
+                  _buildEditorPanel(
+                    context,
+                    CreateEdge(graphId: widget.graphId),
+                  ),
               ],
             );
           },
@@ -211,4 +229,26 @@ class _GraphPage extends ConsumerState<GraphPage> {
       },
     );
   }
+}
+
+Widget _buildEditorPanel(BuildContext context, Widget child) {
+  final viewport = MediaQuery.sizeOf(context);
+  final width = min(800.0, max(280.0, viewport.width - 32));
+  final height = min(620.0, max(260.0, viewport.height - 120));
+
+  return Positioned.fill(
+    child: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: FloatingCard(
+            width: width,
+            height: height,
+            padding: 20,
+            child: child,
+          ),
+        ),
+      ),
+    ),
+  );
 }

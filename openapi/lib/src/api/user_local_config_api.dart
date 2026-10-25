@@ -4,13 +4,11 @@
 
 import 'dart:async';
 
-import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/api_util.dart';
-import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_local_config_create.dart';
 import 'package:openapi/src/model/user_local_config_out.dart';
 import 'package:openapi/src/model/user_local_config_update.dart';

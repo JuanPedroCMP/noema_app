@@ -27,7 +27,7 @@ class UserFormNotifier extends Notifier<UserFormState> {
   }
 
   void isEditingChanged(bool value) {
-    state = state.copyWith(isEditing: !value);
+    state = state.copyWith(isEditing: value);
   }
 
   void reset() {

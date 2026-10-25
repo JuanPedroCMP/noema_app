@@ -29,13 +29,18 @@ class TransformationControllerNotifier
   }) {
     _ticker?.dispose();
 
+    if (duration <= Duration.zero) {
+      state.value = destination;
+      return;
+    }
+
     final Matrix4 begin = state.value.clone();
     final CurveTween curveTween = CurveTween(curve: curve);
 
     _ticker = Ticker((elapsed) {
       final double t = (elapsed.inMilliseconds / duration.inMilliseconds).clamp(
         0.0,
-        1.1,
+        1.0,
       );
       final double curvedT = curveTween.transform(t);
 

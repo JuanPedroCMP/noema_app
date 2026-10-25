@@ -8,17 +8,18 @@ part 'choice_dao.g.dart';
 class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
   ChoiceDao(super.db);
 
-  Future<int> insertChoice({
+  Future<String> insertChoice({
     required String multipleChoiceId,
     required bool isCorrect,
     required String statement,
     String? explanation,
     int? weight,
     bool? isAiGenerated,
-  }) {
-    return into(attachedDatabase.choice).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.choice).insert(
       ChoiceCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         multipleChoiceId: multipleChoiceId,
         isCorrect: isCorrect,
         statement: statement,
@@ -27,6 +28,7 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
         isAiGenerated: Value(isAiGenerated ?? false),
       ),
     );
+    return id;
   }
 
   Future<int> updateChoice({
@@ -61,6 +63,12 @@ class ChoiceDao extends DatabaseAccessor<AppDatabase> with _$ChoiceDaoMixin {
     return (select(attachedDatabase.choice)
           ..where((tbl) => tbl.multipleChoiceId.equals(multipleChoiceId)))
         .get();
+  }
+
+  Future<void> deleteChoicesByQuestion({required String multipleChoiceId}) async {
+    await (delete(attachedDatabase.choice)
+          ..where((tbl) => tbl.multipleChoiceId.equals(multipleChoiceId)))
+        .go();
   }
 
   Future<int> deleteChoice({required String id}) {

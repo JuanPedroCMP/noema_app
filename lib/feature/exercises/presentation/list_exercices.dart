@@ -5,12 +5,7 @@ import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
-import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
-import 'package:noema/feature/exercises/multiple_choice/provider/open_ended_mode_provider.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
-import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
-import 'package:noema/feature/exercises/open_ended/provider/open_ended_mode_provider.dart';
-import 'package:noema/feature/graph/pages/create_graph_with_ai.dart';
 import 'package:noema/shared/floating_card/floating_card.dart';
 
 class ExercicesList extends ConsumerStatefulWidget {
@@ -25,9 +20,8 @@ class ExercicesList extends ConsumerStatefulWidget {
 class _ExercicesList extends ConsumerState<ExercicesList> {
   List<OpenEndedData> _openEndeds = [];
   List<MultipleChoiceData> _multipleChoices = [];
-
-  int opc = 0;
-  String questionId = "";
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -36,40 +30,53 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   }
 
   Future<void> carregar() async {
+    if (mounted) setState(() => _isLoading = true);
     final db = ref.read(appDatabaseProvider);
 
     final openEndedDao = OpenEndedDao(db);
     final multipleChoiceDao = MultipleChoiceDao(db);
 
-    final openEndeds = await openEndedDao.getOpenEndedsByNode(
-      nodeId: widget.nodeId,
-    );
-    final multipleChoices = await multipleChoiceDao.getMultipleChoicesByNode(
-      nodeId: widget.nodeId,
-    );
+    try {
+      final results = await Future.wait([
+        openEndedDao.getOpenEndedsByNode(nodeId: widget.nodeId),
+        multipleChoiceDao.getMultipleChoicesByNode(nodeId: widget.nodeId),
+      ]);
 
-    if (!mounted) return;
+      final openEndeds = results[0] as List<OpenEndedData>;
+      final multipleChoices = results[1] as List<MultipleChoiceData>;
 
-    setState(() {
-      _openEndeds = openEndeds;
-      _multipleChoices = multipleChoices;
-    });
-  }
+      if (!mounted) return;
 
-  void changeOpc(int value) {
-    setState(() {
-      opc = value;
-    });
-  }
-
-  void changeQuestionId(String value) {
-    setState(() {
-      questionId = value;
-    });
+      setState(() {
+        _openEndeds = openEndeds;
+        _multipleChoices = multipleChoices;
+        _isLoading = false;
+        _error = null;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = "Não foi possível carregar as questões.";
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: FilledButton.icon(
+          onPressed: carregar,
+          icon: const Icon(Icons.refresh),
+          label: Text(_error!),
+        ),
+      );
+    }
     final String currentUri = GoRouterState.of(context).uri.toString();
 
     final openEndedMap = _openEndeds.map((openEnded) {
@@ -88,14 +95,13 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               Text("Título: ${openEnded.title}"),
               const SizedBox(height: 8),
               Text("Descrição: ${openEnded.statement}"),
-              Row(
+              Wrap(
                 spacing: context.spacing.md,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_open_ended/${widget.nodeId}/${openEnded.id}",
+                        "$currentUri/open-ended/${openEnded.id}/view",
                       );
                     },
                     child: Text("Visualizar"),
@@ -103,7 +109,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/updade_open_ended/${widget.nodeId}/${openEnded.id}",
+                        "$currentUri/open-ended/${openEnded.id}/edit",
                       );
                     },
                     child: Text("Editar"),
@@ -111,7 +117,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/do_open_ended/${widget.nodeId}/${openEnded.id}",
+                        "$currentUri/open-ended/${openEnded.id}/answer",
                       );
                     },
                     child: Text("Realizar"),
@@ -140,14 +146,13 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               Text("Título: ${multipleChoise.title}"),
               const SizedBox(height: 8),
               Text("Descrição: ${multipleChoise.statement}"),
-              Row(
+              Wrap(
                 spacing: context.spacing.md,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/get_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/multiple-choice/${multipleChoise.id}/view",
                       );
                     },
                     child: Text("Visualizar"),
@@ -155,7 +160,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/updade_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/multiple-choice/${multipleChoise.id}/edit",
                       );
                     },
                     child: Text("Editar"),
@@ -163,7 +168,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   OutlinedButton(
                     onPressed: () {
                       context.push(
-                        "$currentUri/do_multiple_choise/${widget.nodeId}/${multipleChoise.id}",
+                        "$currentUri/multiple-choice/${multipleChoise.id}/answer",
                       );
                     },
                     child: Text("Realizar"),
@@ -176,7 +181,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
       );
     }).toList();
 
-    if (_openEndeds.isEmpty) {
+    if (_openEndeds.isEmpty && _multipleChoices.isEmpty) {
       return Center(
         child: Column(
           children: [
@@ -193,18 +198,17 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
+                      Wrap(
                         spacing: context.spacing.md,
                         children: [
                           OutlinedButton(
                             onPressed: () {
                               context.push(
-                                "$currentUri/create_open_ended/${widget.nodeId}",
+                                "$currentUri/open-ended/create",
                               );
                             },
                             child: Row(children: [Text("Criar questão Vazia")]),
                           ),
-                          VerticalDivider(),
                           OutlinedButton(
                             onPressed: () {},
                             child: Row(
@@ -228,14 +232,13 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
+          Wrap(
             spacing: context.spacing.md,
-            mainAxisSize: MainAxisSize.min,
             children: [
               OutlinedButton(
                 onPressed: () {
                   context.push(
-                    "$currentUri/create_open_ended/${widget.nodeId}",
+                    "$currentUri/open-ended/create",
                   );
                 },
                 child: Row(
@@ -249,7 +252,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               OutlinedButton(
                 onPressed: () {
                   context.push(
-                    "$currentUri/create_multiple_choise/${widget.nodeId}",
+                    "$currentUri/multiple-choice/create",
                   );
                 },
                 child: Row(
@@ -269,16 +272,14 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
             ],
           ),
           SizedBox(height: context.spacing.sm),
-          Stack(
-            children: [
-              SingleChildScrollView(
-                child: Wrap(
-                  spacing: context.spacing.sm,
-                  runSpacing: context.spacing.sm,
-                  children: [...openEndedMap, ...multipleChoiseMap],
-                ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: context.spacing.sm,
+                runSpacing: context.spacing.sm,
+                children: [...openEndedMap, ...multipleChoiseMap],
               ),
-            ],
+            ),
           ),
         ],
       ),

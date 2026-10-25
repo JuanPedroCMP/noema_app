@@ -8,17 +8,18 @@ part 'open_ended_dao.g.dart';
 class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixin {
   OpenEndedDao(super.db);
 
-  Future<int> insertOpenEnded({
+  Future<String> insertOpenEnded({
     required String nodeId,
     required String title,
     required String statement,
     required String type,
     String? referenceCorrectAnswer,
     bool? isAiGenerated,
-  }) {
-    return into(attachedDatabase.openEnded).insert(
+  }) async {
+    final id = Uuid().v4();
+    await into(attachedDatabase.openEnded).insert(
       OpenEndedCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         nodeId: nodeId,
         title: title,
         statement: statement,
@@ -28,6 +29,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
         createdAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+    return id;
   }
 
   Future<int> updateOpenEnded({

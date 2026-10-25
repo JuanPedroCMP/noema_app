@@ -34,12 +34,12 @@ class ProfileSection extends ConsumerWidget {
               inputLabel: "User Name:",
               onCancel: () {},
               onChanged: (value) {
-                formNotifier.displayNameChanged(value);
+                formNotifier.userNameChanged(value);
               },
-              onConfirm: () {
-                userNotifier.updateUser(displayName: form.displayName);
+              onConfirm: () async {
+                await userNotifier.updateUser(userName: form.userName);
               },
-              displayLabel: Text("Nome de Display:"),
+              displayLabel: const Text("Nome de usuário:"),
             ),
             EditableField(
               display: user.when(
@@ -52,8 +52,8 @@ class ProfileSection extends ConsumerWidget {
               onChanged: (value) {
                 formNotifier.displayNameChanged(value);
               },
-              onConfirm: () {
-                userNotifier.updateUser(displayName: form.displayName);
+              onConfirm: () async {
+                await userNotifier.updateUser(displayName: form.displayName);
               },
               displayLabel: Text("Nome de Display: "),
             ),
@@ -68,8 +68,8 @@ class ProfileSection extends ConsumerWidget {
               onChanged: (value) {
                 formNotifier.emailChanged(value);
               },
-              onConfirm: () {
-                userNotifier.updateUser(primaryEmail: form.email);
+              onConfirm: () async {
+                await userNotifier.updateUser(primaryEmail: form.email);
               },
               displayLabel: Text("Email: "),
             ),
@@ -91,15 +91,13 @@ class ProfileSection extends ConsumerWidget {
               },
               duration: durations.fast,
               child: !form.isEditing
-                  ? Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          formNotifier.isEditingChanged(form.isEditing);
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [Icon(Icons.edit), Text("Mudar senha")],
-                        ),
+                  ? OutlinedButton(
+                      onPressed: () {
+                        formNotifier.isEditingChanged(true);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [Icon(Icons.edit), Text("Mudar senha")],
                       ),
                     )
                   : Column(
@@ -126,15 +124,28 @@ class ProfileSection extends ConsumerWidget {
                           ),
                         ),
                         OutlinedButton(
-                          onPressed: () {
-                            userNotifier.updateUser(password: form.password);
-                            formNotifier.isEditingChanged(form.isEditing);
+                          onPressed: () async {
+                            if (form.password.isEmpty ||
+                                form.password != form.passwordVerify) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("As senhas não coincidem."),
+                                ),
+                              );
+                              return;
+                            }
+                            await userNotifier.updateUser(
+                              password: form.password,
+                            );
+                            if (context.mounted) {
+                              formNotifier.reset();
+                            }
                           },
                           child: Text("Alterar"),
                         ),
                         OutlinedButton(
                           onPressed: () {
-                            formNotifier.isEditingChanged(form.isEditing);
+                            formNotifier.reset();
                           },
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

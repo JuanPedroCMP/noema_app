@@ -15,11 +15,11 @@ class CreateEdge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formEdge = ref.watch(edgeFormProvider);
-    final formEdgeNotifier = ref.watch(edgeFormProvider.notifier);
-    final db = ref.watch(appDatabaseProvider);
+    final formEdgeNotifier = ref.read(edgeFormProvider.notifier);
+    final db = ref.read(appDatabaseProvider);
     final edgeDao = GraphEdgeDao(db);
     final nodesList = ref.watch(nodesProvider(graphId));
-    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
+    final graphStatesNotifier = ref.read(graphStatesProvider.notifier);
 
     return SingleChildScrollView(
       child: Column(
@@ -28,15 +28,19 @@ class CreateEdge extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("Edges"),
+          Text(
+            "Nova aresta",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           nodesList.when(
             data: (data) => DropdownMenu<String>(
+              expandedInsets: EdgeInsets.zero,
               onSelected: (value) {
                 if (value != null) {
                   formEdgeNotifier.sourceNodeIdChanged(value);
                 }
               },
-              label: Text("Source"),
+              label: const Text("Nó de origem"),
               dropdownMenuEntries: data
                   .map(
                     (node) => DropdownMenuEntry<String>(
@@ -57,12 +61,13 @@ class CreateEdge extends ConsumerWidget {
           ),
           nodesList.when(
             data: (data) => DropdownMenu<String>(
+              expandedInsets: EdgeInsets.zero,
               onSelected: (value) {
                 if (value != null) {
                   formEdgeNotifier.targetNodeIdChanged(value);
                 }
               },
-              label: Text("Target"),
+              label: const Text("Nó de destino"),
               dropdownMenuEntries: data
                   .map(
                     (node) => DropdownMenuEntry<String>(
@@ -82,7 +87,8 @@ class CreateEdge extends ConsumerWidget {
                 formEdgeNotifier.typeChanged(value);
               }
             },
-            label: Text("Type"),
+            expandedInsets: EdgeInsets.zero,
+            label: const Text("Tipo de relação"),
             dropdownMenuEntries: [
               DropdownMenuEntry(value: 'PREREQUISITE', label: 'PREREQUISITE'),
               DropdownMenuEntry(value: 'SUBTOPIC', label: 'SUBTOPIC'),
@@ -91,11 +97,15 @@ class CreateEdge extends ConsumerWidget {
 
           TextField(
             keyboardType: TextInputType.number,
-            onChanged: (value) =>
-                formEdgeNotifier.weightChanged(double.parse(value)),
+            onChanged: (value) {
+              final weight = double.tryParse(value);
+              if (weight != null && weight.isFinite) {
+                formEdgeNotifier.weightChanged(weight);
+              }
+            },
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: "weightChanged",
+              labelText: "Peso",
             ),
           ),
           Row(
@@ -103,12 +113,52 @@ class CreateEdge extends ConsumerWidget {
             children: [
               OutlinedButton(
                 onPressed: () async {
-                  await edgeDao.insertGraphEdge(
-                    graphId: graphId,
-                    type: formEdge.type,
-                    sourceNodeId: formEdge.sourceNodeId,
-                    targetNodeId: formEdge.targetNodeId,
-                  );
+                  if (formEdge.sourceNodeId.isEmpty ||
+                      formEdge.targetNodeId.isEmpty ||
+                      formEdge.type.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Selecione origem, destino e tipo da aresta.",
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (formEdge.sourceNodeId == formEdge.targetNodeId) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("A origem e o destino devem ser diferentes."),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    await edgeDao.insertGraphEdge(
+                      graphId: graphId,
+                      type: formEdge.type,
+                      sourceNodeId: formEdge.sourceNodeId,
+                      targetNodeId: formEdge.targetNodeId,
+                      weight: formEdge.weight,
+                    );
+                    formEdgeNotifier.reset();
+                    if (context.mounted) {
+                      graphStatesNotifier.isCreatingEdgeChanged(false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Aresta adicionada.")),
+                      );
+                    }
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Não foi possível adicionar a aresta."),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Text("Criar"),
               ),

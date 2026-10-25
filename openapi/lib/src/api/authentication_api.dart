@@ -8,12 +8,10 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
-import 'package:built_value/json_object.dart';
 import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/google_account_create.dart';
 import 'package:openapi/src/model/google_account_out.dart';
 import 'package:openapi/src/model/google_account_update.dart';
-import 'package:openapi/src/model/http_validation_error.dart';
 
 class AuthenticationApi {
 
