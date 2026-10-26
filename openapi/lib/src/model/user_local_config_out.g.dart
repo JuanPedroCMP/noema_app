@@ -3,237 +3,215 @@
 part of 'user_local_config_out.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$UserLocalConfigOutCWProxy {
-  UserLocalConfigOut id(String id);
+class _$UserLocalConfigOut extends UserLocalConfigOut {
+  @override
+  final String id;
+  @override
+  final String idUser;
+  @override
+  final String idDevice;
+  @override
+  final String idLanguage;
+  @override
+  final String idUserColorTheme;
+  @override
+  final String idUserTypographyTheme;
+  @override
+  final BuiltMap<String, JsonObject?> preferences;
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
 
-  UserLocalConfigOut idUser(String idUser);
+  factory _$UserLocalConfigOut(
+          [void Function(UserLocalConfigOutBuilder)? updates]) =>
+      (UserLocalConfigOutBuilder()..update(updates))._build();
 
-  UserLocalConfigOut idDevice(String idDevice);
-
-  UserLocalConfigOut idLanguage(String idLanguage);
-
-  UserLocalConfigOut idUserColorTheme(String idUserColorTheme);
-
-  UserLocalConfigOut idUserTypographyTheme(String idUserTypographyTheme);
-
-  UserLocalConfigOut preferences(Map<String, Object> preferences);
-
-  UserLocalConfigOut createdAt(DateTime? createdAt);
-
-  UserLocalConfigOut updatedAt(DateTime? updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserLocalConfigOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserLocalConfigOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  UserLocalConfigOut call({
-    String id,
-    String idUser,
-    String idDevice,
-    String idLanguage,
-    String idUserColorTheme,
-    String idUserTypographyTheme,
-    Map<String, Object> preferences,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfUserLocalConfigOut.copyWith(...)` or call `instanceOfUserLocalConfigOut.copyWith.fieldName(value)` for a single field.
-class _$UserLocalConfigOutCWProxyImpl implements _$UserLocalConfigOutCWProxy {
-  const _$UserLocalConfigOutCWProxyImpl(this._value);
-
-  final UserLocalConfigOut _value;
+  _$UserLocalConfigOut._(
+      {required this.id,
+      required this.idUser,
+      required this.idDevice,
+      required this.idLanguage,
+      required this.idUserColorTheme,
+      required this.idUserTypographyTheme,
+      required this.preferences,
+      this.createdAt,
+      this.updatedAt})
+      : super._();
+  @override
+  UserLocalConfigOut rebuild(
+          void Function(UserLocalConfigOutBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  UserLocalConfigOut id(String id) => call(id: id);
+  UserLocalConfigOutBuilder toBuilder() =>
+      UserLocalConfigOutBuilder()..replace(this);
 
   @override
-  UserLocalConfigOut idUser(String idUser) => call(idUser: idUser);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is UserLocalConfigOut &&
+        id == other.id &&
+        idUser == other.idUser &&
+        idDevice == other.idDevice &&
+        idLanguage == other.idLanguage &&
+        idUserColorTheme == other.idUserColorTheme &&
+        idUserTypographyTheme == other.idUserTypographyTheme &&
+        preferences == other.preferences &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt;
+  }
 
   @override
-  UserLocalConfigOut idDevice(String idDevice) => call(idDevice: idDevice);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, idDevice.hashCode);
+    _$hash = $jc(_$hash, idLanguage.hashCode);
+    _$hash = $jc(_$hash, idUserColorTheme.hashCode);
+    _$hash = $jc(_$hash, idUserTypographyTheme.hashCode);
+    _$hash = $jc(_$hash, preferences.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  UserLocalConfigOut idLanguage(String idLanguage) =>
-      call(idLanguage: idLanguage);
-
-  @override
-  UserLocalConfigOut idUserColorTheme(String idUserColorTheme) =>
-      call(idUserColorTheme: idUserColorTheme);
-
-  @override
-  UserLocalConfigOut idUserTypographyTheme(String idUserTypographyTheme) =>
-      call(idUserTypographyTheme: idUserTypographyTheme);
-
-  @override
-  UserLocalConfigOut preferences(Map<String, Object> preferences) =>
-      call(preferences: preferences);
-
-  @override
-  UserLocalConfigOut createdAt(DateTime? createdAt) =>
-      call(createdAt: createdAt);
-
-  @override
-  UserLocalConfigOut updatedAt(DateTime? updatedAt) =>
-      call(updatedAt: updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserLocalConfigOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserLocalConfigOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  UserLocalConfigOut call({
-    Object? id = const $CopyWithPlaceholder(),
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? idDevice = const $CopyWithPlaceholder(),
-    Object? idLanguage = const $CopyWithPlaceholder(),
-    Object? idUserColorTheme = const $CopyWithPlaceholder(),
-    Object? idUserTypographyTheme = const $CopyWithPlaceholder(),
-    Object? preferences = const $CopyWithPlaceholder(),
-    Object? createdAt = const $CopyWithPlaceholder(),
-    Object? updatedAt = const $CopyWithPlaceholder(),
-  }) {
-    return UserLocalConfigOut(
-      id: id == const $CopyWithPlaceholder() || id == null
-          ? _value.id
-          // ignore: cast_nullable_to_non_nullable
-          : id as String,
-      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String,
-      idDevice: idDevice == const $CopyWithPlaceholder() || idDevice == null
-          ? _value.idDevice
-          // ignore: cast_nullable_to_non_nullable
-          : idDevice as String,
-      idLanguage:
-          idLanguage == const $CopyWithPlaceholder() || idLanguage == null
-          ? _value.idLanguage
-          // ignore: cast_nullable_to_non_nullable
-          : idLanguage as String,
-      idUserColorTheme:
-          idUserColorTheme == const $CopyWithPlaceholder() ||
-              idUserColorTheme == null
-          ? _value.idUserColorTheme
-          // ignore: cast_nullable_to_non_nullable
-          : idUserColorTheme as String,
-      idUserTypographyTheme:
-          idUserTypographyTheme == const $CopyWithPlaceholder() ||
-              idUserTypographyTheme == null
-          ? _value.idUserTypographyTheme
-          // ignore: cast_nullable_to_non_nullable
-          : idUserTypographyTheme as String,
-      preferences:
-          preferences == const $CopyWithPlaceholder() || preferences == null
-          ? _value.preferences
-          // ignore: cast_nullable_to_non_nullable
-          : preferences as Map<String, Object>,
-      createdAt: createdAt == const $CopyWithPlaceholder()
-          ? _value.createdAt
-          // ignore: cast_nullable_to_non_nullable
-          : createdAt as DateTime?,
-      updatedAt: updatedAt == const $CopyWithPlaceholder()
-          ? _value.updatedAt
-          // ignore: cast_nullable_to_non_nullable
-          : updatedAt as DateTime?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'UserLocalConfigOut')
+          ..add('id', id)
+          ..add('idUser', idUser)
+          ..add('idDevice', idDevice)
+          ..add('idLanguage', idLanguage)
+          ..add('idUserColorTheme', idUserColorTheme)
+          ..add('idUserTypographyTheme', idUserTypographyTheme)
+          ..add('preferences', preferences)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt))
+        .toString();
   }
 }
 
-extension $UserLocalConfigOutCopyWith on UserLocalConfigOut {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfUserLocalConfigOut.copyWith(...)` or `instanceOfUserLocalConfigOut.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$UserLocalConfigOutCWProxy get copyWith =>
-      _$UserLocalConfigOutCWProxyImpl(this);
+class UserLocalConfigOutBuilder
+    implements Builder<UserLocalConfigOut, UserLocalConfigOutBuilder> {
+  _$UserLocalConfigOut? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _idDevice;
+  String? get idDevice => _$this._idDevice;
+  set idDevice(String? idDevice) => _$this._idDevice = idDevice;
+
+  String? _idLanguage;
+  String? get idLanguage => _$this._idLanguage;
+  set idLanguage(String? idLanguage) => _$this._idLanguage = idLanguage;
+
+  String? _idUserColorTheme;
+  String? get idUserColorTheme => _$this._idUserColorTheme;
+  set idUserColorTheme(String? idUserColorTheme) =>
+      _$this._idUserColorTheme = idUserColorTheme;
+
+  String? _idUserTypographyTheme;
+  String? get idUserTypographyTheme => _$this._idUserTypographyTheme;
+  set idUserTypographyTheme(String? idUserTypographyTheme) =>
+      _$this._idUserTypographyTheme = idUserTypographyTheme;
+
+  MapBuilder<String, JsonObject?>? _preferences;
+  MapBuilder<String, JsonObject?> get preferences =>
+      _$this._preferences ??= MapBuilder<String, JsonObject?>();
+  set preferences(MapBuilder<String, JsonObject?>? preferences) =>
+      _$this._preferences = preferences;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  DateTime? _updatedAt;
+  DateTime? get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
+
+  UserLocalConfigOutBuilder() {
+    UserLocalConfigOut._defaults(this);
+  }
+
+  UserLocalConfigOutBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _idUser = $v.idUser;
+      _idDevice = $v.idDevice;
+      _idLanguage = $v.idLanguage;
+      _idUserColorTheme = $v.idUserColorTheme;
+      _idUserTypographyTheme = $v.idUserTypographyTheme;
+      _preferences = $v.preferences.toBuilder();
+      _createdAt = $v.createdAt;
+      _updatedAt = $v.updatedAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(UserLocalConfigOut other) {
+    _$v = other as _$UserLocalConfigOut;
+  }
+
+  @override
+  void update(void Function(UserLocalConfigOutBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  UserLocalConfigOut build() => _build();
+
+  _$UserLocalConfigOut _build() {
+    _$UserLocalConfigOut _$result;
+    try {
+      _$result = _$v ??
+          _$UserLocalConfigOut._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'UserLocalConfigOut', 'id'),
+            idUser: BuiltValueNullFieldError.checkNotNull(
+                idUser, r'UserLocalConfigOut', 'idUser'),
+            idDevice: BuiltValueNullFieldError.checkNotNull(
+                idDevice, r'UserLocalConfigOut', 'idDevice'),
+            idLanguage: BuiltValueNullFieldError.checkNotNull(
+                idLanguage, r'UserLocalConfigOut', 'idLanguage'),
+            idUserColorTheme: BuiltValueNullFieldError.checkNotNull(
+                idUserColorTheme, r'UserLocalConfigOut', 'idUserColorTheme'),
+            idUserTypographyTheme: BuiltValueNullFieldError.checkNotNull(
+                idUserTypographyTheme,
+                r'UserLocalConfigOut',
+                'idUserTypographyTheme'),
+            preferences: preferences.build(),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'preferences';
+        preferences.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'UserLocalConfigOut', _$failedField, e.toString());
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-UserLocalConfigOut _$UserLocalConfigOutFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'UserLocalConfigOut',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const [
-            'id',
-            'id_user',
-            'id_device',
-            'id_language',
-            'id_user_color_theme',
-            'id_user_typography_theme',
-            'preferences',
-            'created_at',
-            'updated_at',
-          ],
-        );
-        final val = UserLocalConfigOut(
-          id: $checkedConvert('id', (v) => v as String),
-          idUser: $checkedConvert('id_user', (v) => v as String),
-          idDevice: $checkedConvert('id_device', (v) => v as String),
-          idLanguage: $checkedConvert('id_language', (v) => v as String),
-          idUserColorTheme: $checkedConvert(
-            'id_user_color_theme',
-            (v) => v as String,
-          ),
-          idUserTypographyTheme: $checkedConvert(
-            'id_user_typography_theme',
-            (v) => v as String,
-          ),
-          preferences: $checkedConvert(
-            'preferences',
-            (v) => (v as Map<String, dynamic>).map(
-              (k, e) => MapEntry(k, e as Object),
-            ),
-          ),
-          createdAt: $checkedConvert(
-            'created_at',
-            (v) => v == null ? null : DateTime.parse(v as String),
-          ),
-          updatedAt: $checkedConvert(
-            'updated_at',
-            (v) => v == null ? null : DateTime.parse(v as String),
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'idUser': 'id_user',
-        'idDevice': 'id_device',
-        'idLanguage': 'id_language',
-        'idUserColorTheme': 'id_user_color_theme',
-        'idUserTypographyTheme': 'id_user_typography_theme',
-        'createdAt': 'created_at',
-        'updatedAt': 'updated_at',
-      },
-    );
-
-Map<String, dynamic> _$UserLocalConfigOutToJson(UserLocalConfigOut instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'id_user': instance.idUser,
-      'id_device': instance.idDevice,
-      'id_language': instance.idLanguage,
-      'id_user_color_theme': instance.idUserColorTheme,
-      'id_user_typography_theme': instance.idUserTypographyTheme,
-      'preferences': instance.preferences,
-      'created_at': instance.createdAt?.toIso8601String(),
-      'updated_at': instance.updatedAt?.toIso8601String(),
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

@@ -3,168 +3,221 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'user_global_config_out.g.dart';
 
+/// UserGlobalConfigOut
+///
+/// Properties:
+/// * [id] 
+/// * [idUser] 
+/// * [idLanguage] 
+/// * [idUserColorTheme] 
+/// * [idUserTypographyTheme] 
+/// * [preferences] 
+/// * [createdAt] 
+/// * [updatedAt] 
+@BuiltValue()
+abstract class UserGlobalConfigOut implements Built<UserGlobalConfigOut, UserGlobalConfigOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class UserGlobalConfigOut {
-  /// Returns a new [UserGlobalConfigOut] instance.
-  UserGlobalConfigOut({
+  @BuiltValueField(wireName: r'id_user')
+  String get idUser;
 
-    required  this.id,
+  @BuiltValueField(wireName: r'id_language')
+  String get idLanguage;
 
-    required  this.idUser,
+  @BuiltValueField(wireName: r'id_user_color_theme')
+  String get idUserColorTheme;
 
-    required  this.idLanguage,
+  @BuiltValueField(wireName: r'id_user_typography_theme')
+  String get idUserTypographyTheme;
 
-    required  this.idUserColorTheme,
+  @BuiltValueField(wireName: r'preferences')
+  BuiltMap<String, JsonObject?> get preferences;
 
-    required  this.idUserTypographyTheme,
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
 
-    required  this.preferences,
+  @BuiltValueField(wireName: r'updated_at')
+  DateTime? get updatedAt;
 
-    required  this.createdAt,
+  UserGlobalConfigOut._();
 
-    required  this.updatedAt,
-  });
+  factory UserGlobalConfigOut([void updates(UserGlobalConfigOutBuilder b)]) = _$UserGlobalConfigOut;
 
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(UserGlobalConfigOutBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<UserGlobalConfigOut> get serializer => _$UserGlobalConfigOutSerializer();
+}
 
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idUser;
-
-
-
-  @JsonKey(
-    
-    name: r'id_language',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idLanguage;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user_color_theme',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idUserColorTheme;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user_typography_theme',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idUserTypographyTheme;
-
-
-
-  @JsonKey(
-    
-    name: r'preferences',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final Map<String, Object> preferences;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-  @JsonKey(
-    
-    name: r'updated_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? updatedAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is UserGlobalConfigOut &&
-      other.id == id &&
-      other.idUser == idUser &&
-      other.idLanguage == idLanguage &&
-      other.idUserColorTheme == idUserColorTheme &&
-      other.idUserTypographyTheme == idUserTypographyTheme &&
-      other.preferences == preferences &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        idUser.hashCode +
-        idLanguage.hashCode +
-        idUserColorTheme.hashCode +
-        idUserTypographyTheme.hashCode +
-        preferences.hashCode +
-        (createdAt == null ? 0 : createdAt.hashCode) +
-        (updatedAt == null ? 0 : updatedAt.hashCode);
-
-  factory UserGlobalConfigOut.fromJson(Map<String, dynamic> json) => _$UserGlobalConfigOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserGlobalConfigOutToJson(this);
+class _$UserGlobalConfigOutSerializer implements PrimitiveSerializer<UserGlobalConfigOut> {
+  @override
+  final Iterable<Type> types = const [UserGlobalConfigOut, _$UserGlobalConfigOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'UserGlobalConfigOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    UserGlobalConfigOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_user';
+    yield serializers.serialize(
+      object.idUser,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_language';
+    yield serializers.serialize(
+      object.idLanguage,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_user_color_theme';
+    yield serializers.serialize(
+      object.idUserColorTheme,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_user_typography_theme';
+    yield serializers.serialize(
+      object.idUserTypographyTheme,
+      specifiedType: const FullType(String),
+    );
+    yield r'preferences';
+    yield serializers.serialize(
+      object.preferences,
+      specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'updated_at';
+    yield object.updatedAt == null ? null : serializers.serialize(
+      object.updatedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    UserGlobalConfigOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required UserGlobalConfigOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUser = valueDes;
+          break;
+        case r'id_language':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idLanguage = valueDes;
+          break;
+        case r'id_user_color_theme':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUserColorTheme = valueDes;
+          break;
+        case r'id_user_typography_theme':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUserTypographyTheme = valueDes;
+          break;
+        case r'preferences':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+          ) as BuiltMap<String, JsonObject?>;
+          result.preferences.replace(valueDes);
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        case r'updated_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.updatedAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  UserGlobalConfigOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = UserGlobalConfigOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

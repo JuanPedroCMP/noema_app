@@ -3,120 +3,184 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'device_update.g.dart';
 
+/// DeviceUpdate
+///
+/// Properties:
+/// * [idUser] 
+/// * [deviceName] 
+/// * [deviceFingerprint] 
+/// * [platform] 
+/// * [lastSeenAt] 
+@BuiltValue()
+abstract class DeviceUpdate implements Built<DeviceUpdate, DeviceUpdateBuilder> {
+  @BuiltValueField(wireName: r'id_user')
+  String? get idUser;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class DeviceUpdate {
-  /// Returns a new [DeviceUpdate] instance.
-  DeviceUpdate({
+  @BuiltValueField(wireName: r'device_name')
+  String? get deviceName;
 
-     this.idUser,
+  @BuiltValueField(wireName: r'device_fingerprint')
+  String? get deviceFingerprint;
 
-     this.deviceName,
+  @BuiltValueField(wireName: r'platform')
+  String? get platform;
 
-     this.deviceFingerprint,
+  @BuiltValueField(wireName: r'last_seen_at')
+  DateTime? get lastSeenAt;
 
-     this.platform,
+  DeviceUpdate._();
 
-     this.lastSeenAt,
-  });
+  factory DeviceUpdate([void updates(DeviceUpdateBuilder b)]) = _$DeviceUpdate;
 
-  @JsonKey(
-    
-    name: r'id_user',
-    required: false,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(DeviceUpdateBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<DeviceUpdate> get serializer => _$DeviceUpdateSerializer();
+}
 
-  final String? idUser;
-
-
-
-  @JsonKey(
-    
-    name: r'device_name',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? deviceName;
-
-
-
-  @JsonKey(
-    
-    name: r'device_fingerprint',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? deviceFingerprint;
-
-
-
-  @JsonKey(
-    
-    name: r'platform',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? platform;
-
-
-
-  @JsonKey(
-    
-    name: r'last_seen_at',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final DateTime? lastSeenAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is DeviceUpdate &&
-      other.idUser == idUser &&
-      other.deviceName == deviceName &&
-      other.deviceFingerprint == deviceFingerprint &&
-      other.platform == platform &&
-      other.lastSeenAt == lastSeenAt;
-
-    @override
-    int get hashCode =>
-        (idUser == null ? 0 : idUser.hashCode) +
-        (deviceName == null ? 0 : deviceName.hashCode) +
-        (deviceFingerprint == null ? 0 : deviceFingerprint.hashCode) +
-        (platform == null ? 0 : platform.hashCode) +
-        (lastSeenAt == null ? 0 : lastSeenAt.hashCode);
-
-  factory DeviceUpdate.fromJson(Map<String, dynamic> json) => _$DeviceUpdateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$DeviceUpdateToJson(this);
+class _$DeviceUpdateSerializer implements PrimitiveSerializer<DeviceUpdate> {
+  @override
+  final Iterable<Type> types = const [DeviceUpdate, _$DeviceUpdate];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'DeviceUpdate';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    DeviceUpdate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    if (object.idUser != null) {
+      yield r'id_user';
+      yield serializers.serialize(
+        object.idUser,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.deviceName != null) {
+      yield r'device_name';
+      yield serializers.serialize(
+        object.deviceName,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.deviceFingerprint != null) {
+      yield r'device_fingerprint';
+      yield serializers.serialize(
+        object.deviceFingerprint,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.platform != null) {
+      yield r'platform';
+      yield serializers.serialize(
+        object.platform,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.lastSeenAt != null) {
+      yield r'last_seen_at';
+      yield serializers.serialize(
+        object.lastSeenAt,
+        specifiedType: const FullType.nullable(DateTime),
+      );
+    }
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    DeviceUpdate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required DeviceUpdateBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idUser = valueDes;
+          break;
+        case r'device_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.deviceName = valueDes;
+          break;
+        case r'device_fingerprint':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.deviceFingerprint = valueDes;
+          break;
+        case r'platform':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.platform = valueDes;
+          break;
+        case r'last_seen_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.lastSeenAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  DeviceUpdate deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = DeviceUpdateBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

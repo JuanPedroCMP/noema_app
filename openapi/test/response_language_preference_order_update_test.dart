@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ResponseLanguagePreferenceOrderUpdate
 void main() {
-  final ResponseLanguagePreferenceOrderUpdate? instance = /* ResponseLanguagePreferenceOrderUpdate(...) */ null;
-  // TODO add properties to the entity
+  final instance = ResponseLanguagePreferenceOrderUpdateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(ResponseLanguagePreferenceOrderUpdate, () {
     // String id

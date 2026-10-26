@@ -16,7 +16,7 @@ void main() {
 
     // Delete Provider
     //
-    //Future<Object> deleteProviderApiV1AiProviderDeleteIdentificatorDelete(String identificator) async
+    //Future<JsonObject> deleteProviderApiV1AiProviderDeleteIdentificatorDelete(String identificator) async
     test('test deleteProviderApiV1AiProviderDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Providers
     //
-    //Future<List<ProviderOut>> listProvidersApiV1AiProviderListGet({ String id, String slug, String displayName, String baseUrl, bool isActive, DateTime createdAt, DateTime updatedAt }) async
+    //Future<BuiltList<ProviderOut>> listProvidersApiV1AiProviderListGet({ String id, String slug, String displayName, String baseUrl, bool isActive, DateTime createdAt, DateTime updatedAt }) async
     test('test listProvidersApiV1AiProviderListGet', () async {
       // TODO
     });

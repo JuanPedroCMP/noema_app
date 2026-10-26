@@ -3,129 +3,132 @@
 part of 'response_language_preference_order_create.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$ResponseLanguagePreferenceOrderCreateCWProxy {
-  ResponseLanguagePreferenceOrderCreate preferenceOrder(int preferenceOrder);
+class _$ResponseLanguagePreferenceOrderCreate
+    extends ResponseLanguagePreferenceOrderCreate {
+  @override
+  final int preferenceOrder;
+  @override
+  final String idUser;
+  @override
+  final String idLanguage;
 
-  ResponseLanguagePreferenceOrderCreate idUser(String idUser);
+  factory _$ResponseLanguagePreferenceOrderCreate(
+          [void Function(ResponseLanguagePreferenceOrderCreateBuilder)?
+              updates]) =>
+      (ResponseLanguagePreferenceOrderCreateBuilder()..update(updates))
+          ._build();
 
-  ResponseLanguagePreferenceOrderCreate idLanguage(String idLanguage);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `ResponseLanguagePreferenceOrderCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// ResponseLanguagePreferenceOrderCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  ResponseLanguagePreferenceOrderCreate call({
-    int preferenceOrder,
-    String idUser,
-    String idLanguage,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfResponseLanguagePreferenceOrderCreate.copyWith(...)` or call `instanceOfResponseLanguagePreferenceOrderCreate.copyWith.fieldName(value)` for a single field.
-class _$ResponseLanguagePreferenceOrderCreateCWProxyImpl
-    implements _$ResponseLanguagePreferenceOrderCreateCWProxy {
-  const _$ResponseLanguagePreferenceOrderCreateCWProxyImpl(this._value);
-
-  final ResponseLanguagePreferenceOrderCreate _value;
+  _$ResponseLanguagePreferenceOrderCreate._(
+      {required this.preferenceOrder,
+      required this.idUser,
+      required this.idLanguage})
+      : super._();
+  @override
+  ResponseLanguagePreferenceOrderCreate rebuild(
+          void Function(ResponseLanguagePreferenceOrderCreateBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  ResponseLanguagePreferenceOrderCreate preferenceOrder(int preferenceOrder) =>
-      call(preferenceOrder: preferenceOrder);
+  ResponseLanguagePreferenceOrderCreateBuilder toBuilder() =>
+      ResponseLanguagePreferenceOrderCreateBuilder()..replace(this);
 
   @override
-  ResponseLanguagePreferenceOrderCreate idUser(String idUser) =>
-      call(idUser: idUser);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ResponseLanguagePreferenceOrderCreate &&
+        preferenceOrder == other.preferenceOrder &&
+        idUser == other.idUser &&
+        idLanguage == other.idLanguage;
+  }
 
   @override
-  ResponseLanguagePreferenceOrderCreate idLanguage(String idLanguage) =>
-      call(idLanguage: idLanguage);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, preferenceOrder.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, idLanguage.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `ResponseLanguagePreferenceOrderCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// ResponseLanguagePreferenceOrderCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
   @override
-  ResponseLanguagePreferenceOrderCreate call({
-    Object? preferenceOrder = const $CopyWithPlaceholder(),
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? idLanguage = const $CopyWithPlaceholder(),
-  }) {
-    return ResponseLanguagePreferenceOrderCreate(
-      preferenceOrder:
-          preferenceOrder == const $CopyWithPlaceholder() ||
-              preferenceOrder == null
-          ? _value.preferenceOrder
-          // ignore: cast_nullable_to_non_nullable
-          : preferenceOrder as int,
-      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String,
-      idLanguage:
-          idLanguage == const $CopyWithPlaceholder() || idLanguage == null
-          ? _value.idLanguage
-          // ignore: cast_nullable_to_non_nullable
-          : idLanguage as String,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(
+            r'ResponseLanguagePreferenceOrderCreate')
+          ..add('preferenceOrder', preferenceOrder)
+          ..add('idUser', idUser)
+          ..add('idLanguage', idLanguage))
+        .toString();
   }
 }
 
-extension $ResponseLanguagePreferenceOrderCreateCopyWith
-    on ResponseLanguagePreferenceOrderCreate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfResponseLanguagePreferenceOrderCreate.copyWith(...)` or `instanceOfResponseLanguagePreferenceOrderCreate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ResponseLanguagePreferenceOrderCreateCWProxy get copyWith =>
-      _$ResponseLanguagePreferenceOrderCreateCWProxyImpl(this);
+class ResponseLanguagePreferenceOrderCreateBuilder
+    implements
+        Builder<ResponseLanguagePreferenceOrderCreate,
+            ResponseLanguagePreferenceOrderCreateBuilder> {
+  _$ResponseLanguagePreferenceOrderCreate? _$v;
+
+  int? _preferenceOrder;
+  int? get preferenceOrder => _$this._preferenceOrder;
+  set preferenceOrder(int? preferenceOrder) =>
+      _$this._preferenceOrder = preferenceOrder;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _idLanguage;
+  String? get idLanguage => _$this._idLanguage;
+  set idLanguage(String? idLanguage) => _$this._idLanguage = idLanguage;
+
+  ResponseLanguagePreferenceOrderCreateBuilder() {
+    ResponseLanguagePreferenceOrderCreate._defaults(this);
+  }
+
+  ResponseLanguagePreferenceOrderCreateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _preferenceOrder = $v.preferenceOrder;
+      _idUser = $v.idUser;
+      _idLanguage = $v.idLanguage;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ResponseLanguagePreferenceOrderCreate other) {
+    _$v = other as _$ResponseLanguagePreferenceOrderCreate;
+  }
+
+  @override
+  void update(
+      void Function(ResponseLanguagePreferenceOrderCreateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  ResponseLanguagePreferenceOrderCreate build() => _build();
+
+  _$ResponseLanguagePreferenceOrderCreate _build() {
+    final _$result = _$v ??
+        _$ResponseLanguagePreferenceOrderCreate._(
+          preferenceOrder: BuiltValueNullFieldError.checkNotNull(
+              preferenceOrder,
+              r'ResponseLanguagePreferenceOrderCreate',
+              'preferenceOrder'),
+          idUser: BuiltValueNullFieldError.checkNotNull(
+              idUser, r'ResponseLanguagePreferenceOrderCreate', 'idUser'),
+          idLanguage: BuiltValueNullFieldError.checkNotNull(idLanguage,
+              r'ResponseLanguagePreferenceOrderCreate', 'idLanguage'),
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-ResponseLanguagePreferenceOrderCreate
-_$ResponseLanguagePreferenceOrderCreateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'ResponseLanguagePreferenceOrderCreate',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const ['preference_order', 'id_user', 'id_language'],
-        );
-        final val = ResponseLanguagePreferenceOrderCreate(
-          preferenceOrder: $checkedConvert(
-            'preference_order',
-            (v) => (v as num).toInt(),
-          ),
-          idUser: $checkedConvert('id_user', (v) => v as String),
-          idLanguage: $checkedConvert('id_language', (v) => v as String),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'preferenceOrder': 'preference_order',
-        'idUser': 'id_user',
-        'idLanguage': 'id_language',
-      },
-    );
-
-Map<String, dynamic> _$ResponseLanguagePreferenceOrderCreateToJson(
-  ResponseLanguagePreferenceOrderCreate instance,
-) => <String, dynamic>{
-  'preference_order': instance.preferenceOrder,
-  'id_user': instance.idUser,
-  'id_language': instance.idLanguage,
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

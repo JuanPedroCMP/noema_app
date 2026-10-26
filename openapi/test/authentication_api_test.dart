@@ -9,14 +9,14 @@ void main() {
   group(AuthenticationApi, () {
     // Authenticate
     //
-    //Future<Object> authenticateApiV1AuthLoginPost(String username, String password, { String grantType, String scope, String clientId, String clientSecret }) async
+    //Future<JsonObject> authenticateApiV1AuthLoginPost(String username, String password, { String grantType, String scope, String clientId, String clientSecret }) async
     test('test authenticateApiV1AuthLoginPost', () async {
       // TODO
     });
 
     // Confirm Pwd Reset
     //
-    //Future<Object> confirmPwdResetApiV1AuthConfirmPasswordRestPost(String identificator, String newPassword, String code) async
+    //Future<JsonObject> confirmPwdResetApiV1AuthConfirmPasswordRestPost(String identificator, String newPassword, String code) async
     test('test confirmPwdResetApiV1AuthConfirmPasswordRestPost', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // Delete Google Account
     //
-    //Future<Object> deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(String identificator) async
+    //Future<JsonObject> deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(String identificator) async
     test('test deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -44,7 +44,7 @@ void main() {
 
     // Send Pwd Reset
     //
-    //Future<Object> sendPwdResetApiV1AuthCallPasswordRestPost(String identificator) async
+    //Future<JsonObject> sendPwdResetApiV1AuthCallPasswordRestPost(String identificator) async
     test('test sendPwdResetApiV1AuthCallPasswordRestPost', () async {
       // TODO
     });

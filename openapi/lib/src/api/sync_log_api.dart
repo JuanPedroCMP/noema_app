@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/conflict_strategy.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/sync_direction.dart';
@@ -20,7 +21,9 @@ class SyncLogApi {
 
   final Dio _dio;
 
-  const SyncLogApi(this._dio);
+  final Serializers _serializers;
+
+  const SyncLogApi(this._dio, this._serializers);
 
   /// Create Sync Log
   /// 
@@ -67,7 +70,8 @@ class SyncLogApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(syncLogCreate);
+      const _type = FullType(SyncLogCreate);
+      _bodyData = _serializers.serialize(syncLogCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -93,8 +97,11 @@ class SyncLogApi {
     SyncLogOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(rawData, 'SyncLogOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SyncLogOut),
+      ) as SyncLogOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -141,7 +148,7 @@ _responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(raw
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/google_drive/sync_log/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/google_drive/sync_log/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -170,8 +177,11 @@ _responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(raw
     SyncLogOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(rawData, 'SyncLogOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SyncLogOut),
+      ) as SyncLogOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -216,9 +226,9 @@ _responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(raw
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<SyncLogOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<SyncLogOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<SyncLogOut>>> listSyncLogApiV1GoogleDriveSyncLogListGet({ 
+  Future<Response<BuiltList<SyncLogOut>>> listSyncLogApiV1GoogleDriveSyncLogListGet({ 
     String? id,
     String? idDevice,
     String? idBackupFile,
@@ -255,16 +265,16 @@ _responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(raw
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idDevice != null) r'id_device': idDevice,
-      if (idBackupFile != null) r'id_backup_file': idBackupFile,
-      if (event != null) r'event': event,
-      if (derection != null) r'derection': derection,
-      if (result != null) r'result': result,
-      if (conflictStrategy != null) r'conflict_strategy': conflictStrategy,
-      if (errorDetails != null) r'error_details': errorDetails,
-      if (metadata != null) r'metadata': metadata,
-      if (createdAt != null) r'created_at': createdAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idDevice != null) r'id_device': encodeQueryParameter(_serializers, idDevice, const FullType(String)),
+      if (idBackupFile != null) r'id_backup_file': encodeQueryParameter(_serializers, idBackupFile, const FullType(String)),
+      if (event != null) r'event': encodeQueryParameter(_serializers, event, const FullType(String)),
+      if (derection != null) r'derection': encodeQueryParameter(_serializers, derection, const FullType(SyncDirection)),
+      if (result != null) r'result': encodeQueryParameter(_serializers, result, const FullType(SyncResult)),
+      if (conflictStrategy != null) r'conflict_strategy': encodeQueryParameter(_serializers, conflictStrategy, const FullType(ConflictStrategy)),
+      if (errorDetails != null) r'error_details': encodeQueryParameter(_serializers, errorDetails, const FullType(String)),
+      if (metadata != null) r'metadata': encodeQueryParameter(_serializers, metadata, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -276,11 +286,14 @@ _responseData = rawData == null ? null : deserialize<SyncLogOut, SyncLogOut>(raw
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<SyncLogOut>? _responseData;
+    BuiltList<SyncLogOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<SyncLogOut>, SyncLogOut>(rawData, 'List<SyncLogOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(SyncLogOut)]),
+      ) as BuiltList<SyncLogOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -292,7 +305,7 @@ _responseData = rawData == null ? null : deserialize<List<SyncLogOut>, SyncLogOu
       );
     }
 
-    return Response<List<SyncLogOut>>(
+    return Response<BuiltList<SyncLogOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

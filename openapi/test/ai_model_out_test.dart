@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AiModelOut
 void main() {
-  final AiModelOut? instance = /* AiModelOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = AiModelOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(AiModelOut, () {
     // String id

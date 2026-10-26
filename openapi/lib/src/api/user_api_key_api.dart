@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_api_key_create.dart';
 import 'package:openapi/src/model/user_api_key_out.dart';
@@ -18,7 +20,9 @@ class UserApiKeyApi {
 
   final Dio _dio;
 
-  const UserApiKeyApi(this._dio);
+  final Serializers _serializers;
+
+  const UserApiKeyApi(this._dio, this._serializers);
 
   /// Create User Api Key
   /// 
@@ -65,7 +69,8 @@ class UserApiKeyApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userApiKeyCreate);
+      const _type = FullType(UserApiKeyCreate);
+      _bodyData = _serializers.serialize(userApiKeyCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +96,11 @@ class UserApiKeyApi {
     UserApiKeyOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOut>(rawData, 'UserApiKeyOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserApiKeyOut),
+      ) as UserApiKeyOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -128,9 +136,9 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteUserApiKeyApiV1AiUserApiKeyDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -139,7 +147,7 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/user_api_key/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/user_api_key/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -165,11 +173,14 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +192,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +227,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/user_api_key/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/user_api_key/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -245,8 +256,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     UserApiKeyOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOut>(rawData, 'UserApiKeyOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserApiKeyOut),
+      ) as UserApiKeyOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -289,9 +303,9 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<UserApiKeyOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<UserApiKeyOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<UserApiKeyOut>>> listUserApiKeyApiV1AiUserApiKeyListGet({ 
+  Future<Response<BuiltList<UserApiKeyOut>>> listUserApiKeyApiV1AiUserApiKeyListGet({ 
     String? id,
     String? idAiProvider,
     String? idUser,
@@ -326,14 +340,14 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idAiProvider != null) r'id_ai_provider': idAiProvider,
-      if (idUser != null) r'id_user': idUser,
-      if (name != null) r'name': name,
-      if (encryptedKey != null) r'encrypted_key': encryptedKey,
-      if (isActive != null) r'is_active': isActive,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idAiProvider != null) r'id_ai_provider': encodeQueryParameter(_serializers, idAiProvider, const FullType(String)),
+      if (idUser != null) r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
+      if (name != null) r'name': encodeQueryParameter(_serializers, name, const FullType(String)),
+      if (encryptedKey != null) r'encrypted_key': encodeQueryParameter(_serializers, encryptedKey, const FullType(String)),
+      if (isActive != null) r'is_active': encodeQueryParameter(_serializers, isActive, const FullType(bool)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -345,11 +359,14 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOu
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<UserApiKeyOut>? _responseData;
+    BuiltList<UserApiKeyOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<UserApiKeyOut>, UserApiKeyOut>(rawData, 'List<UserApiKeyOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(UserApiKeyOut)]),
+      ) as BuiltList<UserApiKeyOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -361,7 +378,7 @@ _responseData = rawData == null ? null : deserialize<List<UserApiKeyOut>, UserAp
       );
     }
 
-    return Response<List<UserApiKeyOut>>(
+    return Response<BuiltList<UserApiKeyOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -398,7 +415,7 @@ _responseData = rawData == null ? null : deserialize<List<UserApiKeyOut>, UserAp
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/user_api_key/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/user_api_key/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -420,7 +437,8 @@ _responseData = rawData == null ? null : deserialize<List<UserApiKeyOut>, UserAp
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userApiKeyUpdate);
+      const _type = FullType(UserApiKeyUpdate);
+      _bodyData = _serializers.serialize(userApiKeyUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -446,8 +464,11 @@ _responseData = rawData == null ? null : deserialize<List<UserApiKeyOut>, UserAp
     UserApiKeyOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserApiKeyOut, UserApiKeyOut>(rawData, 'UserApiKeyOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserApiKeyOut),
+      ) as UserApiKeyOut;
 
     } catch (error, stackTrace) {
       throw DioException(

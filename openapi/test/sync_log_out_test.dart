@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for SyncLogOut
 void main() {
-  final SyncLogOut? instance = /* SyncLogOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = SyncLogOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(SyncLogOut, () {
     // String id
@@ -47,7 +47,7 @@ void main() {
       // TODO
     });
 
-    // Map<String, Object> metadata
+    // BuiltMap<String, JsonObject> metadata
     test('to test the property `metadata`', () async {
       // TODO
     });

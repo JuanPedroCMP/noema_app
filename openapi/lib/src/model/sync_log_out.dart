@@ -5,201 +5,256 @@
 // ignore_for_file: unused_element
 import 'package:openapi/src/model/sync_result.dart';
 import 'package:openapi/src/model/sync_direction.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/model/conflict_strategy.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'sync_log_out.g.dart';
 
-
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class SyncLogOut {
-  /// Returns a new [SyncLogOut] instance.
-  SyncLogOut({
-
-    required  this.id,
-
-    required  this.idDevice,
-
-    required  this.idBackupFile,
-
-    required  this.event,
-
-    required  this.derection,
-
-    required  this.result,
-
-    required  this.conflictStrategy,
-
-    required  this.errorDetails,
-
-    required  this.metadata,
-
-    required  this.createdAt,
-  });
-
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'id_device',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idDevice;
-
-
-
-  @JsonKey(
-    
-    name: r'id_backup_file',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idBackupFile;
-
-
-
-  @JsonKey(
-    
-    name: r'event',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String event;
-
-
-
-  @JsonKey(
-    
-    name: r'derection',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final SyncDirection derection;
-
-
-
-  @JsonKey(
-    
-    name: r'result',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final SyncResult result;
-
-
-
-  @JsonKey(
-    
-    name: r'conflict_strategy',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final ConflictStrategy conflictStrategy;
-
-
-
-  @JsonKey(
-    
-    name: r'error_details',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String errorDetails;
-
-
-
-  @JsonKey(
-    
-    name: r'metadata',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final Map<String, Object> metadata;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is SyncLogOut &&
-      other.id == id &&
-      other.idDevice == idDevice &&
-      other.idBackupFile == idBackupFile &&
-      other.event == event &&
-      other.derection == derection &&
-      other.result == result &&
-      other.conflictStrategy == conflictStrategy &&
-      other.errorDetails == errorDetails &&
-      other.metadata == metadata &&
-      other.createdAt == createdAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        idDevice.hashCode +
-        idBackupFile.hashCode +
-        event.hashCode +
-        derection.hashCode +
-        result.hashCode +
-        conflictStrategy.hashCode +
-        errorDetails.hashCode +
-        metadata.hashCode +
-        (createdAt == null ? 0 : createdAt.hashCode);
-
-  factory SyncLogOut.fromJson(Map<String, dynamic> json) => _$SyncLogOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SyncLogOutToJson(this);
+/// SyncLogOut
+///
+/// Properties:
+/// * [id] 
+/// * [idDevice] 
+/// * [idBackupFile] 
+/// * [event] 
+/// * [derection] 
+/// * [result] 
+/// * [conflictStrategy] 
+/// * [errorDetails] 
+/// * [metadata] 
+/// * [createdAt] 
+@BuiltValue()
+abstract class SyncLogOut implements Built<SyncLogOut, SyncLogOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
+
+  @BuiltValueField(wireName: r'id_device')
+  String get idDevice;
+
+  @BuiltValueField(wireName: r'id_backup_file')
+  String get idBackupFile;
+
+  @BuiltValueField(wireName: r'event')
+  String get event;
+
+  @BuiltValueField(wireName: r'derection')
+  SyncDirection get derection;
+  // enum derectionEnum {  upload,  download,  };
+
+  @BuiltValueField(wireName: r'result')
+  SyncResult get result;
+  // enum resultEnum {  success,  failure,  in_conflict,  };
+
+  @BuiltValueField(wireName: r'conflict_strategy')
+  ConflictStrategy get conflictStrategy;
+  // enum conflictStrategyEnum {  keep_local,  keep_remote,  merge,  duplicate,  };
+
+  @BuiltValueField(wireName: r'error_details')
+  String get errorDetails;
+
+  @BuiltValueField(wireName: r'metadata')
+  BuiltMap<String, JsonObject?> get metadata;
+
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
+
+  SyncLogOut._();
+
+  factory SyncLogOut([void updates(SyncLogOutBuilder b)]) = _$SyncLogOut;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(SyncLogOutBuilder b) => b;
+
+  @BuiltValueSerializer(custom: true)
+  static Serializer<SyncLogOut> get serializer => _$SyncLogOutSerializer();
+}
+
+class _$SyncLogOutSerializer implements PrimitiveSerializer<SyncLogOut> {
+  @override
+  final Iterable<Type> types = const [SyncLogOut, _$SyncLogOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'SyncLogOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    SyncLogOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_device';
+    yield serializers.serialize(
+      object.idDevice,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_backup_file';
+    yield serializers.serialize(
+      object.idBackupFile,
+      specifiedType: const FullType(String),
+    );
+    yield r'event';
+    yield serializers.serialize(
+      object.event,
+      specifiedType: const FullType(String),
+    );
+    yield r'derection';
+    yield serializers.serialize(
+      object.derection,
+      specifiedType: const FullType(SyncDirection),
+    );
+    yield r'result';
+    yield serializers.serialize(
+      object.result,
+      specifiedType: const FullType(SyncResult),
+    );
+    yield r'conflict_strategy';
+    yield serializers.serialize(
+      object.conflictStrategy,
+      specifiedType: const FullType(ConflictStrategy),
+    );
+    yield r'error_details';
+    yield serializers.serialize(
+      object.errorDetails,
+      specifiedType: const FullType(String),
+    );
+    yield r'metadata';
+    yield serializers.serialize(
+      object.metadata,
+      specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    SyncLogOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required SyncLogOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'id_device':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idDevice = valueDes;
+          break;
+        case r'id_backup_file':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idBackupFile = valueDes;
+          break;
+        case r'event':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.event = valueDes;
+          break;
+        case r'derection':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(SyncDirection),
+          ) as SyncDirection;
+          result.derection = valueDes;
+          break;
+        case r'result':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(SyncResult),
+          ) as SyncResult;
+          result.result = valueDes;
+          break;
+        case r'conflict_strategy':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(ConflictStrategy),
+          ) as ConflictStrategy;
+          result.conflictStrategy = valueDes;
+          break;
+        case r'error_details':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.errorDetails = valueDes;
+          break;
+        case r'metadata':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+          ) as BuiltMap<String, JsonObject?>;
+          result.metadata.replace(valueDes);
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  SyncLogOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = SyncLogOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

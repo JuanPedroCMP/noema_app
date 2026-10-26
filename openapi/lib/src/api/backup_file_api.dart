@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/backup_file_create.dart';
 import 'package:openapi/src/model/backup_file_out.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
@@ -17,7 +19,9 @@ class BackupFileApi {
 
   final Dio _dio;
 
-  const BackupFileApi(this._dio);
+  final Serializers _serializers;
+
+  const BackupFileApi(this._dio, this._serializers);
 
   /// Create Backup File
   /// 
@@ -64,7 +68,8 @@ class BackupFileApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(backupFileCreate);
+      const _type = FullType(BackupFileCreate);
+      _bodyData = _serializers.serialize(backupFileCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -90,8 +95,11 @@ class BackupFileApi {
     BackupFileOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOut>(rawData, 'BackupFileOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BackupFileOut),
+      ) as BackupFileOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -127,9 +135,9 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -138,7 +146,7 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/google_drive/backup_file/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/google_drive/backup_file/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -164,11 +172,14 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -180,7 +191,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -215,7 +226,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/google_drive/backup_file/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/google_drive/backup_file/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -244,8 +255,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     BackupFileOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOut>(rawData, 'BackupFileOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BackupFileOut),
+      ) as BackupFileOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -287,9 +301,9 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<BackupFileOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<BackupFileOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<BackupFileOut>>> listBackupFileApiV1GoogleDriveBackupFileListGet({ 
+  Future<Response<BuiltList<BackupFileOut>>> listBackupFileApiV1GoogleDriveBackupFileListGet({ 
     String? id,
     String? idGoogleAccount,
     String? driveFileId,
@@ -323,13 +337,13 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idGoogleAccount != null) r'id_google_account': idGoogleAccount,
-      if (driveFileId != null) r'drive_file_id': driveFileId,
-      if (localRef != null) r'local_ref': localRef,
-      if (driveVersion != null) r'drive_version': driveVersion,
-      if (contentHash != null) r'content_hash': contentHash,
-      if (createdAt != null) r'created_at': createdAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idGoogleAccount != null) r'id_google_account': encodeQueryParameter(_serializers, idGoogleAccount, const FullType(String)),
+      if (driveFileId != null) r'drive_file_id': encodeQueryParameter(_serializers, driveFileId, const FullType(String)),
+      if (localRef != null) r'local_ref': encodeQueryParameter(_serializers, localRef, const FullType(String)),
+      if (driveVersion != null) r'drive_version': encodeQueryParameter(_serializers, driveVersion, const FullType(String)),
+      if (contentHash != null) r'content_hash': encodeQueryParameter(_serializers, contentHash, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -341,11 +355,14 @@ _responseData = rawData == null ? null : deserialize<BackupFileOut, BackupFileOu
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<BackupFileOut>? _responseData;
+    BuiltList<BackupFileOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<BackupFileOut>, BackupFileOut>(rawData, 'List<BackupFileOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(BackupFileOut)]),
+      ) as BuiltList<BackupFileOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -357,7 +374,7 @@ _responseData = rawData == null ? null : deserialize<List<BackupFileOut>, Backup
       );
     }
 
-    return Response<List<BackupFileOut>>(
+    return Response<BuiltList<BackupFileOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

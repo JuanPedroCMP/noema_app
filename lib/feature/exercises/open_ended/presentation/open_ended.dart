@@ -53,6 +53,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   late final TextEditingController referenceCorrectAnswerController;
   late final TextEditingController userAnswerController;
 
+  String get _typeLabel => type == OpenEndedType.feynman
+      ? "Método Feynman"
+      : "Dissertativa";
+
   @override
   void initState() {
     super.initState();
@@ -82,39 +86,45 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       });
       titleController.text = "";
       statementController.text = "";
-      typeController.text = "essay";
+      typeController.text = _typeLabel;
       referenceCorrectAnswerController.text = "";
       return;
     }
 
-    final db = ref.read(appDatabaseProvider);
-    final openEndedDao = OpenEndedDao(db);
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final data = await OpenEndedDao(
+        db,
+      ).getOpenEnded(id: widget.openEndedId!);
+      if (!mounted) return;
+      if (data == null) {
+        setState(() {
+          _isLoading = false;
+          _loadError = "Questão não encontrada ou removida.";
+        });
+        return;
+      }
 
-    final data = await openEndedDao.getOpenEnded(id: widget.openEndedId!);
-    if (!mounted) return;
-    if (data == null) {
       setState(() {
         _isLoading = false;
-        _loadError = "Questão não encontrada ou removida.";
+        title = data.title;
+        statement = data.statement;
+        type = data.type.toLowerCase() == "feynman"
+            ? OpenEndedType.feynman
+            : OpenEndedType.essay;
+        referenceCorrectAnswer = data.referenceCorrectAnswer ?? "";
       });
-      return;
+      titleController.text = title;
+      statementController.text = statement;
+      typeController.text = _typeLabel;
+      referenceCorrectAnswerController.text = referenceCorrectAnswer;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadError = "Não foi possível carregar a questão.";
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-      title = data.title;
-      statement = data.statement;
-      if (data.type.toLowerCase() == "feynman") {
-        type = OpenEndedType.feynman;
-      } else {
-        type = OpenEndedType.essay;
-      }
-      referenceCorrectAnswer = data.referenceCorrectAnswer ?? "";
-    });
-    titleController.text = title;
-    statementController.text = statement;
-    typeController.text = type.name;
-    referenceCorrectAnswerController.text = referenceCorrectAnswer;
   }
 
   String? get _questionId {
@@ -134,20 +144,20 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     if (currentId == null) {
       final inserted = await openEndedDao.insertOpenEnded(
         nodeId: widget.nodeId,
-        title: title,
-        statement: statement,
+        title: title.trim(),
+        statement: statement.trim(),
         type: type.name.toUpperCase(),
-        referenceCorrectAnswer: referenceCorrectAnswer,
+        referenceCorrectAnswer: referenceCorrectAnswer.trim(),
       );
       tempId = inserted;
     } else {
       await openEndedDao.updateOpenEnded(
         id: currentId,
         nodeId: widget.nodeId,
-        title: title,
-        statement: statement,
+        title: title.trim(),
+        statement: statement.trim(),
         type: type.name.toUpperCase(),
-        referenceCorrectAnswer: referenceCorrectAnswer,
+        referenceCorrectAnswer: referenceCorrectAnswer.trim(),
       );
     }
     widget.onSave?.call();
@@ -157,7 +167,12 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   Future<void> sendAnswer() async {
     if (_isSending) return;
     final id = _questionId;
-    if (id == null || id.isEmpty) return;
+    if (id == null || id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Esta questão ainda não foi salva.")),
+      );
+      return;
+    }
     if (userAnswer.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Escreva uma resposta antes de enviar.")),
@@ -172,7 +187,14 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
 
     try {
       final question = await openEndedDao.getOpenEnded(id: id);
-      if (question == null) return;
+      if (question == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Esta questão não está mais disponível.")),
+          );
+        }
+        return;
+      }
 
       final questionSnapshot = jsonEncode(question.toJson());
       await responseLogDao.insertOpenEndedResponseLog(
@@ -307,7 +329,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       );
                       if (value != null) {
                         typeChanged(value.name);
-                        typeController.text = value.name;
+                        typeController.text = value == OpenEndedType.feynman
+                            ? "Método Feynman"
+                            : "Dissertativa";
                       }
                     },
                   ),
@@ -316,7 +340,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                     controller: referenceCorrectAnswerController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: "referenceCorrectAnswer",
+                      labelText: "Resposta de referência",
                     ),
                   ),
                   FilledButton(
@@ -337,11 +361,25 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                             setState(() => _isSaving = true);
                             final messenger = ScaffoldMessenger.of(context);
                             try {
-                              await save();
+                              final saved = await save();
+                              if (mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      saved
+                                          ? "Questão salva."
+                                          : "Não foi possível salvar a questão.",
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (_) {
                               if (mounted) {
                                 messenger.showSnackBar(
                                   const SnackBar(
-                                    content: Text("Questão salva."),
+                                    content: Text(
+                                      "Não foi possível salvar a questão.",
+                                    ),
                                   ),
                                 );
                               }
@@ -359,7 +397,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                 spacing: context.spacing.md,
                 children: [
                   Text(title, style: context.textTheme.headlineMedium),
-                  Text(type.name, style: context.textTheme.labelMedium),
+                  Text(_typeLabel, style: context.textTheme.labelMedium),
 
                   Divider(),
                   Text(statement, style: context.textTheme.bodyMedium),
@@ -385,7 +423,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                 spacing: context.spacing.md,
                 children: [
                   Text(title, style: context.textTheme.headlineMedium),
-                  Text(type.name, style: context.textTheme.labelMedium),
+                  Text(_typeLabel, style: context.textTheme.labelMedium),
 
                   Divider(),
                   Text(statement, style: context.textTheme.bodyMedium),

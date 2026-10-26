@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/response_language_preference_order_create.dart';
 import 'package:openapi/src/model/response_language_preference_order_out.dart';
@@ -18,7 +19,9 @@ class ResponseResponseLanguagePreferenceOrderApi {
 
   final Dio _dio;
 
-  const ResponseResponseLanguagePreferenceOrderApi(this._dio);
+  final Serializers _serializers;
+
+  const ResponseResponseLanguagePreferenceOrderApi(this._dio, this._serializers);
 
   /// Create Response Language Preference Order
   /// 
@@ -65,7 +68,8 @@ class ResponseResponseLanguagePreferenceOrderApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(responseLanguagePreferenceOrderCreate);
+      const _type = FullType(ResponseLanguagePreferenceOrderCreate);
+      _bodyData = _serializers.serialize(responseLanguagePreferenceOrderCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +95,11 @@ class ResponseResponseLanguagePreferenceOrderApi {
     ResponseLanguagePreferenceOrderOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceOrderOut, ResponseLanguagePreferenceOrderOut>(rawData, 'ResponseLanguagePreferenceOrderOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ResponseLanguagePreferenceOrderOut),
+      ) as ResponseLanguagePreferenceOrderOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -139,7 +146,7 @@ _responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceO
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/response_response_language_preference_order/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_config/response_response_language_preference_order/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -168,8 +175,11 @@ _responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceO
     ResponseLanguagePreferenceOrderOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceOrderOut, ResponseLanguagePreferenceOrderOut>(rawData, 'ResponseLanguagePreferenceOrderOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ResponseLanguagePreferenceOrderOut),
+      ) as ResponseLanguagePreferenceOrderOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -211,9 +221,9 @@ _responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceO
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<ResponseLanguagePreferenceOrderOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<ResponseLanguagePreferenceOrderOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<ResponseLanguagePreferenceOrderOut>>> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet({ 
+  Future<Response<BuiltList<ResponseLanguagePreferenceOrderOut>>> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet({ 
     String? id,
     String? name,
     int? percentageTranslated,
@@ -247,13 +257,13 @@ _responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceO
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (name != null) r'name': name,
-      if (percentageTranslated != null) r'percentage_translated': percentageTranslated,
-      if (verifiedTranslation != null) r'verified_translation': verifiedTranslation,
-      if (automaticTranslation != null) r'automatic_translation': automaticTranslation,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (name != null) r'name': encodeQueryParameter(_serializers, name, const FullType(String)),
+      if (percentageTranslated != null) r'percentage_translated': encodeQueryParameter(_serializers, percentageTranslated, const FullType(int)),
+      if (verifiedTranslation != null) r'verified_translation': encodeQueryParameter(_serializers, verifiedTranslation, const FullType(bool)),
+      if (automaticTranslation != null) r'automatic_translation': encodeQueryParameter(_serializers, automaticTranslation, const FullType(bool)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -265,11 +275,14 @@ _responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceO
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<ResponseLanguagePreferenceOrderOut>? _responseData;
+    BuiltList<ResponseLanguagePreferenceOrderOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<ResponseLanguagePreferenceOrderOut>, ResponseLanguagePreferenceOrderOut>(rawData, 'List<ResponseLanguagePreferenceOrderOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(ResponseLanguagePreferenceOrderOut)]),
+      ) as BuiltList<ResponseLanguagePreferenceOrderOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -281,7 +294,7 @@ _responseData = rawData == null ? null : deserialize<List<ResponseLanguagePrefer
       );
     }
 
-    return Response<List<ResponseLanguagePreferenceOrderOut>>(
+    return Response<BuiltList<ResponseLanguagePreferenceOrderOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -316,7 +329,7 @@ _responseData = rawData == null ? null : deserialize<List<ResponseLanguagePrefer
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/response_response_language_preference_order/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_config/response_response_language_preference_order/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -345,8 +358,8 @@ _responseData = rawData == null ? null : deserialize<List<ResponseLanguagePrefer
     bool? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<bool, bool>(rawData, 'bool', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : rawResponse as bool;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -395,7 +408,7 @@ _responseData = rawData == null ? null : deserialize<bool, bool>(rawData, 'bool'
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/response_response_language_preference_order/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_config/response_response_language_preference_order/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -417,7 +430,8 @@ _responseData = rawData == null ? null : deserialize<bool, bool>(rawData, 'bool'
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(responseLanguagePreferenceOrderUpdate);
+      const _type = FullType(ResponseLanguagePreferenceOrderUpdate);
+      _bodyData = _serializers.serialize(responseLanguagePreferenceOrderUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -443,8 +457,11 @@ _responseData = rawData == null ? null : deserialize<bool, bool>(rawData, 'bool'
     ResponseLanguagePreferenceOrderOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<ResponseLanguagePreferenceOrderOut, ResponseLanguagePreferenceOrderOut>(rawData, 'ResponseLanguagePreferenceOrderOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ResponseLanguagePreferenceOrderOut),
+      ) as ResponseLanguagePreferenceOrderOut;
 
     } catch (error, stackTrace) {
       throw DioException(

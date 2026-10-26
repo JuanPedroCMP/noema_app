@@ -23,7 +23,7 @@ void main() {
 
     // List Response Language Preference Orders
     //
-    //Future<List<ResponseLanguagePreferenceOrderOut>> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet({ String id, String name, int percentageTranslated, bool verifiedTranslation, bool automaticTranslation, DateTime createdAt, DateTime updatedAt }) async
+    //Future<BuiltList<ResponseLanguagePreferenceOrderOut>> listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet({ String id, String name, int percentageTranslated, bool verifiedTranslation, bool automaticTranslation, DateTime createdAt, DateTime updatedAt }) async
     test('test listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet', () async {
       // TODO
     });

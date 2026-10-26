@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserTypographyThemeOut
 void main() {
-  final UserTypographyThemeOut? instance = /* UserTypographyThemeOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserTypographyThemeOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserTypographyThemeOut, () {
     // String id
@@ -37,7 +37,7 @@ void main() {
       // TODO
     });
 
-    // Map<String, Object> overrideJson
+    // BuiltMap<String, JsonObject> overrideJson
     test('to test the property `overrideJson`', () async {
       // TODO
     });

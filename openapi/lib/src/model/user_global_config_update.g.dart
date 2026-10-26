@@ -3,153 +3,144 @@
 part of 'user_global_config_update.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$UserGlobalConfigUpdateCWProxy {
-  UserGlobalConfigUpdate idUser(String? idUser);
+class _$UserGlobalConfigUpdate extends UserGlobalConfigUpdate {
+  @override
+  final String? idUser;
+  @override
+  final String? idLanguage;
+  @override
+  final String? idUserColorTheme;
+  @override
+  final String? idUserTypographyTheme;
+  @override
+  final String? preferences;
 
-  UserGlobalConfigUpdate idLanguage(String? idLanguage);
+  factory _$UserGlobalConfigUpdate(
+          [void Function(UserGlobalConfigUpdateBuilder)? updates]) =>
+      (UserGlobalConfigUpdateBuilder()..update(updates))._build();
 
-  UserGlobalConfigUpdate idUserColorTheme(String? idUserColorTheme);
-
-  UserGlobalConfigUpdate idUserTypographyTheme(String? idUserTypographyTheme);
-
-  UserGlobalConfigUpdate preferences(String? preferences);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserGlobalConfigUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserGlobalConfigUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  UserGlobalConfigUpdate call({
-    String? idUser,
-    String? idLanguage,
-    String? idUserColorTheme,
-    String? idUserTypographyTheme,
-    String? preferences,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfUserGlobalConfigUpdate.copyWith(...)` or call `instanceOfUserGlobalConfigUpdate.copyWith.fieldName(value)` for a single field.
-class _$UserGlobalConfigUpdateCWProxyImpl
-    implements _$UserGlobalConfigUpdateCWProxy {
-  const _$UserGlobalConfigUpdateCWProxyImpl(this._value);
-
-  final UserGlobalConfigUpdate _value;
+  _$UserGlobalConfigUpdate._(
+      {this.idUser,
+      this.idLanguage,
+      this.idUserColorTheme,
+      this.idUserTypographyTheme,
+      this.preferences})
+      : super._();
+  @override
+  UserGlobalConfigUpdate rebuild(
+          void Function(UserGlobalConfigUpdateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  UserGlobalConfigUpdate idUser(String? idUser) => call(idUser: idUser);
+  UserGlobalConfigUpdateBuilder toBuilder() =>
+      UserGlobalConfigUpdateBuilder()..replace(this);
 
   @override
-  UserGlobalConfigUpdate idLanguage(String? idLanguage) =>
-      call(idLanguage: idLanguage);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is UserGlobalConfigUpdate &&
+        idUser == other.idUser &&
+        idLanguage == other.idLanguage &&
+        idUserColorTheme == other.idUserColorTheme &&
+        idUserTypographyTheme == other.idUserTypographyTheme &&
+        preferences == other.preferences;
+  }
 
   @override
-  UserGlobalConfigUpdate idUserColorTheme(String? idUserColorTheme) =>
-      call(idUserColorTheme: idUserColorTheme);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, idLanguage.hashCode);
+    _$hash = $jc(_$hash, idUserColorTheme.hashCode);
+    _$hash = $jc(_$hash, idUserTypographyTheme.hashCode);
+    _$hash = $jc(_$hash, preferences.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  UserGlobalConfigUpdate idUserTypographyTheme(String? idUserTypographyTheme) =>
-      call(idUserTypographyTheme: idUserTypographyTheme);
-
-  @override
-  UserGlobalConfigUpdate preferences(String? preferences) =>
-      call(preferences: preferences);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserGlobalConfigUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserGlobalConfigUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  UserGlobalConfigUpdate call({
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? idLanguage = const $CopyWithPlaceholder(),
-    Object? idUserColorTheme = const $CopyWithPlaceholder(),
-    Object? idUserTypographyTheme = const $CopyWithPlaceholder(),
-    Object? preferences = const $CopyWithPlaceholder(),
-  }) {
-    return UserGlobalConfigUpdate(
-      idUser: idUser == const $CopyWithPlaceholder()
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String?,
-      idLanguage: idLanguage == const $CopyWithPlaceholder()
-          ? _value.idLanguage
-          // ignore: cast_nullable_to_non_nullable
-          : idLanguage as String?,
-      idUserColorTheme: idUserColorTheme == const $CopyWithPlaceholder()
-          ? _value.idUserColorTheme
-          // ignore: cast_nullable_to_non_nullable
-          : idUserColorTheme as String?,
-      idUserTypographyTheme:
-          idUserTypographyTheme == const $CopyWithPlaceholder()
-          ? _value.idUserTypographyTheme
-          // ignore: cast_nullable_to_non_nullable
-          : idUserTypographyTheme as String?,
-      preferences: preferences == const $CopyWithPlaceholder()
-          ? _value.preferences
-          // ignore: cast_nullable_to_non_nullable
-          : preferences as String?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'UserGlobalConfigUpdate')
+          ..add('idUser', idUser)
+          ..add('idLanguage', idLanguage)
+          ..add('idUserColorTheme', idUserColorTheme)
+          ..add('idUserTypographyTheme', idUserTypographyTheme)
+          ..add('preferences', preferences))
+        .toString();
   }
 }
 
-extension $UserGlobalConfigUpdateCopyWith on UserGlobalConfigUpdate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfUserGlobalConfigUpdate.copyWith(...)` or `instanceOfUserGlobalConfigUpdate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$UserGlobalConfigUpdateCWProxy get copyWith =>
-      _$UserGlobalConfigUpdateCWProxyImpl(this);
+class UserGlobalConfigUpdateBuilder
+    implements Builder<UserGlobalConfigUpdate, UserGlobalConfigUpdateBuilder> {
+  _$UserGlobalConfigUpdate? _$v;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _idLanguage;
+  String? get idLanguage => _$this._idLanguage;
+  set idLanguage(String? idLanguage) => _$this._idLanguage = idLanguage;
+
+  String? _idUserColorTheme;
+  String? get idUserColorTheme => _$this._idUserColorTheme;
+  set idUserColorTheme(String? idUserColorTheme) =>
+      _$this._idUserColorTheme = idUserColorTheme;
+
+  String? _idUserTypographyTheme;
+  String? get idUserTypographyTheme => _$this._idUserTypographyTheme;
+  set idUserTypographyTheme(String? idUserTypographyTheme) =>
+      _$this._idUserTypographyTheme = idUserTypographyTheme;
+
+  String? _preferences;
+  String? get preferences => _$this._preferences;
+  set preferences(String? preferences) => _$this._preferences = preferences;
+
+  UserGlobalConfigUpdateBuilder() {
+    UserGlobalConfigUpdate._defaults(this);
+  }
+
+  UserGlobalConfigUpdateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _idUser = $v.idUser;
+      _idLanguage = $v.idLanguage;
+      _idUserColorTheme = $v.idUserColorTheme;
+      _idUserTypographyTheme = $v.idUserTypographyTheme;
+      _preferences = $v.preferences;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(UserGlobalConfigUpdate other) {
+    _$v = other as _$UserGlobalConfigUpdate;
+  }
+
+  @override
+  void update(void Function(UserGlobalConfigUpdateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  UserGlobalConfigUpdate build() => _build();
+
+  _$UserGlobalConfigUpdate _build() {
+    final _$result = _$v ??
+        _$UserGlobalConfigUpdate._(
+          idUser: idUser,
+          idLanguage: idLanguage,
+          idUserColorTheme: idUserColorTheme,
+          idUserTypographyTheme: idUserTypographyTheme,
+          preferences: preferences,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-UserGlobalConfigUpdate _$UserGlobalConfigUpdateFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate(
-  'UserGlobalConfigUpdate',
-  json,
-  ($checkedConvert) {
-    final val = UserGlobalConfigUpdate(
-      idUser: $checkedConvert('id_user', (v) => v as String?),
-      idLanguage: $checkedConvert('id_language', (v) => v as String?),
-      idUserColorTheme: $checkedConvert(
-        'id_user_color_theme',
-        (v) => v as String?,
-      ),
-      idUserTypographyTheme: $checkedConvert(
-        'id_user_typography_theme',
-        (v) => v as String?,
-      ),
-      preferences: $checkedConvert('preferences', (v) => v as String?),
-    );
-    return val;
-  },
-  fieldKeyMap: const {
-    'idUser': 'id_user',
-    'idLanguage': 'id_language',
-    'idUserColorTheme': 'id_user_color_theme',
-    'idUserTypographyTheme': 'id_user_typography_theme',
-  },
-);
-
-Map<String, dynamic> _$UserGlobalConfigUpdateToJson(
-  UserGlobalConfigUpdate instance,
-) => <String, dynamic>{
-  'id_user': ?instance.idUser,
-  'id_language': ?instance.idLanguage,
-  'id_user_color_theme': ?instance.idUserColorTheme,
-  'id_user_typography_theme': ?instance.idUserTypographyTheme,
-  'preferences': ?instance.preferences,
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

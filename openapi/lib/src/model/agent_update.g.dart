@@ -3,141 +3,124 @@
 part of 'agent_update.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$AgentUpdateCWProxy {
-  AgentUpdate alias(String? alias);
+class _$AgentUpdate extends AgentUpdate {
+  @override
+  final String? alias;
+  @override
+  final TaskType? task;
+  @override
+  final String? baseSystemPrompt;
+  @override
+  final num? temperature;
 
-  AgentUpdate task(TaskType? task);
+  factory _$AgentUpdate([void Function(AgentUpdateBuilder)? updates]) =>
+      (AgentUpdateBuilder()..update(updates))._build();
 
-  AgentUpdate baseSystemPrompt(String? baseSystemPrompt);
-
-  AgentUpdate temperature(num? temperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  AgentUpdate call({
-    String? alias,
-    TaskType? task,
-    String? baseSystemPrompt,
-    num? temperature,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfAgentUpdate.copyWith(...)` or call `instanceOfAgentUpdate.copyWith.fieldName(value)` for a single field.
-class _$AgentUpdateCWProxyImpl implements _$AgentUpdateCWProxy {
-  const _$AgentUpdateCWProxyImpl(this._value);
-
-  final AgentUpdate _value;
+  _$AgentUpdate._(
+      {this.alias, this.task, this.baseSystemPrompt, this.temperature})
+      : super._();
+  @override
+  AgentUpdate rebuild(void Function(AgentUpdateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  AgentUpdate alias(String? alias) => call(alias: alias);
+  AgentUpdateBuilder toBuilder() => AgentUpdateBuilder()..replace(this);
 
   @override
-  AgentUpdate task(TaskType? task) => call(task: task);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is AgentUpdate &&
+        alias == other.alias &&
+        task == other.task &&
+        baseSystemPrompt == other.baseSystemPrompt &&
+        temperature == other.temperature;
+  }
 
   @override
-  AgentUpdate baseSystemPrompt(String? baseSystemPrompt) =>
-      call(baseSystemPrompt: baseSystemPrompt);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, alias.hashCode);
+    _$hash = $jc(_$hash, task.hashCode);
+    _$hash = $jc(_$hash, baseSystemPrompt.hashCode);
+    _$hash = $jc(_$hash, temperature.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  AgentUpdate temperature(num? temperature) => call(temperature: temperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  AgentUpdate call({
-    Object? alias = const $CopyWithPlaceholder(),
-    Object? task = const $CopyWithPlaceholder(),
-    Object? baseSystemPrompt = const $CopyWithPlaceholder(),
-    Object? temperature = const $CopyWithPlaceholder(),
-  }) {
-    return AgentUpdate(
-      alias: alias == const $CopyWithPlaceholder()
-          ? _value.alias
-          // ignore: cast_nullable_to_non_nullable
-          : alias as String?,
-      task: task == const $CopyWithPlaceholder()
-          ? _value.task
-          // ignore: cast_nullable_to_non_nullable
-          : task as TaskType?,
-      baseSystemPrompt: baseSystemPrompt == const $CopyWithPlaceholder()
-          ? _value.baseSystemPrompt
-          // ignore: cast_nullable_to_non_nullable
-          : baseSystemPrompt as String?,
-      temperature: temperature == const $CopyWithPlaceholder()
-          ? _value.temperature
-          // ignore: cast_nullable_to_non_nullable
-          : temperature as num?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'AgentUpdate')
+          ..add('alias', alias)
+          ..add('task', task)
+          ..add('baseSystemPrompt', baseSystemPrompt)
+          ..add('temperature', temperature))
+        .toString();
   }
 }
 
-extension $AgentUpdateCopyWith on AgentUpdate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfAgentUpdate.copyWith(...)` or `instanceOfAgentUpdate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$AgentUpdateCWProxy get copyWith => _$AgentUpdateCWProxyImpl(this);
+class AgentUpdateBuilder implements Builder<AgentUpdate, AgentUpdateBuilder> {
+  _$AgentUpdate? _$v;
+
+  String? _alias;
+  String? get alias => _$this._alias;
+  set alias(String? alias) => _$this._alias = alias;
+
+  TaskType? _task;
+  TaskType? get task => _$this._task;
+  set task(TaskType? task) => _$this._task = task;
+
+  String? _baseSystemPrompt;
+  String? get baseSystemPrompt => _$this._baseSystemPrompt;
+  set baseSystemPrompt(String? baseSystemPrompt) =>
+      _$this._baseSystemPrompt = baseSystemPrompt;
+
+  num? _temperature;
+  num? get temperature => _$this._temperature;
+  set temperature(num? temperature) => _$this._temperature = temperature;
+
+  AgentUpdateBuilder() {
+    AgentUpdate._defaults(this);
+  }
+
+  AgentUpdateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _alias = $v.alias;
+      _task = $v.task;
+      _baseSystemPrompt = $v.baseSystemPrompt;
+      _temperature = $v.temperature;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(AgentUpdate other) {
+    _$v = other as _$AgentUpdate;
+  }
+
+  @override
+  void update(void Function(AgentUpdateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  AgentUpdate build() => _build();
+
+  _$AgentUpdate _build() {
+    final _$result = _$v ??
+        _$AgentUpdate._(
+          alias: alias,
+          task: task,
+          baseSystemPrompt: baseSystemPrompt,
+          temperature: temperature,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-AgentUpdate _$AgentUpdateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('AgentUpdate', json, ($checkedConvert) {
-      final val = AgentUpdate(
-        alias: $checkedConvert('alias', (v) => v as String?),
-        task: $checkedConvert(
-          'task',
-          (v) => $enumDecodeNullable(_$TaskTypeEnumMap, v),
-        ),
-        baseSystemPrompt: $checkedConvert(
-          'base_system_prompt',
-          (v) => v as String?,
-        ),
-        temperature: $checkedConvert('temperature', (v) => v as num?),
-      );
-      return val;
-    }, fieldKeyMap: const {'baseSystemPrompt': 'base_system_prompt'});
-
-Map<String, dynamic> _$AgentUpdateToJson(AgentUpdate instance) =>
-    <String, dynamic>{
-      'alias': ?instance.alias,
-      'task': ?_$TaskTypeEnumMap[instance.task],
-      'base_system_prompt': ?instance.baseSystemPrompt,
-      'temperature': ?instance.temperature,
-    };
-
-const _$TaskTypeEnumMap = {
-  TaskType.manipulateGraph: 'manipulate_graph',
-  TaskType.manipulateNode: 'manipulate_node',
-  TaskType.createStudySession: 'create_study_session',
-  TaskType.evaluateEssayQuestion: 'evaluate_essay_question',
-  TaskType.createEssayQuestion: 'create_essay_question',
-  TaskType.createMultipleChoiceQuestion: 'create_multiple_choice_question',
-  TaskType.evaluateMultipleChoiceQuestion: 'evaluate_multiple_choice_question',
-  TaskType.createFeynman: 'create_feynman',
-  TaskType.evaluateFeynman: 'evaluate_feynman ',
-  TaskType.recommendStudyResource: 'recommend_study_resource',
-  TaskType.studyManager: 'study_manager',
-  TaskType.studyAssistent: 'study_assistent',
-  TaskType.createFlashcardGroup: 'create_flashcard_group',
-  TaskType.manipulateFlashcardGroup: 'manipulate_flashcard_group',
-  TaskType.createFlashcard: 'create_flashcard',
-  TaskType.createFlashcardS: 'create_flashcardS',
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

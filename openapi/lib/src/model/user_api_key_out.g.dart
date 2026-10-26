@@ -3,185 +3,167 @@
 part of 'user_api_key_out.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$UserApiKeyOutCWProxy {
-  UserApiKeyOut id(String id);
+class _$UserApiKeyOut extends UserApiKeyOut {
+  @override
+  final String id;
+  @override
+  final String idAiProvider;
+  @override
+  final String idUser;
+  @override
+  final String name;
+  @override
+  final bool isActive;
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
 
-  UserApiKeyOut idAiProvider(String idAiProvider);
+  factory _$UserApiKeyOut([void Function(UserApiKeyOutBuilder)? updates]) =>
+      (UserApiKeyOutBuilder()..update(updates))._build();
 
-  UserApiKeyOut idUser(String idUser);
-
-  UserApiKeyOut name(String name);
-
-  UserApiKeyOut isActive(bool isActive);
-
-  UserApiKeyOut createdAt(DateTime? createdAt);
-
-  UserApiKeyOut updatedAt(DateTime? updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserApiKeyOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserApiKeyOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  UserApiKeyOut call({
-    String id,
-    String idAiProvider,
-    String idUser,
-    String name,
-    bool isActive,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfUserApiKeyOut.copyWith(...)` or call `instanceOfUserApiKeyOut.copyWith.fieldName(value)` for a single field.
-class _$UserApiKeyOutCWProxyImpl implements _$UserApiKeyOutCWProxy {
-  const _$UserApiKeyOutCWProxyImpl(this._value);
-
-  final UserApiKeyOut _value;
+  _$UserApiKeyOut._(
+      {required this.id,
+      required this.idAiProvider,
+      required this.idUser,
+      required this.name,
+      required this.isActive,
+      this.createdAt,
+      this.updatedAt})
+      : super._();
+  @override
+  UserApiKeyOut rebuild(void Function(UserApiKeyOutBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  UserApiKeyOut id(String id) => call(id: id);
+  UserApiKeyOutBuilder toBuilder() => UserApiKeyOutBuilder()..replace(this);
 
   @override
-  UserApiKeyOut idAiProvider(String idAiProvider) =>
-      call(idAiProvider: idAiProvider);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is UserApiKeyOut &&
+        id == other.id &&
+        idAiProvider == other.idAiProvider &&
+        idUser == other.idUser &&
+        name == other.name &&
+        isActive == other.isActive &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt;
+  }
 
   @override
-  UserApiKeyOut idUser(String idUser) => call(idUser: idUser);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, idAiProvider.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, isActive.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  UserApiKeyOut name(String name) => call(name: name);
-
-  @override
-  UserApiKeyOut isActive(bool isActive) => call(isActive: isActive);
-
-  @override
-  UserApiKeyOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
-
-  @override
-  UserApiKeyOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserApiKeyOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserApiKeyOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  UserApiKeyOut call({
-    Object? id = const $CopyWithPlaceholder(),
-    Object? idAiProvider = const $CopyWithPlaceholder(),
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? name = const $CopyWithPlaceholder(),
-    Object? isActive = const $CopyWithPlaceholder(),
-    Object? createdAt = const $CopyWithPlaceholder(),
-    Object? updatedAt = const $CopyWithPlaceholder(),
-  }) {
-    return UserApiKeyOut(
-      id: id == const $CopyWithPlaceholder() || id == null
-          ? _value.id
-          // ignore: cast_nullable_to_non_nullable
-          : id as String,
-      idAiProvider:
-          idAiProvider == const $CopyWithPlaceholder() || idAiProvider == null
-          ? _value.idAiProvider
-          // ignore: cast_nullable_to_non_nullable
-          : idAiProvider as String,
-      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String,
-      name: name == const $CopyWithPlaceholder() || name == null
-          ? _value.name
-          // ignore: cast_nullable_to_non_nullable
-          : name as String,
-      isActive: isActive == const $CopyWithPlaceholder() || isActive == null
-          ? _value.isActive
-          // ignore: cast_nullable_to_non_nullable
-          : isActive as bool,
-      createdAt: createdAt == const $CopyWithPlaceholder()
-          ? _value.createdAt
-          // ignore: cast_nullable_to_non_nullable
-          : createdAt as DateTime?,
-      updatedAt: updatedAt == const $CopyWithPlaceholder()
-          ? _value.updatedAt
-          // ignore: cast_nullable_to_non_nullable
-          : updatedAt as DateTime?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'UserApiKeyOut')
+          ..add('id', id)
+          ..add('idAiProvider', idAiProvider)
+          ..add('idUser', idUser)
+          ..add('name', name)
+          ..add('isActive', isActive)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt))
+        .toString();
   }
 }
 
-extension $UserApiKeyOutCopyWith on UserApiKeyOut {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfUserApiKeyOut.copyWith(...)` or `instanceOfUserApiKeyOut.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$UserApiKeyOutCWProxy get copyWith => _$UserApiKeyOutCWProxyImpl(this);
+class UserApiKeyOutBuilder
+    implements Builder<UserApiKeyOut, UserApiKeyOutBuilder> {
+  _$UserApiKeyOut? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _idAiProvider;
+  String? get idAiProvider => _$this._idAiProvider;
+  set idAiProvider(String? idAiProvider) => _$this._idAiProvider = idAiProvider;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
+
+  bool? _isActive;
+  bool? get isActive => _$this._isActive;
+  set isActive(bool? isActive) => _$this._isActive = isActive;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  DateTime? _updatedAt;
+  DateTime? get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
+
+  UserApiKeyOutBuilder() {
+    UserApiKeyOut._defaults(this);
+  }
+
+  UserApiKeyOutBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _idAiProvider = $v.idAiProvider;
+      _idUser = $v.idUser;
+      _name = $v.name;
+      _isActive = $v.isActive;
+      _createdAt = $v.createdAt;
+      _updatedAt = $v.updatedAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(UserApiKeyOut other) {
+    _$v = other as _$UserApiKeyOut;
+  }
+
+  @override
+  void update(void Function(UserApiKeyOutBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  UserApiKeyOut build() => _build();
+
+  _$UserApiKeyOut _build() {
+    final _$result = _$v ??
+        _$UserApiKeyOut._(
+          id: BuiltValueNullFieldError.checkNotNull(id, r'UserApiKeyOut', 'id'),
+          idAiProvider: BuiltValueNullFieldError.checkNotNull(
+              idAiProvider, r'UserApiKeyOut', 'idAiProvider'),
+          idUser: BuiltValueNullFieldError.checkNotNull(
+              idUser, r'UserApiKeyOut', 'idUser'),
+          name: BuiltValueNullFieldError.checkNotNull(
+              name, r'UserApiKeyOut', 'name'),
+          isActive: BuiltValueNullFieldError.checkNotNull(
+              isActive, r'UserApiKeyOut', 'isActive'),
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-UserApiKeyOut _$UserApiKeyOutFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'UserApiKeyOut',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const [
-            'id',
-            'id_ai_provider',
-            'id_user',
-            'name',
-            'is_active',
-            'created_at',
-            'updated_at',
-          ],
-        );
-        final val = UserApiKeyOut(
-          id: $checkedConvert('id', (v) => v as String),
-          idAiProvider: $checkedConvert('id_ai_provider', (v) => v as String),
-          idUser: $checkedConvert('id_user', (v) => v as String),
-          name: $checkedConvert('name', (v) => v as String),
-          isActive: $checkedConvert('is_active', (v) => v as bool),
-          createdAt: $checkedConvert(
-            'created_at',
-            (v) => v == null ? null : DateTime.parse(v as String),
-          ),
-          updatedAt: $checkedConvert(
-            'updated_at',
-            (v) => v == null ? null : DateTime.parse(v as String),
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'idAiProvider': 'id_ai_provider',
-        'idUser': 'id_user',
-        'isActive': 'is_active',
-        'createdAt': 'created_at',
-        'updatedAt': 'updated_at',
-      },
-    );
-
-Map<String, dynamic> _$UserApiKeyOutToJson(UserApiKeyOut instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'id_ai_provider': instance.idAiProvider,
-      'id_user': instance.idUser,
-      'name': instance.name,
-      'is_active': instance.isActive,
-      'created_at': instance.createdAt?.toIso8601String(),
-      'updated_at': instance.updatedAt?.toIso8601String(),
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

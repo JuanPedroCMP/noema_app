@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ResponseLanguagePreferenceOrderOut
 void main() {
-  final ResponseLanguagePreferenceOrderOut? instance = /* ResponseLanguagePreferenceOrderOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = ResponseLanguagePreferenceOrderOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(ResponseLanguagePreferenceOrderOut, () {
     // String id

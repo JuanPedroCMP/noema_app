@@ -6,7 +6,8 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
-import 'package:noema/shared/floating_card/floating_card.dart';
+
+enum _ExerciseFilter { all, openEnded, multipleChoice }
 
 class ExercicesList extends ConsumerStatefulWidget {
   const ExercicesList({super.key, required this.nodeId});
@@ -22,6 +23,8 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   List<MultipleChoiceData> _multipleChoices = [];
   bool _isLoading = true;
   String? _error;
+  String _search = '';
+  _ExerciseFilter _filter = _ExerciseFilter.all;
 
   @override
   void initState() {
@@ -31,36 +34,158 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
 
   Future<void> carregar() async {
     if (mounted) setState(() => _isLoading = true);
-    final db = ref.read(appDatabaseProvider);
-
-    final openEndedDao = OpenEndedDao(db);
-    final multipleChoiceDao = MultipleChoiceDao(db);
 
     try {
+      final db = ref.read(appDatabaseProvider);
       final results = await Future.wait([
-        openEndedDao.getOpenEndedsByNode(nodeId: widget.nodeId),
-        multipleChoiceDao.getMultipleChoicesByNode(nodeId: widget.nodeId),
+        OpenEndedDao(db).getOpenEndedsByNode(nodeId: widget.nodeId),
+        MultipleChoiceDao(db).getMultipleChoicesByNode(nodeId: widget.nodeId),
       ]);
-
-      final openEndeds = results[0] as List<OpenEndedData>;
-      final multipleChoices = results[1] as List<MultipleChoiceData>;
-
       if (!mounted) return;
 
       setState(() {
-        _openEndeds = openEndeds;
-        _multipleChoices = multipleChoices;
+        _openEndeds = results[0] as List<OpenEndedData>;
+        _multipleChoices = results[1] as List<MultipleChoiceData>;
         _isLoading = false;
         _error = null;
       });
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _error = "Não foi possível carregar as questões.";
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = 'Não foi possível carregar as questões.';
+      });
     }
+  }
+
+  Future<void> _navigate(String path) async {
+    await context.push(path);
+    if (mounted) await carregar();
+  }
+
+  Future<void> _deleteExercise({
+    required String id,
+    required String title,
+    required bool isOpenEnded,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir questão?'),
+        content: Text('“$title” será removida desta lista.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final db = ref.read(appDatabaseProvider);
+      if (isOpenEnded) {
+        await OpenEndedDao(db).deleteOpenEnded(id: id);
+      } else {
+        await MultipleChoiceDao(db).deleteMultipleChoice(id: id);
+      }
+      if (mounted) await carregar();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível excluir a questão.')),
+      );
+    }
+  }
+
+  Widget _exerciseCard({
+    required String id,
+    required String title,
+    required String statement,
+    required bool isOpenEnded,
+    required String currentUri,
+  }) {
+    final typeLabel = isOpenEnded ? 'Questão aberta' : 'Múltipla escolha';
+    final route = isOpenEnded ? 'open-ended' : 'multiple-choice';
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.titleMedium,
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Mais opções',
+                  onSelected: (action) {
+                    if (action == 'edit') {
+                      _navigate('$currentUri/$route/$id/edit');
+                    } else if (action == 'delete') {
+                      _deleteExercise(
+                        id: id,
+                        title: title,
+                        isOpenEnded: isOpenEnded,
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Editar')),
+                    PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                  ],
+                ),
+              ],
+            ),
+            Chip(
+              avatar: Icon(
+                isOpenEnded ? Icons.edit_note_rounded : Icons.checklist_rounded,
+                size: 18,
+              ),
+              label: Text(typeLabel),
+              visualDensity: VisualDensity.compact,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              statement,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _navigate('$currentUri/$route/$id/view'),
+                  icon: const Icon(Icons.visibility_outlined),
+                  label: const Text('Visualizar'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => _navigate('$currentUri/$route/$id/answer'),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: const Text('Responder'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -70,215 +195,165 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     }
     if (_error != null) {
       return Center(
-        child: FilledButton.icon(
-          onPressed: carregar,
-          icon: const Icon(Icons.refresh),
-          label: Text(_error!),
-        ),
-      );
-    }
-    final String currentUri = GoRouterState.of(context).uri.toString();
-
-    final openEndedMap = _openEndeds.map((openEnded) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "ID: ${openEnded.id}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text("Título: ${openEnded.title}"),
-              const SizedBox(height: 8),
-              Text("Descrição: ${openEnded.statement}"),
-              Wrap(
-                spacing: context.spacing.md,
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/open-ended/${openEnded.id}/view",
-                      );
-                    },
-                    child: Text("Visualizar"),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/open-ended/${openEnded.id}/edit",
-                      );
-                    },
-                    child: Text("Editar"),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/open-ended/${openEnded.id}/answer",
-                      );
-                    },
-                    child: Text("Realizar"),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }).toList();
-
-    final multipleChoiseMap = _multipleChoices.map((multipleChoise) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "ID: ${multipleChoise.id}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text("Título: ${multipleChoise.title}"),
-              const SizedBox(height: 8),
-              Text("Descrição: ${multipleChoise.statement}"),
-              Wrap(
-                spacing: context.spacing.md,
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/multiple-choice/${multipleChoise.id}/view",
-                      );
-                    },
-                    child: Text("Visualizar"),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/multiple-choice/${multipleChoise.id}/edit",
-                      );
-                    },
-                    child: Text("Editar"),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      context.push(
-                        "$currentUri/multiple-choice/${multipleChoise.id}/answer",
-                      );
-                    },
-                    child: Text("Realizar"),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }).toList();
-
-    if (_openEndeds.isEmpty && _multipleChoices.isEmpty) {
-      return Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Nenhuma questão encontrada, Crie sua primeira questão!"),
-            Align(
-              alignment: Alignment.center,
-              child: FloatingCard(
-                width: 500,
-                height: 250,
-                child: SingleChildScrollView(
-                  child: Column(
-                    spacing: context.spacing.md,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Wrap(
-                        spacing: context.spacing.md,
-                        children: [
-                          OutlinedButton(
-                            onPressed: () {
-                              context.push(
-                                "$currentUri/open-ended/create",
-                              );
-                            },
-                            child: Row(children: [Text("Criar questão Vazia")]),
-                          ),
-                          OutlinedButton(
-                            onPressed: () {},
-                            child: Row(
-                              children: [Text("Gerar Questão Com IA")],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            const Icon(Icons.cloud_off_outlined, size: 40),
+            const SizedBox(height: 12),
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: carregar,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Tentar novamente'),
             ),
           ],
         ),
       );
     }
 
-    return Align(
-      alignment: Alignment.center,
+    final currentUri = GoRouterState.of(context).uri.path;
+    final query = _search.trim().toLowerCase();
+    final openEnded = _openEndeds.where((exercise) {
+      return _filter != _ExerciseFilter.multipleChoice &&
+          '${exercise.title} ${exercise.statement}'.toLowerCase().contains(
+            query,
+          );
+    }).toList();
+    final multipleChoice = _multipleChoices.where((exercise) {
+      return _filter != _ExerciseFilter.openEnded &&
+          '${exercise.title} ${exercise.statement}'.toLowerCase().contains(
+            query,
+          );
+    }).toList();
+    final total = _openEndeds.length + _multipleChoices.length;
+    final hasResults = openEnded.isNotEmpty || multipleChoice.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: context.spacing.md,
+          Row(
             children: [
-              OutlinedButton(
-                onPressed: () {
-                  context.push(
-                    "$currentUri/open-ended/create",
-                  );
-                },
-                child: Row(
-                  spacing: context.spacing.md,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Criar Nova questão"),
-                    Icon(Icons.add_rounded),
+                    Text('Questões', style: context.textTheme.headlineSmall),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$total ${total == 1 ? 'questão cadastrada' : 'questões cadastradas'}',
+                      style: context.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
-              OutlinedButton(
-                onPressed: () {
-                  context.push(
-                    "$currentUri/multiple-choice/create",
-                  );
-                },
-                child: Row(
-                  spacing: context.spacing.md,
-                  children: [
-                    Text("Criar Nova questão alternativa"),
-                    Icon(Icons.add_rounded),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: () {
-                  carregar();
-                },
-                child: Icon(Icons.replay_outlined),
+              IconButton(
+                tooltip: 'Atualizar lista',
+                onPressed: carregar,
+                icon: const Icon(Icons.refresh),
               ),
             ],
           ),
-          SizedBox(height: context.spacing.sm),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Wrap(
-                spacing: context.spacing.sm,
-                runSpacing: context.spacing.sm,
-                children: [...openEndedMap, ...multipleChoiseMap],
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: () => _navigate('$currentUri/open-ended/create'),
+                icon: const Icon(Icons.edit_note_rounded),
+                label: const Text('Questão aberta'),
               ),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _navigate('$currentUri/multiple-choice/create'),
+                icon: const Icon(Icons.checklist_rounded),
+                label: const Text('Múltipla escolha'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _navigate('$currentUri/responses'),
+                icon: const Icon(Icons.history_rounded),
+                label: const Text('Histórico'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            onChanged: (value) => setState(() => _search = value),
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Buscar por título ou enunciado',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final (filter, label) in [
+                (_ExerciseFilter.all, 'Todas'),
+                (_ExerciseFilter.openEnded, 'Abertas'),
+                (_ExerciseFilter.multipleChoice, 'Múltipla escolha'),
+              ])
+                ChoiceChip(
+                  label: Text(label),
+                  selected: _filter == filter,
+                  onSelected: (_) => setState(() => _filter = filter),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: carregar,
+              child: hasResults
+                  ? ListView(
+                      children: [
+                        for (final exercise in openEnded)
+                          _exerciseCard(
+                            id: exercise.id,
+                            title: exercise.title,
+                            statement: exercise.statement,
+                            isOpenEnded: true,
+                            currentUri: currentUri,
+                          ),
+                        for (final exercise in multipleChoice)
+                          _exerciseCard(
+                            id: exercise.id,
+                            title: exercise.title,
+                            statement: exercise.statement,
+                            isOpenEnded: false,
+                            currentUri: currentUri,
+                          ),
+                      ],
+                    )
+                  : ListView(
+                      children: [
+                        const SizedBox(height: 36),
+                        Icon(
+                          total == 0 ? Icons.quiz_outlined : Icons.search_off,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          total == 0
+                              ? 'Nenhuma questão por aqui ainda'
+                              : 'Nenhuma questão encontrada',
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          total == 0
+                              ? 'Crie uma questão para começar a estudar este tópico.'
+                              : 'Tente outro termo ou altere o filtro.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],

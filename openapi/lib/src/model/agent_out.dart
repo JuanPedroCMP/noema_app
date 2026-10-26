@@ -4,152 +4,205 @@
 
 // ignore_for_file: unused_element
 import 'package:openapi/src/model/task_type.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'agent_out.g.dart';
 
+/// AgentOut
+///
+/// Properties:
+/// * [id] 
+/// * [alias] 
+/// * [task] 
+/// * [baseSystemPrompt] 
+/// * [temperature] 
+/// * [createdAt] 
+/// * [updatedAt] 
+@BuiltValue()
+abstract class AgentOut implements Built<AgentOut, AgentOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class AgentOut {
-  /// Returns a new [AgentOut] instance.
-  AgentOut({
+  @BuiltValueField(wireName: r'alias')
+  String get alias;
 
-    required  this.id,
+  @BuiltValueField(wireName: r'task')
+  TaskType get task;
+  // enum taskEnum {  manipulate_graph,  manipulate_node,  create_study_session,  evaluate_essay_question,  create_essay_question,  create_multiple_choice_question,  evaluate_multiple_choice_question,  create_feynman,  evaluate_feynman ,  recommend_study_resource,  study_manager,  study_assistent,  create_flashcard_group,  manipulate_flashcard_group,  create_flashcard,  create_flashcardS,  };
 
-    required  this.alias,
+  @BuiltValueField(wireName: r'base_system_prompt')
+  String get baseSystemPrompt;
 
-    required  this.task,
+  @BuiltValueField(wireName: r'temperature')
+  num? get temperature;
 
-    required  this.baseSystemPrompt,
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
 
-    required  this.temperature,
+  @BuiltValueField(wireName: r'updated_at')
+  DateTime? get updatedAt;
 
-    required  this.createdAt,
+  AgentOut._();
 
-    required  this.updatedAt,
-  });
+  factory AgentOut([void updates(AgentOutBuilder b)]) = _$AgentOut;
 
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(AgentOutBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<AgentOut> get serializer => _$AgentOutSerializer();
+}
 
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'alias',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String alias;
-
-
-
-  @JsonKey(
-    
-    name: r'task',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final TaskType task;
-
-
-
-  @JsonKey(
-    
-    name: r'base_system_prompt',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String baseSystemPrompt;
-
-
-
-  @JsonKey(
-    
-    name: r'temperature',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final num? temperature;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-  @JsonKey(
-    
-    name: r'updated_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? updatedAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is AgentOut &&
-      other.id == id &&
-      other.alias == alias &&
-      other.task == task &&
-      other.baseSystemPrompt == baseSystemPrompt &&
-      other.temperature == temperature &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        alias.hashCode +
-        task.hashCode +
-        baseSystemPrompt.hashCode +
-        (temperature == null ? 0 : temperature.hashCode) +
-        (createdAt == null ? 0 : createdAt.hashCode) +
-        (updatedAt == null ? 0 : updatedAt.hashCode);
-
-  factory AgentOut.fromJson(Map<String, dynamic> json) => _$AgentOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AgentOutToJson(this);
+class _$AgentOutSerializer implements PrimitiveSerializer<AgentOut> {
+  @override
+  final Iterable<Type> types = const [AgentOut, _$AgentOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'AgentOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    AgentOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'alias';
+    yield serializers.serialize(
+      object.alias,
+      specifiedType: const FullType(String),
+    );
+    yield r'task';
+    yield serializers.serialize(
+      object.task,
+      specifiedType: const FullType(TaskType),
+    );
+    yield r'base_system_prompt';
+    yield serializers.serialize(
+      object.baseSystemPrompt,
+      specifiedType: const FullType(String),
+    );
+    yield r'temperature';
+    yield object.temperature == null ? null : serializers.serialize(
+      object.temperature,
+      specifiedType: const FullType.nullable(num),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'updated_at';
+    yield object.updatedAt == null ? null : serializers.serialize(
+      object.updatedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    AgentOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required AgentOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'alias':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.alias = valueDes;
+          break;
+        case r'task':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(TaskType),
+          ) as TaskType;
+          result.task = valueDes;
+          break;
+        case r'base_system_prompt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.baseSystemPrompt = valueDes;
+          break;
+        case r'temperature':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(num),
+          ) as num?;
+          if (valueDes == null) continue;
+          result.temperature = valueDes;
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        case r'updated_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.updatedAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  AgentOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = AgentOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

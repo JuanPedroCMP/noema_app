@@ -18,7 +18,7 @@ Method | HTTP request | Description
 
 
 # **getMaterialsApiV1AiRouterGetMaterialsPost**
-> Object getMaterialsApiV1AiRouterGetMaterialsPost(userPrompt, agentId, getVideos, getBooks, getPapers, getWeb)
+> JsonObject getMaterialsApiV1AiRouterGetMaterialsPost(userPrompt, agentId, getVideos, getBooks, getPapers, getWeb)
 
 Get Materials
 
@@ -57,7 +57,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -71,7 +71,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **use1AiApiV1AiRouterGetPapersPost**
-> Object use1AiApiV1AiRouterGetPapersPost(query)
+> JsonObject use1AiApiV1AiRouterGetPapersPost(query)
 
 Use1 Ai
 
@@ -100,7 +100,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -114,7 +114,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **use2AiApiV1AiRouterGetYtPost**
-> Object use2AiApiV1AiRouterGetYtPost(query)
+> JsonObject use2AiApiV1AiRouterGetYtPost(query)
 
 Use2 Ai
 
@@ -143,7 +143,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -157,7 +157,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **use3AiApiV1AiRouterGetBooksPost**
-> Object use3AiApiV1AiRouterGetBooksPost(query)
+> JsonObject use3AiApiV1AiRouterGetBooksPost(query)
 
 Use3 Ai
 
@@ -186,7 +186,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -200,7 +200,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **use4AiApiV1AiRouterGetPesquisaPost**
-> Object use4AiApiV1AiRouterGetPesquisaPost(query)
+> JsonObject use4AiApiV1AiRouterGetPesquisaPost(query)
 
 Use4 Ai
 
@@ -229,7 +229,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -243,7 +243,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **useAiApiV1AiRouterUseAiPost**
-> Object useAiApiV1AiRouterUseAiPost(userPrompt, agentId)
+> JsonObject useAiApiV1AiRouterUseAiPost(userPrompt, agentId)
 
 Use Ai
 
@@ -274,7 +274,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 

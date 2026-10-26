@@ -3,151 +3,134 @@
 part of 'language_create.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$LanguageCreateCWProxy {
-  LanguageCreate name(String name);
+class _$LanguageCreate extends LanguageCreate {
+  @override
+  final String name;
+  @override
+  final int percentageTranslated;
+  @override
+  final bool verifiedTranslation;
+  @override
+  final bool automaticTranslation;
 
-  LanguageCreate percentageTranslated(int percentageTranslated);
+  factory _$LanguageCreate([void Function(LanguageCreateBuilder)? updates]) =>
+      (LanguageCreateBuilder()..update(updates))._build();
 
-  LanguageCreate verifiedTranslation(bool verifiedTranslation);
-
-  LanguageCreate automaticTranslation(bool automaticTranslation);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `LanguageCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// LanguageCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  LanguageCreate call({
-    String name,
-    int percentageTranslated,
-    bool verifiedTranslation,
-    bool automaticTranslation,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfLanguageCreate.copyWith(...)` or call `instanceOfLanguageCreate.copyWith.fieldName(value)` for a single field.
-class _$LanguageCreateCWProxyImpl implements _$LanguageCreateCWProxy {
-  const _$LanguageCreateCWProxyImpl(this._value);
-
-  final LanguageCreate _value;
+  _$LanguageCreate._(
+      {required this.name,
+      required this.percentageTranslated,
+      required this.verifiedTranslation,
+      required this.automaticTranslation})
+      : super._();
+  @override
+  LanguageCreate rebuild(void Function(LanguageCreateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  LanguageCreate name(String name) => call(name: name);
+  LanguageCreateBuilder toBuilder() => LanguageCreateBuilder()..replace(this);
 
   @override
-  LanguageCreate percentageTranslated(int percentageTranslated) =>
-      call(percentageTranslated: percentageTranslated);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is LanguageCreate &&
+        name == other.name &&
+        percentageTranslated == other.percentageTranslated &&
+        verifiedTranslation == other.verifiedTranslation &&
+        automaticTranslation == other.automaticTranslation;
+  }
 
   @override
-  LanguageCreate verifiedTranslation(bool verifiedTranslation) =>
-      call(verifiedTranslation: verifiedTranslation);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, percentageTranslated.hashCode);
+    _$hash = $jc(_$hash, verifiedTranslation.hashCode);
+    _$hash = $jc(_$hash, automaticTranslation.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  LanguageCreate automaticTranslation(bool automaticTranslation) =>
-      call(automaticTranslation: automaticTranslation);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `LanguageCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// LanguageCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  LanguageCreate call({
-    Object? name = const $CopyWithPlaceholder(),
-    Object? percentageTranslated = const $CopyWithPlaceholder(),
-    Object? verifiedTranslation = const $CopyWithPlaceholder(),
-    Object? automaticTranslation = const $CopyWithPlaceholder(),
-  }) {
-    return LanguageCreate(
-      name: name == const $CopyWithPlaceholder() || name == null
-          ? _value.name
-          // ignore: cast_nullable_to_non_nullable
-          : name as String,
-      percentageTranslated:
-          percentageTranslated == const $CopyWithPlaceholder() ||
-              percentageTranslated == null
-          ? _value.percentageTranslated
-          // ignore: cast_nullable_to_non_nullable
-          : percentageTranslated as int,
-      verifiedTranslation:
-          verifiedTranslation == const $CopyWithPlaceholder() ||
-              verifiedTranslation == null
-          ? _value.verifiedTranslation
-          // ignore: cast_nullable_to_non_nullable
-          : verifiedTranslation as bool,
-      automaticTranslation:
-          automaticTranslation == const $CopyWithPlaceholder() ||
-              automaticTranslation == null
-          ? _value.automaticTranslation
-          // ignore: cast_nullable_to_non_nullable
-          : automaticTranslation as bool,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'LanguageCreate')
+          ..add('name', name)
+          ..add('percentageTranslated', percentageTranslated)
+          ..add('verifiedTranslation', verifiedTranslation)
+          ..add('automaticTranslation', automaticTranslation))
+        .toString();
   }
 }
 
-extension $LanguageCreateCopyWith on LanguageCreate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfLanguageCreate.copyWith(...)` or `instanceOfLanguageCreate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$LanguageCreateCWProxy get copyWith => _$LanguageCreateCWProxyImpl(this);
+class LanguageCreateBuilder
+    implements Builder<LanguageCreate, LanguageCreateBuilder> {
+  _$LanguageCreate? _$v;
+
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
+
+  int? _percentageTranslated;
+  int? get percentageTranslated => _$this._percentageTranslated;
+  set percentageTranslated(int? percentageTranslated) =>
+      _$this._percentageTranslated = percentageTranslated;
+
+  bool? _verifiedTranslation;
+  bool? get verifiedTranslation => _$this._verifiedTranslation;
+  set verifiedTranslation(bool? verifiedTranslation) =>
+      _$this._verifiedTranslation = verifiedTranslation;
+
+  bool? _automaticTranslation;
+  bool? get automaticTranslation => _$this._automaticTranslation;
+  set automaticTranslation(bool? automaticTranslation) =>
+      _$this._automaticTranslation = automaticTranslation;
+
+  LanguageCreateBuilder() {
+    LanguageCreate._defaults(this);
+  }
+
+  LanguageCreateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _name = $v.name;
+      _percentageTranslated = $v.percentageTranslated;
+      _verifiedTranslation = $v.verifiedTranslation;
+      _automaticTranslation = $v.automaticTranslation;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(LanguageCreate other) {
+    _$v = other as _$LanguageCreate;
+  }
+
+  @override
+  void update(void Function(LanguageCreateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  LanguageCreate build() => _build();
+
+  _$LanguageCreate _build() {
+    final _$result = _$v ??
+        _$LanguageCreate._(
+          name: BuiltValueNullFieldError.checkNotNull(
+              name, r'LanguageCreate', 'name'),
+          percentageTranslated: BuiltValueNullFieldError.checkNotNull(
+              percentageTranslated, r'LanguageCreate', 'percentageTranslated'),
+          verifiedTranslation: BuiltValueNullFieldError.checkNotNull(
+              verifiedTranslation, r'LanguageCreate', 'verifiedTranslation'),
+          automaticTranslation: BuiltValueNullFieldError.checkNotNull(
+              automaticTranslation, r'LanguageCreate', 'automaticTranslation'),
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-LanguageCreate _$LanguageCreateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'LanguageCreate',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const [
-            'name',
-            'percentage_translated',
-            'verified_translation',
-            'automatic_translation',
-          ],
-        );
-        final val = LanguageCreate(
-          name: $checkedConvert('name', (v) => v as String),
-          percentageTranslated: $checkedConvert(
-            'percentage_translated',
-            (v) => (v as num).toInt(),
-          ),
-          verifiedTranslation: $checkedConvert(
-            'verified_translation',
-            (v) => v as bool,
-          ),
-          automaticTranslation: $checkedConvert(
-            'automatic_translation',
-            (v) => v as bool,
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'percentageTranslated': 'percentage_translated',
-        'verifiedTranslation': 'verified_translation',
-        'automaticTranslation': 'automatic_translation',
-      },
-    );
-
-Map<String, dynamic> _$LanguageCreateToJson(LanguageCreate instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'percentage_translated': instance.percentageTranslated,
-      'verified_translation': instance.verifiedTranslation,
-      'automatic_translation': instance.automaticTranslation,
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

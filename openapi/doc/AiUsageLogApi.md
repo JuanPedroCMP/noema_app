@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listAgentModelApiV1AiAiUsageLogListGet**
-> List<AiUsageLogOut> listAgentModelApiV1AiAiUsageLogListGet(id, idUser, idAgentModel, usageDetails, createdAt)
+> BuiltList<AiUsageLogOut> listAgentModelApiV1AiAiUsageLogListGet(id, idUser, idAgentModel, usageDetails, createdAt)
 
 List Agent Model
 
@@ -115,7 +115,7 @@ final api = Openapi().getAiUsageLogApi();
 final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String idUser = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String idAgentModel = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final Map<String, Object?> usageDetails = Object; // Map<String, Object?> | 
+final BuiltMap<String, JsonObject?> usageDetails = Object; // BuiltMap<String, JsonObject?> | 
 final DateTime createdAt = 2013-10-20T19:20:30+01:00; // DateTime | 
 
 try {
@@ -133,12 +133,12 @@ Name | Type | Description  | Notes
  **id** | **String**|  | [optional] 
  **idUser** | **String**|  | [optional] 
  **idAgentModel** | **String**|  | [optional] 
- **usageDetails** | [**Map&lt;String, Object?&gt;**](Object.md)|  | [optional] 
+ **usageDetails** | [**BuiltMap&lt;String, JsonObject?&gt;**](JsonObject.md)|  | [optional] 
  **createdAt** | **DateTime**|  | [optional] 
 
 ### Return type
 
-[**List&lt;AiUsageLogOut&gt;**](AiUsageLogOut.md)
+[**BuiltList&lt;AiUsageLogOut&gt;**](AiUsageLogOut.md)
 
 ### Authorization
 

@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/device_create.dart';
 import 'package:openapi/src/model/device_out.dart';
 import 'package:openapi/src/model/device_update.dart';
@@ -18,7 +20,9 @@ class DeviceApi {
 
   final Dio _dio;
 
-  const DeviceApi(this._dio);
+  final Serializers _serializers;
+
+  const DeviceApi(this._dio, this._serializers);
 
   /// Create Device
   /// 
@@ -65,7 +69,8 @@ class DeviceApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(deviceCreate);
+      const _type = FullType(DeviceCreate);
+      _bodyData = _serializers.serialize(deviceCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +96,11 @@ class DeviceApi {
     DeviceOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawData, 'DeviceOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(DeviceOut),
+      ) as DeviceOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -128,9 +136,9 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteDeviceApiV1DeviceDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteDeviceApiV1DeviceDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -139,7 +147,7 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/device/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/device/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -165,11 +173,14 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +192,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +227,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/device/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/device/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -245,8 +256,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     DeviceOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawData, 'DeviceOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(DeviceOut),
+      ) as DeviceOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -289,9 +303,9 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<DeviceOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<DeviceOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<DeviceOut>>> listDeviceApiV1DeviceListGet({ 
+  Future<Response<BuiltList<DeviceOut>>> listDeviceApiV1DeviceListGet({ 
     String? id,
     String? idUser,
     String? deviceName,
@@ -326,14 +340,14 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idUser != null) r'id_user': idUser,
-      if (deviceName != null) r'device_name': deviceName,
-      if (deviceFingerprint != null) r'device_fingerprint': deviceFingerprint,
-      if (platform != null) r'platform': platform,
-      if (lastSeenAt != null) r'last_seen_at': lastSeenAt,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idUser != null) r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
+      if (deviceName != null) r'device_name': encodeQueryParameter(_serializers, deviceName, const FullType(String)),
+      if (deviceFingerprint != null) r'device_fingerprint': encodeQueryParameter(_serializers, deviceFingerprint, const FullType(String)),
+      if (platform != null) r'platform': encodeQueryParameter(_serializers, platform, const FullType(String)),
+      if (lastSeenAt != null) r'last_seen_at': encodeQueryParameter(_serializers, lastSeenAt, const FullType(DateTime)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -345,11 +359,14 @@ _responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawDa
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<DeviceOut>? _responseData;
+    BuiltList<DeviceOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<DeviceOut>, DeviceOut>(rawData, 'List<DeviceOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(DeviceOut)]),
+      ) as BuiltList<DeviceOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -361,7 +378,7 @@ _responseData = rawData == null ? null : deserialize<List<DeviceOut>, DeviceOut>
       );
     }
 
-    return Response<List<DeviceOut>>(
+    return Response<BuiltList<DeviceOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -398,7 +415,7 @@ _responseData = rawData == null ? null : deserialize<List<DeviceOut>, DeviceOut>
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/device/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/device/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -420,7 +437,8 @@ _responseData = rawData == null ? null : deserialize<List<DeviceOut>, DeviceOut>
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(deviceUpdate);
+      const _type = FullType(DeviceUpdate);
+      _bodyData = _serializers.serialize(deviceUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -446,8 +464,11 @@ _responseData = rawData == null ? null : deserialize<List<DeviceOut>, DeviceOut>
     DeviceOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<DeviceOut, DeviceOut>(rawData, 'DeviceOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(DeviceOut),
+      ) as DeviceOut;
 
     } catch (error, stackTrace) {
       throw DioException(

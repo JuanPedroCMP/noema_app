@@ -3,124 +3,134 @@
 part of 'ai_usage_log_create.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$AiUsageLogCreateCWProxy {
-  AiUsageLogCreate idUser(String idUser);
+class _$AiUsageLogCreate extends AiUsageLogCreate {
+  @override
+  final String idUser;
+  @override
+  final String idAgentModel;
+  @override
+  final BuiltMap<String, JsonObject?> usageDetails;
 
-  AiUsageLogCreate idAgentModel(String idAgentModel);
+  factory _$AiUsageLogCreate(
+          [void Function(AiUsageLogCreateBuilder)? updates]) =>
+      (AiUsageLogCreateBuilder()..update(updates))._build();
 
-  AiUsageLogCreate usageDetails(Map<String, Object> usageDetails);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiUsageLogCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AiUsageLogCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  AiUsageLogCreate call({
-    String idUser,
-    String idAgentModel,
-    Map<String, Object> usageDetails,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfAiUsageLogCreate.copyWith(...)` or call `instanceOfAiUsageLogCreate.copyWith.fieldName(value)` for a single field.
-class _$AiUsageLogCreateCWProxyImpl implements _$AiUsageLogCreateCWProxy {
-  const _$AiUsageLogCreateCWProxyImpl(this._value);
-
-  final AiUsageLogCreate _value;
+  _$AiUsageLogCreate._(
+      {required this.idUser,
+      required this.idAgentModel,
+      required this.usageDetails})
+      : super._();
+  @override
+  AiUsageLogCreate rebuild(void Function(AiUsageLogCreateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  AiUsageLogCreate idUser(String idUser) => call(idUser: idUser);
+  AiUsageLogCreateBuilder toBuilder() =>
+      AiUsageLogCreateBuilder()..replace(this);
 
   @override
-  AiUsageLogCreate idAgentModel(String idAgentModel) =>
-      call(idAgentModel: idAgentModel);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is AiUsageLogCreate &&
+        idUser == other.idUser &&
+        idAgentModel == other.idAgentModel &&
+        usageDetails == other.usageDetails;
+  }
 
   @override
-  AiUsageLogCreate usageDetails(Map<String, Object> usageDetails) =>
-      call(usageDetails: usageDetails);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, idAgentModel.hashCode);
+    _$hash = $jc(_$hash, usageDetails.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AiUsageLogCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AiUsageLogCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
   @override
-  AiUsageLogCreate call({
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? idAgentModel = const $CopyWithPlaceholder(),
-    Object? usageDetails = const $CopyWithPlaceholder(),
-  }) {
-    return AiUsageLogCreate(
-      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String,
-      idAgentModel:
-          idAgentModel == const $CopyWithPlaceholder() || idAgentModel == null
-          ? _value.idAgentModel
-          // ignore: cast_nullable_to_non_nullable
-          : idAgentModel as String,
-      usageDetails:
-          usageDetails == const $CopyWithPlaceholder() || usageDetails == null
-          ? _value.usageDetails
-          // ignore: cast_nullable_to_non_nullable
-          : usageDetails as Map<String, Object>,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'AiUsageLogCreate')
+          ..add('idUser', idUser)
+          ..add('idAgentModel', idAgentModel)
+          ..add('usageDetails', usageDetails))
+        .toString();
   }
 }
 
-extension $AiUsageLogCreateCopyWith on AiUsageLogCreate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfAiUsageLogCreate.copyWith(...)` or `instanceOfAiUsageLogCreate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$AiUsageLogCreateCWProxy get copyWith => _$AiUsageLogCreateCWProxyImpl(this);
+class AiUsageLogCreateBuilder
+    implements Builder<AiUsageLogCreate, AiUsageLogCreateBuilder> {
+  _$AiUsageLogCreate? _$v;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _idAgentModel;
+  String? get idAgentModel => _$this._idAgentModel;
+  set idAgentModel(String? idAgentModel) => _$this._idAgentModel = idAgentModel;
+
+  MapBuilder<String, JsonObject?>? _usageDetails;
+  MapBuilder<String, JsonObject?> get usageDetails =>
+      _$this._usageDetails ??= MapBuilder<String, JsonObject?>();
+  set usageDetails(MapBuilder<String, JsonObject?>? usageDetails) =>
+      _$this._usageDetails = usageDetails;
+
+  AiUsageLogCreateBuilder() {
+    AiUsageLogCreate._defaults(this);
+  }
+
+  AiUsageLogCreateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _idUser = $v.idUser;
+      _idAgentModel = $v.idAgentModel;
+      _usageDetails = $v.usageDetails.toBuilder();
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(AiUsageLogCreate other) {
+    _$v = other as _$AiUsageLogCreate;
+  }
+
+  @override
+  void update(void Function(AiUsageLogCreateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  AiUsageLogCreate build() => _build();
+
+  _$AiUsageLogCreate _build() {
+    _$AiUsageLogCreate _$result;
+    try {
+      _$result = _$v ??
+          _$AiUsageLogCreate._(
+            idUser: BuiltValueNullFieldError.checkNotNull(
+                idUser, r'AiUsageLogCreate', 'idUser'),
+            idAgentModel: BuiltValueNullFieldError.checkNotNull(
+                idAgentModel, r'AiUsageLogCreate', 'idAgentModel'),
+            usageDetails: usageDetails.build(),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'usageDetails';
+        usageDetails.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'AiUsageLogCreate', _$failedField, e.toString());
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-AiUsageLogCreate _$AiUsageLogCreateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'AiUsageLogCreate',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const ['id_user', 'id_agent_model', 'usage_details'],
-        );
-        final val = AiUsageLogCreate(
-          idUser: $checkedConvert('id_user', (v) => v as String),
-          idAgentModel: $checkedConvert('id_agent_model', (v) => v as String),
-          usageDetails: $checkedConvert(
-            'usage_details',
-            (v) => (v as Map<String, dynamic>).map(
-              (k, e) => MapEntry(k, e as Object),
-            ),
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'idUser': 'id_user',
-        'idAgentModel': 'id_agent_model',
-        'usageDetails': 'usage_details',
-      },
-    );
-
-Map<String, dynamic> _$AiUsageLogCreateToJson(AiUsageLogCreate instance) =>
-    <String, dynamic>{
-      'id_user': instance.idUser,
-      'id_agent_model': instance.idAgentModel,
-      'usage_details': instance.usageDetails,
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

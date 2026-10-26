@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for GenericLogCreate
 void main() {
-  final GenericLogCreate? instance = /* GenericLogCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = GenericLogCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(GenericLogCreate, () {
     // String idUser

@@ -19,7 +19,7 @@ Method | HTTP request | Description
 
 
 # **authenticateApiV1AuthLoginPost**
-> Object authenticateApiV1AuthLoginPost(username, password, grantType, scope, clientId, clientSecret)
+> JsonObject authenticateApiV1AuthLoginPost(username, password, grantType, scope, clientId, clientSecret)
 
 Authenticate
 
@@ -56,7 +56,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -70,7 +70,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **confirmPwdResetApiV1AuthConfirmPasswordRestPost**
-> Object confirmPwdResetApiV1AuthConfirmPasswordRestPost(identificator, newPassword, code)
+> JsonObject confirmPwdResetApiV1AuthConfirmPasswordRestPost(identificator, newPassword, code)
 
 Confirm Pwd Reset
 
@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -158,7 +158,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete**
-> Object deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(identificator)
+> JsonObject deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete(identificator)
 
 Delete Google Account
 
@@ -187,7 +187,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -244,7 +244,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **sendPwdResetApiV1AuthCallPasswordRestPost**
-> Object sendPwdResetApiV1AuthCallPasswordRestPost(identificator)
+> JsonObject sendPwdResetApiV1AuthCallPasswordRestPost(identificator)
 
 Send Pwd Reset
 
@@ -271,7 +271,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 

@@ -3,120 +3,184 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'user_global_config_update.g.dart';
 
+/// UserGlobalConfigUpdate
+///
+/// Properties:
+/// * [idUser] 
+/// * [idLanguage] 
+/// * [idUserColorTheme] 
+/// * [idUserTypographyTheme] 
+/// * [preferences] 
+@BuiltValue()
+abstract class UserGlobalConfigUpdate implements Built<UserGlobalConfigUpdate, UserGlobalConfigUpdateBuilder> {
+  @BuiltValueField(wireName: r'id_user')
+  String? get idUser;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class UserGlobalConfigUpdate {
-  /// Returns a new [UserGlobalConfigUpdate] instance.
-  UserGlobalConfigUpdate({
+  @BuiltValueField(wireName: r'id_language')
+  String? get idLanguage;
 
-     this.idUser,
+  @BuiltValueField(wireName: r'id_user_color_theme')
+  String? get idUserColorTheme;
 
-     this.idLanguage,
+  @BuiltValueField(wireName: r'id_user_typography_theme')
+  String? get idUserTypographyTheme;
 
-     this.idUserColorTheme,
+  @BuiltValueField(wireName: r'preferences')
+  String? get preferences;
 
-     this.idUserTypographyTheme,
+  UserGlobalConfigUpdate._();
 
-     this.preferences,
-  });
+  factory UserGlobalConfigUpdate([void updates(UserGlobalConfigUpdateBuilder b)]) = _$UserGlobalConfigUpdate;
 
-  @JsonKey(
-    
-    name: r'id_user',
-    required: false,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(UserGlobalConfigUpdateBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<UserGlobalConfigUpdate> get serializer => _$UserGlobalConfigUpdateSerializer();
+}
 
-  final String? idUser;
-
-
-
-  @JsonKey(
-    
-    name: r'id_language',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? idLanguage;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user_color_theme',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? idUserColorTheme;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user_typography_theme',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? idUserTypographyTheme;
-
-
-
-  @JsonKey(
-    
-    name: r'preferences',
-    required: false,
-    includeIfNull: false,
-  )
-
-
-  final String? preferences;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is UserGlobalConfigUpdate &&
-      other.idUser == idUser &&
-      other.idLanguage == idLanguage &&
-      other.idUserColorTheme == idUserColorTheme &&
-      other.idUserTypographyTheme == idUserTypographyTheme &&
-      other.preferences == preferences;
-
-    @override
-    int get hashCode =>
-        (idUser == null ? 0 : idUser.hashCode) +
-        (idLanguage == null ? 0 : idLanguage.hashCode) +
-        (idUserColorTheme == null ? 0 : idUserColorTheme.hashCode) +
-        (idUserTypographyTheme == null ? 0 : idUserTypographyTheme.hashCode) +
-        (preferences == null ? 0 : preferences.hashCode);
-
-  factory UserGlobalConfigUpdate.fromJson(Map<String, dynamic> json) => _$UserGlobalConfigUpdateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserGlobalConfigUpdateToJson(this);
+class _$UserGlobalConfigUpdateSerializer implements PrimitiveSerializer<UserGlobalConfigUpdate> {
+  @override
+  final Iterable<Type> types = const [UserGlobalConfigUpdate, _$UserGlobalConfigUpdate];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'UserGlobalConfigUpdate';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    UserGlobalConfigUpdate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    if (object.idUser != null) {
+      yield r'id_user';
+      yield serializers.serialize(
+        object.idUser,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.idLanguage != null) {
+      yield r'id_language';
+      yield serializers.serialize(
+        object.idLanguage,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.idUserColorTheme != null) {
+      yield r'id_user_color_theme';
+      yield serializers.serialize(
+        object.idUserColorTheme,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.idUserTypographyTheme != null) {
+      yield r'id_user_typography_theme';
+      yield serializers.serialize(
+        object.idUserTypographyTheme,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.preferences != null) {
+      yield r'preferences';
+      yield serializers.serialize(
+        object.preferences,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    UserGlobalConfigUpdate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required UserGlobalConfigUpdateBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idUser = valueDes;
+          break;
+        case r'id_language':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idLanguage = valueDes;
+          break;
+        case r'id_user_color_theme':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idUserColorTheme = valueDes;
+          break;
+        case r'id_user_typography_theme':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idUserTypographyTheme = valueDes;
+          break;
+        case r'preferences':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.preferences = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  UserGlobalConfigUpdate deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = UserGlobalConfigUpdateBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

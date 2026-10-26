@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for LanguageCreate
 void main() {
-  final LanguageCreate? instance = /* LanguageCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = LanguageCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(LanguageCreate, () {
     // String name

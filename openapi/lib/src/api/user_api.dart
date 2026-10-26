@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_value/json_object.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_create.dart';
 import 'package:openapi/src/model/user_out.dart';
@@ -18,7 +18,9 @@ class UserApi {
 
   final Dio _dio;
 
-  const UserApi(this._dio);
+  final Serializers _serializers;
+
+  const UserApi(this._dio, this._serializers);
 
   /// Current User
   /// 
@@ -70,8 +72,11 @@ class UserApi {
     UserOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -106,9 +111,9 @@ _responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteUserApiV1UserDeleteDelete({ 
+  Future<Response<JsonObject>> deleteUserApiV1UserDeleteDelete({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -142,11 +147,14 @@ _responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -158,7 +166,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -210,7 +218,8 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userCreate);
+      const _type = FullType(UserCreate);
+      _bodyData = _serializers.serialize(userCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -236,8 +245,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     UserOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -306,7 +318,8 @@ _responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userUpdate);
+      const _type = FullType(UserUpdate);
+      _bodyData = _serializers.serialize(userUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -332,8 +345,11 @@ _responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 
     UserOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserOut, UserOut>(rawData, 'UserOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserOut),
+      ) as UserOut;
 
     } catch (error, stackTrace) {
       throw DioException(

@@ -3,144 +3,134 @@
 part of 'user_api_key_can_use_ia_model_out.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$UserApiKeyCanUseIaModelOutCWProxy {
-  UserApiKeyCanUseIaModelOut id(String id);
+class _$UserApiKeyCanUseIaModelOut extends UserApiKeyCanUseIaModelOut {
+  @override
+  final String id;
+  @override
+  final String idAiModel;
+  @override
+  final String idUserApiKey;
+  @override
+  final DateTime? createdAt;
 
-  UserApiKeyCanUseIaModelOut idAiModel(String idAiModel);
+  factory _$UserApiKeyCanUseIaModelOut(
+          [void Function(UserApiKeyCanUseIaModelOutBuilder)? updates]) =>
+      (UserApiKeyCanUseIaModelOutBuilder()..update(updates))._build();
 
-  UserApiKeyCanUseIaModelOut idUserApiKey(String idUserApiKey);
-
-  UserApiKeyCanUseIaModelOut createdAt(DateTime? createdAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserApiKeyCanUseIaModelOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserApiKeyCanUseIaModelOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  UserApiKeyCanUseIaModelOut call({
-    String id,
-    String idAiModel,
-    String idUserApiKey,
-    DateTime? createdAt,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfUserApiKeyCanUseIaModelOut.copyWith(...)` or call `instanceOfUserApiKeyCanUseIaModelOut.copyWith.fieldName(value)` for a single field.
-class _$UserApiKeyCanUseIaModelOutCWProxyImpl
-    implements _$UserApiKeyCanUseIaModelOutCWProxy {
-  const _$UserApiKeyCanUseIaModelOutCWProxyImpl(this._value);
-
-  final UserApiKeyCanUseIaModelOut _value;
+  _$UserApiKeyCanUseIaModelOut._(
+      {required this.id,
+      required this.idAiModel,
+      required this.idUserApiKey,
+      this.createdAt})
+      : super._();
+  @override
+  UserApiKeyCanUseIaModelOut rebuild(
+          void Function(UserApiKeyCanUseIaModelOutBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  UserApiKeyCanUseIaModelOut id(String id) => call(id: id);
+  UserApiKeyCanUseIaModelOutBuilder toBuilder() =>
+      UserApiKeyCanUseIaModelOutBuilder()..replace(this);
 
   @override
-  UserApiKeyCanUseIaModelOut idAiModel(String idAiModel) =>
-      call(idAiModel: idAiModel);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is UserApiKeyCanUseIaModelOut &&
+        id == other.id &&
+        idAiModel == other.idAiModel &&
+        idUserApiKey == other.idUserApiKey &&
+        createdAt == other.createdAt;
+  }
 
   @override
-  UserApiKeyCanUseIaModelOut idUserApiKey(String idUserApiKey) =>
-      call(idUserApiKey: idUserApiKey);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, idAiModel.hashCode);
+    _$hash = $jc(_$hash, idUserApiKey.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  UserApiKeyCanUseIaModelOut createdAt(DateTime? createdAt) =>
-      call(createdAt: createdAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserApiKeyCanUseIaModelOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserApiKeyCanUseIaModelOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  UserApiKeyCanUseIaModelOut call({
-    Object? id = const $CopyWithPlaceholder(),
-    Object? idAiModel = const $CopyWithPlaceholder(),
-    Object? idUserApiKey = const $CopyWithPlaceholder(),
-    Object? createdAt = const $CopyWithPlaceholder(),
-  }) {
-    return UserApiKeyCanUseIaModelOut(
-      id: id == const $CopyWithPlaceholder() || id == null
-          ? _value.id
-          // ignore: cast_nullable_to_non_nullable
-          : id as String,
-      idAiModel: idAiModel == const $CopyWithPlaceholder() || idAiModel == null
-          ? _value.idAiModel
-          // ignore: cast_nullable_to_non_nullable
-          : idAiModel as String,
-      idUserApiKey:
-          idUserApiKey == const $CopyWithPlaceholder() || idUserApiKey == null
-          ? _value.idUserApiKey
-          // ignore: cast_nullable_to_non_nullable
-          : idUserApiKey as String,
-      createdAt: createdAt == const $CopyWithPlaceholder()
-          ? _value.createdAt
-          // ignore: cast_nullable_to_non_nullable
-          : createdAt as DateTime?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'UserApiKeyCanUseIaModelOut')
+          ..add('id', id)
+          ..add('idAiModel', idAiModel)
+          ..add('idUserApiKey', idUserApiKey)
+          ..add('createdAt', createdAt))
+        .toString();
   }
 }
 
-extension $UserApiKeyCanUseIaModelOutCopyWith on UserApiKeyCanUseIaModelOut {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfUserApiKeyCanUseIaModelOut.copyWith(...)` or `instanceOfUserApiKeyCanUseIaModelOut.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$UserApiKeyCanUseIaModelOutCWProxy get copyWith =>
-      _$UserApiKeyCanUseIaModelOutCWProxyImpl(this);
+class UserApiKeyCanUseIaModelOutBuilder
+    implements
+        Builder<UserApiKeyCanUseIaModelOut, UserApiKeyCanUseIaModelOutBuilder> {
+  _$UserApiKeyCanUseIaModelOut? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _idAiModel;
+  String? get idAiModel => _$this._idAiModel;
+  set idAiModel(String? idAiModel) => _$this._idAiModel = idAiModel;
+
+  String? _idUserApiKey;
+  String? get idUserApiKey => _$this._idUserApiKey;
+  set idUserApiKey(String? idUserApiKey) => _$this._idUserApiKey = idUserApiKey;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  UserApiKeyCanUseIaModelOutBuilder() {
+    UserApiKeyCanUseIaModelOut._defaults(this);
+  }
+
+  UserApiKeyCanUseIaModelOutBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _idAiModel = $v.idAiModel;
+      _idUserApiKey = $v.idUserApiKey;
+      _createdAt = $v.createdAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(UserApiKeyCanUseIaModelOut other) {
+    _$v = other as _$UserApiKeyCanUseIaModelOut;
+  }
+
+  @override
+  void update(void Function(UserApiKeyCanUseIaModelOutBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  UserApiKeyCanUseIaModelOut build() => _build();
+
+  _$UserApiKeyCanUseIaModelOut _build() {
+    final _$result = _$v ??
+        _$UserApiKeyCanUseIaModelOut._(
+          id: BuiltValueNullFieldError.checkNotNull(
+              id, r'UserApiKeyCanUseIaModelOut', 'id'),
+          idAiModel: BuiltValueNullFieldError.checkNotNull(
+              idAiModel, r'UserApiKeyCanUseIaModelOut', 'idAiModel'),
+          idUserApiKey: BuiltValueNullFieldError.checkNotNull(
+              idUserApiKey, r'UserApiKeyCanUseIaModelOut', 'idUserApiKey'),
+          createdAt: createdAt,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-UserApiKeyCanUseIaModelOut _$UserApiKeyCanUseIaModelOutFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate(
-  'UserApiKeyCanUseIaModelOut',
-  json,
-  ($checkedConvert) {
-    $checkKeys(
-      json,
-      requiredKeys: const [
-        'id',
-        'id_ai_model',
-        'id_user_api_key',
-        'created_at',
-      ],
-    );
-    final val = UserApiKeyCanUseIaModelOut(
-      id: $checkedConvert('id', (v) => v as String),
-      idAiModel: $checkedConvert('id_ai_model', (v) => v as String),
-      idUserApiKey: $checkedConvert('id_user_api_key', (v) => v as String),
-      createdAt: $checkedConvert(
-        'created_at',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-    );
-    return val;
-  },
-  fieldKeyMap: const {
-    'idAiModel': 'id_ai_model',
-    'idUserApiKey': 'id_user_api_key',
-    'createdAt': 'created_at',
-  },
-);
-
-Map<String, dynamic> _$UserApiKeyCanUseIaModelOutToJson(
-  UserApiKeyCanUseIaModelOut instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'id_ai_model': instance.idAiModel,
-  'id_user_api_key': instance.idUserApiKey,
-  'created_at': instance.createdAt?.toIso8601String(),
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

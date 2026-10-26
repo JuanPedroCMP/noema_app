@@ -11,16 +11,48 @@ import 'package:noema/feature/config/providers/user_provider.dart';
 
 List<String> buildCumulativePaths(BuildContext context) {
   final segments = GoRouterState.of(context).uri.pathSegments;
+  final paths = <String>['/'];
+  if (segments.isEmpty) return paths;
 
-  final cumulative = <String>['/'];
-  var current = '';
+  const topLevelRoutes = {'notes', 'config', 'test', 'graphs', 'flashcards'};
+  if (!topLevelRoutes.contains(segments.first)) {
+    return paths;
+  }
+  paths.add('/${segments.first}');
 
-  for (final segment in segments) {
-    current += '/$segment';
-    cumulative.add(current);
+  if (segments.first != 'graphs' || segments.length < 2) return paths;
+  paths.add('/graphs/${segments[1]}');
+
+  if (segments.length < 4 || segments[2] != 'exercises') return paths;
+  final exercisesPath = '/graphs/${segments[1]}/exercises/${segments[3]}';
+  paths.add(exercisesPath);
+
+  final suffix = segments.skip(4).toList();
+  if (suffix.isEmpty) return paths;
+  if (suffix.length == 1 && suffix[0] == 'responses') {
+    paths.add('$exercisesPath/responses');
+    return paths;
   }
 
-  return cumulative;
+  final isOpenEndedRoute =
+      (suffix.length == 2 &&
+          suffix[0] == 'open-ended' &&
+          suffix[1] == 'create') ||
+      (suffix.length == 3 &&
+          suffix[0] == 'open-ended' &&
+          const {'edit', 'answer', 'view'}.contains(suffix[2]));
+  final isMultipleChoiceRoute =
+      (suffix.length == 2 &&
+          suffix[0] == 'multiple-choice' &&
+          suffix[1] == 'create') ||
+      (suffix.length == 3 &&
+          suffix[0] == 'multiple-choice' &&
+          const {'edit', 'answer', 'view'}.contains(suffix[2]));
+
+  if (isOpenEndedRoute || isMultipleChoiceRoute) {
+    paths.add('$exercisesPath/${suffix.join('/')}');
+  }
+  return paths;
 }
 
 String breadcrumbLabel(String path) {
@@ -42,6 +74,8 @@ String breadcrumbLabel(String path) {
       return 'Flashcards';
     case 'exercises':
       return 'Exercícios';
+    case 'responses':
+      return 'Histórico de respostas';
     case 'open-ended':
       return 'Questão aberta';
     case 'multiple-choice':
@@ -60,7 +94,7 @@ String breadcrumbLabel(String path) {
       }
       if (segments.length >= 2 &&
           segments[segments.length - 2] == 'exercises') {
-        return 'Nó';
+        return 'Questões';
       }
       if (segments.length >= 2 &&
           (segments[segments.length - 2] == 'open-ended' ||

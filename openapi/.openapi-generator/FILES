@@ -2,7 +2,6 @@
 .openapi-generator-ignore
 README.md
 analysis_options.yaml
-build.yaml
 doc/AgentApi.md
 doc/AgentCreate.md
 doc/AgentModelApi.md
@@ -109,12 +108,13 @@ lib/src/api/user_api_key_api.dart
 lib/src/api/user_api_key_can_use_ia_model_api.dart
 lib/src/api/user_global_config_api.dart
 lib/src/api/user_local_config_api.dart
+lib/src/api_util.dart
 lib/src/auth/api_key_auth.dart
 lib/src/auth/auth.dart
 lib/src/auth/basic_auth.dart
 lib/src/auth/bearer_auth.dart
 lib/src/auth/oauth.dart
-lib/src/deserialize.dart
+lib/src/date_serializer.dart
 lib/src/model/agent_create.dart
 lib/src/model/agent_model_create.dart
 lib/src/model/agent_model_out.dart
@@ -130,6 +130,7 @@ lib/src/model/ai_usage_log_out.dart
 lib/src/model/backup_file_create.dart
 lib/src/model/backup_file_out.dart
 lib/src/model/conflict_strategy.dart
+lib/src/model/date.dart
 lib/src/model/device_create.dart
 lib/src/model/device_out.dart
 lib/src/model/device_update.dart
@@ -175,6 +176,7 @@ lib/src/model/user_typography_theme_out.dart
 lib/src/model/user_typography_theme_update.dart
 lib/src/model/user_update.dart
 lib/src/model/validation_error.dart
+lib/src/serializers.dart
 pubspec.yaml
 test/agent_api_test.dart
 test/agent_create_test.dart

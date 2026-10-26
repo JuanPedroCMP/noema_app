@@ -23,7 +23,7 @@ void main() {
 
     // List Generic Log
     //
-    //Future<List<GenericLogOut>> listGenericLogApiV1GenericLogListGet({ String id, String type, String idUser, String details, DateTime createdAt }) async
+    //Future<BuiltList<GenericLogOut>> listGenericLogApiV1GenericLogListGet({ String id, String type, String idUser, String details, DateTime createdAt }) async
     test('test listGenericLogApiV1GenericLogListGet', () async {
       // TODO
     });

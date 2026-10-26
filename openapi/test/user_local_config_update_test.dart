@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserLocalConfigUpdate
 void main() {
-  final UserLocalConfigUpdate? instance = /* UserLocalConfigUpdate(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserLocalConfigUpdateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserLocalConfigUpdate, () {
     // String idUser

@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_local_config_create.dart';
 import 'package:openapi/src/model/user_local_config_out.dart';
@@ -18,7 +19,9 @@ class UserLocalConfigApi {
 
   final Dio _dio;
 
-  const UserLocalConfigApi(this._dio);
+  final Serializers _serializers;
+
+  const UserLocalConfigApi(this._dio, this._serializers);
 
   /// Create User Local Config
   /// 
@@ -65,7 +68,8 @@ class UserLocalConfigApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userLocalConfigCreate);
+      const _type = FullType(UserLocalConfigCreate);
+      _bodyData = _serializers.serialize(userLocalConfigCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +95,11 @@ class UserLocalConfigApi {
     UserLocalConfigOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserLocalConfigOut),
+      ) as UserLocalConfigOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -139,7 +146,7 @@ _responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLoc
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_local_config/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_config/user_local_config/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -168,8 +175,11 @@ _responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLoc
     UserLocalConfigOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserLocalConfigOut),
+      ) as UserLocalConfigOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -213,9 +223,9 @@ _responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLoc
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<UserLocalConfigOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<UserLocalConfigOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<UserLocalConfigOut>>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet({ 
+  Future<Response<BuiltList<UserLocalConfigOut>>> listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet({ 
     required String preferences,
     String? id,
     String? idUser,
@@ -251,15 +261,15 @@ _responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLoc
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idUser != null) r'id_user': idUser,
-      if (idDevice != null) r'id_device': idDevice,
-      if (idLanguage != null) r'id_language': idLanguage,
-      if (idUserColorTheme != null) r'id_user_color_theme': idUserColorTheme,
-      if (idUserTypographyTheme != null) r'id_user_typography_theme': idUserTypographyTheme,
-      r'preferences': preferences,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idUser != null) r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
+      if (idDevice != null) r'id_device': encodeQueryParameter(_serializers, idDevice, const FullType(String)),
+      if (idLanguage != null) r'id_language': encodeQueryParameter(_serializers, idLanguage, const FullType(String)),
+      if (idUserColorTheme != null) r'id_user_color_theme': encodeQueryParameter(_serializers, idUserColorTheme, const FullType(String)),
+      if (idUserTypographyTheme != null) r'id_user_typography_theme': encodeQueryParameter(_serializers, idUserTypographyTheme, const FullType(String)),
+      r'preferences': encodeQueryParameter(_serializers, preferences, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -271,11 +281,14 @@ _responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLoc
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<UserLocalConfigOut>? _responseData;
+    BuiltList<UserLocalConfigOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, UserLocalConfigOut>(rawData, 'List<UserLocalConfigOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(UserLocalConfigOut)]),
+      ) as BuiltList<UserLocalConfigOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -287,7 +300,7 @@ _responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, U
       );
     }
 
-    return Response<List<UserLocalConfigOut>>(
+    return Response<BuiltList<UserLocalConfigOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -324,7 +337,7 @@ _responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, U
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_config/user_local_config/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_config/user_local_config/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -346,7 +359,8 @@ _responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, U
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userLocalConfigUpdate);
+      const _type = FullType(UserLocalConfigUpdate);
+      _bodyData = _serializers.serialize(userLocalConfigUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -372,8 +386,11 @@ _responseData = rawData == null ? null : deserialize<List<UserLocalConfigOut>, U
     UserLocalConfigOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserLocalConfigOut, UserLocalConfigOut>(rawData, 'UserLocalConfigOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserLocalConfigOut),
+      ) as UserLocalConfigOut;
 
     } catch (error, stackTrace) {
       throw DioException(

@@ -58,7 +58,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteAiModelApiV1AiAiModelEleteIdentificatorDelete**
-> Object deleteAiModelApiV1AiAiModelEleteIdentificatorDelete(identificator)
+> JsonObject deleteAiModelApiV1AiAiModelEleteIdentificatorDelete(identificator)
 
 Delete Ai Model
 
@@ -85,7 +85,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -140,7 +140,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listAiModelsApiV1AiAiModelListGet**
-> List<AiModelOut> listAiModelsApiV1AiAiModelListGet(id, slug, idAiProvider, displayName, contextWindow, inputTokenLimit, outputTokenLimit, supportsVision, isActive)
+> BuiltList<AiModelOut> listAiModelsApiV1AiAiModelListGet(id, slug, idAiProvider, displayName, contextWindow, inputTokenLimit, outputTokenLimit, supportsVision, isActive)
 
 List Ai Models
 
@@ -183,7 +183,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**List&lt;AiModelOut&gt;**](AiModelOut.md)
+[**BuiltList&lt;AiModelOut&gt;**](AiModelOut.md)
 
 ### Authorization
 

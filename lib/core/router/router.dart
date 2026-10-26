@@ -10,6 +10,7 @@ import 'package:noema/feature/config/presentation/config_page.dart';
 import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
 import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 import 'package:noema/feature/exercises/presentation/list_exercices.dart';
+import 'package:noema/feature/exercises/presentation/list_exercices_answers.dart';
 import 'package:noema/feature/graph/pages/graph_list.dart';
 import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
@@ -67,20 +68,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
         branches: [
           StatefulShellBranch(
-            routes: [GoRoute(path: RoutePaths.home, builder: (_, _) => const HomePage())],
-          ),
-
-          StatefulShellBranch(
-            routes: [GoRoute(path: RoutePaths.notes, builder: (_, _) => NotesPage())],
-          ),
-
-          StatefulShellBranch(
-            routes: [GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage())],
+            routes: [
+              GoRoute(
+                path: RoutePaths.home,
+                builder: (_, _) => const HomePage(),
+              ),
+            ],
           ),
 
           StatefulShellBranch(
             routes: [
-              GoRoute(path: RoutePaths.test, builder: (_, _) => M3ShowcaseApp()),
+              GoRoute(path: RoutePaths.notes, builder: (_, _) => NotesPage()),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage()),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.test,
+                builder: (_, _) => M3ShowcaseApp(),
+              ),
             ],
           ),
 
@@ -105,6 +118,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           return ExercicesList(nodeId: nodeId);
                         },
                         routes: [
+                          GoRoute(
+                            path: 'responses',
+                            builder: (context, state) {
+                              final String nodeId =
+                                  state.pathParameters['nodeId']!;
+                              return ExercicesAnswerList(nodeId: nodeId);
+                            },
+                          ),
                           GoRoute(
                             path: 'open-ended/create',
                             builder: (context, state) {

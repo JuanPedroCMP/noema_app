@@ -4,168 +4,221 @@
 
 // ignore_for_file: unused_element
 import 'package:openapi/src/model/agent_model_quality.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'agent_model_out.g.dart';
 
+/// AgentModelOut
+///
+/// Properties:
+/// * [id] 
+/// * [idAgent] 
+/// * [idAiModel] 
+/// * [qualityExpected] 
+/// * [customSystemPrompt] 
+/// * [customTemperature] 
+/// * [createdAt] 
+/// * [updatedAt] 
+@BuiltValue()
+abstract class AgentModelOut implements Built<AgentModelOut, AgentModelOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class AgentModelOut {
-  /// Returns a new [AgentModelOut] instance.
-  AgentModelOut({
+  @BuiltValueField(wireName: r'id_agent')
+  String get idAgent;
 
-    required  this.id,
+  @BuiltValueField(wireName: r'id_ai_model')
+  String get idAiModel;
 
-    required  this.idAgent,
+  @BuiltValueField(wireName: r'quality_expected')
+  AgentModelQuality get qualityExpected;
+  // enum qualityExpectedEnum {  unusable,  poor,  fair,  good,  very_good,  excellent,  };
 
-    required  this.idAiModel,
+  @BuiltValueField(wireName: r'custom_system_prompt')
+  String get customSystemPrompt;
 
-    required  this.qualityExpected,
+  @BuiltValueField(wireName: r'custom_temperature')
+  num? get customTemperature;
 
-    required  this.customSystemPrompt,
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
 
-    required  this.customTemperature,
+  @BuiltValueField(wireName: r'updated_at')
+  DateTime? get updatedAt;
 
-    required  this.createdAt,
+  AgentModelOut._();
 
-    required  this.updatedAt,
-  });
+  factory AgentModelOut([void updates(AgentModelOutBuilder b)]) = _$AgentModelOut;
 
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(AgentModelOutBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<AgentModelOut> get serializer => _$AgentModelOutSerializer();
+}
 
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'id_agent',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idAgent;
-
-
-
-  @JsonKey(
-    
-    name: r'id_ai_model',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idAiModel;
-
-
-
-  @JsonKey(
-    
-    name: r'quality_expected',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final AgentModelQuality qualityExpected;
-
-
-
-  @JsonKey(
-    
-    name: r'custom_system_prompt',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String customSystemPrompt;
-
-
-
-  @JsonKey(
-    
-    name: r'custom_temperature',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final num? customTemperature;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-  @JsonKey(
-    
-    name: r'updated_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? updatedAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is AgentModelOut &&
-      other.id == id &&
-      other.idAgent == idAgent &&
-      other.idAiModel == idAiModel &&
-      other.qualityExpected == qualityExpected &&
-      other.customSystemPrompt == customSystemPrompt &&
-      other.customTemperature == customTemperature &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        idAgent.hashCode +
-        idAiModel.hashCode +
-        qualityExpected.hashCode +
-        customSystemPrompt.hashCode +
-        (customTemperature == null ? 0 : customTemperature.hashCode) +
-        (createdAt == null ? 0 : createdAt.hashCode) +
-        (updatedAt == null ? 0 : updatedAt.hashCode);
-
-  factory AgentModelOut.fromJson(Map<String, dynamic> json) => _$AgentModelOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AgentModelOutToJson(this);
+class _$AgentModelOutSerializer implements PrimitiveSerializer<AgentModelOut> {
+  @override
+  final Iterable<Type> types = const [AgentModelOut, _$AgentModelOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'AgentModelOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    AgentModelOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_agent';
+    yield serializers.serialize(
+      object.idAgent,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_ai_model';
+    yield serializers.serialize(
+      object.idAiModel,
+      specifiedType: const FullType(String),
+    );
+    yield r'quality_expected';
+    yield serializers.serialize(
+      object.qualityExpected,
+      specifiedType: const FullType(AgentModelQuality),
+    );
+    yield r'custom_system_prompt';
+    yield serializers.serialize(
+      object.customSystemPrompt,
+      specifiedType: const FullType(String),
+    );
+    yield r'custom_temperature';
+    yield object.customTemperature == null ? null : serializers.serialize(
+      object.customTemperature,
+      specifiedType: const FullType.nullable(num),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'updated_at';
+    yield object.updatedAt == null ? null : serializers.serialize(
+      object.updatedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    AgentModelOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required AgentModelOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'id_agent':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idAgent = valueDes;
+          break;
+        case r'id_ai_model':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idAiModel = valueDes;
+          break;
+        case r'quality_expected':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AgentModelQuality),
+          ) as AgentModelQuality;
+          result.qualityExpected = valueDes;
+          break;
+        case r'custom_system_prompt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.customSystemPrompt = valueDes;
+          break;
+        case r'custom_temperature':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(num),
+          ) as num?;
+          if (valueDes == null) continue;
+          result.customTemperature = valueDes;
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        case r'updated_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.updatedAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  AgentModelOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = AgentModelOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

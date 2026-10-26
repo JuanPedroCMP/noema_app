@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_api_key_can_use_ia_model_create.dart';
 import 'package:openapi/src/model/user_api_key_can_use_ia_model_out.dart';
@@ -17,7 +19,9 @@ class UserApiKeyCanUseIaModelApi {
 
   final Dio _dio;
 
-  const UserApiKeyCanUseIaModelApi(this._dio);
+  final Serializers _serializers;
+
+  const UserApiKeyCanUseIaModelApi(this._dio, this._serializers);
 
   /// Create Agent Model
   /// 
@@ -64,7 +68,8 @@ class UserApiKeyCanUseIaModelApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userApiKeyCanUseIaModelCreate);
+      const _type = FullType(UserApiKeyCanUseIaModelCreate);
+      _bodyData = _serializers.serialize(userApiKeyCanUseIaModelCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -90,8 +95,11 @@ class UserApiKeyCanUseIaModelApi {
     UserApiKeyCanUseIaModelOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut, UserApiKeyCanUseIaModelOut>(rawData, 'UserApiKeyCanUseIaModelOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserApiKeyCanUseIaModelOut),
+      ) as UserApiKeyCanUseIaModelOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -127,9 +135,9 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteAgentModelApiV1AiUserApiKeyCanUseIaModelDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteAgentModelApiV1AiUserApiKeyCanUseIaModelDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -138,7 +146,7 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/user_api_key_can_use_ia_model/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/user_api_key_can_use_ia_model/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -164,11 +172,14 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -180,7 +191,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -215,7 +226,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/user_api_key_can_use_ia_model/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/user_api_key_can_use_ia_model/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -244,8 +255,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     UserApiKeyCanUseIaModelOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut, UserApiKeyCanUseIaModelOut>(rawData, 'UserApiKeyCanUseIaModelOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserApiKeyCanUseIaModelOut),
+      ) as UserApiKeyCanUseIaModelOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -284,9 +298,9 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<UserApiKeyCanUseIaModelOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<UserApiKeyCanUseIaModelOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<UserApiKeyCanUseIaModelOut>>> listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet({ 
+  Future<Response<BuiltList<UserApiKeyCanUseIaModelOut>>> listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet({ 
     String? id,
     String? idAiModel,
     String? idUserApiKey,
@@ -317,10 +331,10 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idAiModel != null) r'id_ai_model': idAiModel,
-      if (idUserApiKey != null) r'id_user_api_key': idUserApiKey,
-      if (createdAt != null) r'created_at': createdAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idAiModel != null) r'id_ai_model': encodeQueryParameter(_serializers, idAiModel, const FullType(String)),
+      if (idUserApiKey != null) r'id_user_api_key': encodeQueryParameter(_serializers, idUserApiKey, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -332,11 +346,14 @@ _responseData = rawData == null ? null : deserialize<UserApiKeyCanUseIaModelOut,
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<UserApiKeyCanUseIaModelOut>? _responseData;
+    BuiltList<UserApiKeyCanUseIaModelOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<UserApiKeyCanUseIaModelOut>, UserApiKeyCanUseIaModelOut>(rawData, 'List<UserApiKeyCanUseIaModelOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(UserApiKeyCanUseIaModelOut)]),
+      ) as BuiltList<UserApiKeyCanUseIaModelOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -348,7 +365,7 @@ _responseData = rawData == null ? null : deserialize<List<UserApiKeyCanUseIaMode
       );
     }
 
-    return Response<List<UserApiKeyCanUseIaModelOut>>(
+    return Response<BuiltList<UserApiKeyCanUseIaModelOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

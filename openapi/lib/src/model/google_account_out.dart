@@ -3,200 +3,255 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'google_account_out.g.dart';
 
-
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class GoogleAccountOut {
-  /// Returns a new [GoogleAccountOut] instance.
-  GoogleAccountOut({
-
-    required  this.id,
-
-    required  this.idUser,
-
-    required  this.googleUserId,
-
-    required  this.emailGoogle,
-
-    required  this.grantedScopes,
-
-    required  this.isActive,
-
-    required  this.expiresAt,
-
-    required  this.lastRefreshAt,
-
-    required  this.updatedAt,
-
-    required  this.createdAt,
-  });
-
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idUser;
-
-
-
-  @JsonKey(
-    
-    name: r'google_user_id',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final String? googleUserId;
-
-
-
-  @JsonKey(
-    
-    name: r'email_google',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String emailGoogle;
-
-
-
-  @JsonKey(
-    
-    name: r'granted_scopes',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final String? grantedScopes;
-
-
-
-  @JsonKey(
-    
-    name: r'is_active',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final bool isActive;
-
-
-
-  @JsonKey(
-    
-    name: r'expires_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? expiresAt;
-
-
-
-  @JsonKey(
-    
-    name: r'last_refresh_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? lastRefreshAt;
-
-
-
-  @JsonKey(
-    
-    name: r'updated_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? updatedAt;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is GoogleAccountOut &&
-      other.id == id &&
-      other.idUser == idUser &&
-      other.googleUserId == googleUserId &&
-      other.emailGoogle == emailGoogle &&
-      other.grantedScopes == grantedScopes &&
-      other.isActive == isActive &&
-      other.expiresAt == expiresAt &&
-      other.lastRefreshAt == lastRefreshAt &&
-      other.updatedAt == updatedAt &&
-      other.createdAt == createdAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        idUser.hashCode +
-        (googleUserId == null ? 0 : googleUserId.hashCode) +
-        emailGoogle.hashCode +
-        (grantedScopes == null ? 0 : grantedScopes.hashCode) +
-        isActive.hashCode +
-        (expiresAt == null ? 0 : expiresAt.hashCode) +
-        (lastRefreshAt == null ? 0 : lastRefreshAt.hashCode) +
-        (updatedAt == null ? 0 : updatedAt.hashCode) +
-        (createdAt == null ? 0 : createdAt.hashCode);
-
-  factory GoogleAccountOut.fromJson(Map<String, dynamic> json) => _$GoogleAccountOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$GoogleAccountOutToJson(this);
+/// GoogleAccountOut
+///
+/// Properties:
+/// * [id] 
+/// * [idUser] 
+/// * [googleUserId] 
+/// * [emailGoogle] 
+/// * [grantedScopes] 
+/// * [isActive] 
+/// * [expiresAt] 
+/// * [lastRefreshAt] 
+/// * [updatedAt] 
+/// * [createdAt] 
+@BuiltValue()
+abstract class GoogleAccountOut implements Built<GoogleAccountOut, GoogleAccountOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
+
+  @BuiltValueField(wireName: r'id_user')
+  String get idUser;
+
+  @BuiltValueField(wireName: r'google_user_id')
+  String? get googleUserId;
+
+  @BuiltValueField(wireName: r'email_google')
+  String get emailGoogle;
+
+  @BuiltValueField(wireName: r'granted_scopes')
+  String? get grantedScopes;
+
+  @BuiltValueField(wireName: r'is_active')
+  bool get isActive;
+
+  @BuiltValueField(wireName: r'expires_at')
+  DateTime? get expiresAt;
+
+  @BuiltValueField(wireName: r'last_refresh_at')
+  DateTime? get lastRefreshAt;
+
+  @BuiltValueField(wireName: r'updated_at')
+  DateTime? get updatedAt;
+
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
+
+  GoogleAccountOut._();
+
+  factory GoogleAccountOut([void updates(GoogleAccountOutBuilder b)]) = _$GoogleAccountOut;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(GoogleAccountOutBuilder b) => b;
+
+  @BuiltValueSerializer(custom: true)
+  static Serializer<GoogleAccountOut> get serializer => _$GoogleAccountOutSerializer();
+}
+
+class _$GoogleAccountOutSerializer implements PrimitiveSerializer<GoogleAccountOut> {
+  @override
+  final Iterable<Type> types = const [GoogleAccountOut, _$GoogleAccountOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'GoogleAccountOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    GoogleAccountOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_user';
+    yield serializers.serialize(
+      object.idUser,
+      specifiedType: const FullType(String),
+    );
+    yield r'google_user_id';
+    yield object.googleUserId == null ? null : serializers.serialize(
+      object.googleUserId,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'email_google';
+    yield serializers.serialize(
+      object.emailGoogle,
+      specifiedType: const FullType(String),
+    );
+    yield r'granted_scopes';
+    yield object.grantedScopes == null ? null : serializers.serialize(
+      object.grantedScopes,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'is_active';
+    yield serializers.serialize(
+      object.isActive,
+      specifiedType: const FullType(bool),
+    );
+    yield r'expires_at';
+    yield object.expiresAt == null ? null : serializers.serialize(
+      object.expiresAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'last_refresh_at';
+    yield object.lastRefreshAt == null ? null : serializers.serialize(
+      object.lastRefreshAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'updated_at';
+    yield object.updatedAt == null ? null : serializers.serialize(
+      object.updatedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    GoogleAccountOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required GoogleAccountOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUser = valueDes;
+          break;
+        case r'google_user_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.googleUserId = valueDes;
+          break;
+        case r'email_google':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.emailGoogle = valueDes;
+          break;
+        case r'granted_scopes':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.grantedScopes = valueDes;
+          break;
+        case r'is_active':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.isActive = valueDes;
+          break;
+        case r'expires_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.expiresAt = valueDes;
+          break;
+        case r'last_refresh_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.lastRefreshAt = valueDes;
+          break;
+        case r'updated_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.updatedAt = valueDes;
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  GoogleAccountOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = GoogleAccountOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

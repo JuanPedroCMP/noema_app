@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **idLanguage** | **String** |  | 
 **idUserColorTheme** | **String** |  | 
 **idUserTypographyTheme** | **String** |  | 
-**preferences** | **Map&lt;String, Object&gt;** |  | 
+**preferences** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

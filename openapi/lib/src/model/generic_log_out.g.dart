@@ -3,135 +3,140 @@
 part of 'generic_log_out.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$GenericLogOutCWProxy {
-  GenericLogOut id(String id);
+class _$GenericLogOut extends GenericLogOut {
+  @override
+  final String id;
+  @override
+  final String type;
+  @override
+  final String? idUser;
+  @override
+  final JsonObject? details;
+  @override
+  final DateTime? createdAt;
 
-  GenericLogOut type(String type);
+  factory _$GenericLogOut([void Function(GenericLogOutBuilder)? updates]) =>
+      (GenericLogOutBuilder()..update(updates))._build();
 
-  GenericLogOut idUser(String? idUser);
-
-  GenericLogOut details(Object? details);
-
-  GenericLogOut createdAt(DateTime? createdAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `GenericLogOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// GenericLogOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  GenericLogOut call({
-    String id,
-    String type,
-    String? idUser,
-    Object? details,
-    DateTime? createdAt,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfGenericLogOut.copyWith(...)` or call `instanceOfGenericLogOut.copyWith.fieldName(value)` for a single field.
-class _$GenericLogOutCWProxyImpl implements _$GenericLogOutCWProxy {
-  const _$GenericLogOutCWProxyImpl(this._value);
-
-  final GenericLogOut _value;
+  _$GenericLogOut._(
+      {required this.id,
+      required this.type,
+      this.idUser,
+      this.details,
+      this.createdAt})
+      : super._();
+  @override
+  GenericLogOut rebuild(void Function(GenericLogOutBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GenericLogOut id(String id) => call(id: id);
+  GenericLogOutBuilder toBuilder() => GenericLogOutBuilder()..replace(this);
 
   @override
-  GenericLogOut type(String type) => call(type: type);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is GenericLogOut &&
+        id == other.id &&
+        type == other.type &&
+        idUser == other.idUser &&
+        details == other.details &&
+        createdAt == other.createdAt;
+  }
 
   @override
-  GenericLogOut idUser(String? idUser) => call(idUser: idUser);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, type.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, details.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  GenericLogOut details(Object? details) => call(details: details);
-
-  @override
-  GenericLogOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `GenericLogOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// GenericLogOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  GenericLogOut call({
-    Object? id = const $CopyWithPlaceholder(),
-    Object? type = const $CopyWithPlaceholder(),
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? details = const $CopyWithPlaceholder(),
-    Object? createdAt = const $CopyWithPlaceholder(),
-  }) {
-    return GenericLogOut(
-      id: id == const $CopyWithPlaceholder() || id == null
-          ? _value.id
-          // ignore: cast_nullable_to_non_nullable
-          : id as String,
-      type: type == const $CopyWithPlaceholder() || type == null
-          ? _value.type
-          // ignore: cast_nullable_to_non_nullable
-          : type as String,
-      idUser: idUser == const $CopyWithPlaceholder()
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String?,
-      details: details == const $CopyWithPlaceholder()
-          ? _value.details
-          // ignore: cast_nullable_to_non_nullable
-          : details as Object?,
-      createdAt: createdAt == const $CopyWithPlaceholder()
-          ? _value.createdAt
-          // ignore: cast_nullable_to_non_nullable
-          : createdAt as DateTime?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'GenericLogOut')
+          ..add('id', id)
+          ..add('type', type)
+          ..add('idUser', idUser)
+          ..add('details', details)
+          ..add('createdAt', createdAt))
+        .toString();
   }
 }
 
-extension $GenericLogOutCopyWith on GenericLogOut {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfGenericLogOut.copyWith(...)` or `instanceOfGenericLogOut.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$GenericLogOutCWProxy get copyWith => _$GenericLogOutCWProxyImpl(this);
+class GenericLogOutBuilder
+    implements Builder<GenericLogOut, GenericLogOutBuilder> {
+  _$GenericLogOut? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _type;
+  String? get type => _$this._type;
+  set type(String? type) => _$this._type = type;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  JsonObject? _details;
+  JsonObject? get details => _$this._details;
+  set details(JsonObject? details) => _$this._details = details;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  GenericLogOutBuilder() {
+    GenericLogOut._defaults(this);
+  }
+
+  GenericLogOutBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _type = $v.type;
+      _idUser = $v.idUser;
+      _details = $v.details;
+      _createdAt = $v.createdAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(GenericLogOut other) {
+    _$v = other as _$GenericLogOut;
+  }
+
+  @override
+  void update(void Function(GenericLogOutBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  GenericLogOut build() => _build();
+
+  _$GenericLogOut _build() {
+    final _$result = _$v ??
+        _$GenericLogOut._(
+          id: BuiltValueNullFieldError.checkNotNull(id, r'GenericLogOut', 'id'),
+          type: BuiltValueNullFieldError.checkNotNull(
+              type, r'GenericLogOut', 'type'),
+          idUser: idUser,
+          details: details,
+          createdAt: createdAt,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-GenericLogOut _$GenericLogOutFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('GenericLogOut', json, ($checkedConvert) {
-      $checkKeys(
-        json,
-        requiredKeys: const ['id', 'type', 'id_user', 'details', 'created_at'],
-      );
-      final val = GenericLogOut(
-        id: $checkedConvert('id', (v) => v as String),
-        type: $checkedConvert('type', (v) => v as String),
-        idUser: $checkedConvert('id_user', (v) => v as String?),
-        details: $checkedConvert('details', (v) => v),
-        createdAt: $checkedConvert(
-          'created_at',
-          (v) => v == null ? null : DateTime.parse(v as String),
-        ),
-      );
-      return val;
-    }, fieldKeyMap: const {'idUser': 'id_user', 'createdAt': 'created_at'});
-
-Map<String, dynamic> _$GenericLogOutToJson(GenericLogOut instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': instance.type,
-      'id_user': instance.idUser,
-      'details': instance.details,
-      'created_at': instance.createdAt?.toIso8601String(),
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

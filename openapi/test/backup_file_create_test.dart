@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for BackupFileCreate
 void main() {
-  final BackupFileCreate? instance = /* BackupFileCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = BackupFileCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(BackupFileCreate, () {
     // String idGoogleAccount

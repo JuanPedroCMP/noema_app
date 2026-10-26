@@ -16,7 +16,7 @@ void main() {
 
     // Delete User
     //
-    //Future<Object> deleteUserApiV1UserDeleteDelete() async
+    //Future<JsonObject> deleteUserApiV1UserDeleteDelete() async
     test('test deleteUserApiV1UserDeleteDelete', () async {
       // TODO
     });

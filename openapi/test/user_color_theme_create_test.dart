@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserColorThemeCreate
 void main() {
-  final UserColorThemeCreate? instance = /* UserColorThemeCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserColorThemeCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserColorThemeCreate, () {
     // String idUser

@@ -177,11 +177,20 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       return;
     }
 
-    setState(() => _isSending = true);
     final correctIds = choises
         .where((choice) => choice.isCorrect)
         .map((choice) => choice.id)
         .toSet();
+    if (correctIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Esta questão ainda não tem uma alternativa correta."),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSending = true);
     final selectedCorrect = _selectedChoiceIds.intersection(correctIds).length;
     final wrongSelected = _selectedChoiceIds.difference(correctIds).length;
     final db = ref.read(appDatabaseProvider);
@@ -248,6 +257,68 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _addChoice() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      final id = await _ensureQuestionSaved();
+      if (!mounted) return;
+      if (id == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Preencha título e enunciado.")),
+        );
+        return;
+      }
+      await _loadData();
+      if (!mounted) return;
+      setState(() {
+        editTarget = "";
+        isEditing = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Não foi possível preparar a alternativa."),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _deleteChoice(ChoiceData choice) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Excluir alternativa?"),
+        content: Text("“${choice.statement}” será removida da questão."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancelar"),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Excluir"),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final db = ref.read(appDatabaseProvider);
+      await ChoiceDao(db).deleteChoice(id: choice.id);
+      await _loadData();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Não foi possível excluir a alternativa.")),
+      );
     }
   }
 
@@ -322,22 +393,20 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                               },
                               icon: Icon(Icons.edit),
                             ),
+                            IconButton(
+                              tooltip: "Excluir alternativa",
+                              onPressed: () => _deleteChoice(choise),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
                           ],
                         ),
                       ],
                       FilledButton.icon(
-                        onPressed: () async {
-                          final id = await _ensureQuestionSaved();
-                          if (id == null || !mounted) return;
-                          await _loadData();
-                          if (!mounted) return;
-                          setState(() {
-                            isEditing = true;
-                            editTarget = "";
-                          });
-                        },
+                        onPressed: _isSaving ? null : _addChoice,
                         icon: const Icon(Icons.add),
-                        label: const Text("Adicionar alternativa"),
+                        label: Text(
+                          _isSaving ? "Preparando..." : "Adicionar alternativa",
+                        ),
                       ),
                       FilledButton(
                         onPressed: _isSaving ? null : _saveQuestion,
@@ -355,6 +424,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                       Text(title, style: context.textTheme.headlineMedium),
                       Divider(),
                       Text(statement, style: context.textTheme.bodyMedium),
+                      Text(
+                        '${_selectedChoiceIds.length} alternativa(s) selecionada(s)',
+                        style: context.textTheme.labelMedium,
+                      ),
                       for (final choise in choises) ...[
                         Card(
                           child: Choise(
@@ -416,6 +489,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                         isEditing = false;
                       });
                       _loadData();
+                    },
+                    onCancel: () {
+                      setState(() => isEditing = false);
                     },
                     onChanged: (ChoiceData value) {},
                   ),

@@ -3,128 +3,124 @@
 part of 'user_update.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$UserUpdateCWProxy {
-  UserUpdate userName(String? userName);
+class _$UserUpdate extends UserUpdate {
+  @override
+  final String? userName;
+  @override
+  final String? primaryEmail;
+  @override
+  final String? userDisplayName;
+  @override
+  final String? password;
 
-  UserUpdate primaryEmail(String? primaryEmail);
+  factory _$UserUpdate([void Function(UserUpdateBuilder)? updates]) =>
+      (UserUpdateBuilder()..update(updates))._build();
 
-  UserUpdate userDisplayName(String? userDisplayName);
-
-  UserUpdate password(String? password);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  UserUpdate call({
-    String? userName,
-    String? primaryEmail,
-    String? userDisplayName,
-    String? password,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfUserUpdate.copyWith(...)` or call `instanceOfUserUpdate.copyWith.fieldName(value)` for a single field.
-class _$UserUpdateCWProxyImpl implements _$UserUpdateCWProxy {
-  const _$UserUpdateCWProxyImpl(this._value);
-
-  final UserUpdate _value;
+  _$UserUpdate._(
+      {this.userName, this.primaryEmail, this.userDisplayName, this.password})
+      : super._();
+  @override
+  UserUpdate rebuild(void Function(UserUpdateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  UserUpdate userName(String? userName) => call(userName: userName);
+  UserUpdateBuilder toBuilder() => UserUpdateBuilder()..replace(this);
 
   @override
-  UserUpdate primaryEmail(String? primaryEmail) =>
-      call(primaryEmail: primaryEmail);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is UserUpdate &&
+        userName == other.userName &&
+        primaryEmail == other.primaryEmail &&
+        userDisplayName == other.userDisplayName &&
+        password == other.password;
+  }
 
   @override
-  UserUpdate userDisplayName(String? userDisplayName) =>
-      call(userDisplayName: userDisplayName);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, userName.hashCode);
+    _$hash = $jc(_$hash, primaryEmail.hashCode);
+    _$hash = $jc(_$hash, userDisplayName.hashCode);
+    _$hash = $jc(_$hash, password.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  UserUpdate password(String? password) => call(password: password);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `UserUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// UserUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  UserUpdate call({
-    Object? userName = const $CopyWithPlaceholder(),
-    Object? primaryEmail = const $CopyWithPlaceholder(),
-    Object? userDisplayName = const $CopyWithPlaceholder(),
-    Object? password = const $CopyWithPlaceholder(),
-  }) {
-    return UserUpdate(
-      userName: userName == const $CopyWithPlaceholder()
-          ? _value.userName
-          // ignore: cast_nullable_to_non_nullable
-          : userName as String?,
-      primaryEmail: primaryEmail == const $CopyWithPlaceholder()
-          ? _value.primaryEmail
-          // ignore: cast_nullable_to_non_nullable
-          : primaryEmail as String?,
-      userDisplayName: userDisplayName == const $CopyWithPlaceholder()
-          ? _value.userDisplayName
-          // ignore: cast_nullable_to_non_nullable
-          : userDisplayName as String?,
-      password: password == const $CopyWithPlaceholder()
-          ? _value.password
-          // ignore: cast_nullable_to_non_nullable
-          : password as String?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'UserUpdate')
+          ..add('userName', userName)
+          ..add('primaryEmail', primaryEmail)
+          ..add('userDisplayName', userDisplayName)
+          ..add('password', password))
+        .toString();
   }
 }
 
-extension $UserUpdateCopyWith on UserUpdate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfUserUpdate.copyWith(...)` or `instanceOfUserUpdate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$UserUpdateCWProxy get copyWith => _$UserUpdateCWProxyImpl(this);
+class UserUpdateBuilder implements Builder<UserUpdate, UserUpdateBuilder> {
+  _$UserUpdate? _$v;
+
+  String? _userName;
+  String? get userName => _$this._userName;
+  set userName(String? userName) => _$this._userName = userName;
+
+  String? _primaryEmail;
+  String? get primaryEmail => _$this._primaryEmail;
+  set primaryEmail(String? primaryEmail) => _$this._primaryEmail = primaryEmail;
+
+  String? _userDisplayName;
+  String? get userDisplayName => _$this._userDisplayName;
+  set userDisplayName(String? userDisplayName) =>
+      _$this._userDisplayName = userDisplayName;
+
+  String? _password;
+  String? get password => _$this._password;
+  set password(String? password) => _$this._password = password;
+
+  UserUpdateBuilder() {
+    UserUpdate._defaults(this);
+  }
+
+  UserUpdateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _userName = $v.userName;
+      _primaryEmail = $v.primaryEmail;
+      _userDisplayName = $v.userDisplayName;
+      _password = $v.password;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(UserUpdate other) {
+    _$v = other as _$UserUpdate;
+  }
+
+  @override
+  void update(void Function(UserUpdateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  UserUpdate build() => _build();
+
+  _$UserUpdate _build() {
+    final _$result = _$v ??
+        _$UserUpdate._(
+          userName: userName,
+          primaryEmail: primaryEmail,
+          userDisplayName: userDisplayName,
+          password: password,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-UserUpdate _$UserUpdateFromJson(Map<String, dynamic> json) => $checkedCreate(
-  'UserUpdate',
-  json,
-  ($checkedConvert) {
-    final val = UserUpdate(
-      userName: $checkedConvert('user_name', (v) => v as String?),
-      primaryEmail: $checkedConvert('primary_email', (v) => v as String?),
-      userDisplayName: $checkedConvert(
-        'user_display_name',
-        (v) => v as String?,
-      ),
-      password: $checkedConvert('password', (v) => v as String?),
-    );
-    return val;
-  },
-  fieldKeyMap: const {
-    'userName': 'user_name',
-    'primaryEmail': 'primary_email',
-    'userDisplayName': 'user_display_name',
-  },
-);
-
-Map<String, dynamic> _$UserUpdateToJson(UserUpdate instance) =>
-    <String, dynamic>{
-      'user_name': ?instance.userName,
-      'primary_email': ?instance.primaryEmail,
-      'user_display_name': ?instance.userDisplayName,
-      'password': ?instance.password,
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

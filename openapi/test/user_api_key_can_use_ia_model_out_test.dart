@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserApiKeyCanUseIaModelOut
 void main() {
-  final UserApiKeyCanUseIaModelOut? instance = /* UserApiKeyCanUseIaModelOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserApiKeyCanUseIaModelOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserApiKeyCanUseIaModelOut, () {
     // String id

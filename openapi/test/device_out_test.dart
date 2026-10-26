@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for DeviceOut
 void main() {
-  final DeviceOut? instance = /* DeviceOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = DeviceOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(DeviceOut, () {
     // String id

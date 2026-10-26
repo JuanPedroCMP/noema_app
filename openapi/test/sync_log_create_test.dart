@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for SyncLogCreate
 void main() {
-  final SyncLogCreate? instance = /* SyncLogCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = SyncLogCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(SyncLogCreate, () {
     // String idDevice

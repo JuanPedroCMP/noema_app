@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for ResponseLanguagePreferenceOrderCreate
 void main() {
-  final ResponseLanguagePreferenceOrderCreate? instance = /* ResponseLanguagePreferenceOrderCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = ResponseLanguagePreferenceOrderCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(ResponseLanguagePreferenceOrderCreate, () {
     // int preferenceOrder

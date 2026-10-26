@@ -3,206 +3,179 @@
 part of 'device_out.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$DeviceOutCWProxy {
-  DeviceOut id(String id);
+class _$DeviceOut extends DeviceOut {
+  @override
+  final String id;
+  @override
+  final String idUser;
+  @override
+  final String deviceName;
+  @override
+  final String deviceFingerprint;
+  @override
+  final String platform;
+  @override
+  final DateTime? lastSeenAt;
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
 
-  DeviceOut idUser(String idUser);
+  factory _$DeviceOut([void Function(DeviceOutBuilder)? updates]) =>
+      (DeviceOutBuilder()..update(updates))._build();
 
-  DeviceOut deviceName(String deviceName);
-
-  DeviceOut deviceFingerprint(String deviceFingerprint);
-
-  DeviceOut platform(String platform);
-
-  DeviceOut lastSeenAt(DateTime? lastSeenAt);
-
-  DeviceOut createdAt(DateTime? createdAt);
-
-  DeviceOut updatedAt(DateTime? updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `DeviceOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// DeviceOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  DeviceOut call({
-    String id,
-    String idUser,
-    String deviceName,
-    String deviceFingerprint,
-    String platform,
-    DateTime? lastSeenAt,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfDeviceOut.copyWith(...)` or call `instanceOfDeviceOut.copyWith.fieldName(value)` for a single field.
-class _$DeviceOutCWProxyImpl implements _$DeviceOutCWProxy {
-  const _$DeviceOutCWProxyImpl(this._value);
-
-  final DeviceOut _value;
+  _$DeviceOut._(
+      {required this.id,
+      required this.idUser,
+      required this.deviceName,
+      required this.deviceFingerprint,
+      required this.platform,
+      this.lastSeenAt,
+      this.createdAt,
+      this.updatedAt})
+      : super._();
+  @override
+  DeviceOut rebuild(void Function(DeviceOutBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  DeviceOut id(String id) => call(id: id);
+  DeviceOutBuilder toBuilder() => DeviceOutBuilder()..replace(this);
 
   @override
-  DeviceOut idUser(String idUser) => call(idUser: idUser);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is DeviceOut &&
+        id == other.id &&
+        idUser == other.idUser &&
+        deviceName == other.deviceName &&
+        deviceFingerprint == other.deviceFingerprint &&
+        platform == other.platform &&
+        lastSeenAt == other.lastSeenAt &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt;
+  }
 
   @override
-  DeviceOut deviceName(String deviceName) => call(deviceName: deviceName);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
+    _$hash = $jc(_$hash, deviceName.hashCode);
+    _$hash = $jc(_$hash, deviceFingerprint.hashCode);
+    _$hash = $jc(_$hash, platform.hashCode);
+    _$hash = $jc(_$hash, lastSeenAt.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  DeviceOut deviceFingerprint(String deviceFingerprint) =>
-      call(deviceFingerprint: deviceFingerprint);
-
-  @override
-  DeviceOut platform(String platform) => call(platform: platform);
-
-  @override
-  DeviceOut lastSeenAt(DateTime? lastSeenAt) => call(lastSeenAt: lastSeenAt);
-
-  @override
-  DeviceOut createdAt(DateTime? createdAt) => call(createdAt: createdAt);
-
-  @override
-  DeviceOut updatedAt(DateTime? updatedAt) => call(updatedAt: updatedAt);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `DeviceOut(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// DeviceOut(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  DeviceOut call({
-    Object? id = const $CopyWithPlaceholder(),
-    Object? idUser = const $CopyWithPlaceholder(),
-    Object? deviceName = const $CopyWithPlaceholder(),
-    Object? deviceFingerprint = const $CopyWithPlaceholder(),
-    Object? platform = const $CopyWithPlaceholder(),
-    Object? lastSeenAt = const $CopyWithPlaceholder(),
-    Object? createdAt = const $CopyWithPlaceholder(),
-    Object? updatedAt = const $CopyWithPlaceholder(),
-  }) {
-    return DeviceOut(
-      id: id == const $CopyWithPlaceholder() || id == null
-          ? _value.id
-          // ignore: cast_nullable_to_non_nullable
-          : id as String,
-      idUser: idUser == const $CopyWithPlaceholder() || idUser == null
-          ? _value.idUser
-          // ignore: cast_nullable_to_non_nullable
-          : idUser as String,
-      deviceName:
-          deviceName == const $CopyWithPlaceholder() || deviceName == null
-          ? _value.deviceName
-          // ignore: cast_nullable_to_non_nullable
-          : deviceName as String,
-      deviceFingerprint:
-          deviceFingerprint == const $CopyWithPlaceholder() ||
-              deviceFingerprint == null
-          ? _value.deviceFingerprint
-          // ignore: cast_nullable_to_non_nullable
-          : deviceFingerprint as String,
-      platform: platform == const $CopyWithPlaceholder() || platform == null
-          ? _value.platform
-          // ignore: cast_nullable_to_non_nullable
-          : platform as String,
-      lastSeenAt: lastSeenAt == const $CopyWithPlaceholder()
-          ? _value.lastSeenAt
-          // ignore: cast_nullable_to_non_nullable
-          : lastSeenAt as DateTime?,
-      createdAt: createdAt == const $CopyWithPlaceholder()
-          ? _value.createdAt
-          // ignore: cast_nullable_to_non_nullable
-          : createdAt as DateTime?,
-      updatedAt: updatedAt == const $CopyWithPlaceholder()
-          ? _value.updatedAt
-          // ignore: cast_nullable_to_non_nullable
-          : updatedAt as DateTime?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'DeviceOut')
+          ..add('id', id)
+          ..add('idUser', idUser)
+          ..add('deviceName', deviceName)
+          ..add('deviceFingerprint', deviceFingerprint)
+          ..add('platform', platform)
+          ..add('lastSeenAt', lastSeenAt)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt))
+        .toString();
   }
 }
 
-extension $DeviceOutCopyWith on DeviceOut {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfDeviceOut.copyWith(...)` or `instanceOfDeviceOut.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$DeviceOutCWProxy get copyWith => _$DeviceOutCWProxyImpl(this);
+class DeviceOutBuilder implements Builder<DeviceOut, DeviceOutBuilder> {
+  _$DeviceOut? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
+
+  String? _deviceName;
+  String? get deviceName => _$this._deviceName;
+  set deviceName(String? deviceName) => _$this._deviceName = deviceName;
+
+  String? _deviceFingerprint;
+  String? get deviceFingerprint => _$this._deviceFingerprint;
+  set deviceFingerprint(String? deviceFingerprint) =>
+      _$this._deviceFingerprint = deviceFingerprint;
+
+  String? _platform;
+  String? get platform => _$this._platform;
+  set platform(String? platform) => _$this._platform = platform;
+
+  DateTime? _lastSeenAt;
+  DateTime? get lastSeenAt => _$this._lastSeenAt;
+  set lastSeenAt(DateTime? lastSeenAt) => _$this._lastSeenAt = lastSeenAt;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  DateTime? _updatedAt;
+  DateTime? get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
+
+  DeviceOutBuilder() {
+    DeviceOut._defaults(this);
+  }
+
+  DeviceOutBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _idUser = $v.idUser;
+      _deviceName = $v.deviceName;
+      _deviceFingerprint = $v.deviceFingerprint;
+      _platform = $v.platform;
+      _lastSeenAt = $v.lastSeenAt;
+      _createdAt = $v.createdAt;
+      _updatedAt = $v.updatedAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(DeviceOut other) {
+    _$v = other as _$DeviceOut;
+  }
+
+  @override
+  void update(void Function(DeviceOutBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  DeviceOut build() => _build();
+
+  _$DeviceOut _build() {
+    final _$result = _$v ??
+        _$DeviceOut._(
+          id: BuiltValueNullFieldError.checkNotNull(id, r'DeviceOut', 'id'),
+          idUser: BuiltValueNullFieldError.checkNotNull(
+              idUser, r'DeviceOut', 'idUser'),
+          deviceName: BuiltValueNullFieldError.checkNotNull(
+              deviceName, r'DeviceOut', 'deviceName'),
+          deviceFingerprint: BuiltValueNullFieldError.checkNotNull(
+              deviceFingerprint, r'DeviceOut', 'deviceFingerprint'),
+          platform: BuiltValueNullFieldError.checkNotNull(
+              platform, r'DeviceOut', 'platform'),
+          lastSeenAt: lastSeenAt,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-DeviceOut _$DeviceOutFromJson(Map<String, dynamic> json) => $checkedCreate(
-  'DeviceOut',
-  json,
-  ($checkedConvert) {
-    $checkKeys(
-      json,
-      requiredKeys: const [
-        'id',
-        'id_user',
-        'device_name',
-        'device_fingerprint',
-        'platform',
-        'last_seen_at',
-        'created_at',
-        'updated_at',
-      ],
-    );
-    final val = DeviceOut(
-      id: $checkedConvert('id', (v) => v as String),
-      idUser: $checkedConvert('id_user', (v) => v as String),
-      deviceName: $checkedConvert('device_name', (v) => v as String),
-      deviceFingerprint: $checkedConvert(
-        'device_fingerprint',
-        (v) => v as String,
-      ),
-      platform: $checkedConvert('platform', (v) => v as String),
-      lastSeenAt: $checkedConvert(
-        'last_seen_at',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-      createdAt: $checkedConvert(
-        'created_at',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-      updatedAt: $checkedConvert(
-        'updated_at',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-    );
-    return val;
-  },
-  fieldKeyMap: const {
-    'idUser': 'id_user',
-    'deviceName': 'device_name',
-    'deviceFingerprint': 'device_fingerprint',
-    'lastSeenAt': 'last_seen_at',
-    'createdAt': 'created_at',
-    'updatedAt': 'updated_at',
-  },
-);
-
-Map<String, dynamic> _$DeviceOutToJson(DeviceOut instance) => <String, dynamic>{
-  'id': instance.id,
-  'id_user': instance.idUser,
-  'device_name': instance.deviceName,
-  'device_fingerprint': instance.deviceFingerprint,
-  'platform': instance.platform,
-  'last_seen_at': instance.lastSeenAt?.toIso8601String(),
-  'created_at': instance.createdAt?.toIso8601String(),
-  'updated_at': instance.updatedAt?.toIso8601String(),
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

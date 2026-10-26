@@ -9,14 +9,14 @@ void main() {
   group(GoogleOAuthApi, () {
     // Google Oauth Callback
     //
-    //Future<Object> googleOauthCallbackApiV1AuthGoogleCallbackGet() async
+    //Future<JsonObject> googleOauthCallbackApiV1AuthGoogleCallbackGet() async
     test('test googleOauthCallbackApiV1AuthGoogleCallbackGet', () async {
       // TODO
     });
 
     // Link Google Account
     //
-    //Future<Object> linkGoogleAccountApiV1AuthGoogleLinkGet() async
+    //Future<JsonObject> linkGoogleAccountApiV1AuthGoogleLinkGet() async
     test('test linkGoogleAccountApiV1AuthGoogleLinkGet', () async {
       // TODO
     });

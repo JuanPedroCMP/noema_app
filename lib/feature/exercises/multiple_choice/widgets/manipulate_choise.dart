@@ -12,6 +12,7 @@ class ManipulateChoise extends ConsumerStatefulWidget {
     required this.onChanged,
     required this.multipleChoiceId,
     required this.onSave,
+    required this.onCancel,
   });
 
   final ValueChanged<ChoiceData> onChanged;
@@ -20,6 +21,7 @@ class ManipulateChoise extends ConsumerStatefulWidget {
   final String multipleChoiceId;
 
   final VoidCallback onSave;
+  final VoidCallback onCancel;
 
   @override
   ConsumerState<ManipulateChoise> createState() => _Choise();
@@ -32,11 +34,14 @@ class _Choise extends ConsumerState<ManipulateChoise> {
   int? weight = 0;
   bool? aiGenerated = false;
   bool _isSaving = false;
+  bool _isLoading = false;
+  String? _loadError;
 
   @override
   void initState() {
     super.initState();
 
+    _isLoading = widget.choiseId?.isNotEmpty == true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       loadData();
     });
@@ -48,27 +53,38 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       return;
     }
 
-    final db = ref.read(appDatabaseProvider);
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final data = await ChoiceDao(db).getChoice(id: choiseId);
+      if (!mounted) return;
+      if (data == null) {
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Alternativa não encontrada ou removida.';
+        });
+        return;
+      }
 
-    final choiseDao = ChoiceDao(db);
-
-    final data = await choiseDao.getChoice(id: choiseId);
-
-    if (!mounted) return;
-
-    if (data == null) return;
-
-    setState(() {
-      isCorrect = data.isCorrect;
-      statement = data.statement;
-      explanation = data.explanation;
-      weight = data.weight;
-      aiGenerated = data.isAiGenerated;
-    });
-    widget.onChanged(data);
-    statementController.text = statement;
-    explanationController.text = explanation ?? '';
-    weightController.text = weight?.toString() ?? '';
+      setState(() {
+        _isLoading = false;
+        _loadError = null;
+        isCorrect = data.isCorrect;
+        statement = data.statement;
+        explanation = data.explanation;
+        weight = data.weight;
+        aiGenerated = data.isAiGenerated;
+      });
+      widget.onChanged(data);
+      statementController.text = statement;
+      explanationController.text = explanation ?? '';
+      weightController.text = weight?.toString() ?? '';
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Não foi possível carregar a alternativa.';
+      });
+    }
   }
 
   void sChanged(String value) {
@@ -99,6 +115,12 @@ class _Choise extends ConsumerState<ManipulateChoise> {
     if (weight != null && weight! < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("O peso não pode ser negativo.")),
+      );
+      return;
+    }
+    if (weightController.text.trim().isNotEmpty && weight == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Informe um peso numérico válido.")),
       );
       return;
     }
@@ -135,7 +157,9 @@ class _Choise extends ConsumerState<ManipulateChoise> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Não foi possível salvar a alternativa.")),
+          const SnackBar(
+            content: Text("Não foi possível salvar a alternativa."),
+          ),
         );
       }
     } finally {
@@ -159,50 +183,97 @@ class _Choise extends ConsumerState<ManipulateChoise> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        spacing: context.spacing.md,
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_loadError != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
-            onChanged: sChanged,
-            controller: statementController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: "Enunciado",
-            ),
-          ),
-          TextField(
-            onChanged: eChanged,
-            controller: explanationController,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: "Explicação",
-            ),
-          ),
-          TextField(
-            onChanged: wChanged,
-            controller: weightController,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: "Peso",
-            ),
-          ),
-          Text(
-            "Peso define o quanto a nota vai ser alterada caso essa questão seja marcada como correta ou errada",
-            style: context.textTheme.labelSmall,
-          ),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text("Alternativa correta"),
-            value: isCorrect,
-            onChanged: (value) => setState(() => isCorrect = value ?? false),
-          ),
-          FilledButton(
-            onPressed: _isSaving ? null : save,
-            child: Text(_isSaving ? "Salvando..." : "Salvar alternativa"),
+          Text(_loadError!, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            children: [
+              TextButton(
+                onPressed: widget.onCancel,
+                child: const Text('Fechar'),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _loadError = null;
+                  });
+                  loadData();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar novamente'),
+              ),
+            ],
           ),
         ],
+      );
+    }
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          spacing: context.spacing.md,
+          children: [
+            TextField(
+              onChanged: sChanged,
+              controller: statementController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Alternativa",
+              ),
+            ),
+            TextField(
+              onChanged: eChanged,
+              controller: explanationController,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Explicação (opcional)",
+              ),
+            ),
+            TextField(
+              onChanged: wChanged,
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Peso (opcional)",
+              ),
+            ),
+            Text(
+              "Use o peso para ajustar a pontuação atribuída a esta alternativa.",
+              style: context.textTheme.labelSmall,
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text("Alternativa correta"),
+              value: isCorrect,
+              onChanged: (value) => setState(() => isCorrect = value ?? false),
+            ),
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: _isSaving ? null : widget.onCancel,
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: _isSaving ? null : save,
+                  child: Text(_isSaving ? "Salvando..." : "Salvar alternativa"),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

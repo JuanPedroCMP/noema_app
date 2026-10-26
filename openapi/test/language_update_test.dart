@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for LanguageUpdate
 void main() {
-  final LanguageUpdate? instance = /* LanguageUpdate(...) */ null;
-  // TODO add properties to the entity
+  final instance = LanguageUpdateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(LanguageUpdate, () {
     // String name

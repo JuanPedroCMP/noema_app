@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for AgentModelUpdate
 void main() {
-  final AgentModelUpdate? instance = /* AgentModelUpdate(...) */ null;
-  // TODO add properties to the entity
+  final instance = AgentModelUpdateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(AgentModelUpdate, () {
     // String idAgent

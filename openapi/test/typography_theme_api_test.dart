@@ -16,7 +16,7 @@ void main() {
 
     // Delete Typography Theme
     //
-    //Future<Object> deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete(String identificator) async
+    //Future<JsonObject> deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete(String identificator) async
     test('test deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete', () async {
       // TODO
     });
@@ -30,7 +30,7 @@ void main() {
 
     // List Typography Theme
     //
-    //Future<List<UserTypographyThemeOut>> listTypographyThemeApiV1UserThemeTypographyThemeListGet({ String id, String idUser, String name, String displayFont, String bodyFont, String monoFont, String overrideJson, DateTime createdAt, DateTime updatedAt }) async
+    //Future<BuiltList<UserTypographyThemeOut>> listTypographyThemeApiV1UserThemeTypographyThemeListGet({ String id, String idUser, String name, String displayFont, String bodyFont, String monoFont, String overrideJson, DateTime createdAt, DateTime updatedAt }) async
     test('test listTypographyThemeApiV1UserThemeTypographyThemeListGet', () async {
       // TODO
     });

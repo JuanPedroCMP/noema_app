@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **type** | **String** |  | 
 **idUser** | **String** |  | 
-**details** | **Object** |  | 
+**details** | [**JsonObject**](.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

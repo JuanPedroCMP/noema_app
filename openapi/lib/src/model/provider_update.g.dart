@@ -3,125 +3,123 @@
 part of 'provider_update.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$ProviderUpdateCWProxy {
-  ProviderUpdate slug(String? slug);
+class _$ProviderUpdate extends ProviderUpdate {
+  @override
+  final String? slug;
+  @override
+  final String? displayName;
+  @override
+  final String? baseUrl;
+  @override
+  final bool? isActive;
 
-  ProviderUpdate displayName(String? displayName);
+  factory _$ProviderUpdate([void Function(ProviderUpdateBuilder)? updates]) =>
+      (ProviderUpdateBuilder()..update(updates))._build();
 
-  ProviderUpdate baseUrl(String? baseUrl);
-
-  ProviderUpdate isActive(bool? isActive);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// ProviderUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  ProviderUpdate call({
-    String? slug,
-    String? displayName,
-    String? baseUrl,
-    bool? isActive,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfProviderUpdate.copyWith(...)` or call `instanceOfProviderUpdate.copyWith.fieldName(value)` for a single field.
-class _$ProviderUpdateCWProxyImpl implements _$ProviderUpdateCWProxy {
-  const _$ProviderUpdateCWProxyImpl(this._value);
-
-  final ProviderUpdate _value;
+  _$ProviderUpdate._({this.slug, this.displayName, this.baseUrl, this.isActive})
+      : super._();
+  @override
+  ProviderUpdate rebuild(void Function(ProviderUpdateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  ProviderUpdate slug(String? slug) => call(slug: slug);
+  ProviderUpdateBuilder toBuilder() => ProviderUpdateBuilder()..replace(this);
 
   @override
-  ProviderUpdate displayName(String? displayName) =>
-      call(displayName: displayName);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ProviderUpdate &&
+        slug == other.slug &&
+        displayName == other.displayName &&
+        baseUrl == other.baseUrl &&
+        isActive == other.isActive;
+  }
 
   @override
-  ProviderUpdate baseUrl(String? baseUrl) => call(baseUrl: baseUrl);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, slug.hashCode);
+    _$hash = $jc(_$hash, displayName.hashCode);
+    _$hash = $jc(_$hash, baseUrl.hashCode);
+    _$hash = $jc(_$hash, isActive.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  ProviderUpdate isActive(bool? isActive) => call(isActive: isActive);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `ProviderUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// ProviderUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  ProviderUpdate call({
-    Object? slug = const $CopyWithPlaceholder(),
-    Object? displayName = const $CopyWithPlaceholder(),
-    Object? baseUrl = const $CopyWithPlaceholder(),
-    Object? isActive = const $CopyWithPlaceholder(),
-  }) {
-    return ProviderUpdate(
-      slug: slug == const $CopyWithPlaceholder()
-          ? _value.slug
-          // ignore: cast_nullable_to_non_nullable
-          : slug as String?,
-      displayName: displayName == const $CopyWithPlaceholder()
-          ? _value.displayName
-          // ignore: cast_nullable_to_non_nullable
-          : displayName as String?,
-      baseUrl: baseUrl == const $CopyWithPlaceholder()
-          ? _value.baseUrl
-          // ignore: cast_nullable_to_non_nullable
-          : baseUrl as String?,
-      isActive: isActive == const $CopyWithPlaceholder()
-          ? _value.isActive
-          // ignore: cast_nullable_to_non_nullable
-          : isActive as bool?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'ProviderUpdate')
+          ..add('slug', slug)
+          ..add('displayName', displayName)
+          ..add('baseUrl', baseUrl)
+          ..add('isActive', isActive))
+        .toString();
   }
 }
 
-extension $ProviderUpdateCopyWith on ProviderUpdate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfProviderUpdate.copyWith(...)` or `instanceOfProviderUpdate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ProviderUpdateCWProxy get copyWith => _$ProviderUpdateCWProxyImpl(this);
+class ProviderUpdateBuilder
+    implements Builder<ProviderUpdate, ProviderUpdateBuilder> {
+  _$ProviderUpdate? _$v;
+
+  String? _slug;
+  String? get slug => _$this._slug;
+  set slug(String? slug) => _$this._slug = slug;
+
+  String? _displayName;
+  String? get displayName => _$this._displayName;
+  set displayName(String? displayName) => _$this._displayName = displayName;
+
+  String? _baseUrl;
+  String? get baseUrl => _$this._baseUrl;
+  set baseUrl(String? baseUrl) => _$this._baseUrl = baseUrl;
+
+  bool? _isActive;
+  bool? get isActive => _$this._isActive;
+  set isActive(bool? isActive) => _$this._isActive = isActive;
+
+  ProviderUpdateBuilder() {
+    ProviderUpdate._defaults(this);
+  }
+
+  ProviderUpdateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _slug = $v.slug;
+      _displayName = $v.displayName;
+      _baseUrl = $v.baseUrl;
+      _isActive = $v.isActive;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ProviderUpdate other) {
+    _$v = other as _$ProviderUpdate;
+  }
+
+  @override
+  void update(void Function(ProviderUpdateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  ProviderUpdate build() => _build();
+
+  _$ProviderUpdate _build() {
+    final _$result = _$v ??
+        _$ProviderUpdate._(
+          slug: slug,
+          displayName: displayName,
+          baseUrl: baseUrl,
+          isActive: isActive,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-ProviderUpdate _$ProviderUpdateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'ProviderUpdate',
-      json,
-      ($checkedConvert) {
-        final val = ProviderUpdate(
-          slug: $checkedConvert('slug', (v) => v as String?),
-          displayName: $checkedConvert('display_name', (v) => v as String?),
-          baseUrl: $checkedConvert('base_url', (v) => v as String?),
-          isActive: $checkedConvert('is_active', (v) => v as bool?),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'displayName': 'display_name',
-        'baseUrl': 'base_url',
-        'isActive': 'is_active',
-      },
-    );
-
-Map<String, dynamic> _$ProviderUpdateToJson(ProviderUpdate instance) =>
-    <String, dynamic>{
-      'slug': ?instance.slug,
-      'display_name': ?instance.displayName,
-      'base_url': ?instance.baseUrl,
-      'is_active': ?instance.isActive,
-    };
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

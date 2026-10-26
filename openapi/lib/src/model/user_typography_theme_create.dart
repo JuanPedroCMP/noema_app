@@ -3,136 +3,186 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'user_typography_theme_create.g.dart';
 
+/// UserTypographyThemeCreate
+///
+/// Properties:
+/// * [idUser] 
+/// * [name] 
+/// * [displayFont] 
+/// * [bodyFont] 
+/// * [monoFont] 
+/// * [overrideJson] 
+@BuiltValue()
+abstract class UserTypographyThemeCreate implements Built<UserTypographyThemeCreate, UserTypographyThemeCreateBuilder> {
+  @BuiltValueField(wireName: r'id_user')
+  String get idUser;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class UserTypographyThemeCreate {
-  /// Returns a new [UserTypographyThemeCreate] instance.
-  UserTypographyThemeCreate({
+  @BuiltValueField(wireName: r'name')
+  String get name;
 
-    required  this.idUser,
+  @BuiltValueField(wireName: r'display_font')
+  String get displayFont;
 
-    required  this.name,
+  @BuiltValueField(wireName: r'body_font')
+  String get bodyFont;
 
-    required  this.displayFont,
+  @BuiltValueField(wireName: r'mono_font')
+  String get monoFont;
 
-    required  this.bodyFont,
+  @BuiltValueField(wireName: r'override_json')
+  String? get overrideJson;
 
-    required  this.monoFont,
+  UserTypographyThemeCreate._();
 
-    required  this.overrideJson,
-  });
+  factory UserTypographyThemeCreate([void updates(UserTypographyThemeCreateBuilder b)]) = _$UserTypographyThemeCreate;
 
-  @JsonKey(
-    
-    name: r'id_user',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(UserTypographyThemeCreateBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<UserTypographyThemeCreate> get serializer => _$UserTypographyThemeCreateSerializer();
+}
 
-  final String idUser;
-
-
-
-  @JsonKey(
-    
-    name: r'name',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String name;
-
-
-
-  @JsonKey(
-    
-    name: r'display_font',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String displayFont;
-
-
-
-  @JsonKey(
-    
-    name: r'body_font',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String bodyFont;
-
-
-
-  @JsonKey(
-    
-    name: r'mono_font',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String monoFont;
-
-
-
-  @JsonKey(
-    
-    name: r'override_json',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final String? overrideJson;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is UserTypographyThemeCreate &&
-      other.idUser == idUser &&
-      other.name == name &&
-      other.displayFont == displayFont &&
-      other.bodyFont == bodyFont &&
-      other.monoFont == monoFont &&
-      other.overrideJson == overrideJson;
-
-    @override
-    int get hashCode =>
-        idUser.hashCode +
-        name.hashCode +
-        displayFont.hashCode +
-        bodyFont.hashCode +
-        monoFont.hashCode +
-        (overrideJson == null ? 0 : overrideJson.hashCode);
-
-  factory UserTypographyThemeCreate.fromJson(Map<String, dynamic> json) => _$UserTypographyThemeCreateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserTypographyThemeCreateToJson(this);
+class _$UserTypographyThemeCreateSerializer implements PrimitiveSerializer<UserTypographyThemeCreate> {
+  @override
+  final Iterable<Type> types = const [UserTypographyThemeCreate, _$UserTypographyThemeCreate];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'UserTypographyThemeCreate';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    UserTypographyThemeCreate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id_user';
+    yield serializers.serialize(
+      object.idUser,
+      specifiedType: const FullType(String),
+    );
+    yield r'name';
+    yield serializers.serialize(
+      object.name,
+      specifiedType: const FullType(String),
+    );
+    yield r'display_font';
+    yield serializers.serialize(
+      object.displayFont,
+      specifiedType: const FullType(String),
+    );
+    yield r'body_font';
+    yield serializers.serialize(
+      object.bodyFont,
+      specifiedType: const FullType(String),
+    );
+    yield r'mono_font';
+    yield serializers.serialize(
+      object.monoFont,
+      specifiedType: const FullType(String),
+    );
+    yield r'override_json';
+    yield object.overrideJson == null ? null : serializers.serialize(
+      object.overrideJson,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    UserTypographyThemeCreate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required UserTypographyThemeCreateBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUser = valueDes;
+          break;
+        case r'name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.name = valueDes;
+          break;
+        case r'display_font':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.displayFont = valueDes;
+          break;
+        case r'body_font':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.bodyFont = valueDes;
+          break;
+        case r'mono_font':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.monoFont = valueDes;
+          break;
+        case r'override_json':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.overrideJson = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  UserTypographyThemeCreate deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = UserTypographyThemeCreateBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

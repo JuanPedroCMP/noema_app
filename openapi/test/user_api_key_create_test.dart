@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserApiKeyCreate
 void main() {
-  final UserApiKeyCreate? instance = /* UserApiKeyCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserApiKeyCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserApiKeyCreate, () {
     // String idAiProvider

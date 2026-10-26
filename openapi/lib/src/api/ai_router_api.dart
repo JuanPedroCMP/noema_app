@@ -4,18 +4,21 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 
 class AiRouterApi {
 
   final Dio _dio;
 
-  const AiRouterApi(this._dio);
+  final Serializers _serializers;
+
+  const AiRouterApi(this._dio, this._serializers);
 
   /// Get Materials
   /// 
@@ -34,9 +37,9 @@ class AiRouterApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> getMaterialsApiV1AiRouterGetMaterialsPost({ 
+  Future<Response<JsonObject>> getMaterialsApiV1AiRouterGetMaterialsPost({ 
     required String userPrompt,
     required String agentId,
     bool? getVideos = true,
@@ -69,12 +72,12 @@ class AiRouterApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'user_prompt': userPrompt,
-      r'agent_id': agentId,
-      if (getVideos != null) r'get_videos': getVideos,
-      if (getBooks != null) r'get_books': getBooks,
-      if (getPapers != null) r'get_papers': getPapers,
-      if (getWeb != null) r'get_web': getWeb,
+      r'user_prompt': encodeQueryParameter(_serializers, userPrompt, const FullType(String)),
+      r'agent_id': encodeQueryParameter(_serializers, agentId, const FullType(String)),
+      if (getVideos != null) r'get_videos': encodeQueryParameter(_serializers, getVideos, const FullType(bool)),
+      if (getBooks != null) r'get_books': encodeQueryParameter(_serializers, getBooks, const FullType(bool)),
+      if (getPapers != null) r'get_papers': encodeQueryParameter(_serializers, getPapers, const FullType(bool)),
+      if (getWeb != null) r'get_web': encodeQueryParameter(_serializers, getWeb, const FullType(bool)),
     };
 
     final _response = await _dio.request<Object>(
@@ -86,11 +89,14 @@ class AiRouterApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -102,7 +108,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -126,9 +132,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> use1AiApiV1AiRouterGetPapersPost({ 
+  Future<Response<JsonObject>> use1AiApiV1AiRouterGetPapersPost({ 
     required String query,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -156,7 +162,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'query': query,
+      r'query': encodeQueryParameter(_serializers, query, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -168,11 +174,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -184,7 +193,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -208,9 +217,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> use2AiApiV1AiRouterGetYtPost({ 
+  Future<Response<JsonObject>> use2AiApiV1AiRouterGetYtPost({ 
     required String query,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -238,7 +247,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'query': query,
+      r'query': encodeQueryParameter(_serializers, query, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -250,11 +259,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -266,7 +278,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -290,9 +302,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> use3AiApiV1AiRouterGetBooksPost({ 
+  Future<Response<JsonObject>> use3AiApiV1AiRouterGetBooksPost({ 
     required String query,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -320,7 +332,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'query': query,
+      r'query': encodeQueryParameter(_serializers, query, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -332,11 +344,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -348,7 +363,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -372,9 +387,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> use4AiApiV1AiRouterGetPesquisaPost({ 
+  Future<Response<JsonObject>> use4AiApiV1AiRouterGetPesquisaPost({ 
     required String query,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -402,7 +417,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'query': query,
+      r'query': encodeQueryParameter(_serializers, query, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -414,11 +429,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -430,7 +448,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -455,9 +473,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> useAiApiV1AiRouterUseAiPost({ 
+  Future<Response<JsonObject>> useAiApiV1AiRouterUseAiPost({ 
     required String userPrompt,
     required String agentId,
     CancelToken? cancelToken,
@@ -486,8 +504,8 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'user_prompt': userPrompt,
-      r'agent_id': agentId,
+      r'user_prompt': encodeQueryParameter(_serializers, userPrompt, const FullType(String)),
+      r'agent_id': encodeQueryParameter(_serializers, agentId, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -499,11 +517,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -515,7 +536,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

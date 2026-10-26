@@ -23,7 +23,7 @@ void main() {
 
     // List Sync Log
     //
-    //Future<List<SyncLogOut>> listSyncLogApiV1GoogleDriveSyncLogListGet({ String id, String idDevice, String idBackupFile, String event, SyncDirection derection, SyncResult result, ConflictStrategy conflictStrategy, String errorDetails, String metadata, DateTime createdAt }) async
+    //Future<BuiltList<SyncLogOut>> listSyncLogApiV1GoogleDriveSyncLogListGet({ String id, String idDevice, String idBackupFile, String event, SyncDirection derection, SyncResult result, ConflictStrategy conflictStrategy, String errorDetails, String metadata, DateTime createdAt }) async
     test('test listSyncLogApiV1GoogleDriveSyncLogListGet', () async {
       // TODO
     });

@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 **idUser** | **String** |  | 
 **name** | **String** |  | 
 **seedColor** | **int** |  | 
-**overrideJson** | **Map&lt;String, Object&gt;** |  | 
+**overrideJson** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

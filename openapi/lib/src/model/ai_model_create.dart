@@ -3,168 +3,219 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'ai_model_create.g.dart';
 
+/// AiModelCreate
+///
+/// Properties:
+/// * [slug] 
+/// * [idAiProvider] 
+/// * [displayName] 
+/// * [contextWindow] 
+/// * [inputTokenLimit] 
+/// * [outputTokenLimit] 
+/// * [supportsVision] 
+/// * [isActive] 
+@BuiltValue()
+abstract class AiModelCreate implements Built<AiModelCreate, AiModelCreateBuilder> {
+  @BuiltValueField(wireName: r'slug')
+  String get slug;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class AiModelCreate {
-  /// Returns a new [AiModelCreate] instance.
-  AiModelCreate({
+  @BuiltValueField(wireName: r'id_ai_provider')
+  String get idAiProvider;
 
-    required  this.slug,
+  @BuiltValueField(wireName: r'display_name')
+  String get displayName;
 
-    required  this.idAiProvider,
+  @BuiltValueField(wireName: r'context_window')
+  int get contextWindow;
 
-    required  this.displayName,
+  @BuiltValueField(wireName: r'input_token_limit')
+  int get inputTokenLimit;
 
-    required  this.contextWindow,
+  @BuiltValueField(wireName: r'output_token_limit')
+  int get outputTokenLimit;
 
-    required  this.inputTokenLimit,
+  @BuiltValueField(wireName: r'supports_vision')
+  bool? get supportsVision;
 
-    required  this.outputTokenLimit,
+  @BuiltValueField(wireName: r'is_active')
+  bool? get isActive;
 
-    required  this.supportsVision,
+  AiModelCreate._();
 
-    required  this.isActive,
-  });
+  factory AiModelCreate([void updates(AiModelCreateBuilder b)]) = _$AiModelCreate;
 
-  @JsonKey(
-    
-    name: r'slug',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(AiModelCreateBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<AiModelCreate> get serializer => _$AiModelCreateSerializer();
+}
 
-  final String slug;
-
-
-
-  @JsonKey(
-    
-    name: r'id_ai_provider',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idAiProvider;
-
-
-
-  @JsonKey(
-    
-    name: r'display_name',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String displayName;
-
-
-
-  @JsonKey(
-    
-    name: r'context_window',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final int contextWindow;
-
-
-
-  @JsonKey(
-    
-    name: r'input_token_limit',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final int inputTokenLimit;
-
-
-
-  @JsonKey(
-    
-    name: r'output_token_limit',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final int outputTokenLimit;
-
-
-
-  @JsonKey(
-    
-    name: r'supports_vision',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final bool? supportsVision;
-
-
-
-  @JsonKey(
-    
-    name: r'is_active',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final bool? isActive;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is AiModelCreate &&
-      other.slug == slug &&
-      other.idAiProvider == idAiProvider &&
-      other.displayName == displayName &&
-      other.contextWindow == contextWindow &&
-      other.inputTokenLimit == inputTokenLimit &&
-      other.outputTokenLimit == outputTokenLimit &&
-      other.supportsVision == supportsVision &&
-      other.isActive == isActive;
-
-    @override
-    int get hashCode =>
-        slug.hashCode +
-        idAiProvider.hashCode +
-        displayName.hashCode +
-        contextWindow.hashCode +
-        inputTokenLimit.hashCode +
-        outputTokenLimit.hashCode +
-        (supportsVision == null ? 0 : supportsVision.hashCode) +
-        (isActive == null ? 0 : isActive.hashCode);
-
-  factory AiModelCreate.fromJson(Map<String, dynamic> json) => _$AiModelCreateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AiModelCreateToJson(this);
+class _$AiModelCreateSerializer implements PrimitiveSerializer<AiModelCreate> {
+  @override
+  final Iterable<Type> types = const [AiModelCreate, _$AiModelCreate];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'AiModelCreate';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    AiModelCreate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'slug';
+    yield serializers.serialize(
+      object.slug,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_ai_provider';
+    yield serializers.serialize(
+      object.idAiProvider,
+      specifiedType: const FullType(String),
+    );
+    yield r'display_name';
+    yield serializers.serialize(
+      object.displayName,
+      specifiedType: const FullType(String),
+    );
+    yield r'context_window';
+    yield serializers.serialize(
+      object.contextWindow,
+      specifiedType: const FullType(int),
+    );
+    yield r'input_token_limit';
+    yield serializers.serialize(
+      object.inputTokenLimit,
+      specifiedType: const FullType(int),
+    );
+    yield r'output_token_limit';
+    yield serializers.serialize(
+      object.outputTokenLimit,
+      specifiedType: const FullType(int),
+    );
+    yield r'supports_vision';
+    yield object.supportsVision == null ? null : serializers.serialize(
+      object.supportsVision,
+      specifiedType: const FullType.nullable(bool),
+    );
+    yield r'is_active';
+    yield object.isActive == null ? null : serializers.serialize(
+      object.isActive,
+      specifiedType: const FullType.nullable(bool),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    AiModelCreate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required AiModelCreateBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'slug':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.slug = valueDes;
+          break;
+        case r'id_ai_provider':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idAiProvider = valueDes;
+          break;
+        case r'display_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.displayName = valueDes;
+          break;
+        case r'context_window':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.contextWindow = valueDes;
+          break;
+        case r'input_token_limit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.inputTokenLimit = valueDes;
+          break;
+        case r'output_token_limit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.outputTokenLimit = valueDes;
+          break;
+        case r'supports_vision':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.supportsVision = valueDes;
+          break;
+        case r'is_active':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.isActive = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  AiModelCreate deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = AiModelCreateBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

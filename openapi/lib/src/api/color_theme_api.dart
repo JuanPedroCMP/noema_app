@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_color_theme_create.dart';
 import 'package:openapi/src/model/user_color_theme_out.dart';
@@ -18,7 +20,9 @@ class ColorThemeApi {
 
   final Dio _dio;
 
-  const ColorThemeApi(this._dio);
+  final Serializers _serializers;
+
+  const ColorThemeApi(this._dio, this._serializers);
 
   /// Create Color Theme
   /// 
@@ -65,7 +69,8 @@ class ColorThemeApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userColorThemeCreate);
+      const _type = FullType(UserColorThemeCreate);
+      _bodyData = _serializers.serialize(userColorThemeCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +96,11 @@ class ColorThemeApi {
     UserColorThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColorThemeOut>(rawData, 'UserColorThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserColorThemeOut),
+      ) as UserColorThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -128,9 +136,9 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteColorThemeApiV1UserThemeColorThemeDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -139,7 +147,7 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/color_theme/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/color_theme/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -165,11 +173,14 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +192,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +227,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/color_theme/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/color_theme/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -245,8 +256,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     UserColorThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColorThemeOut>(rawData, 'UserColorThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserColorThemeOut),
+      ) as UserColorThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -288,9 +302,9 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<UserColorThemeOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<UserColorThemeOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<UserColorThemeOut>>> listColorThemeApiV1UserThemeColorThemeListGet({ 
+  Future<Response<BuiltList<UserColorThemeOut>>> listColorThemeApiV1UserThemeColorThemeListGet({ 
     String? id,
     String? idUser,
     String? name,
@@ -324,13 +338,13 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idUser != null) r'id_user': idUser,
-      if (name != null) r'name': name,
-      if (seedColor != null) r'seed_color': seedColor,
-      if (overrideJson != null) r'override_json': overrideJson,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idUser != null) r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
+      if (name != null) r'name': encodeQueryParameter(_serializers, name, const FullType(String)),
+      if (seedColor != null) r'seed_color': encodeQueryParameter(_serializers, seedColor, const FullType(int)),
+      if (overrideJson != null) r'override_json': encodeQueryParameter(_serializers, overrideJson, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -342,11 +356,14 @@ _responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColo
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<UserColorThemeOut>? _responseData;
+    BuiltList<UserColorThemeOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<UserColorThemeOut>, UserColorThemeOut>(rawData, 'List<UserColorThemeOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(UserColorThemeOut)]),
+      ) as BuiltList<UserColorThemeOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -358,7 +375,7 @@ _responseData = rawData == null ? null : deserialize<List<UserColorThemeOut>, Us
       );
     }
 
-    return Response<List<UserColorThemeOut>>(
+    return Response<BuiltList<UserColorThemeOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -395,7 +412,7 @@ _responseData = rawData == null ? null : deserialize<List<UserColorThemeOut>, Us
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/color_theme/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/color_theme/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -417,7 +434,8 @@ _responseData = rawData == null ? null : deserialize<List<UserColorThemeOut>, Us
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userColorThemeUpdate);
+      const _type = FullType(UserColorThemeUpdate);
+      _bodyData = _serializers.serialize(userColorThemeUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -443,8 +461,11 @@ _responseData = rawData == null ? null : deserialize<List<UserColorThemeOut>, Us
     UserColorThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserColorThemeOut, UserColorThemeOut>(rawData, 'UserColorThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserColorThemeOut),
+      ) as UserColorThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(

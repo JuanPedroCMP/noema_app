@@ -60,7 +60,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteDeviceApiV1DeviceDeleteIdentificatorDelete**
-> Object deleteDeviceApiV1DeviceDeleteIdentificatorDelete(identificator)
+> JsonObject deleteDeviceApiV1DeviceDeleteIdentificatorDelete(identificator)
 
 Delete Device
 
@@ -89,7 +89,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -146,7 +146,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listDeviceApiV1DeviceListGet**
-> List<DeviceOut> listDeviceApiV1DeviceListGet(id, idUser, deviceName, deviceFingerprint, platform, lastSeenAt, createdAt, updatedAt)
+> BuiltList<DeviceOut> listDeviceApiV1DeviceListGet(id, idUser, deviceName, deviceFingerprint, platform, lastSeenAt, createdAt, updatedAt)
 
 List Device
 
@@ -189,7 +189,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**List&lt;DeviceOut&gt;**](DeviceOut.md)
+[**BuiltList&lt;DeviceOut&gt;**](DeviceOut.md)
 
 ### Authorization
 

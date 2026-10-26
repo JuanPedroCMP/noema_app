@@ -4,17 +4,19 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
 
 class DefaultApi {
 
   final Dio _dio;
 
-  const DefaultApi(this._dio);
+  final Serializers _serializers;
+
+  const DefaultApi(this._dio, this._serializers);
 
   /// Root
   /// 
@@ -27,9 +29,9 @@ class DefaultApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Map<String, String>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltMap<String, String>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Map<String, String>>> rootGet({ 
+  Future<Response<BuiltMap<String, String>>> rootGet({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -58,11 +60,14 @@ class DefaultApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    Map<String, String>? _responseData;
+    BuiltMap<String, String>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Map<String, String>, String>(rawData, 'Map<String, String>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltMap, [FullType(String), FullType(String)]),
+      ) as BuiltMap<String, String>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -74,7 +79,7 @@ _responseData = rawData == null ? null : deserialize<Map<String, String>, String
       );
     }
 
-    return Response<Map<String, String>>(
+    return Response<BuiltMap<String, String>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

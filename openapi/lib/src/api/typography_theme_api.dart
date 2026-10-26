@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/user_typography_theme_create.dart';
 import 'package:openapi/src/model/user_typography_theme_out.dart';
@@ -18,7 +20,9 @@ class TypographyThemeApi {
 
   final Dio _dio;
 
-  const TypographyThemeApi(this._dio);
+  final Serializers _serializers;
+
+  const TypographyThemeApi(this._dio, this._serializers);
 
   /// Create Typography Theme
   /// 
@@ -65,7 +69,8 @@ class TypographyThemeApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userTypographyThemeCreate);
+      const _type = FullType(UserTypographyThemeCreate);
+      _bodyData = _serializers.serialize(userTypographyThemeCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -91,8 +96,11 @@ class TypographyThemeApi {
     UserTypographyThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, UserTypographyThemeOut>(rawData, 'UserTypographyThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserTypographyThemeOut),
+      ) as UserTypographyThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -128,9 +136,9 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteTypographyThemeApiV1UserThemeTypographyThemeDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -139,7 +147,7 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/typography_theme/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/typography_theme/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -165,11 +173,14 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -181,7 +192,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -216,7 +227,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/typography_theme/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/typography_theme/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -245,8 +256,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     UserTypographyThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, UserTypographyThemeOut>(rawData, 'UserTypographyThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserTypographyThemeOut),
+      ) as UserTypographyThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -290,9 +304,9 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<UserTypographyThemeOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<UserTypographyThemeOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<UserTypographyThemeOut>>> listTypographyThemeApiV1UserThemeTypographyThemeListGet({ 
+  Future<Response<BuiltList<UserTypographyThemeOut>>> listTypographyThemeApiV1UserThemeTypographyThemeListGet({ 
     String? id,
     String? idUser,
     String? name,
@@ -328,15 +342,15 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (idUser != null) r'id_user': idUser,
-      if (name != null) r'name': name,
-      if (displayFont != null) r'display_font': displayFont,
-      if (bodyFont != null) r'body_font': bodyFont,
-      if (monoFont != null) r'mono_font': monoFont,
-      if (overrideJson != null) r'override_json': overrideJson,
-      if (createdAt != null) r'created_at': createdAt,
-      if (updatedAt != null) r'updated_at': updatedAt,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (idUser != null) r'id_user': encodeQueryParameter(_serializers, idUser, const FullType(String)),
+      if (name != null) r'name': encodeQueryParameter(_serializers, name, const FullType(String)),
+      if (displayFont != null) r'display_font': encodeQueryParameter(_serializers, displayFont, const FullType(String)),
+      if (bodyFont != null) r'body_font': encodeQueryParameter(_serializers, bodyFont, const FullType(String)),
+      if (monoFont != null) r'mono_font': encodeQueryParameter(_serializers, monoFont, const FullType(String)),
+      if (overrideJson != null) r'override_json': encodeQueryParameter(_serializers, overrideJson, const FullType(String)),
+      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      if (updatedAt != null) r'updated_at': encodeQueryParameter(_serializers, updatedAt, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -348,11 +362,14 @@ _responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, Use
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<UserTypographyThemeOut>? _responseData;
+    BuiltList<UserTypographyThemeOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<UserTypographyThemeOut>, UserTypographyThemeOut>(rawData, 'List<UserTypographyThemeOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(UserTypographyThemeOut)]),
+      ) as BuiltList<UserTypographyThemeOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -364,7 +381,7 @@ _responseData = rawData == null ? null : deserialize<List<UserTypographyThemeOut
       );
     }
 
-    return Response<List<UserTypographyThemeOut>>(
+    return Response<BuiltList<UserTypographyThemeOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -401,7 +418,7 @@ _responseData = rawData == null ? null : deserialize<List<UserTypographyThemeOut
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/user_theme/typography_theme/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/user_theme/typography_theme/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -423,7 +440,8 @@ _responseData = rawData == null ? null : deserialize<List<UserTypographyThemeOut
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(userTypographyThemeUpdate);
+      const _type = FullType(UserTypographyThemeUpdate);
+      _bodyData = _serializers.serialize(userTypographyThemeUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -449,8 +467,11 @@ _responseData = rawData == null ? null : deserialize<List<UserTypographyThemeOut
     UserTypographyThemeOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<UserTypographyThemeOut, UserTypographyThemeOut>(rawData, 'UserTypographyThemeOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserTypographyThemeOut),
+      ) as UserTypographyThemeOut;
 
     } catch (error, stackTrace) {
       throw DioException(

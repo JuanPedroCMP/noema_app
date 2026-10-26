@@ -3,160 +3,144 @@
 part of 'agent_model_update.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$AgentModelUpdateCWProxy {
-  AgentModelUpdate idAgent(String? idAgent);
+class _$AgentModelUpdate extends AgentModelUpdate {
+  @override
+  final String? idAgent;
+  @override
+  final String? idAiModel;
+  @override
+  final AgentModelQuality? qualityExpected;
+  @override
+  final String? customSystemPrompt;
+  @override
+  final num? customTemperature;
 
-  AgentModelUpdate idAiModel(String? idAiModel);
+  factory _$AgentModelUpdate(
+          [void Function(AgentModelUpdateBuilder)? updates]) =>
+      (AgentModelUpdateBuilder()..update(updates))._build();
 
-  AgentModelUpdate qualityExpected(AgentModelQuality? qualityExpected);
-
-  AgentModelUpdate customSystemPrompt(String? customSystemPrompt);
-
-  AgentModelUpdate customTemperature(num? customTemperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentModelUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  AgentModelUpdate call({
-    String? idAgent,
-    String? idAiModel,
-    AgentModelQuality? qualityExpected,
-    String? customSystemPrompt,
-    num? customTemperature,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfAgentModelUpdate.copyWith(...)` or call `instanceOfAgentModelUpdate.copyWith.fieldName(value)` for a single field.
-class _$AgentModelUpdateCWProxyImpl implements _$AgentModelUpdateCWProxy {
-  const _$AgentModelUpdateCWProxyImpl(this._value);
-
-  final AgentModelUpdate _value;
+  _$AgentModelUpdate._(
+      {this.idAgent,
+      this.idAiModel,
+      this.qualityExpected,
+      this.customSystemPrompt,
+      this.customTemperature})
+      : super._();
+  @override
+  AgentModelUpdate rebuild(void Function(AgentModelUpdateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  AgentModelUpdate idAgent(String? idAgent) => call(idAgent: idAgent);
+  AgentModelUpdateBuilder toBuilder() =>
+      AgentModelUpdateBuilder()..replace(this);
 
   @override
-  AgentModelUpdate idAiModel(String? idAiModel) => call(idAiModel: idAiModel);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is AgentModelUpdate &&
+        idAgent == other.idAgent &&
+        idAiModel == other.idAiModel &&
+        qualityExpected == other.qualityExpected &&
+        customSystemPrompt == other.customSystemPrompt &&
+        customTemperature == other.customTemperature;
+  }
 
   @override
-  AgentModelUpdate qualityExpected(AgentModelQuality? qualityExpected) =>
-      call(qualityExpected: qualityExpected);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, idAgent.hashCode);
+    _$hash = $jc(_$hash, idAiModel.hashCode);
+    _$hash = $jc(_$hash, qualityExpected.hashCode);
+    _$hash = $jc(_$hash, customSystemPrompt.hashCode);
+    _$hash = $jc(_$hash, customTemperature.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  AgentModelUpdate customSystemPrompt(String? customSystemPrompt) =>
-      call(customSystemPrompt: customSystemPrompt);
-
-  @override
-  AgentModelUpdate customTemperature(num? customTemperature) =>
-      call(customTemperature: customTemperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelUpdate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentModelUpdate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  AgentModelUpdate call({
-    Object? idAgent = const $CopyWithPlaceholder(),
-    Object? idAiModel = const $CopyWithPlaceholder(),
-    Object? qualityExpected = const $CopyWithPlaceholder(),
-    Object? customSystemPrompt = const $CopyWithPlaceholder(),
-    Object? customTemperature = const $CopyWithPlaceholder(),
-  }) {
-    return AgentModelUpdate(
-      idAgent: idAgent == const $CopyWithPlaceholder()
-          ? _value.idAgent
-          // ignore: cast_nullable_to_non_nullable
-          : idAgent as String?,
-      idAiModel: idAiModel == const $CopyWithPlaceholder()
-          ? _value.idAiModel
-          // ignore: cast_nullable_to_non_nullable
-          : idAiModel as String?,
-      qualityExpected: qualityExpected == const $CopyWithPlaceholder()
-          ? _value.qualityExpected
-          // ignore: cast_nullable_to_non_nullable
-          : qualityExpected as AgentModelQuality?,
-      customSystemPrompt: customSystemPrompt == const $CopyWithPlaceholder()
-          ? _value.customSystemPrompt
-          // ignore: cast_nullable_to_non_nullable
-          : customSystemPrompt as String?,
-      customTemperature: customTemperature == const $CopyWithPlaceholder()
-          ? _value.customTemperature
-          // ignore: cast_nullable_to_non_nullable
-          : customTemperature as num?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'AgentModelUpdate')
+          ..add('idAgent', idAgent)
+          ..add('idAiModel', idAiModel)
+          ..add('qualityExpected', qualityExpected)
+          ..add('customSystemPrompt', customSystemPrompt)
+          ..add('customTemperature', customTemperature))
+        .toString();
   }
 }
 
-extension $AgentModelUpdateCopyWith on AgentModelUpdate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfAgentModelUpdate.copyWith(...)` or `instanceOfAgentModelUpdate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$AgentModelUpdateCWProxy get copyWith => _$AgentModelUpdateCWProxyImpl(this);
+class AgentModelUpdateBuilder
+    implements Builder<AgentModelUpdate, AgentModelUpdateBuilder> {
+  _$AgentModelUpdate? _$v;
+
+  String? _idAgent;
+  String? get idAgent => _$this._idAgent;
+  set idAgent(String? idAgent) => _$this._idAgent = idAgent;
+
+  String? _idAiModel;
+  String? get idAiModel => _$this._idAiModel;
+  set idAiModel(String? idAiModel) => _$this._idAiModel = idAiModel;
+
+  AgentModelQuality? _qualityExpected;
+  AgentModelQuality? get qualityExpected => _$this._qualityExpected;
+  set qualityExpected(AgentModelQuality? qualityExpected) =>
+      _$this._qualityExpected = qualityExpected;
+
+  String? _customSystemPrompt;
+  String? get customSystemPrompt => _$this._customSystemPrompt;
+  set customSystemPrompt(String? customSystemPrompt) =>
+      _$this._customSystemPrompt = customSystemPrompt;
+
+  num? _customTemperature;
+  num? get customTemperature => _$this._customTemperature;
+  set customTemperature(num? customTemperature) =>
+      _$this._customTemperature = customTemperature;
+
+  AgentModelUpdateBuilder() {
+    AgentModelUpdate._defaults(this);
+  }
+
+  AgentModelUpdateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _idAgent = $v.idAgent;
+      _idAiModel = $v.idAiModel;
+      _qualityExpected = $v.qualityExpected;
+      _customSystemPrompt = $v.customSystemPrompt;
+      _customTemperature = $v.customTemperature;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(AgentModelUpdate other) {
+    _$v = other as _$AgentModelUpdate;
+  }
+
+  @override
+  void update(void Function(AgentModelUpdateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  AgentModelUpdate build() => _build();
+
+  _$AgentModelUpdate _build() {
+    final _$result = _$v ??
+        _$AgentModelUpdate._(
+          idAgent: idAgent,
+          idAiModel: idAiModel,
+          qualityExpected: qualityExpected,
+          customSystemPrompt: customSystemPrompt,
+          customTemperature: customTemperature,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-AgentModelUpdate _$AgentModelUpdateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'AgentModelUpdate',
-      json,
-      ($checkedConvert) {
-        final val = AgentModelUpdate(
-          idAgent: $checkedConvert('id_agent', (v) => v as String?),
-          idAiModel: $checkedConvert('id_ai_model', (v) => v as String?),
-          qualityExpected: $checkedConvert(
-            'quality_expected',
-            (v) => $enumDecodeNullable(_$AgentModelQualityEnumMap, v),
-          ),
-          customSystemPrompt: $checkedConvert(
-            'custom_system_prompt',
-            (v) => v as String?,
-          ),
-          customTemperature: $checkedConvert(
-            'custom_temperature',
-            (v) => v as num?,
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'idAgent': 'id_agent',
-        'idAiModel': 'id_ai_model',
-        'qualityExpected': 'quality_expected',
-        'customSystemPrompt': 'custom_system_prompt',
-        'customTemperature': 'custom_temperature',
-      },
-    );
-
-Map<String, dynamic> _$AgentModelUpdateToJson(AgentModelUpdate instance) =>
-    <String, dynamic>{
-      'id_agent': ?instance.idAgent,
-      'id_ai_model': ?instance.idAiModel,
-      'quality_expected': ?_$AgentModelQualityEnumMap[instance.qualityExpected],
-      'custom_system_prompt': ?instance.customSystemPrompt,
-      'custom_temperature': ?instance.customTemperature,
-    };
-
-const _$AgentModelQualityEnumMap = {
-  AgentModelQuality.unusable: 'unusable',
-  AgentModelQuality.poor: 'poor',
-  AgentModelQuality.fair: 'fair',
-  AgentModelQuality.good: 'good',
-  AgentModelQuality.veryGood: 'very_good',
-  AgentModelQuality.excellent: 'excellent',
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

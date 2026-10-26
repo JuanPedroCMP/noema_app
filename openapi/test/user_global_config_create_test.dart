@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for UserGlobalConfigCreate
 void main() {
-  final UserGlobalConfigCreate? instance = /* UserGlobalConfigCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = UserGlobalConfigCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(UserGlobalConfigCreate, () {
     // String idUser

@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/google_account_create.dart';
 import 'package:openapi/src/model/google_account_out.dart';
 import 'package:openapi/src/model/google_account_update.dart';
@@ -18,7 +19,9 @@ class AuthenticationApi {
 
   final Dio _dio;
 
-  const AuthenticationApi(this._dio);
+  final Serializers _serializers;
+
+  const AuthenticationApi(this._dio, this._serializers);
 
   /// Authenticate
   /// 
@@ -37,9 +40,9 @@ class AuthenticationApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> authenticateApiV1AuthLoginPost({ 
+  Future<Response<JsonObject>> authenticateApiV1AuthLoginPost({ 
     required String username,
     required String password,
     String? grantType,
@@ -71,12 +74,12 @@ class AuthenticationApi {
 
     try {
       _bodyData = <String, dynamic>{
-        r'grant_type': grantType,
-        r'username': username,
-        r'password': password,
-        if (scope != null) r'scope': scope,
-        r'client_id': clientId,
-        r'client_secret': clientSecret,
+        r'grant_type': encodeQueryParameter(_serializers, grantType, const FullType(String)),
+        r'username': encodeQueryParameter(_serializers, username, const FullType(String)),
+        r'password': encodeQueryParameter(_serializers, password, const FullType(String)),
+        if (scope != null) r'scope': encodeQueryParameter(_serializers, scope, const FullType(String)),
+        r'client_id': encodeQueryParameter(_serializers, clientId, const FullType(String)),
+        r'client_secret': encodeQueryParameter(_serializers, clientSecret, const FullType(String)),
       };
 
     } catch(error, stackTrace) {
@@ -100,11 +103,14 @@ class AuthenticationApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -116,7 +122,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -142,9 +148,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> confirmPwdResetApiV1AuthConfirmPasswordRestPost({ 
+  Future<Response<JsonObject>> confirmPwdResetApiV1AuthConfirmPasswordRestPost({ 
     required String identificator,
     required String newPassword,
     required String code,
@@ -169,9 +175,9 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     );
 
     final _queryParameters = <String, dynamic>{
-      r'identificator': identificator,
-      r'new_password': newPassword,
-      r'code': code,
+      r'identificator': encodeQueryParameter(_serializers, identificator, const FullType(String)),
+      r'new_password': encodeQueryParameter(_serializers, newPassword, const FullType(String)),
+      r'code': encodeQueryParameter(_serializers, code, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -183,11 +189,14 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -199,7 +208,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -256,7 +265,8 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(googleAccountCreate);
+      const _type = FullType(GoogleAccountCreate);
+      _bodyData = _serializers.serialize(googleAccountCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -282,8 +292,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     GoogleAccountOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAccountOut>(rawData, 'GoogleAccountOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(GoogleAccountOut),
+      ) as GoogleAccountOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -319,9 +332,9 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteGoogleAccountApiV1AuthGoogleDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -330,7 +343,7 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/auth/google/delete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/auth/google/delete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -356,11 +369,14 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -372,7 +388,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -407,7 +423,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/auth/google/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/auth/google/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -436,8 +452,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     GoogleAccountOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAccountOut>(rawData, 'GoogleAccountOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(GoogleAccountOut),
+      ) as GoogleAccountOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -473,9 +492,9 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> sendPwdResetApiV1AuthCallPasswordRestPost({ 
+  Future<Response<JsonObject>> sendPwdResetApiV1AuthCallPasswordRestPost({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -498,7 +517,7 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
     );
 
     final _queryParameters = <String, dynamic>{
-      r'identificator': identificator,
+      r'identificator': encodeQueryParameter(_serializers, identificator, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(
@@ -510,11 +529,14 @@ _responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAcc
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -526,7 +548,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -563,7 +585,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/auth/google/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/auth/google/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -585,7 +607,8 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(googleAccountUpdate);
+      const _type = FullType(GoogleAccountUpdate);
+      _bodyData = _serializers.serialize(googleAccountUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -611,8 +634,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     GoogleAccountOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<GoogleAccountOut, GoogleAccountOut>(rawData, 'GoogleAccountOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(GoogleAccountOut),
+      ) as GoogleAccountOut;
 
     } catch (error, stackTrace) {
       throw DioException(

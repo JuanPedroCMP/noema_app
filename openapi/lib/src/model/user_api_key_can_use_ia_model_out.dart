@@ -3,104 +3,154 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'user_api_key_can_use_ia_model_out.g.dart';
 
+/// UserApiKeyCanUseIaModelOut
+///
+/// Properties:
+/// * [id] 
+/// * [idAiModel] 
+/// * [idUserApiKey] 
+/// * [createdAt] 
+@BuiltValue()
+abstract class UserApiKeyCanUseIaModelOut implements Built<UserApiKeyCanUseIaModelOut, UserApiKeyCanUseIaModelOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class UserApiKeyCanUseIaModelOut {
-  /// Returns a new [UserApiKeyCanUseIaModelOut] instance.
-  UserApiKeyCanUseIaModelOut({
+  @BuiltValueField(wireName: r'id_ai_model')
+  String get idAiModel;
 
-    required  this.id,
+  @BuiltValueField(wireName: r'id_user_api_key')
+  String get idUserApiKey;
 
-    required  this.idAiModel,
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
 
-    required  this.idUserApiKey,
+  UserApiKeyCanUseIaModelOut._();
 
-    required  this.createdAt,
-  });
+  factory UserApiKeyCanUseIaModelOut([void updates(UserApiKeyCanUseIaModelOutBuilder b)]) = _$UserApiKeyCanUseIaModelOut;
 
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(UserApiKeyCanUseIaModelOutBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<UserApiKeyCanUseIaModelOut> get serializer => _$UserApiKeyCanUseIaModelOutSerializer();
+}
 
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'id_ai_model',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idAiModel;
-
-
-
-  @JsonKey(
-    
-    name: r'id_user_api_key',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String idUserApiKey;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is UserApiKeyCanUseIaModelOut &&
-      other.id == id &&
-      other.idAiModel == idAiModel &&
-      other.idUserApiKey == idUserApiKey &&
-      other.createdAt == createdAt;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        idAiModel.hashCode +
-        idUserApiKey.hashCode +
-        (createdAt == null ? 0 : createdAt.hashCode);
-
-  factory UserApiKeyCanUseIaModelOut.fromJson(Map<String, dynamic> json) => _$UserApiKeyCanUseIaModelOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserApiKeyCanUseIaModelOutToJson(this);
+class _$UserApiKeyCanUseIaModelOutSerializer implements PrimitiveSerializer<UserApiKeyCanUseIaModelOut> {
+  @override
+  final Iterable<Type> types = const [UserApiKeyCanUseIaModelOut, _$UserApiKeyCanUseIaModelOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'UserApiKeyCanUseIaModelOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    UserApiKeyCanUseIaModelOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_ai_model';
+    yield serializers.serialize(
+      object.idAiModel,
+      specifiedType: const FullType(String),
+    );
+    yield r'id_user_api_key';
+    yield serializers.serialize(
+      object.idUserApiKey,
+      specifiedType: const FullType(String),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    UserApiKeyCanUseIaModelOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required UserApiKeyCanUseIaModelOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'id_ai_model':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idAiModel = valueDes;
+          break;
+        case r'id_user_api_key':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.idUserApiKey = valueDes;
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  UserApiKeyCanUseIaModelOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = UserApiKeyCanUseIaModelOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

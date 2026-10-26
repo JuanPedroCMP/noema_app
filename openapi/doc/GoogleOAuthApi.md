@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 
 # **googleOauthCallbackApiV1AuthGoogleCallbackGet**
-> Object googleOauthCallbackApiV1AuthGoogleCallbackGet()
+> JsonObject googleOauthCallbackApiV1AuthGoogleCallbackGet()
 
 Google Oauth Callback
 
@@ -37,7 +37,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -51,7 +51,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **linkGoogleAccountApiV1AuthGoogleLinkGet**
-> Object linkGoogleAccountApiV1AuthGoogleLinkGet()
+> JsonObject linkGoogleAccountApiV1AuthGoogleLinkGet()
 
 Link Google Account
 
@@ -76,7 +76,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-**Object**
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 

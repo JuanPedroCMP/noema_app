@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-// ignore: unused_import
-import 'dart:convert';
-import 'package:openapi/src/deserialize.dart';
+import 'package:built_value/json_object.dart';
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
+import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/ai_model_create.dart';
 import 'package:openapi/src/model/ai_model_out.dart';
 import 'package:openapi/src/model/ai_model_update.dart';
@@ -18,7 +20,9 @@ class AiModelApi {
 
   final Dio _dio;
 
-  const AiModelApi(this._dio);
+  final Serializers _serializers;
+
+  const AiModelApi(this._dio, this._serializers);
 
   /// Create Ai Model
   /// 
@@ -60,7 +64,8 @@ class AiModelApi {
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(aiModelCreate);
+      const _type = FullType(AiModelCreate);
+      _bodyData = _serializers.serialize(aiModelCreate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -86,8 +91,11 @@ class AiModelApi {
     AiModelOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(rawData, 'AiModelOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AiModelOut),
+      ) as AiModelOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -123,9 +131,9 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [Object] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Object>> deleteAiModelApiV1AiAiModelEleteIdentificatorDelete({ 
+  Future<Response<JsonObject>> deleteAiModelApiV1AiAiModelEleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -134,7 +142,7 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/ai_model/elete/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/ai_model/elete/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -155,11 +163,14 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
       onReceiveProgress: onReceiveProgress,
     );
 
-    Object? _responseData;
+    JsonObject? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'Object', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -171,7 +182,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
       );
     }
 
-    return Response<Object>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -206,7 +217,7 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/ai_model/get/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/ai_model/get/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -230,8 +241,11 @@ _responseData = rawData == null ? null : deserialize<Object, Object>(rawData, 'O
     AiModelOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(rawData, 'AiModelOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AiModelOut),
+      ) as AiModelOut;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -275,9 +289,9 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [List<AiModelOut>] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltList<AiModelOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<List<AiModelOut>>> listAiModelsApiV1AiAiModelListGet({ 
+  Future<Response<BuiltList<AiModelOut>>> listAiModelsApiV1AiAiModelListGet({ 
     String? id,
     String? slug,
     String? idAiProvider,
@@ -308,15 +322,15 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': id,
-      if (slug != null) r'slug': slug,
-      if (idAiProvider != null) r'id_ai_provider': idAiProvider,
-      if (displayName != null) r'display_name': displayName,
-      if (contextWindow != null) r'context_window': contextWindow,
-      if (inputTokenLimit != null) r'input_token_limit': inputTokenLimit,
-      if (outputTokenLimit != null) r'output_token_limit': outputTokenLimit,
-      if (supportsVision != null) r'supports_vision': supportsVision,
-      if (isActive != null) r'is_active': isActive,
+      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
+      if (slug != null) r'slug': encodeQueryParameter(_serializers, slug, const FullType(String)),
+      if (idAiProvider != null) r'id_ai_provider': encodeQueryParameter(_serializers, idAiProvider, const FullType(String)),
+      if (displayName != null) r'display_name': encodeQueryParameter(_serializers, displayName, const FullType(String)),
+      if (contextWindow != null) r'context_window': encodeQueryParameter(_serializers, contextWindow, const FullType(int)),
+      if (inputTokenLimit != null) r'input_token_limit': encodeQueryParameter(_serializers, inputTokenLimit, const FullType(int)),
+      if (outputTokenLimit != null) r'output_token_limit': encodeQueryParameter(_serializers, outputTokenLimit, const FullType(int)),
+      if (supportsVision != null) r'supports_vision': encodeQueryParameter(_serializers, supportsVision, const FullType(bool)),
+      if (isActive != null) r'is_active': encodeQueryParameter(_serializers, isActive, const FullType(bool)),
     };
 
     final _response = await _dio.request<Object>(
@@ -328,11 +342,14 @@ _responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(raw
       onReceiveProgress: onReceiveProgress,
     );
 
-    List<AiModelOut>? _responseData;
+    BuiltList<AiModelOut>? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<List<AiModelOut>, AiModelOut>(rawData, 'List<AiModelOut>', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(AiModelOut)]),
+      ) as BuiltList<AiModelOut>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -344,7 +361,7 @@ _responseData = rawData == null ? null : deserialize<List<AiModelOut>, AiModelOu
       );
     }
 
-    return Response<List<AiModelOut>>(
+    return Response<BuiltList<AiModelOut>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -381,7 +398,7 @@ _responseData = rawData == null ? null : deserialize<List<AiModelOut>, AiModelOu
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v1/ai/ai_model/update/{identificator}'.replaceAll('{' r'identificator' '}', identificator.toString());
+    final _path = r'/api/v1/ai/ai_model/update/{identificator}'.replaceAll('{' r'identificator' '}', encodeQueryParameter(_serializers, identificator, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -398,7 +415,8 @@ _responseData = rawData == null ? null : deserialize<List<AiModelOut>, AiModelOu
     dynamic _bodyData;
 
     try {
-      _bodyData = jsonEncode(aiModelUpdate);
+      const _type = FullType(AiModelUpdate);
+      _bodyData = _serializers.serialize(aiModelUpdate, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -424,8 +442,11 @@ _responseData = rawData == null ? null : deserialize<List<AiModelOut>, AiModelOu
     AiModelOut? _responseData;
 
     try {
-final rawData = _response.data;
-_responseData = rawData == null ? null : deserialize<AiModelOut, AiModelOut>(rawData, 'AiModelOut', growable: true);
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AiModelOut),
+      ) as AiModelOut;
 
     } catch (error, stackTrace) {
       throw DioException(

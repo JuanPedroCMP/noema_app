@@ -3,170 +3,147 @@
 part of 'agent_model_create.dart';
 
 // **************************************************************************
-// CopyWithGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-abstract class _$AgentModelCreateCWProxy {
-  AgentModelCreate idAgent(String idAgent);
+class _$AgentModelCreate extends AgentModelCreate {
+  @override
+  final String idAgent;
+  @override
+  final String idAiModel;
+  @override
+  final AgentModelQuality qualityExpected;
+  @override
+  final String customSystemPrompt;
+  @override
+  final num? temperature;
 
-  AgentModelCreate idAiModel(String idAiModel);
+  factory _$AgentModelCreate(
+          [void Function(AgentModelCreateBuilder)? updates]) =>
+      (AgentModelCreateBuilder()..update(updates))._build();
 
-  AgentModelCreate qualityExpected(AgentModelQuality qualityExpected);
-
-  AgentModelCreate customSystemPrompt(String customSystemPrompt);
-
-  AgentModelCreate temperature(num? temperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentModelCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  AgentModelCreate call({
-    String idAgent,
-    String idAiModel,
-    AgentModelQuality qualityExpected,
-    String customSystemPrompt,
-    num? temperature,
-  });
-}
-
-/// Callable proxy for `copyWith` functionality.
-/// Use as `instanceOfAgentModelCreate.copyWith(...)` or call `instanceOfAgentModelCreate.copyWith.fieldName(value)` for a single field.
-class _$AgentModelCreateCWProxyImpl implements _$AgentModelCreateCWProxy {
-  const _$AgentModelCreateCWProxyImpl(this._value);
-
-  final AgentModelCreate _value;
+  _$AgentModelCreate._(
+      {required this.idAgent,
+      required this.idAiModel,
+      required this.qualityExpected,
+      required this.customSystemPrompt,
+      this.temperature})
+      : super._();
+  @override
+  AgentModelCreate rebuild(void Function(AgentModelCreateBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  AgentModelCreate idAgent(String idAgent) => call(idAgent: idAgent);
+  AgentModelCreateBuilder toBuilder() =>
+      AgentModelCreateBuilder()..replace(this);
 
   @override
-  AgentModelCreate idAiModel(String idAiModel) => call(idAiModel: idAiModel);
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is AgentModelCreate &&
+        idAgent == other.idAgent &&
+        idAiModel == other.idAiModel &&
+        qualityExpected == other.qualityExpected &&
+        customSystemPrompt == other.customSystemPrompt &&
+        temperature == other.temperature;
+  }
 
   @override
-  AgentModelCreate qualityExpected(AgentModelQuality qualityExpected) =>
-      call(qualityExpected: qualityExpected);
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, idAgent.hashCode);
+    _$hash = $jc(_$hash, idAiModel.hashCode);
+    _$hash = $jc(_$hash, qualityExpected.hashCode);
+    _$hash = $jc(_$hash, customSystemPrompt.hashCode);
+    _$hash = $jc(_$hash, temperature.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
 
   @override
-  AgentModelCreate customSystemPrompt(String customSystemPrompt) =>
-      call(customSystemPrompt: customSystemPrompt);
-
-  @override
-  AgentModelCreate temperature(num? temperature) =>
-      call(temperature: temperature);
-
-  /// Creates a new instance with the provided field values.
-  /// Omitted fields keep their values; explicit `null` clears nullable fields.
-  /// The public API rejects `null` for non-nullable fields. To update a single field use `AgentModelCreate(...).copyWith.fieldName(value)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// AgentModelCreate(...).copyWith(id: 12, name: "My name")
-  /// ```
-  @override
-  AgentModelCreate call({
-    Object? idAgent = const $CopyWithPlaceholder(),
-    Object? idAiModel = const $CopyWithPlaceholder(),
-    Object? qualityExpected = const $CopyWithPlaceholder(),
-    Object? customSystemPrompt = const $CopyWithPlaceholder(),
-    Object? temperature = const $CopyWithPlaceholder(),
-  }) {
-    return AgentModelCreate(
-      idAgent: idAgent == const $CopyWithPlaceholder() || idAgent == null
-          ? _value.idAgent
-          // ignore: cast_nullable_to_non_nullable
-          : idAgent as String,
-      idAiModel: idAiModel == const $CopyWithPlaceholder() || idAiModel == null
-          ? _value.idAiModel
-          // ignore: cast_nullable_to_non_nullable
-          : idAiModel as String,
-      qualityExpected:
-          qualityExpected == const $CopyWithPlaceholder() ||
-              qualityExpected == null
-          ? _value.qualityExpected
-          // ignore: cast_nullable_to_non_nullable
-          : qualityExpected as AgentModelQuality,
-      customSystemPrompt:
-          customSystemPrompt == const $CopyWithPlaceholder() ||
-              customSystemPrompt == null
-          ? _value.customSystemPrompt
-          // ignore: cast_nullable_to_non_nullable
-          : customSystemPrompt as String,
-      temperature: temperature == const $CopyWithPlaceholder()
-          ? _value.temperature
-          // ignore: cast_nullable_to_non_nullable
-          : temperature as num?,
-    );
+  String toString() {
+    return (newBuiltValueToStringHelper(r'AgentModelCreate')
+          ..add('idAgent', idAgent)
+          ..add('idAiModel', idAiModel)
+          ..add('qualityExpected', qualityExpected)
+          ..add('customSystemPrompt', customSystemPrompt)
+          ..add('temperature', temperature))
+        .toString();
   }
 }
 
-extension $AgentModelCreateCopyWith on AgentModelCreate {
-  /// Returns a callable class used to build a new instance with modified fields.
-  /// Example: `instanceOfAgentModelCreate.copyWith(...)` or `instanceOfAgentModelCreate.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$AgentModelCreateCWProxy get copyWith => _$AgentModelCreateCWProxyImpl(this);
+class AgentModelCreateBuilder
+    implements Builder<AgentModelCreate, AgentModelCreateBuilder> {
+  _$AgentModelCreate? _$v;
+
+  String? _idAgent;
+  String? get idAgent => _$this._idAgent;
+  set idAgent(String? idAgent) => _$this._idAgent = idAgent;
+
+  String? _idAiModel;
+  String? get idAiModel => _$this._idAiModel;
+  set idAiModel(String? idAiModel) => _$this._idAiModel = idAiModel;
+
+  AgentModelQuality? _qualityExpected;
+  AgentModelQuality? get qualityExpected => _$this._qualityExpected;
+  set qualityExpected(AgentModelQuality? qualityExpected) =>
+      _$this._qualityExpected = qualityExpected;
+
+  String? _customSystemPrompt;
+  String? get customSystemPrompt => _$this._customSystemPrompt;
+  set customSystemPrompt(String? customSystemPrompt) =>
+      _$this._customSystemPrompt = customSystemPrompt;
+
+  num? _temperature;
+  num? get temperature => _$this._temperature;
+  set temperature(num? temperature) => _$this._temperature = temperature;
+
+  AgentModelCreateBuilder() {
+    AgentModelCreate._defaults(this);
+  }
+
+  AgentModelCreateBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _idAgent = $v.idAgent;
+      _idAiModel = $v.idAiModel;
+      _qualityExpected = $v.qualityExpected;
+      _customSystemPrompt = $v.customSystemPrompt;
+      _temperature = $v.temperature;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(AgentModelCreate other) {
+    _$v = other as _$AgentModelCreate;
+  }
+
+  @override
+  void update(void Function(AgentModelCreateBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  AgentModelCreate build() => _build();
+
+  _$AgentModelCreate _build() {
+    final _$result = _$v ??
+        _$AgentModelCreate._(
+          idAgent: BuiltValueNullFieldError.checkNotNull(
+              idAgent, r'AgentModelCreate', 'idAgent'),
+          idAiModel: BuiltValueNullFieldError.checkNotNull(
+              idAiModel, r'AgentModelCreate', 'idAiModel'),
+          qualityExpected: BuiltValueNullFieldError.checkNotNull(
+              qualityExpected, r'AgentModelCreate', 'qualityExpected'),
+          customSystemPrompt: BuiltValueNullFieldError.checkNotNull(
+              customSystemPrompt, r'AgentModelCreate', 'customSystemPrompt'),
+          temperature: temperature,
+        );
+    replace(_$result);
+    return _$result;
+  }
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-AgentModelCreate _$AgentModelCreateFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'AgentModelCreate',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const [
-            'id_agent',
-            'id_ai_model',
-            'quality_expected',
-            'custom_system_prompt',
-            'temperature',
-          ],
-        );
-        final val = AgentModelCreate(
-          idAgent: $checkedConvert('id_agent', (v) => v as String),
-          idAiModel: $checkedConvert('id_ai_model', (v) => v as String),
-          qualityExpected: $checkedConvert(
-            'quality_expected',
-            (v) => $enumDecode(_$AgentModelQualityEnumMap, v),
-          ),
-          customSystemPrompt: $checkedConvert(
-            'custom_system_prompt',
-            (v) => v as String,
-          ),
-          temperature: $checkedConvert('temperature', (v) => v as num?),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'idAgent': 'id_agent',
-        'idAiModel': 'id_ai_model',
-        'qualityExpected': 'quality_expected',
-        'customSystemPrompt': 'custom_system_prompt',
-      },
-    );
-
-Map<String, dynamic> _$AgentModelCreateToJson(AgentModelCreate instance) =>
-    <String, dynamic>{
-      'id_agent': instance.idAgent,
-      'id_ai_model': instance.idAiModel,
-      'quality_expected': _$AgentModelQualityEnumMap[instance.qualityExpected]!,
-      'custom_system_prompt': instance.customSystemPrompt,
-      'temperature': instance.temperature,
-    };
-
-const _$AgentModelQualityEnumMap = {
-  AgentModelQuality.unusable: 'unusable',
-  AgentModelQuality.poor: 'poor',
-  AgentModelQuality.fair: 'fair',
-  AgentModelQuality.good: 'good',
-  AgentModelQuality.veryGood: 'very_good',
-  AgentModelQuality.excellent: 'excellent',
-};
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

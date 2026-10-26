@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for DeviceCreate
 void main() {
-  final DeviceCreate? instance = /* DeviceCreate(...) */ null;
-  // TODO add properties to the entity
+  final instance = DeviceCreateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(DeviceCreate, () {
     // String idUser

@@ -3,168 +3,222 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'user_out.g.dart';
 
+/// UserOut
+///
+/// Properties:
+/// * [id] 
+/// * [userName] 
+/// * [primaryEmail] 
+/// * [userDisplayName] 
+/// * [createdAt] 
+/// * [updatedAt] 
+/// * [isActive] 
+/// * [isVerified] 
+@BuiltValue()
+abstract class UserOut implements Built<UserOut, UserOutBuilder> {
+  @BuiltValueField(wireName: r'id')
+  String get id;
 
-@CopyWith()
-@JsonSerializable(
-  checked: true,
-  createToJson: true,
-  disallowUnrecognizedKeys: false,
-  explicitToJson: true,
-)
-class UserOut {
-  /// Returns a new [UserOut] instance.
-  UserOut({
+  @BuiltValueField(wireName: r'user_name')
+  String get userName;
 
-    required  this.id,
+  @BuiltValueField(wireName: r'primary_email')
+  String get primaryEmail;
 
-    required  this.userName,
+  @BuiltValueField(wireName: r'user_display_name')
+  String? get userDisplayName;
 
-    required  this.primaryEmail,
+  @BuiltValueField(wireName: r'created_at')
+  DateTime? get createdAt;
 
-    required  this.userDisplayName,
+  @BuiltValueField(wireName: r'updated_at')
+  DateTime? get updatedAt;
 
-    required  this.createdAt,
+  @BuiltValueField(wireName: r'is_active')
+  bool? get isActive;
 
-    required  this.updatedAt,
+  @BuiltValueField(wireName: r'is_verified')
+  bool? get isVerified;
 
-    required  this.isActive,
+  UserOut._();
 
-    required  this.isVerified,
-  });
+  factory UserOut([void updates(UserOutBuilder b)]) = _$UserOut;
 
-  @JsonKey(
-    
-    name: r'id',
-    required: true,
-    includeIfNull: false,
-  )
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(UserOutBuilder b) => b;
 
+  @BuiltValueSerializer(custom: true)
+  static Serializer<UserOut> get serializer => _$UserOutSerializer();
+}
 
-  final String id;
-
-
-
-  @JsonKey(
-    
-    name: r'user_name',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String userName;
-
-
-
-  @JsonKey(
-    
-    name: r'primary_email',
-    required: true,
-    includeIfNull: false,
-  )
-
-
-  final String primaryEmail;
-
-
-
-  @JsonKey(
-    
-    name: r'user_display_name',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final String? userDisplayName;
-
-
-
-  @JsonKey(
-    
-    name: r'created_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? createdAt;
-
-
-
-  @JsonKey(
-    
-    name: r'updated_at',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final DateTime? updatedAt;
-
-
-
-  @JsonKey(
-    
-    name: r'is_active',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final bool? isActive;
-
-
-
-  @JsonKey(
-    
-    name: r'is_verified',
-    required: true,
-    includeIfNull: true,
-  )
-
-
-  final bool? isVerified;
-
-
-
-
-
-    @override
-    bool operator ==(Object other) => identical(this, other) || other is UserOut &&
-      other.id == id &&
-      other.userName == userName &&
-      other.primaryEmail == primaryEmail &&
-      other.userDisplayName == userDisplayName &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt &&
-      other.isActive == isActive &&
-      other.isVerified == isVerified;
-
-    @override
-    int get hashCode =>
-        id.hashCode +
-        userName.hashCode +
-        primaryEmail.hashCode +
-        (userDisplayName == null ? 0 : userDisplayName.hashCode) +
-        (createdAt == null ? 0 : createdAt.hashCode) +
-        (updatedAt == null ? 0 : updatedAt.hashCode) +
-        (isActive == null ? 0 : isActive.hashCode) +
-        (isVerified == null ? 0 : isVerified.hashCode);
-
-  factory UserOut.fromJson(Map<String, dynamic> json) => _$UserOutFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserOutToJson(this);
+class _$UserOutSerializer implements PrimitiveSerializer<UserOut> {
+  @override
+  final Iterable<Type> types = const [UserOut, _$UserOut];
 
   @override
-  String toString() {
-    return toJson().toString();
+  final String wireName = r'UserOut';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    UserOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(String),
+    );
+    yield r'user_name';
+    yield serializers.serialize(
+      object.userName,
+      specifiedType: const FullType(String),
+    );
+    yield r'primary_email';
+    yield serializers.serialize(
+      object.primaryEmail,
+      specifiedType: const FullType(String),
+    );
+    yield r'user_display_name';
+    yield object.userDisplayName == null ? null : serializers.serialize(
+      object.userDisplayName,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'created_at';
+    yield object.createdAt == null ? null : serializers.serialize(
+      object.createdAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'updated_at';
+    yield object.updatedAt == null ? null : serializers.serialize(
+      object.updatedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'is_active';
+    yield object.isActive == null ? null : serializers.serialize(
+      object.isActive,
+      specifiedType: const FullType.nullable(bool),
+    );
+    yield r'is_verified';
+    yield object.isVerified == null ? null : serializers.serialize(
+      object.isVerified,
+      specifiedType: const FullType.nullable(bool),
+    );
   }
 
+  @override
+  Object serialize(
+    Serializers serializers,
+    UserOut object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required UserOutBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'user_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.userName = valueDes;
+          break;
+        case r'primary_email':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.primaryEmail = valueDes;
+          break;
+        case r'user_display_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.userDisplayName = valueDes;
+          break;
+        case r'created_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.createdAt = valueDes;
+          break;
+        case r'updated_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.updatedAt = valueDes;
+          break;
+        case r'is_active':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.isActive = valueDes;
+          break;
+        case r'is_verified':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.isVerified = valueDes;
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  UserOut deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = UserOutBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
 }
+
 

@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **displayFont** | **String** |  | 
 **bodyFont** | **String** |  | 
 **monoFont** | **String** |  | 
-**overrideJson** | **Map&lt;String, Object&gt;** |  | 
+**overrideJson** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

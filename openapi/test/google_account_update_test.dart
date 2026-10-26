@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for GoogleAccountUpdate
 void main() {
-  final GoogleAccountUpdate? instance = /* GoogleAccountUpdate(...) */ null;
-  // TODO add properties to the entity
+  final instance = GoogleAccountUpdateBuilder();
+  // TODO add properties to the builder and call build()
 
   group(GoogleAccountUpdate, () {
     // String idUser

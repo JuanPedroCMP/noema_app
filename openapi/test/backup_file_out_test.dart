@@ -3,8 +3,8 @@ import 'package:openapi/openapi.dart';
 
 // tests for BackupFileOut
 void main() {
-  final BackupFileOut? instance = /* BackupFileOut(...) */ null;
-  // TODO add properties to the entity
+  final instance = BackupFileOutBuilder();
+  // TODO add properties to the builder and call build()
 
   group(BackupFileOut, () {
     // String id

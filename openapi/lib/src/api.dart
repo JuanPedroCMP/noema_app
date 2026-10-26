@@ -3,6 +3,8 @@
 //
 
 import 'package:dio/dio.dart';
+import 'package:built_value/serializer.dart';
+import 'package:openapi/src/serializers.dart';
 import 'package:openapi/src/auth/api_key_auth.dart';
 import 'package:openapi/src/auth/basic_auth.dart';
 import 'package:openapi/src/auth/bearer_auth.dart';
@@ -34,11 +36,14 @@ class Openapi {
   static const String basePath = r'http://localhost';
 
   final Dio dio;
+  final Serializers serializers;
+
   Openapi({
     Dio? dio,
+    Serializers? serializers,
     String? basePathOverride,
     List<Interceptor>? interceptors,
-  })  : 
+  })  : this.serializers = serializers ?? standardSerializers,
         this.dio = dio ??
             Dio(BaseOptions(
               baseUrl: basePathOverride ?? basePath,
@@ -124,132 +129,132 @@ class Openapi {
   /// Get AgentApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AgentApi getAgentApi() {
-    return AgentApi(dio);
+    return AgentApi(dio, serializers);
   }
 
   /// Get AgentModelApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AgentModelApi getAgentModelApi() {
-    return AgentModelApi(dio);
+    return AgentModelApi(dio, serializers);
   }
 
   /// Get AiModelApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AiModelApi getAiModelApi() {
-    return AiModelApi(dio);
+    return AiModelApi(dio, serializers);
   }
 
   /// Get AiRouterApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AiRouterApi getAiRouterApi() {
-    return AiRouterApi(dio);
+    return AiRouterApi(dio, serializers);
   }
 
   /// Get AiUsageLogApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AiUsageLogApi getAiUsageLogApi() {
-    return AiUsageLogApi(dio);
+    return AiUsageLogApi(dio, serializers);
   }
 
   /// Get AuthenticationApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AuthenticationApi getAuthenticationApi() {
-    return AuthenticationApi(dio);
+    return AuthenticationApi(dio, serializers);
   }
 
   /// Get BackupFileApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   BackupFileApi getBackupFileApi() {
-    return BackupFileApi(dio);
+    return BackupFileApi(dio, serializers);
   }
 
   /// Get ColorThemeApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   ColorThemeApi getColorThemeApi() {
-    return ColorThemeApi(dio);
+    return ColorThemeApi(dio, serializers);
   }
 
   /// Get DefaultApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   DefaultApi getDefaultApi() {
-    return DefaultApi(dio);
+    return DefaultApi(dio, serializers);
   }
 
   /// Get DeviceApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   DeviceApi getDeviceApi() {
-    return DeviceApi(dio);
+    return DeviceApi(dio, serializers);
   }
 
   /// Get GenericLogApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   GenericLogApi getGenericLogApi() {
-    return GenericLogApi(dio);
+    return GenericLogApi(dio, serializers);
   }
 
   /// Get GoogleOAuthApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   GoogleOAuthApi getGoogleOAuthApi() {
-    return GoogleOAuthApi(dio);
+    return GoogleOAuthApi(dio, serializers);
   }
 
   /// Get LanguageApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   LanguageApi getLanguageApi() {
-    return LanguageApi(dio);
+    return LanguageApi(dio, serializers);
   }
 
   /// Get ProviderApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   ProviderApi getProviderApi() {
-    return ProviderApi(dio);
+    return ProviderApi(dio, serializers);
   }
 
   /// Get ResponseResponseLanguagePreferenceOrderApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   ResponseResponseLanguagePreferenceOrderApi getResponseResponseLanguagePreferenceOrderApi() {
-    return ResponseResponseLanguagePreferenceOrderApi(dio);
+    return ResponseResponseLanguagePreferenceOrderApi(dio, serializers);
   }
 
   /// Get SyncLogApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   SyncLogApi getSyncLogApi() {
-    return SyncLogApi(dio);
+    return SyncLogApi(dio, serializers);
   }
 
   /// Get TypographyThemeApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   TypographyThemeApi getTypographyThemeApi() {
-    return TypographyThemeApi(dio);
+    return TypographyThemeApi(dio, serializers);
   }
 
   /// Get UserApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   UserApi getUserApi() {
-    return UserApi(dio);
+    return UserApi(dio, serializers);
   }
 
   /// Get UserApiKeyApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   UserApiKeyApi getUserApiKeyApi() {
-    return UserApiKeyApi(dio);
+    return UserApiKeyApi(dio, serializers);
   }
 
   /// Get UserApiKeyCanUseIaModelApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   UserApiKeyCanUseIaModelApi getUserApiKeyCanUseIaModelApi() {
-    return UserApiKeyCanUseIaModelApi(dio);
+    return UserApiKeyCanUseIaModelApi(dio, serializers);
   }
 
   /// Get UserGlobalConfigApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   UserGlobalConfigApi getUserGlobalConfigApi() {
-    return UserGlobalConfigApi(dio);
+    return UserGlobalConfigApi(dio, serializers);
   }
 
   /// Get UserLocalConfigApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   UserLocalConfigApi getUserLocalConfigApi() {
-    return UserLocalConfigApi(dio);
+    return UserLocalConfigApi(dio, serializers);
   }
 }

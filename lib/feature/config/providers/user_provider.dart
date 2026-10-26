@@ -29,7 +29,7 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
     UserOut? remoteUser = response.data;
 
     final updateUser = UserUpdate((b) {
-      b.password = clean(password);
+      b.password  = clean(password);
       b.primaryEmail = clean(primaryEmail);
       b.userDisplayName = clean(displayName);
       b.userName = clean(userName);
