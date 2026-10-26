@@ -79,10 +79,14 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase>
 
   Future<TypographyThemeData?> getTypographyThemeByName({
     required String name,
+    required String userId,
   }) {
     return (select(
       attachedDatabase.typographyTheme,
-    )..where((tbl) => tbl.name.equals(name))).getSingleOrNull();
+    )
+          ..where((tbl) => tbl.name.equals(name))
+          ..where((tbl) => tbl.userId.equals(userId)))
+        .getSingleOrNull();
   }
 
   Future<List<TypographyThemeData>> getTypographyThemesByUser({

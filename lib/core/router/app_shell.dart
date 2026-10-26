@@ -14,7 +14,14 @@ List<String> buildCumulativePaths(BuildContext context) {
   final paths = <String>['/'];
   if (segments.isEmpty) return paths;
 
-  const topLevelRoutes = {'notes', 'config', 'test', 'graphs', 'flashcards'};
+  const topLevelRoutes = {
+    'notes',
+    'config',
+    'test',
+    'graphs',
+    'flashcards',
+    'study-sessions',
+  };
   if (!topLevelRoutes.contains(segments.first)) {
     return paths;
   }
@@ -22,6 +29,11 @@ List<String> buildCumulativePaths(BuildContext context) {
 
   if (segments.first != 'graphs' || segments.length < 2) return paths;
   paths.add('/graphs/${segments[1]}');
+
+  if (segments.length == 4 && segments[2] == 'flashcards') {
+    paths.add('/graphs/${segments[1]}/flashcards/${segments[3]}');
+    return paths;
+  }
 
   if (segments.length < 4 || segments[2] != 'exercises') return paths;
   final exercisesPath = '/graphs/${segments[1]}/exercises/${segments[3]}';
@@ -72,6 +84,8 @@ String breadcrumbLabel(String path) {
       return 'Grafos';
     case 'flashcards':
       return 'Flashcards';
+    case 'study-sessions':
+      return 'Sessões de estudo';
     case 'exercises':
       return 'Exercícios';
     case 'responses':
@@ -100,6 +114,14 @@ String breadcrumbLabel(String path) {
           (segments[segments.length - 2] == 'open-ended' ||
               segments[segments.length - 2] == 'multiple-choice')) {
         return 'Questão';
+      }
+      if (segments.length >= 2 &&
+          segments[segments.length - 2] == 'flashcards') {
+        return 'Flashcards do nó';
+      }
+      if (segments.length >= 2 &&
+          segments[segments.length - 2] == 'study-sessions') {
+        return segment == 'create' ? 'Criar sessão' : 'Sessão';
       }
       return Uri.decodeComponent(segment);
   }

@@ -10,8 +10,10 @@ import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/choise.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_choise.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/feature/graph/data/graph_access.dart';
 import 'package:noema/core/database/database.dart'
-    show ChoiceData, MultipleChoiceData;
+    show ChoiceData, MultipleChoiceResponseLogData;
 import 'package:noema/shared/floating_card/floating_card.dart';
 
 /// Parameters:
@@ -24,6 +26,8 @@ class MultipleChoise extends ConsumerStatefulWidget {
     super.key,
     required this.nodeId,
     this.multipleChoiseId,
+    this.studySessionId,
+    this.studySessionLogId,
     this.onSendAnswer,
     required this.defaultMode,
   });
@@ -31,6 +35,8 @@ class MultipleChoise extends ConsumerStatefulWidget {
   final String nodeId;
   final int defaultMode;
   final String? multipleChoiseId;
+  final String? studySessionId;
+  final String? studySessionLogId;
   final VoidCallback? onSendAnswer;
 
   @override
@@ -44,6 +50,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   bool isEditing = false;
   bool _isSaving = false;
   bool _isSending = false;
+  bool _hasSubmitted = false;
+  MultipleChoiceResponseLogData? _latestResponse;
+  final Set<String> _latestSelectedChoiceIds = {};
   String editTarget = "";
   int mode = 0;
   bool _isLoading = true;
@@ -71,23 +80,35 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   Future<void> _loadData() async {
     final questionId = _questionId;
     if (questionId == null || questionId.isEmpty) {
-      if (mounted) setState(() => _isLoading = false);
-      titleController.text = "";
-      statementController.text = "";
+      try {
+        final user = await ref.read(userProvider.future);
+        await getGraphNodeForUser(
+          db: ref.read(appDatabaseProvider),
+          nodeId: widget.nodeId,
+          userId: user.id,
+        );
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        titleController.text = "";
+        statementController.text = "";
+      } catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Não foi possível abrir este node: $error';
+        });
+      }
       return;
     }
 
     try {
       final db = ref.read(appDatabaseProvider);
+      final user = await ref.read(userProvider.future);
+      await getGraphNodeForUser(db: db, nodeId: widget.nodeId, userId: user.id);
       final multipleChoiceDao = MultipleChoiceDao(db);
       final choiceDao = ChoiceDao(db);
 
-      final results = await Future.wait([
-        multipleChoiceDao.getMultipleChoice(id: questionId),
-        choiceDao.getChoicesByQuestion(multipleChoiceId: questionId),
-      ]);
-      final data = results[0] as MultipleChoiceData?;
-      final listChoises = results[1] as List<ChoiceData>;
+      final data = await multipleChoiceDao.getMultipleChoice(id: questionId);
 
       if (!mounted) return;
 
@@ -97,10 +118,26 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
           _loadError = "Questão não encontrada ou removida.";
           title = "";
           statement = "";
-          choises = listChoises;
         });
         return;
       }
+      if (data.nodeId != widget.nodeId) {
+        setState(() {
+          _isLoading = false;
+          _loadError = "A questão não pertence a este node.";
+        });
+        return;
+      }
+
+      final listChoises = await choiceDao.getChoicesByQuestion(
+        multipleChoiceId: questionId,
+      );
+      final latestResponse = mode == 3
+          ? await MultipleChoiceResponseLogDao(
+              db,
+            ).getLatestResponseByQuestion(multipleChoiceId: questionId)
+          : null;
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -108,6 +145,15 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         statement = data.statement;
         choises = listChoises;
         _loadError = null;
+        _latestResponse = latestResponse;
+        _latestSelectedChoiceIds
+          ..clear()
+          ..addAll(
+            latestResponse == null
+                ? const <String>[]
+                : (jsonDecode(latestResponse.selectedChoiceIds) as List)
+                      .whereType<String>(),
+          );
       });
 
       titleController.text = title;
@@ -202,6 +248,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
           : (selectedCorrect - wrongSelected) / correctIds.length;
       await responseDao.insertMultipleChoiceResponseLog(
         multipleChoiceId: questionId,
+        questionSnapshot: jsonEncode({'title': title, 'statement': statement}),
         questionChoiceSnapshot: jsonEncode(
           choises.map((choice) => choice.toJson()).toList(),
         ),
@@ -210,13 +257,25 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         correctSelected: selectedCorrect,
         wrongSelected: wrongSelected,
         totalQuestions: choises.length,
+        studySessionId: widget.studySessionId,
+        studySessionLogId: widget.studySessionLogId,
         score: rawScore.clamp(0.0, 1.0),
       );
       if (!mounted) return;
-      widget.onSendAnswer?.call();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Resposta registrada.")));
+      if (widget.onSendAnswer case final onSendAnswer?) {
+        onSendAnswer();
+      } else if (mounted) {
+        setState(() => _hasSubmitted = true);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.onSendAnswer == null
+                ? "Resposta registrada. Confira o resultado abaixo."
+                : "Resposta registrada.",
+          ),
+        ),
+      );
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -317,7 +376,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Não foi possível excluir a alternativa.")),
+        const SnackBar(
+          content: Text("Não foi possível excluir a alternativa."),
+        ),
       );
     }
   }
@@ -345,159 +406,334 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     if (_loadError != null) {
       return Center(child: Text(_loadError!));
     }
-    return SizedBox(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(4),
-        child: Stack(
-          children: [
-            (mode == 1)
-                ? Column(
-                    // Edição/Criação
-                    spacing: context.spacing.md,
-                    children: [
-                      TextField(
-                        onChanged: titleChanged,
-                        controller: titleController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Título",
-                        ),
-                      ),
-                      TextField(
-                        onChanged: statementChanged,
-                        controller: statementController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Enunciado",
-                        ),
-                      ),
-                      for (final choise in choises) ...[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Card(
-                                child: Choise(
-                                  choiseId: choise.id,
-                                  onChanged: (ChoiceData value) {},
-                                  mode: 1,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 820),
+        child: SizedBox(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(4),
+            child: Stack(
+              children: [
+                (mode == 1)
+                    ? Column(
+                        // Edição/Criação
+                        spacing: context.spacing.md,
+                        children: [
+                          TextField(
+                            onChanged: titleChanged,
+                            controller: titleController,
+                            maxLines: 3,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "Título",
+                            ),
+                          ),
+                          TextField(
+                            onChanged: statementChanged,
+                            controller: statementController,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "Enunciado",
+                            ),
+                          ),
+                          for (final choise in choises) ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Card(
+                                    child: Choise(
+                                      choiseId: choise.id,
+                                      onChanged: (ChoiceData value) {},
+                                      mode: 1,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      editTarget = choise.id;
+                                      isEditing = true;
+                                    });
+                                  },
+                                  icon: Icon(Icons.edit),
+                                ),
+                                IconButton(
+                                  tooltip: "Excluir alternativa",
+                                  onPressed: () => _deleteChoice(choise),
+                                  icon: const Icon(Icons.delete_outline),
+                                ),
+                              ],
+                            ),
+                          ],
+                          FilledButton.icon(
+                            onPressed: _isSaving ? null : _addChoice,
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              _isSaving
+                                  ? "Preparando..."
+                                  : "Adicionar alternativa",
+                            ),
+                          ),
+                          FilledButton(
+                            onPressed: _isSaving ? null : _saveQuestion,
+                            child: Text(
+                              _isSaving ? "Salvando..." : "Salvar questão",
+                            ),
+                          ),
+                        ],
+                      )
+                    : (mode == 2)
+                    ? Column(
+                        spacing: context.spacing.md,
+                        children: [
+                          _QuestionPrompt(
+                            title: title,
+                            statement: statement,
+                            subtitle: _hasSubmitted
+                                ? 'Resultado da tentativa'
+                                : 'Selecione todas as alternativas corretas.',
+                          ),
+                          if (!_hasSubmitted)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _selectedChoiceIds.isEmpty
+                                    ? 'Nenhuma alternativa selecionada'
+                                    : '${_selectedChoiceIds.length} alternativa(s) selecionada(s)',
+                                style: context.textTheme.labelLarge,
+                              ),
+                            ),
+                          for (final choise in choises) ...[
+                            Card(
+                              child: Choise(
+                                choiseId: choise.id,
+                                onChanged: (_) {},
+                                mode: 2,
+                                selected: _selectedChoiceIds.contains(
+                                  choise.id,
+                                ),
+                                revealAnswer: _hasSubmitted,
+                                onSelectionChanged: _hasSubmitted
+                                    ? null
+                                    : (selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            _selectedChoiceIds.add(choise.id);
+                                          } else {
+                                            _selectedChoiceIds.remove(
+                                              choise.id,
+                                            );
+                                          }
+                                        });
+                                      },
+                              ),
+                            ),
+                          ],
+                          if (_hasSubmitted) _buildResultSummary(),
+                          FilledButton.icon(
+                            onPressed: _isSending || _hasSubmitted
+                                ? null
+                                : sendAnswer,
+                            icon: Icon(
+                              _hasSubmitted
+                                  ? Icons.check_circle_outline
+                                  : Icons.send_rounded,
+                            ),
+                            label: Text(
+                              _isSending
+                                  ? "Registrando..."
+                                  : _hasSubmitted
+                                  ? "Resposta registrada"
+                                  : "Enviar resposta",
+                            ),
+                          ),
+                        ],
+                      )
+                    : (mode == 3)
+                    ? Column(
+                        spacing: context.spacing.md,
+                        children: [
+                          _QuestionPrompt(
+                            title: title,
+                            statement: statement,
+                            subtitle: _latestResponse == null
+                                ? 'Visualização da questão'
+                                : 'Resultado da tentativa mais recente',
+                          ),
+                          if (_latestResponse != null)
+                            Card(
+                              child: ListTile(
+                                leading: const Icon(Icons.history_rounded),
+                                title: Text(
+                                  '${_latestResponse!.correctSelected} de '
+                                  '${_latestResponse!.totalCorrectOption} corretas '
+                                  'selecionadas',
+                                ),
+                                subtitle: Text(
+                                  'Aproveitamento: '
+                                  '${((_latestResponse!.score ?? 0) * 100).round()}%'
+                                  ' · ${DateTime.fromMillisecondsSinceEpoch(_latestResponse!.answeredAt * 1000).toLocal().toString().substring(0, 16)}',
                                 ),
                               ),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  editTarget = choise.id;
-                                  isEditing = true;
-                                });
-                              },
-                              icon: Icon(Icons.edit),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _latestResponse == null
+                                  ? 'Gabarito'
+                                  : 'Alternativas e resultado',
+                              style: context.textTheme.titleMedium,
                             ),
-                            IconButton(
-                              tooltip: "Excluir alternativa",
-                              onPressed: () => _deleteChoice(choise),
-                              icon: const Icon(Icons.delete_outline),
+                          ),
+                          for (final choise in choises)
+                            Card(
+                              child: Choise(
+                                choiseId: choise.id,
+                                onChanged: (_) {},
+                                mode: _latestResponse == null ? 1 : 2,
+                                selected: _latestSelectedChoiceIds.contains(
+                                  choise.id,
+                                ),
+                                revealAnswer: _latestResponse != null,
+                              ),
                             ),
-                          ],
-                        ),
-                      ],
-                      FilledButton.icon(
-                        onPressed: _isSaving ? null : _addChoice,
-                        icon: const Icon(Icons.add),
-                        label: Text(
-                          _isSaving ? "Preparando..." : "Adicionar alternativa",
-                        ),
+                          if (_latestResponse?.aiFeedback?.trim().isNotEmpty ==
+                              true)
+                            Card(
+                              child: ListTile(
+                                leading: const Icon(Icons.feedback_outlined),
+                                title: const Text('Feedback'),
+                                subtitle: Text(_latestResponse!.aiFeedback!),
+                              ),
+                            ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+                if (isEditing) ...[
+                  Align(
+                    alignment: Alignment.center,
+                    child: FloatingCard(
+                      width: max(
+                        280,
+                        min(720, MediaQuery.sizeOf(context).width - 32),
                       ),
-                      FilledButton(
-                        onPressed: _isSaving ? null : _saveQuestion,
-                        child: Text(
-                          _isSaving ? "Salvando..." : "Salvar questão",
-                        ),
+                      padding: 20,
+                      child: ManipulateChoise(
+                        multipleChoiceId: widget.multipleChoiseId ?? tempId,
+                        choiseId: editTarget,
+                        onSave: () {
+                          setState(() {
+                            isEditing = false;
+                          });
+                          _loadData();
+                        },
+                        onCancel: () {
+                          setState(() => isEditing = false);
+                        },
+                        onChanged: (ChoiceData value) {},
                       ),
-                    ],
-                  )
-                : (mode == 2)
-                ? Column(
-                    // Resposta
-                    spacing: context.spacing.md,
-                    children: [
-                      Text(title, style: context.textTheme.headlineMedium),
-                      Divider(),
-                      Text(statement, style: context.textTheme.bodyMedium),
-                      Text(
-                        '${_selectedChoiceIds.length} alternativa(s) selecionada(s)',
-                        style: context.textTheme.labelMedium,
-                      ),
-                      for (final choise in choises) ...[
-                        Card(
-                          child: Choise(
-                            choiseId: choise.id,
-                            onChanged: (ChoiceData value) {
-                              if (value.isCorrect) {
-                                _selectedChoiceIds.add(value.id);
-                              } else {
-                                _selectedChoiceIds.remove(value.id);
-                              }
-                            },
-                            mode: 0,
-                          ),
-                        ),
-                      ],
-                      FilledButton(
-                        onPressed: _isSending ? null : sendAnswer,
-                        child: Text(
-                          _isSending ? "Enviando..." : "Enviar resposta",
-                        ),
-                      ),
-                    ],
-                  )
-                : (mode == 3)
-                ? Column(
-                    // Visualização
-                    spacing: context.spacing.md,
-                    children: [
-                      Text(title, style: context.textTheme.headlineMedium),
-                      Divider(),
-                      Text(statement, style: context.textTheme.bodyMedium),
-                      for (final choise in choises) ...[
-                        Card(
-                          child: Choise(
-                            choiseId: choise.id,
-                            onChanged: (ChoiceData value) {},
-                            mode: 1,
-                          ),
-                        ),
-                      ],
-                      const SizedBox.shrink(),
-                    ],
-                  )
-                : SizedBox(),
-            if (isEditing) ...[
-              Align(
-                alignment: Alignment.center,
-                child: FloatingCard(
-                  width: max(
-                    280,
-                    min(720, MediaQuery.sizeOf(context).width - 32),
+                    ),
                   ),
-                  padding: 20,
-                  child: ManipulateChoise(
-                    multipleChoiceId: widget.multipleChoiseId ?? tempId,
-                    choiseId: editTarget,
-                    onSave: () {
-                      setState(() {
-                        isEditing = false;
-                      });
-                      _loadData();
-                    },
-                    onCancel: () {
-                      setState(() => isEditing = false);
-                    },
-                    onChanged: (ChoiceData value) {},
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultSummary() {
+    final correctIds = choises
+        .where((choice) => choice.isCorrect)
+        .map((choice) => choice.id)
+        .toSet();
+    final correctSelected = _selectedChoiceIds.intersection(correctIds).length;
+    final wrongSelected = _selectedChoiceIds.difference(correctIds).length;
+    final isPerfect =
+        correctIds.isNotEmpty &&
+        correctSelected == correctIds.length &&
+        wrongSelected == 0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final score = correctIds.isEmpty
+        ? 0.0
+        : ((correctSelected - wrongSelected) / correctIds.length).clamp(
+            0.0,
+            1.0,
+          );
+
+    return Card(
+      color: isPerfect
+          ? colorScheme.primaryContainer
+          : colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isPerfect ? Icons.task_alt_rounded : Icons.lightbulb_outline,
+              color: isPerfect
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onErrorContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isPerfect ? 'Muito bem!' : 'Revise as alternativas',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$correctSelected de ${correctIds.length} corretas '
+                    'selecionadas · $wrongSelected incorreta(s) marcada(s)',
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Aproveitamento: ${(score * 100).round()}%'),
+                ],
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuestionPrompt extends StatelessWidget {
+  const _QuestionPrompt({
+    required this.title,
+    required this.statement,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String statement;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(subtitle, style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
+            Text(title, style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 8),
+            SelectableText(
+              statement,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ],
         ),
       ),

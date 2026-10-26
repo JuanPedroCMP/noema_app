@@ -6,6 +6,8 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/feature/graph/data/graph_access.dart';
 
 enum _ExerciseFilter { all, openEnded, multipleChoice }
 
@@ -37,6 +39,8 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
 
     try {
       final db = ref.read(appDatabaseProvider);
+      final user = await ref.read(userProvider.future);
+      await getGraphNodeForUser(db: db, nodeId: widget.nodeId, userId: user.id);
       final results = await Future.wait([
         OpenEndedDao(db).getOpenEndedsByNode(nodeId: widget.nodeId),
         MultipleChoiceDao(db).getMultipleChoicesByNode(nodeId: widget.nodeId),

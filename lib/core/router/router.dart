@@ -17,6 +17,10 @@ import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/flashcards/presentation/flashcard.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
+import 'package:noema/feature/study_session/presentation/study_session_create_page.dart';
+import 'package:noema/feature/study_session/presentation/study_session_detail_page.dart';
+import 'package:noema/feature/study_session/presentation/study_session_run_page.dart';
+import 'package:noema/feature/study_session/presentation/study_sessions_page.dart';
 import 'package:noema/teste_page.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -72,6 +76,40 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RoutePaths.home,
                 builder: (_, _) => const HomePage(),
+                routes: [
+                  GoRoute(
+                    path: 'study-sessions',
+                    builder: (_, _) => const StudySessionsPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'create',
+                        builder: (_, _) => const StudySessionCreatePage(),
+                      ),
+                      GoRoute(
+                        path: ':sessionId',
+                        builder: (context, state) => StudySessionDetailPage(
+                          sessionId: state.pathParameters['sessionId']!,
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            builder: (context, state) =>
+                                StudySessionCreatePage(
+                                  sessionId:
+                                      state.pathParameters['sessionId']!,
+                                ),
+                          ),
+                          GoRoute(
+                            path: 'run',
+                            builder: (context, state) => StudySessionRunPage(
+                              sessionId: state.pathParameters['sessionId']!,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -111,6 +149,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       return GraphPage(graphId: graphId);
                     },
                     routes: [
+                      GoRoute(
+                        path: 'flashcards/:nodeId',
+                        builder: (context, state) {
+                          final nodeId = state.pathParameters['nodeId']!;
+                          return FlashcardPage(nodeId: nodeId);
+                        },
+                      ),
                       GoRoute(
                         path: 'exercises/:nodeId',
                         builder: (context, state) {

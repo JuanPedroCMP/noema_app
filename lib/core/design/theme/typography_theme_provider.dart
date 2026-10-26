@@ -65,7 +65,7 @@ class TypographyThemeController {
     final db = ref.read(appDatabaseProvider);
     final theme = await TypographyThemeDao(db).getTypographyTheme(id: themeId);
     final config = await ConfigDao(db).getConfigByUser(userId: user.id);
-    if (theme == null || config == null) {
+    if (theme == null || theme.userId != user.id || config == null) {
       throw StateError('Tema de tipografia não encontrado.');
     }
     await ConfigDao(

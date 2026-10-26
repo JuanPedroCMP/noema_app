@@ -80,11 +80,25 @@ class NodeDetails extends ConsumerWidget {
                 },
               ),
               Divider(),
-              OutlinedButton(
-                onPressed: () {
-                  context.push(RoutePaths.exercises(node.graphId, node.id));
-                },
-                child: Text("Ir para exercícios"),
+              Wrap(
+                spacing: context.spacing.sm,
+                runSpacing: context.spacing.sm,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => context.push(
+                      RoutePaths.exercises(node.graphId, node.id),
+                    ),
+                    icon: const Icon(Icons.quiz_outlined),
+                    label: const Text("Exercícios"),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: () => context.push(
+                      RoutePaths.flashcardsForNode(node.graphId, node.id),
+                    ),
+                    icon: const Icon(Icons.style_outlined),
+                    label: const Text("Flashcards"),
+                  ),
+                ],
               ),
             ],
           ),

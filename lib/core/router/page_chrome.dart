@@ -14,7 +14,24 @@ class PageChrome {
 
 PageChrome chromeForPath(String path) {
   final segments = Uri.parse(path).pathSegments;
+  if (segments.isNotEmpty && segments.first == 'study-sessions') {
+    final title = segments.length == 1
+        ? 'Sessões de estudo'
+        : segments.last == 'create'
+        ? 'Criar sessão'
+        : segments.last == 'run'
+        ? 'Sessão em andamento'
+        : 'Sessão de estudo';
+    return PageChrome(title: title, actions: const [], pageItens: const []);
+  }
   if (segments.isNotEmpty && segments.first == 'graphs') {
+    if (segments.contains('flashcards')) {
+      return PageChrome(
+        title: 'Flashcards do nó',
+        actions: const [],
+        pageItens: const [],
+      );
+    }
     if (segments.contains('exercises')) {
       if (segments.last == 'responses') {
         return PageChrome(
@@ -39,6 +56,14 @@ PageChrome chromeForPath(String path) {
   if (path.startsWith('/config')) {
     return PageChrome(
       title: "Configuração",
+      actions: const [],
+      pageItens: const [],
+    );
+  }
+
+  if (path == '/flashcards') {
+    return PageChrome(
+      title: 'Flashcards',
       actions: const [],
       pageItens: const [],
     );

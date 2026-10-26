@@ -23,6 +23,8 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   _multipleChoiceLogs = [];
   bool _isLoading = true;
   String? _error;
+  String _search = '';
+  String _filter = 'all';
 
   @override
   void initState() {
@@ -95,8 +97,44 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   String _date(int timestamp) {
     return DateFormat(
       'dd/MM/yyyy • HH:mm',
-    ).format(DateTime.fromMillisecondsSinceEpoch(timestamp * 1000));
+    ).format(DateTime.fromMillisecondsSinceEpoch(timestamp * 1000).toLocal());
   }
+
+  Map<String, dynamic> _decodeSnapshot(String raw) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } on FormatException {
+      // Older or damaged history entries fall back to the saved question row.
+    }
+    return const {};
+  }
+
+  List<Map<String, dynamic>> _decodeChoices(String raw) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<Map<String, dynamic>>().toList();
+      }
+    } on FormatException {
+      // Keep the history screen usable if a legacy snapshot is malformed.
+    }
+    return const [];
+  }
+
+  String _openEndedTitle(
+    OpenEndedResponseLogData response,
+    OpenEndedData question,
+  ) =>
+      _decodeSnapshot(response.questionSnapshot)['title'] as String? ??
+      question.title;
+
+  String _multipleChoiceTitle(
+    MultipleChoiceResponseLogData response,
+    MultipleChoiceData question,
+  ) =>
+      _decodeSnapshot(response.questionSnapshot)['title'] as String? ??
+      question.title;
 
   String _score(double? score) {
     if (score == null) return 'Aguardando correção';
@@ -107,10 +145,11 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
     OpenEndedResponseLogData response,
     OpenEndedData question,
   ) {
+    final snapshot = _decodeSnapshot(response.questionSnapshot);
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(question.title),
+        title: Text(_openEndedTitle(response, question)),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +157,19 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
             children: [
               Text('Enunciado', style: context.textTheme.titleSmall),
               const SizedBox(height: 4),
-              Text(question.statement),
+              Text(snapshot['statement'] as String? ?? question.statement),
+              if ((snapshot['referenceCorrectAnswer'] as String?)
+                      ?.trim()
+                      .isNotEmpty ==
+                  true) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Resposta de referência',
+                  style: context.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(snapshot['referenceCorrectAnswer'] as String),
+              ],
               const SizedBox(height: 16),
               Text('Sua resposta', style: context.textTheme.titleSmall),
               const SizedBox(height: 4),
@@ -146,47 +197,73 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
     MultipleChoiceResponseLogData response,
     MultipleChoiceData question,
   ) {
-    final choices = (jsonDecode(response.questionChoiceSnapshot) as List)
-        .whereType<Map<String, dynamic>>()
-        .toList();
-    final selectedIds = (jsonDecode(response.selectedChoiceIds) as List)
-        .whereType<String>()
-        .toSet();
-    final selectedChoices = choices.where(
-      (choice) => selectedIds.contains(choice['id']),
-    );
+    final snapshot = _decodeSnapshot(response.questionSnapshot);
+    final choices = _decodeChoices(response.questionChoiceSnapshot);
+    final selectedIdList = <String>{};
+    try {
+      final decoded = jsonDecode(response.selectedChoiceIds);
+      if (decoded is List) selectedIdList.addAll(decoded.whereType<String>());
+    } on FormatException {
+      // An invalid selection snapshot should not prevent other history entries
+      // from opening.
+    }
 
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(question.title),
+        title: Text(_multipleChoiceTitle(response, question)),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(question.statement),
+              Text(snapshot['statement'] as String? ?? question.statement),
               const SizedBox(height: 16),
               Text(
-                'Alternativas selecionadas',
+                'Resultado: ${_score(response.score)}',
                 style: context.textTheme.titleSmall,
               ),
+              const SizedBox(height: 16),
+              Text('Alternativas', style: context.textTheme.titleSmall),
               const SizedBox(height: 4),
-              if (selectedChoices.isEmpty)
-                const Text('Nenhuma alternativa selecionada.')
+              if (choices.isEmpty)
+                const Text(
+                  'As alternativas desta tentativa não estão disponíveis.',
+                )
               else
-                for (final choice in selectedChoices)
+                for (final choice in choices)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(
-                      choice['is_correct'] == true
-                          ? Icons.check_circle_outline
-                          : Icons.cancel_outlined,
+                      selectedIdList.contains(choice['id'])
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
                       color: choice['is_correct'] == true
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.error,
+                          : selectedIdList.contains(choice['id'])
+                          ? Theme.of(context).colorScheme.error
+                          : null,
                     ),
-                    title: Text(choice['statement'] as String? ?? ''),
+                    title: Text(
+                      choice['statement'] as String? ?? '',
+                      style: TextStyle(
+                        fontWeight: choice['is_correct'] == true
+                            ? FontWeight.w600
+                            : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      [
+                        if (selectedIdList.contains(choice['id']))
+                          'Selecionada',
+                        if (choice['is_correct'] == true) 'Correta',
+                        if ((choice['explanation'] as String?)
+                                ?.trim()
+                                .isNotEmpty ==
+                            true)
+                          choice['explanation'] as String,
+                      ].join(' · '),
+                    ),
                   ),
             ],
           ),
@@ -274,32 +351,57 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
       );
     }
 
-    final responses = <({int answeredAt, Widget card})>[
-      for (final (response, question) in _openEndedLogs)
-        (
-          answeredAt: response.answeredAt,
-          card: _responseCard(
-            title: question.title,
-            type: 'Questão aberta',
-            subtitle: _date(response.answeredAt),
-            score: _score(response.score),
-            icon: Icons.edit_note_rounded,
-            onTap: () => _showOpenEndedAnswer(response, question),
-          ),
-        ),
-      for (final (response, question) in _multipleChoiceLogs)
-        (
-          answeredAt: response.answeredAt,
-          card: _responseCard(
-            title: question.title,
-            type: 'Múltipla escolha',
-            subtitle: _date(response.answeredAt),
-            score: _score(response.score),
-            icon: Icons.checklist_rounded,
-            onTap: () => _showMultipleChoiceAnswer(response, question),
-          ),
-        ),
-    ]..sort((a, b) => b.answeredAt.compareTo(a.answeredAt));
+    final responses =
+        <
+            ({
+              int answeredAt,
+              String title,
+              String type,
+              String searchText,
+              Widget card,
+            })
+          >[
+            for (final (response, question) in _openEndedLogs)
+              (
+                answeredAt: response.answeredAt,
+                title: _openEndedTitle(response, question),
+                type: 'open',
+                searchText:
+                    '${_openEndedTitle(response, question)} '
+                    '${_decodeSnapshot(response.questionSnapshot)['statement'] ?? question.statement}',
+                card: _responseCard(
+                  title: _openEndedTitle(response, question),
+                  type: 'Questão aberta',
+                  subtitle: _date(response.answeredAt),
+                  score: _score(response.score),
+                  icon: Icons.edit_note_rounded,
+                  onTap: () => _showOpenEndedAnswer(response, question),
+                ),
+              ),
+            for (final (response, question) in _multipleChoiceLogs)
+              (
+                answeredAt: response.answeredAt,
+                title: _multipleChoiceTitle(response, question),
+                type: 'multiple',
+                searchText:
+                    '${_multipleChoiceTitle(response, question)} '
+                    '${_decodeSnapshot(response.questionSnapshot)['statement'] ?? question.statement}',
+                card: _responseCard(
+                  title: _multipleChoiceTitle(response, question),
+                  type: 'Múltipla escolha',
+                  subtitle: _date(response.answeredAt),
+                  score: _score(response.score),
+                  icon: Icons.checklist_rounded,
+                  onTap: () => _showMultipleChoiceAnswer(response, question),
+                ),
+              ),
+          ]
+          ..sort((a, b) => b.answeredAt.compareTo(a.answeredAt));
+    final query = _search.trim().toLowerCase();
+    final filteredResponses = responses.where((response) {
+      return (_filter == 'all' || response.type == _filter) &&
+          (query.isEmpty || response.searchText.toLowerCase().contains(query));
+    }).toList();
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -331,6 +433,38 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
             ],
           ),
           const SizedBox(height: 12),
+          TextField(
+            onChanged: (value) => setState(() => _search = value),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: 'Buscar no histórico',
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpar busca',
+                      onPressed: () => setState(() => _search = ''),
+                      icon: const Icon(Icons.clear),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final (value, label) in [
+                ('all', 'Todas'),
+                ('open', 'Dissertativas'),
+                ('multiple', 'Múltipla escolha'),
+              ])
+                ChoiceChip(
+                  label: Text(label),
+                  selected: _filter == value,
+                  onSelected: (_) => setState(() => _filter = value),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: RefreshIndicator(
               onRefresh: carregar,
@@ -351,8 +485,19 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                         ),
                       ],
                     )
+                  : filteredResponses.isEmpty
+                  ? ListView(
+                      children: const [
+                        SizedBox(height: 40),
+                        Center(
+                          child: Text('Nenhuma tentativa corresponde à busca.'),
+                        ),
+                      ],
+                    )
                   : ListView(
-                      children: [for (final item in responses) item.card],
+                      children: [
+                        for (final item in filteredResponses) item.card,
+                      ],
                     ),
             ),
           ),

@@ -23,7 +23,7 @@ class AppUserDao extends DatabaseAccessor<AppDatabase> with _$AppUserDaoMixin {
         displayName: displayName!,
         primaryEmail: primaryEmail,
         lastSeenAt: DateTime.now().millisecondsSinceEpoch,
-        isActive: Value(isActive ?? true),
+        isActive: Value(isActive ?? false),
       ),
     );
   }
@@ -70,6 +70,28 @@ class AppUserDao extends DatabaseAccessor<AppDatabase> with _$AppUserDaoMixin {
     return (select(
       attachedDatabase.appUser,
     )..where((user) => user.isActive.equals(true))).getSingleOrNull();
+  }
+
+  Future<void> activateUser({required String id}) async {
+    await attachedDatabase.transaction(() async {
+      await (update(attachedDatabase.appUser)
+            ..where((user) => user.isActive.equals(true)))
+          .write(const AppUserCompanion(isActive: Value(false)));
+      await (update(
+        attachedDatabase.appUser,
+      )..where((user) => user.id.equals(id))).write(
+        AppUserCompanion(
+          isActive: const Value(true),
+          lastSeenAt: Value(DateTime.now().millisecondsSinceEpoch),
+        ),
+      );
+    });
+  }
+
+  Future<void> deactivateAllUsers() {
+    return (update(attachedDatabase.appUser)
+          ..where((user) => user.isActive.equals(true)))
+        .write(const AppUserCompanion(isActive: Value(false)));
   }
 
   Future<AppUserData?> getRemoteUser({required String remoteId}) {

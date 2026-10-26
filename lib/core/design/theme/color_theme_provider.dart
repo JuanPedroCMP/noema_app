@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/database/database.dart' show ColorThemeData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
 import 'package:noema/core/design/theme/typography_theme_dao.dart';
@@ -118,7 +120,7 @@ class SwitchColor extends AsyncNotifier<int> {
     final theme = await (db.select(
       db.colorTheme,
     )..where((item) => item.id.equals(themeId))).getSingleOrNull();
-    if (theme == null) {
+    if (theme == null || theme.userId != user.id) {
       throw StateError('Tema selecionado não encontrado');
     }
 
@@ -184,14 +186,24 @@ class SwitchColor extends AsyncNotifier<int> {
 
 final colorProvider = AsyncNotifierProvider<SwitchColor, int>(SwitchColor.new);
 
-final activeColorThemeProvider = FutureProvider.autoDispose((ref) async {
-  final user = await ref.read(userProvider.notifier).getUser();
-  final db = ref.read(appDatabaseProvider);
-  final config = await ConfigDao(db).getConfigByUser(userId: user.id);
-  if (config == null) return null;
-  return (db.select(
-    db.colorTheme,
-  )..where((theme) => theme.id.equals(config.colorThemeId))).getSingleOrNull();
+final activeColorThemeProvider = StreamProvider.autoDispose<ColorThemeData?>((
+  ref,
+) async* {
+  final user = await ref.watch(userProvider.future);
+  final db = ref.watch(appDatabaseProvider);
+  final query =
+      db.select(db.colorTheme).join([
+        innerJoin(
+          db.config,
+          db.config.colorThemeId.equalsExp(db.colorTheme.id),
+        ),
+      ])..where(
+        db.config.userId.equals(user.id) & db.colorTheme.userId.equals(user.id),
+      );
+
+  await for (final rows in query.watch()) {
+    yield rows.isEmpty ? null : rows.first.readTable(db.colorTheme);
+  }
 });
 
 class SwithBrightness extends Notifier<Brightness> {

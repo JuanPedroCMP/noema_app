@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/presentation/color_theme_section.dart';
+import 'package:noema/feature/config/presentation/api_keys_section.dart';
+import 'package:noema/feature/config/presentation/google_account_section.dart';
 import 'package:noema/feature/config/presentation/profile_section.dart';
+import 'package:noema/feature/config/presentation/preferences_section.dart';
 import 'package:noema/feature/config/presentation/typography_theme_section.dart';
 import 'package:noema/feature/config/providers/section_navigator_provider.dart';
 import 'package:noema/shared/widgets/app_section.dart';
@@ -50,26 +53,45 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
         child: Column(
           spacing: context.spacing.md,
           children: [
-              AppSection(
-                title: "Perfil",
-                description: "Gerencie seus dados e preferências de conta.",
-                key: keys[ConfigSections.profile],
-                child: ProfileSection(),
-              ),
+            AppSection(
+              title: "Perfil",
+              description: "Gerencie seus dados e preferências de conta.",
+              key: keys[ConfigSections.profile],
+              child: ProfileSection(),
+            ),
 
-              AppSection(
-                title: "Tema de cores",
-                description:
-                    "Escolha uma paleta para personalizar o aplicativo.",
-                key: keys[ConfigSections.colorTheme],
-                child: ColorThemeSection(),
-              ),
-              AppSection(
-                title: "Tipografia",
-                description: "Defina fontes e escala para melhorar a leitura.",
-                key: keys[ConfigSections.typographyTheme],
-                child: const TypographyThemeSection(),
-              ),
+            AppSection(
+              title: "Tema de cores",
+              description: "Escolha uma paleta para personalizar o aplicativo.",
+              key: keys[ConfigSections.colorTheme],
+              child: ColorThemeSection(),
+            ),
+            AppSection(
+              title: "Tipografia",
+              description: "Defina fontes e escala para melhorar a leitura.",
+              key: keys[ConfigSections.typographyTheme],
+              child: const TypographyThemeSection(),
+            ),
+            AppSection(
+              title: "Chaves de API",
+              description:
+                  "Gerencie chaves dos provedores de inteligência artificial.",
+              key: keys[ConfigSections.apiKeys],
+              child: const ApiKeysSection(),
+            ),
+            AppSection(
+              title: "Conta Google",
+              description:
+                  "Vincule ou remova a conta Google usada pelas integrações.",
+              key: keys[ConfigSections.googleAccount],
+              child: const GoogleAccountSection(),
+            ),
+            AppSection(
+              title: "Preferências",
+              description: "Idioma e outras preferências deste dispositivo.",
+              key: keys[ConfigSections.preferences],
+              child: const PreferencesSection(),
+            ),
           ],
         ),
       ),

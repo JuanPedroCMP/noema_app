@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
+import 'package:noema/feature/auth/providers/account_state.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
+import 'package:noema/feature/config/data/user_dao.dart';
+import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
 
@@ -31,8 +37,47 @@ class HomePage extends ConsumerWidget {
                   );
                   final logout = OutlinedButton.icon(
                     onPressed: () async {
-                      await storage.delete(key: "access_token");
-                      ref.invalidate(authStateProvider);
+                      try {
+                        await storage.delete(key: 'access_token');
+                        await storage.delete(
+                          key: 'access_token_remote_owner_id',
+                        );
+                        await storage.delete(
+                          key: 'access_token_remote_onwer_id',
+                        );
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Não foi possível sair: $error'),
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                      ref
+                          .read(apiClientProvider)
+                          .removeOAuthToken('OAuth2PasswordBearer');
+                      try {
+                        await AppUserDao(
+                          ref.read(appDatabaseProvider),
+                        ).deactivateAllUsers();
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'A sessão foi encerrada, mas o estado local '
+                                'não pôde ser atualizado: $error',
+                              ),
+                            ),
+                          );
+                        }
+                      } finally {
+                        resetAccountScopedState(ref);
+                        ref.invalidate(authStateProvider);
+                        if (context.mounted) context.go(RoutePaths.login);
+                      }
                     },
                     icon: const Icon(Icons.logout),
                     label: const Text("Sair"),
@@ -51,6 +96,17 @@ class HomePage extends ConsumerWidget {
                         );
                 },
               ),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.playlist_add_check_circle_outlined),
+              title: const Text('Sessões de estudo'),
+              subtitle: const Text(
+                'Agrupe questões e acompanhe cada realização.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(RoutePaths.studySessions),
             ),
           ),
         ],

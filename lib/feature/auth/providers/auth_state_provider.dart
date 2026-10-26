@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:built_value/json_object.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart'
@@ -15,254 +18,221 @@ import 'package:noema/feature/auth/services/login_service.dart';
 final authStateProvider = FutureProvider<bool>((ref) async {
   final storage = ref.read(secureSorageProvider);
   final apiClient = ref.read(apiClientProvider);
+  apiClient.removeOAuthToken('OAuth2PasswordBearer');
   final db = ref.read(appDatabaseProvider);
   final userDao = AppUserDao(db);
-  final configDao = ConfigDao(db);
-  final colorThemeDao = ColorThemeDao(db);
-  final typographyThemeDao = TypographyThemeDao(db);
-  final fingerprint = await DeviceFingerprint.get();
-  final connectionState = ref.read(serverConnectionChecker);
-
   final token = await storage.read(key: 'access_token');
   final tokenOwnerId =
       await storage.read(key: 'access_token_remote_owner_id') ??
       await storage.read(key: 'access_token_remote_onwer_id');
 
   if (token == null || token.isEmpty) {
+    await userDao.deactivateAllUsers();
+    return false;
+  }
+  if (tokenOwnerId == null || tokenOwnerId.isEmpty) {
+    await userDao.deactivateAllUsers();
     return false;
   }
 
   apiClient.setOAuthToken('OAuth2PasswordBearer', token);
-
-  if (tokenOwnerId == null || tokenOwnerId.isEmpty) {
-    return false;
-  }
-
   await storage.write(key: 'access_token_remote_owner_id', value: tokenOwnerId);
 
-  final localUser = await userDao.getUserByRemoteId(id: tokenOwnerId);
+  final isConnected = ref.read(serverConnectionChecker).value ?? false;
+  var localUser = await userDao.getUserByRemoteId(id: tokenOwnerId);
 
-  final isConnected = connectionState.value ?? false;
+  if (localUser == null) {
+    try {
+      final response = await ref
+          .read(userApiProvider)
+          .currentUserApiV1UserGetGet()
+          .timeout(const Duration(seconds: 5));
+      final remoteUser = response.data;
+      if (remoteUser == null || remoteUser.id != tokenOwnerId) {
+        await userDao.deactivateAllUsers();
+        return false;
+      }
+      await userDao.insertUser(
+        remoteId: remoteUser.id,
+        userName: remoteUser.userName,
+        displayName: remoteUser.userDisplayName,
+        primaryEmail: remoteUser.primaryEmail,
+        isActive: false,
+      );
+      localUser = await userDao.getUserByRemoteId(id: tokenOwnerId);
+      if (localUser == null) {
+        throw StateError('Não foi possível recuperar o usuário local criado.');
+      }
+    } catch (error, stackTrace) {
+      await userDao.deactivateAllUsers();
+      debugPrint('Falha ao preparar usuário local: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
+  } else if (isConnected) {
+    try {
+      final response = await ref
+          .read(userApiProvider)
+          .currentUserApiV1UserGetGet()
+          .timeout(const Duration(seconds: 5));
+      final remoteUser = response.data;
+      if (remoteUser != null) {
+        if (remoteUser.id != tokenOwnerId) {
+          await userDao.deactivateAllUsers();
+          return false;
+        }
+        await userDao.updateUser(
+          id: localUser.id,
+          remoteId: remoteUser.id,
+          userName: remoteUser.userName,
+          displayName: remoteUser.userDisplayName,
+          primaryEmail: remoteUser.primaryEmail,
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Falha ao atualizar o perfil local: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 
-  if (localUser != null) {
+  await userDao.activateUser(id: localUser.id);
+  await _ensureUserConfig(
+    ref: ref,
+    userId: localUser.id,
+    remoteId: localUser.remoteId,
+    isConnected: isConnected,
+  );
+  return true;
+});
+
+Future<void> _ensureUserConfig({
+  required Ref ref,
+  required String userId,
+  required String remoteId,
+  required bool isConnected,
+}) async {
+  final db = ref.read(appDatabaseProvider);
+  final configDao = ConfigDao(db);
+  final colorDao = ColorThemeDao(db);
+  final typographyDao = TypographyThemeDao(db);
+  final fingerprint = await DeviceFingerprint.get();
+
+  final colorTheme =
+      await colorDao.getColorThemeByName(name: 'Default', userId: userId) ??
+      await _createDefaultColorTheme(colorDao, userId);
+  final typographyTheme =
+      await typographyDao.getTypographyThemeByName(
+        name: 'Default',
+        userId: userId,
+      ) ??
+      await _createDefaultTypographyTheme(typographyDao, userId);
+
+  var config = await configDao.getConfigByUser(userId: userId);
+  if (config == null) {
+    var preferences = '{}';
     if (isConnected) {
-      debugPrint("1");
-
       try {
         final response = await ref
-            .read(userApiProvider)
-            .currentUserApiV1UserGetGet();
-
-        final remoteUser = response.data;
-
-        if (remoteUser != null) {
-          await userDao.updateUser(
-            id: localUser.id,
-            remoteId: remoteUser.id,
-            userName: remoteUser.userName,
-            displayName: remoteUser.userDisplayName,
-            primaryEmail: remoteUser.primaryEmail,
-          );
-        }
-        debugPrint("2");
+            .read(apiClientProvider)
+            .getUserGlobalConfigApi()
+            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
+              identificator: remoteId,
+            )
+            .timeout(const Duration(seconds: 5));
+        preferences = _preferencesJson(response.data?.preferences.entries);
       } catch (error, stackTrace) {
-        debugPrint("3");
-        debugPrint('Erro ao validar usuário: $error');
+        debugPrint('Falha ao sincronizar a configuração local: $error');
         debugPrintStack(stackTrace: stackTrace);
       }
     }
-
-    final config = await configDao.getConfigByUser(userId: localUser.id);
-    debugPrint("4");
-
-    if (config == null) {
-      debugPrint("5");
-      final ColorThemeData? colorTheme = await colorThemeDao
-          .getColorThemeByName(name: "Default");
-      String idColorTheme = "";
-      if (colorTheme == null) {
-        final id = await colorThemeDao.insertColorTheme(
-          userId: localUser.id,
-          name: "Default",
-          seedColor: 0x0000FF,
-        );
-
-        idColorTheme = id.toString();
-      } else {
-        idColorTheme = colorTheme.id;
-      }
-
-      debugPrint("5");
-      final TypographyThemeData? typographTheme = await typographyThemeDao
-          .getTypographyThemeByName(name: "Default");
-
-      String typographThemeId = "";
-      if (typographTheme == null) {
-        final id = await typographyThemeDao.insertTypographyTheme(
-          userId: localUser.id,
-          name: "Default",
-          fontScale: 1,
-        );
-        typographThemeId = id.toString();
-      } else {
-        typographThemeId = typographTheme.id;
-      }
-      debugPrint("5");
-
-      if (isConnected) {
-        debugPrint("6");
-
-        try {
-          final configApi = ref
-              .read(apiClientProvider)
-              .getUserGlobalConfigApi();
-          final configResponse = await configApi
-              .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-                identificator: localUser.remoteId,
-              )
-              .timeout(const Duration(seconds: 5));
-
-          await configDao.insertConfig(
-            userId: localUser.id,
-            colorThemeId: idColorTheme,
-            typographyThemeId: typographThemeId,
-            preferences: configResponse.data?.preferences.toString() ?? "{}",
-            deviceFingerprint: fingerprint,
-          );
-        } catch (error, stackTrace) {
-          debugPrint('Falha ao sincronizar configuração: $error');
-          debugPrintStack(stackTrace: stackTrace);
-          await configDao.insertConfig(
-            userId: localUser.id,
-            colorThemeId: idColorTheme,
-            typographyThemeId: typographThemeId,
-            preferences: "{}",
-            deviceFingerprint: fingerprint,
-          );
-        }
-        debugPrint("7");
-      } else {
-        debugPrint("8");
-
-        await configDao.insertConfig(
-          userId: localUser.id,
-          colorThemeId: idColorTheme,
-          typographyThemeId: typographThemeId,
-          preferences: "{}",
-          deviceFingerprint: fingerprint,
-        );
-      }
-    } else {
-      if (isConnected) {
-        debugPrint("6");
-
-        try {
-          final configApi = ref
-              .read(apiClientProvider)
-              .getUserGlobalConfigApi();
-          final configResponse = await configApi
-              .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-                identificator: localUser.remoteId,
-              )
-              .timeout(const Duration(seconds: 5));
-
-          await configDao.updateConfig(
-            id: config.id,
-            userId: localUser.id,
-            preferences: configResponse.data?.preferences.toString() ?? "{}",
-            deviceFingerprint: fingerprint,
-          );
-        } catch (error, stackTrace) {
-          debugPrint('Falha ao atualizar configuração: $error');
-          debugPrintStack(stackTrace: stackTrace);
-        }
-        debugPrint("7");
-      }
-    }
-    debugPrint("9");
-
-    return true;
-  }
-
-  try {
-    final response = await ref
-        .read(userApiProvider)
-        .currentUserApiV1UserGetGet()
-        .timeout(const Duration(seconds: 5));
-
-    final remoteUser = response.data;
-
-    if (remoteUser == null) {
-      debugPrint('Usuário remoto não encontrado');
-      return false;
-    }
-
-    await userDao.insertUser(
-      remoteId: remoteUser.id,
-      userName: remoteUser.userName,
-      displayName: remoteUser.userDisplayName,
-      primaryEmail: remoteUser.primaryEmail,
-      isActive: true,
+    await configDao.insertConfig(
+      userId: userId,
+      colorThemeId: colorTheme.id,
+      typographyThemeId: typographyTheme.id,
+      preferences: preferences,
+      deviceFingerprint: fingerprint,
     );
-    debugPrint('Usuário salvo localmente');
-
-    return true;
-  } catch (error, stackTrace) {
-    debugPrint('Falha ao criar usuário local: $error');
-    debugPrintStack(stackTrace: stackTrace);
-    return false;
+    return;
   }
-});
 
-// final authStateProvider = FutureProvider<bool>((ref) async {
-//   final storage = ref.read(secureSorageProvider);
-//   final token = await storage.read(key: "access_token");
-//   final db = ref.read(appDatabaseProvider);
-//   final connectionAsync = ref.watch(serverConnectionChecker);
+  final selectedColor = await colorDao.getColorTheme(id: config.colorThemeId);
+  final selectedTypography = await typographyDao.getTypographyTheme(
+    id: config.typographyThemeId,
+  );
+  final colorBelongsToUser = selectedColor?.userId == userId;
+  final typographyBelongsToUser = selectedTypography?.userId == userId;
+  if (!colorBelongsToUser || !typographyBelongsToUser) {
+    await configDao.updateConfig(
+      id: config.id,
+      userId: userId,
+      colorThemeId: colorBelongsToUser ? config.colorThemeId : colorTheme.id,
+      typographyThemeId: typographyBelongsToUser
+          ? config.typographyThemeId
+          : typographyTheme.id,
+      deviceFingerprint: fingerprint,
+    );
+    config = await configDao.getConfigByUser(userId: userId);
+  }
 
-//   final isConnected = connectionAsync.value ?? true;
+  if (isConnected && config != null) {
+    try {
+      final response = await ref
+          .read(apiClientProvider)
+          .getUserGlobalConfigApi()
+          .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
+            identificator: remoteId,
+          )
+          .timeout(const Duration(seconds: 5));
+      await configDao.updateConfig(
+        id: config.id,
+        userId: userId,
+        preferences: _preferencesJson(response.data?.preferences.entries),
+        deviceFingerprint: fingerprint,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Falha ao atualizar a configuração local: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+}
 
-//   if(isConnected) {
+String _preferencesJson(
+  Iterable<MapEntry<String, JsonObject?>>? preferenceEntries,
+) {
+  if (preferenceEntries == null) return '{}';
+  return jsonEncode({
+    for (final entry in preferenceEntries) entry.key: entry.value?.value,
+  });
+}
 
-//   } else {
+Future<ColorThemeData> _createDefaultColorTheme(
+  ColorThemeDao dao,
+  String userId,
+) async {
+  final id = await dao.insertColorTheme(
+    userId: userId,
+    name: 'Default',
+    seedColor: 0xFF0000FF,
+  );
+  final theme = await dao.getColorTheme(id: id);
+  if (theme == null) {
+    throw StateError('Não foi possível criar o tema de cores padrão.');
+  }
+  return theme;
+}
 
-//   }
-
-//   if (token == null || token.isEmpty || token == "") {
-//     return false;
-//   }
-//   print(token);
-
-//   ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
-
-//   try {
-//     print("sem user");
-
-//     var response = await ref.read(userApiProvider).currentUserApiV1UserGetGet();
-
-//     UserOut? remoteUser = response.data;
-
-//     AppUserData? user = await AppUserDao(db).getActiveUser();
-
-//     if (remoteUser == null) {
-//       print("Remote user null");
-//       return false;
-//     }
-
-//     if (user == null) {
-//       AppUserDao(db).insertUser(
-//         remoteId: remoteUser.id,
-//         userName: remoteUser.userName,
-//         displayName: remoteUser.userDisplayName,
-//         primaryEmail: remoteUser.primaryEmail,
-//         isActive: true,
-//       );
-//     }
-//     return true;
-//   } catch (e) {
-//     print("erro");
-//     print(e.toString());
-//     await storage.delete(key: "access_token");
-//     return false;
-//   }
-// });
+Future<TypographyThemeData> _createDefaultTypographyTheme(
+  TypographyThemeDao dao,
+  String userId,
+) async {
+  final id = await dao.insertTypographyTheme(
+    userId: userId,
+    name: 'Default',
+    fontScale: 1,
+  );
+  final theme = await dao.getTypographyTheme(id: id);
+  if (theme == null) {
+    throw StateError('Não foi possível criar o tema de tipografia padrão.');
+  }
+  return theme;
+}

@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'open_ended_dao.g.dart';
 
 @DriftAccessor(tables: [OpenEnded])
-class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixin {
+class OpenEndedDao extends DatabaseAccessor<AppDatabase>
+    with _$OpenEndedDaoMixin {
   OpenEndedDao(super.db);
 
   Future<String> insertOpenEnded({
@@ -26,7 +27,6 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
         type: type,
         referenceCorrectAnswer: Value(referenceCorrectAnswer),
         isAiGenerated: Value(isAiGenerated ?? false),
-        createdAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
     return id;
@@ -49,22 +49,28 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
         title: title == null ? const Value.absent() : Value(title),
         statement: statement == null ? const Value.absent() : Value(statement),
         type: type == null ? const Value.absent() : Value(type),
-        referenceCorrectAnswer: referenceCorrectAnswer == null ? const Value.absent() : Value(referenceCorrectAnswer),
-        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
-        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        referenceCorrectAnswer: referenceCorrectAnswer == null
+            ? const Value.absent()
+            : Value(referenceCorrectAnswer),
+        isAiGenerated: isAiGenerated == null
+            ? const Value.absent()
+            : Value(isAiGenerated),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
       ),
     );
   }
 
   Future<OpenEndedData?> getOpenEnded({required String id}) {
-    return (select(attachedDatabase.openEnded)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.openEnded,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<List<OpenEndedData>> getOpenEndedsByNode({required String nodeId}) {
     return (select(attachedDatabase.openEnded)
           ..where((tbl) => tbl.nodeId.equals(nodeId))
-          ..where((tbl) => tbl.softDeleted.equals(false)))
+          ..where((tbl) => tbl.softDeleted.equals(false))
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.title)]))
         .get();
   }
 
@@ -74,7 +80,7 @@ class OpenEndedDao extends DatabaseAccessor<AppDatabase> with _$OpenEndedDaoMixi
     )..where((tbl) => tbl.id.equals(id))).write(
       OpenEndedCompanion(
         softDeleted: const Value(true),
-        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
       ),
     );
   }

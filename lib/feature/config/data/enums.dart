@@ -1,1 +1,8 @@
-enum ConfigSections { profile, colorTheme, typographyTheme, preferences }
+enum ConfigSections {
+  profile,
+  colorTheme,
+  typographyTheme,
+  apiKeys,
+  googleAccount,
+  preferences,
+}

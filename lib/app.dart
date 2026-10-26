@@ -7,6 +7,7 @@ import 'package:noema/core/design/theme/color_theme_provider.dart'
 import 'package:noema/core/design/theme/typography_theme_provider.dart';
 import 'package:noema/core/design/theme/display_width_provider.dart';
 import 'package:noema/core/router/router.dart';
+import 'package:noema/feature/config/providers/app_locale_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
 
 class App extends ConsumerWidget {
@@ -18,11 +19,15 @@ class App extends ConsumerWidget {
     final activeTheme = ref.watch(activeColorThemeProvider);
     final activeTypography = ref.watch(activeTypographyThemeProvider);
     final brightnessApp = ref.watch(brightnessProvider);
+    final appLocale = ref.watch(appLocaleProvider);
 
-    final colorApp = colorAsync.maybeWhen(
-      data: (color) => color,
-      orElse: () => 0x22FF,
-    );
+    final colorApp =
+        activeTheme.maybeWhen(
+          data: (theme) => theme?.seedColor,
+          orElse: () => null,
+        ) ??
+        colorAsync.maybeWhen(data: (color) => color, orElse: () => null) ??
+        0x22FF;
     final width = MediaQuery.sizeOf(context).width;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -45,6 +50,10 @@ class App extends ConsumerWidget {
         const Locale('en', ''), // Inglês
         // const Locale.fromSubtags(languageCode: 'zh'),
       ],
+      locale: appLocale.maybeWhen(
+        data: (locale) => locale,
+        orElse: () => null,
+      ),
 
       routerConfig: ref.watch(goRouterProvider),
 

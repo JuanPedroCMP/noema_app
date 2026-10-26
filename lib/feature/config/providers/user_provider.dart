@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:openapi/openapi.dart';
 
@@ -10,6 +11,10 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
 
   @override
   Future<AppUserData> build() async {
+    final isAuthenticated = await ref.watch(authStateProvider.future);
+    if (!isAuthenticated) {
+      throw StateError('Nenhum usuário autenticado encontrado');
+    }
     final user = await AppUserDao(db).getActiveUser();
     if (user == null) {
       throw StateError('Nenhum usuário autenticado encontrado');

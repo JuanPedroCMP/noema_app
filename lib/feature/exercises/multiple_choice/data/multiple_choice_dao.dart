@@ -34,6 +34,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
     String? statement,
     bool? isAiGenerated,
   }) {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return (update(
       attachedDatabase.multipleChoice,
     )..where((tbl) => tbl.id.equals(id))).write(
@@ -42,6 +43,7 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
         title: title == null ? const Value.absent() : Value(title),
         statement: statement == null ? const Value.absent() : Value(statement),
         isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
+        updatedAt: Value(now),
       ),
     );
   }
@@ -54,17 +56,20 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
   Future<List<MultipleChoiceData>> getMultipleChoicesByNode({required String nodeId}) {
     return (select(attachedDatabase.multipleChoice)
           ..where((tbl) => tbl.nodeId.equals(nodeId))
-          ..where((tbl) => tbl.softDeleted.equals(false)))
+          ..where((tbl) => tbl.softDeleted.equals(false))
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.title)]))
         .get();
   }
 
   Future<int> deleteMultipleChoice({required String id}) {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return (update(
       attachedDatabase.multipleChoice,
     )..where((tbl) => tbl.id.equals(id))).write(
       MultipleChoiceCompanion(
         softDeleted: const Value(true),
-        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        softDeletedAt: Value(now),
+        updatedAt: Value(now),
       ),
     );
   }

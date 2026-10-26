@@ -5,11 +5,25 @@ abstract final class RoutePaths {
   static const test = '/test';
   static const graphs = '/graphs';
   static const flashcards = '/flashcards';
+  static const studySessions = '/study-sessions';
   static const login = '/login';
   static const signUp = '/sign-up';
   static const splash = '/splash';
 
   static String graph(String graphId) => '$graphs/$graphId';
+
+  static String studySession(String sessionId) => '$studySessions/$sessionId';
+
+  static String studySessionEdit(String sessionId) =>
+      '${studySession(sessionId)}/edit';
+
+  static String studySessionCreate() => '$studySessions/create';
+
+  static String studySessionRun(String sessionId) =>
+      '${studySession(sessionId)}/run';
+
+  static String flashcardsForNode(String graphId, String nodeId) =>
+      '${graph(graphId)}/flashcards/$nodeId';
 
   static String exercises(String graphId, String nodeId) =>
       '${graph(graphId)}/exercises/$nodeId';

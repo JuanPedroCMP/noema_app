@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
+import 'package:noema/feature/auth/providers/account_state.dart';
 import 'package:noema/feature/auth/providers/login_form_provider.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
 import 'package:noema/shared/widgets/async_action_button.dart';
@@ -76,6 +77,7 @@ class LoginPage extends ConsumerWidget {
                       throw StateError("Não foi possível validar a sessão.");
                     }
 
+                    resetAccountScopedState(ref);
                     if (context.mounted) context.go("/");
                 } catch (_) {
                     if (context.mounted) {

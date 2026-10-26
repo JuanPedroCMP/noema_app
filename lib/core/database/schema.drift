@@ -171,6 +171,8 @@ CREATE TABLE note_node (
 CREATE TABLE study_session (
     id TEXT NOT NULL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
     status TEXT NOT NULL CHECK (
         status IN (
             'CONFIGURING',
@@ -189,16 +191,26 @@ CREATE TABLE study_session (
     soft_deleted_at INTEGER,
     started_at INTEGER NOT NULL DEFAULT (unixepoch()),
     ended_at INTEGER,
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
     CHECK (completed_activities <= total_activities)
 );
 CREATE TABLE study_session_log (
     id TEXT NOT NULL PRIMARY KEY,
     study_session_id TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    session_title_snapshot TEXT NOT NULL,
+    questions_snapshot TEXT NOT NULL CHECK (json_valid(questions_snapshot)),
+    status TEXT NOT NULL DEFAULT 'IN_PROGRESS' CHECK (
+        status IN ('IN_PROGRESS', 'COMPLETED', 'ABANDONED')
+    ),
     total_activities INTEGER NOT NULL DEFAULT 0,
     completed_activities INTEGER NOT NULL DEFAULT 0,
+    actual_duration_min INTEGER CHECK (
+        actual_duration_min IS NULL OR actual_duration_min >= 0
+    ),
     started_at INTEGER NOT NULL DEFAULT (unixepoch()),
     ended_at INTEGER,
-    CHECK (completed_activities <= total_activities)
+    CHECK (completed_activities <= total_activities),
+    CHECK (ended_at IS NULL OR ended_at >= started_at)
 );
 CREATE TABLE study_session_use_knowledge_graph (
     id TEXT NOT NULL PRIMARY KEY,
@@ -276,6 +288,9 @@ CREATE TABLE multiple_choice_response_log (
     multiple_choice_id TEXT NOT NULL REFERENCES multiple_choice(id) ON DELETE CASCADE,
     study_session_id TEXT REFERENCES study_session(id) ON DELETE
     SET NULL,
+    study_session_log_id TEXT REFERENCES study_session_log(id) ON DELETE
+    SET NULL,
+        question_snapshot TEXT NOT NULL CHECK (json_valid(question_snapshot)),
         question_choice_snapshot TEXT NOT NULL CHECK (json_valid(question_choice_snapshot)),
         selected_choice_ids TEXT NOT NULL CHECK (json_valid(selected_choice_ids)),
         total_correct_option INTEGER NOT NULL,
@@ -286,13 +301,6 @@ CREATE TABLE multiple_choice_response_log (
         user_notes TEXT,
         score REAL,
         answered_at INTEGER NOT NULL DEFAULT (unixepoch())
-);
-CREATE TABLE study_session_has_multiple_choice_question (
-    id TEXT NOT NULL PRIMARY KEY,
-    study_session_id TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
-    multiple_choice_id TEXT NOT NULL REFERENCES multiple_choice(id) ON DELETE CASCADE,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-    CONSTRAINT study_session_multiple_choice_uq UNIQUE (study_session_id, multiple_choice_id)
 );
 CREATE TABLE open_ended (
     id TEXT NOT NULL PRIMARY KEY,
@@ -307,10 +315,27 @@ CREATE TABLE open_ended (
     soft_deleted BOOLEAN NOT NULL DEFAULT 0 CHECK (soft_deleted IN (0, 1)),
     soft_deleted_at INTEGER
 );
+CREATE TABLE study_session_question (
+    id TEXT NOT NULL PRIMARY KEY,
+    study_session_id TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
+    multiple_choice_id TEXT REFERENCES multiple_choice(id) ON DELETE CASCADE,
+    open_ended_id TEXT REFERENCES open_ended(id) ON DELETE CASCADE,
+    display_order INTEGER NOT NULL CHECK (display_order >= 0),
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    CHECK (
+        (multiple_choice_id IS NOT NULL AND open_ended_id IS NULL) OR
+        (multiple_choice_id IS NULL AND open_ended_id IS NOT NULL)
+    ),
+    CONSTRAINT study_session_question_mc_uq UNIQUE (study_session_id, multiple_choice_id),
+    CONSTRAINT study_session_question_oe_uq UNIQUE (study_session_id, open_ended_id),
+    CONSTRAINT study_session_question_order_uq UNIQUE (study_session_id, display_order)
+);
 CREATE TABLE open_ended_response_log (
     id TEXT NOT NULL PRIMARY KEY,
     open_ended_id TEXT NOT NULL REFERENCES open_ended(id) ON DELETE CASCADE,
     study_session_id TEXT REFERENCES study_session(id) ON DELETE
+    SET NULL,
+    study_session_log_id TEXT REFERENCES study_session_log(id) ON DELETE
     SET NULL,
         question_snapshot TEXT NOT NULL CHECK (json_valid(question_snapshot)),
         user_answer TEXT,
@@ -324,13 +349,6 @@ CREATE TABLE open_ended_response_log (
         score REAL,
         corrected BOOLEAN NOT NULL DEFAULT 0 CHECK (corrected IN (0, 1)),
         answered_at INTEGER NOT NULL DEFAULT (unixepoch())
-);
-CREATE TABLE study_session_has_open_ended_question (
-    id TEXT NOT NULL PRIMARY KEY,
-    study_session_id TEXT NOT NULL REFERENCES study_session(id) ON DELETE CASCADE,
-    open_ended_id TEXT NOT NULL REFERENCES open_ended(id) ON DELETE CASCADE,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-    CONSTRAINT study_session_open_ended_uq UNIQUE (study_session_id, open_ended_id)
 );
 CREATE TABLE fsrs_state (
     id TEXT NOT NULL PRIMARY KEY,
@@ -422,6 +440,7 @@ CREATE INDEX idx_note_node_note_id ON note_node(note_id);
 CREATE INDEX idx_note_node_node_id ON note_node(node_id);
 CREATE INDEX idx_study_session_user_id ON study_session(user_id);
 CREATE INDEX idx_study_session_log_study_session_id ON study_session_log(study_session_id);
+CREATE INDEX idx_study_session_log_started_at ON study_session_log(started_at);
 CREATE INDEX idx_ssukg_graph_id ON study_session_use_knowledge_graph(graph_id);
 CREATE INDEX idx_ssukg_study_session_id ON study_session_use_knowledge_graph(study_session_id);
 CREATE INDEX idx_session_node_study_session_id ON session_node(study_session_id);
@@ -435,13 +454,14 @@ CREATE INDEX idx_multiple_choice_node_id ON multiple_choice(node_id);
 CREATE INDEX idx_choice_multiple_choice_id ON choice(multiple_choice_id);
 CREATE INDEX idx_mc_response_log_mc_id ON multiple_choice_response_log(multiple_choice_id);
 CREATE INDEX idx_mc_response_log_study_session_id ON multiple_choice_response_log(study_session_id);
-CREATE INDEX idx_ahmcq_study_session_id ON study_session_has_multiple_choice_question(study_session_id);
-CREATE INDEX idx_ahmcq_multiple_choice_id ON study_session_has_multiple_choice_question(multiple_choice_id);
+CREATE INDEX idx_study_session_question_session_order ON study_session_question(study_session_id, display_order);
+CREATE INDEX idx_study_session_question_mc_id ON study_session_question(multiple_choice_id);
+CREATE INDEX idx_study_session_question_oe_id ON study_session_question(open_ended_id);
 CREATE INDEX idx_open_ended_node_id ON open_ended(node_id);
 CREATE INDEX idx_oe_response_log_oe_id ON open_ended_response_log(open_ended_id);
 CREATE INDEX idx_oe_response_log_study_session_id ON open_ended_response_log(study_session_id);
-CREATE INDEX idx_ahoeq_study_session_id ON study_session_has_open_ended_question(study_session_id);
-CREATE INDEX idx_ahoeq_open_ended_id ON study_session_has_open_ended_question(open_ended_id);
+CREATE INDEX idx_oe_response_log_session_log_id ON open_ended_response_log(study_session_log_id);
+CREATE INDEX idx_mc_response_log_session_log_id ON multiple_choice_response_log(study_session_log_id);
 CREATE INDEX idx_fsrs_state_node_id ON fsrs_state(node_id);
 CREATE INDEX idx_fsrs_review_log_state_id ON fsrs_review_log(fsrs_state_id);
 CREATE INDEX idx_domain_log_node_id ON domain_log(node_id);

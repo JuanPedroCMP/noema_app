@@ -7584,6 +7584,26 @@ class StudySession extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL REFERENCES app_user(id)ON DELETE CASCADE',
   );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
     'status',
@@ -7709,10 +7729,24 @@ class StudySession extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     userId,
+    title,
+    description,
     status,
     targetDurationMin,
     actualDurationMin,
@@ -7724,6 +7758,7 @@ class StudySession extends Table
     softDeletedAt,
     startedAt,
     endedAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7749,6 +7784,23 @@ class StudySession extends Table
       );
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -7844,6 +7896,12 @@ class StudySession extends Table
         endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -7861,6 +7919,14 @@ class StudySession extends Table
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
       )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -7905,6 +7971,10 @@ class StudySession extends Table
         DriftSqlType.int,
         data['${effectivePrefix}ended_at'],
       ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -7925,6 +7995,8 @@ class StudySessionData extends DataClass
     implements Insertable<StudySessionData> {
   final String id;
   final String userId;
+  final String title;
+  final String? description;
   final String status;
   final int targetDurationMin;
   final int? actualDurationMin;
@@ -7936,9 +8008,12 @@ class StudySessionData extends DataClass
   final int? softDeletedAt;
   final int startedAt;
   final int? endedAt;
+  final int updatedAt;
   const StudySessionData({
     required this.id,
     required this.userId,
+    required this.title,
+    this.description,
     required this.status,
     required this.targetDurationMin,
     this.actualDurationMin,
@@ -7950,12 +8025,17 @@ class StudySessionData extends DataClass
     this.softDeletedAt,
     required this.startedAt,
     this.endedAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     map['status'] = Variable<String>(status);
     map['target_duration_min'] = Variable<int>(targetDurationMin);
     if (!nullToAbsent || actualDurationMin != null) {
@@ -7973,6 +8053,7 @@ class StudySessionData extends DataClass
     if (!nullToAbsent || endedAt != null) {
       map['ended_at'] = Variable<int>(endedAt);
     }
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -7980,6 +8061,10 @@ class StudySessionData extends DataClass
     return StudySessionCompanion(
       id: Value(id),
       userId: Value(userId),
+      title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       status: Value(status),
       targetDurationMin: Value(targetDurationMin),
       actualDurationMin: actualDurationMin == null && nullToAbsent
@@ -7997,6 +8082,7 @@ class StudySessionData extends DataClass
       endedAt: endedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(endedAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -8008,6 +8094,8 @@ class StudySessionData extends DataClass
     return StudySessionData(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['user_id']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
       status: serializer.fromJson<String>(json['status']),
       targetDurationMin: serializer.fromJson<int>(json['target_duration_min']),
       actualDurationMin: serializer.fromJson<int?>(json['actual_duration_min']),
@@ -8023,6 +8111,7 @@ class StudySessionData extends DataClass
       softDeletedAt: serializer.fromJson<int?>(json['soft_deleted_at']),
       startedAt: serializer.fromJson<int>(json['started_at']),
       endedAt: serializer.fromJson<int?>(json['ended_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
     );
   }
   @override
@@ -8031,6 +8120,8 @@ class StudySessionData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'user_id': serializer.toJson<String>(userId),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
       'status': serializer.toJson<String>(status),
       'target_duration_min': serializer.toJson<int>(targetDurationMin),
       'actual_duration_min': serializer.toJson<int?>(actualDurationMin),
@@ -8042,12 +8133,15 @@ class StudySessionData extends DataClass
       'soft_deleted_at': serializer.toJson<int?>(softDeletedAt),
       'started_at': serializer.toJson<int>(startedAt),
       'ended_at': serializer.toJson<int?>(endedAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
     };
   }
 
   StudySessionData copyWith({
     String? id,
     String? userId,
+    String? title,
+    Value<String?> description = const Value.absent(),
     String? status,
     int? targetDurationMin,
     Value<int?> actualDurationMin = const Value.absent(),
@@ -8059,9 +8153,12 @@ class StudySessionData extends DataClass
     Value<int?> softDeletedAt = const Value.absent(),
     int? startedAt,
     Value<int?> endedAt = const Value.absent(),
+    int? updatedAt,
   }) => StudySessionData(
     id: id ?? this.id,
     userId: userId ?? this.userId,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
     status: status ?? this.status,
     targetDurationMin: targetDurationMin ?? this.targetDurationMin,
     actualDurationMin: actualDurationMin.present
@@ -8077,11 +8174,16 @@ class StudySessionData extends DataClass
         : this.softDeletedAt,
     startedAt: startedAt ?? this.startedAt,
     endedAt: endedAt.present ? endedAt.value : this.endedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   StudySessionData copyWithCompanion(StudySessionCompanion data) {
     return StudySessionData(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       status: data.status.present ? data.status.value : this.status,
       targetDurationMin: data.targetDurationMin.present
           ? data.targetDurationMin.value
@@ -8109,6 +8211,7 @@ class StudySessionData extends DataClass
           : this.softDeletedAt,
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -8117,6 +8220,8 @@ class StudySessionData extends DataClass
     return (StringBuffer('StudySessionData(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
           ..write('status: $status, ')
           ..write('targetDurationMin: $targetDurationMin, ')
           ..write('actualDurationMin: $actualDurationMin, ')
@@ -8127,7 +8232,8 @@ class StudySessionData extends DataClass
           ..write('softDeleted: $softDeleted, ')
           ..write('softDeletedAt: $softDeletedAt, ')
           ..write('startedAt: $startedAt, ')
-          ..write('endedAt: $endedAt')
+          ..write('endedAt: $endedAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -8136,6 +8242,8 @@ class StudySessionData extends DataClass
   int get hashCode => Object.hash(
     id,
     userId,
+    title,
+    description,
     status,
     targetDurationMin,
     actualDurationMin,
@@ -8147,6 +8255,7 @@ class StudySessionData extends DataClass
     softDeletedAt,
     startedAt,
     endedAt,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -8154,6 +8263,8 @@ class StudySessionData extends DataClass
       (other is StudySessionData &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.title == this.title &&
+          other.description == this.description &&
           other.status == this.status &&
           other.targetDurationMin == this.targetDurationMin &&
           other.actualDurationMin == this.actualDurationMin &&
@@ -8164,12 +8275,15 @@ class StudySessionData extends DataClass
           other.softDeleted == this.softDeleted &&
           other.softDeletedAt == this.softDeletedAt &&
           other.startedAt == this.startedAt &&
-          other.endedAt == this.endedAt);
+          other.endedAt == this.endedAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String> title;
+  final Value<String?> description;
   final Value<String> status;
   final Value<int> targetDurationMin;
   final Value<int?> actualDurationMin;
@@ -8181,10 +8295,13 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
   final Value<int?> softDeletedAt;
   final Value<int> startedAt;
   final Value<int?> endedAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const StudySessionCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
     this.status = const Value.absent(),
     this.targetDurationMin = const Value.absent(),
     this.actualDurationMin = const Value.absent(),
@@ -8196,11 +8313,14 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     this.softDeletedAt = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StudySessionCompanion.insert({
     required String id,
     required String userId,
+    required String title,
+    this.description = const Value.absent(),
     required String status,
     required int targetDurationMin,
     this.actualDurationMin = const Value.absent(),
@@ -8212,14 +8332,18 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     this.softDeletedAt = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
+       title = Value(title),
        status = Value(status),
        targetDurationMin = Value(targetDurationMin);
   static Insertable<StudySessionData> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? title,
+    Expression<String>? description,
     Expression<String>? status,
     Expression<int>? targetDurationMin,
     Expression<int>? actualDurationMin,
@@ -8231,11 +8355,14 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     Expression<int>? softDeletedAt,
     Expression<int>? startedAt,
     Expression<int>? endedAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
       if (status != null) 'status': status,
       if (targetDurationMin != null) 'target_duration_min': targetDurationMin,
       if (actualDurationMin != null) 'actual_duration_min': actualDurationMin,
@@ -8249,6 +8376,7 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
       if (softDeletedAt != null) 'soft_deleted_at': softDeletedAt,
       if (startedAt != null) 'started_at': startedAt,
       if (endedAt != null) 'ended_at': endedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8256,6 +8384,8 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
   StudySessionCompanion copyWith({
     Value<String>? id,
     Value<String>? userId,
+    Value<String>? title,
+    Value<String?>? description,
     Value<String>? status,
     Value<int>? targetDurationMin,
     Value<int?>? actualDurationMin,
@@ -8267,11 +8397,14 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     Value<int?>? softDeletedAt,
     Value<int>? startedAt,
     Value<int?>? endedAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return StudySessionCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      title: title ?? this.title,
+      description: description ?? this.description,
       status: status ?? this.status,
       targetDurationMin: targetDurationMin ?? this.targetDurationMin,
       actualDurationMin: actualDurationMin ?? this.actualDurationMin,
@@ -8283,6 +8416,7 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
       softDeletedAt: softDeletedAt ?? this.softDeletedAt,
       startedAt: startedAt ?? this.startedAt,
       endedAt: endedAt ?? this.endedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8295,6 +8429,12 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -8329,6 +8469,9 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     if (endedAt.present) {
       map['ended_at'] = Variable<int>(endedAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8340,6 +8483,8 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
     return (StringBuffer('StudySessionCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
           ..write('status: $status, ')
           ..write('targetDurationMin: $targetDurationMin, ')
           ..write('actualDurationMin: $actualDurationMin, ')
@@ -8351,6 +8496,7 @@ class StudySessionCompanion extends UpdateCompanion<StudySessionData> {
           ..write('softDeletedAt: $softDeletedAt, ')
           ..write('startedAt: $startedAt, ')
           ..write('endedAt: $endedAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8384,6 +8530,40 @@ class StudySessionLog extends Table
     $customConstraints:
         'NOT NULL REFERENCES study_session(id)ON DELETE CASCADE',
   );
+  static const VerificationMeta _sessionTitleSnapshotMeta =
+      const VerificationMeta('sessionTitleSnapshot');
+  late final GeneratedColumn<String> sessionTitleSnapshot =
+      GeneratedColumn<String>(
+        'session_title_snapshot',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  static const VerificationMeta _questionsSnapshotMeta = const VerificationMeta(
+    'questionsSnapshot',
+  );
+  late final GeneratedColumn<String> questionsSnapshot =
+      GeneratedColumn<String>(
+        'questions_snapshot',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL CHECK (json_valid(questions_snapshot))',
+      );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'NOT NULL DEFAULT \'IN_PROGRESS\' CHECK (status IN (\'IN_PROGRESS\', \'COMPLETED\', \'ABANDONED\'))',
+    defaultValue: const CustomExpression('\'IN_PROGRESS\''),
+  );
   static const VerificationMeta _totalActivitiesMeta = const VerificationMeta(
     'totalActivities',
   );
@@ -8406,6 +8586,18 @@ class StudySessionLog extends Table
     requiredDuringInsert: false,
     $customConstraints: 'NOT NULL DEFAULT 0',
     defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _actualDurationMinMeta = const VerificationMeta(
+    'actualDurationMin',
+  );
+  late final GeneratedColumn<int> actualDurationMin = GeneratedColumn<int>(
+    'actual_duration_min',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (actual_duration_min IS NULL OR actual_duration_min >= 0)',
   );
   static const VerificationMeta _startedAtMeta = const VerificationMeta(
     'startedAt',
@@ -8434,8 +8626,12 @@ class StudySessionLog extends Table
   List<GeneratedColumn> get $columns => [
     id,
     studySessionId,
+    sessionTitleSnapshot,
+    questionsSnapshot,
+    status,
     totalActivities,
     completedActivities,
+    actualDurationMin,
     startedAt,
     endedAt,
   ];
@@ -8467,6 +8663,34 @@ class StudySessionLog extends Table
     } else if (isInserting) {
       context.missing(_studySessionIdMeta);
     }
+    if (data.containsKey('session_title_snapshot')) {
+      context.handle(
+        _sessionTitleSnapshotMeta,
+        sessionTitleSnapshot.isAcceptableOrUnknown(
+          data['session_title_snapshot']!,
+          _sessionTitleSnapshotMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionTitleSnapshotMeta);
+    }
+    if (data.containsKey('questions_snapshot')) {
+      context.handle(
+        _questionsSnapshotMeta,
+        questionsSnapshot.isAcceptableOrUnknown(
+          data['questions_snapshot']!,
+          _questionsSnapshotMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_questionsSnapshotMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
     if (data.containsKey('total_activities')) {
       context.handle(
         _totalActivitiesMeta,
@@ -8482,6 +8706,15 @@ class StudySessionLog extends Table
         completedActivities.isAcceptableOrUnknown(
           data['completed_activities']!,
           _completedActivitiesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('actual_duration_min')) {
+      context.handle(
+        _actualDurationMinMeta,
+        actualDurationMin.isAcceptableOrUnknown(
+          data['actual_duration_min']!,
+          _actualDurationMinMeta,
         ),
       );
     }
@@ -8514,6 +8747,18 @@ class StudySessionLog extends Table
         DriftSqlType.string,
         data['${effectivePrefix}study_session_id'],
       )!,
+      sessionTitleSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_title_snapshot'],
+      )!,
+      questionsSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}questions_snapshot'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
       totalActivities: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}total_activities'],
@@ -8522,6 +8767,10 @@ class StudySessionLog extends Table
         DriftSqlType.int,
         data['${effectivePrefix}completed_activities'],
       )!,
+      actualDurationMin: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}actual_duration_min'],
+      ),
       startedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}started_at'],
@@ -8541,6 +8790,7 @@ class StudySessionLog extends Table
   @override
   List<String> get customConstraints => const [
     'CHECK(completed_activities <= total_activities)',
+    'CHECK(ended_at IS NULL OR ended_at >= started_at)',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -8550,15 +8800,23 @@ class StudySessionLogData extends DataClass
     implements Insertable<StudySessionLogData> {
   final String id;
   final String studySessionId;
+  final String sessionTitleSnapshot;
+  final String questionsSnapshot;
+  final String status;
   final int totalActivities;
   final int completedActivities;
+  final int? actualDurationMin;
   final int startedAt;
   final int? endedAt;
   const StudySessionLogData({
     required this.id,
     required this.studySessionId,
+    required this.sessionTitleSnapshot,
+    required this.questionsSnapshot,
+    required this.status,
     required this.totalActivities,
     required this.completedActivities,
+    this.actualDurationMin,
     required this.startedAt,
     this.endedAt,
   });
@@ -8567,8 +8825,14 @@ class StudySessionLogData extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['study_session_id'] = Variable<String>(studySessionId);
+    map['session_title_snapshot'] = Variable<String>(sessionTitleSnapshot);
+    map['questions_snapshot'] = Variable<String>(questionsSnapshot);
+    map['status'] = Variable<String>(status);
     map['total_activities'] = Variable<int>(totalActivities);
     map['completed_activities'] = Variable<int>(completedActivities);
+    if (!nullToAbsent || actualDurationMin != null) {
+      map['actual_duration_min'] = Variable<int>(actualDurationMin);
+    }
     map['started_at'] = Variable<int>(startedAt);
     if (!nullToAbsent || endedAt != null) {
       map['ended_at'] = Variable<int>(endedAt);
@@ -8580,8 +8844,14 @@ class StudySessionLogData extends DataClass
     return StudySessionLogCompanion(
       id: Value(id),
       studySessionId: Value(studySessionId),
+      sessionTitleSnapshot: Value(sessionTitleSnapshot),
+      questionsSnapshot: Value(questionsSnapshot),
+      status: Value(status),
       totalActivities: Value(totalActivities),
       completedActivities: Value(completedActivities),
+      actualDurationMin: actualDurationMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actualDurationMin),
       startedAt: Value(startedAt),
       endedAt: endedAt == null && nullToAbsent
           ? const Value.absent()
@@ -8597,10 +8867,18 @@ class StudySessionLogData extends DataClass
     return StudySessionLogData(
       id: serializer.fromJson<String>(json['id']),
       studySessionId: serializer.fromJson<String>(json['study_session_id']),
+      sessionTitleSnapshot: serializer.fromJson<String>(
+        json['session_title_snapshot'],
+      ),
+      questionsSnapshot: serializer.fromJson<String>(
+        json['questions_snapshot'],
+      ),
+      status: serializer.fromJson<String>(json['status']),
       totalActivities: serializer.fromJson<int>(json['total_activities']),
       completedActivities: serializer.fromJson<int>(
         json['completed_activities'],
       ),
+      actualDurationMin: serializer.fromJson<int?>(json['actual_duration_min']),
       startedAt: serializer.fromJson<int>(json['started_at']),
       endedAt: serializer.fromJson<int?>(json['ended_at']),
     );
@@ -8611,8 +8889,12 @@ class StudySessionLogData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'study_session_id': serializer.toJson<String>(studySessionId),
+      'session_title_snapshot': serializer.toJson<String>(sessionTitleSnapshot),
+      'questions_snapshot': serializer.toJson<String>(questionsSnapshot),
+      'status': serializer.toJson<String>(status),
       'total_activities': serializer.toJson<int>(totalActivities),
       'completed_activities': serializer.toJson<int>(completedActivities),
+      'actual_duration_min': serializer.toJson<int?>(actualDurationMin),
       'started_at': serializer.toJson<int>(startedAt),
       'ended_at': serializer.toJson<int?>(endedAt),
     };
@@ -8621,15 +8903,25 @@ class StudySessionLogData extends DataClass
   StudySessionLogData copyWith({
     String? id,
     String? studySessionId,
+    String? sessionTitleSnapshot,
+    String? questionsSnapshot,
+    String? status,
     int? totalActivities,
     int? completedActivities,
+    Value<int?> actualDurationMin = const Value.absent(),
     int? startedAt,
     Value<int?> endedAt = const Value.absent(),
   }) => StudySessionLogData(
     id: id ?? this.id,
     studySessionId: studySessionId ?? this.studySessionId,
+    sessionTitleSnapshot: sessionTitleSnapshot ?? this.sessionTitleSnapshot,
+    questionsSnapshot: questionsSnapshot ?? this.questionsSnapshot,
+    status: status ?? this.status,
     totalActivities: totalActivities ?? this.totalActivities,
     completedActivities: completedActivities ?? this.completedActivities,
+    actualDurationMin: actualDurationMin.present
+        ? actualDurationMin.value
+        : this.actualDurationMin,
     startedAt: startedAt ?? this.startedAt,
     endedAt: endedAt.present ? endedAt.value : this.endedAt,
   );
@@ -8639,12 +8931,22 @@ class StudySessionLogData extends DataClass
       studySessionId: data.studySessionId.present
           ? data.studySessionId.value
           : this.studySessionId,
+      sessionTitleSnapshot: data.sessionTitleSnapshot.present
+          ? data.sessionTitleSnapshot.value
+          : this.sessionTitleSnapshot,
+      questionsSnapshot: data.questionsSnapshot.present
+          ? data.questionsSnapshot.value
+          : this.questionsSnapshot,
+      status: data.status.present ? data.status.value : this.status,
       totalActivities: data.totalActivities.present
           ? data.totalActivities.value
           : this.totalActivities,
       completedActivities: data.completedActivities.present
           ? data.completedActivities.value
           : this.completedActivities,
+      actualDurationMin: data.actualDurationMin.present
+          ? data.actualDurationMin.value
+          : this.actualDurationMin,
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
     );
@@ -8655,8 +8957,12 @@ class StudySessionLogData extends DataClass
     return (StringBuffer('StudySessionLogData(')
           ..write('id: $id, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('sessionTitleSnapshot: $sessionTitleSnapshot, ')
+          ..write('questionsSnapshot: $questionsSnapshot, ')
+          ..write('status: $status, ')
           ..write('totalActivities: $totalActivities, ')
           ..write('completedActivities: $completedActivities, ')
+          ..write('actualDurationMin: $actualDurationMin, ')
           ..write('startedAt: $startedAt, ')
           ..write('endedAt: $endedAt')
           ..write(')'))
@@ -8667,8 +8973,12 @@ class StudySessionLogData extends DataClass
   int get hashCode => Object.hash(
     id,
     studySessionId,
+    sessionTitleSnapshot,
+    questionsSnapshot,
+    status,
     totalActivities,
     completedActivities,
+    actualDurationMin,
     startedAt,
     endedAt,
   );
@@ -8678,8 +8988,12 @@ class StudySessionLogData extends DataClass
       (other is StudySessionLogData &&
           other.id == this.id &&
           other.studySessionId == this.studySessionId &&
+          other.sessionTitleSnapshot == this.sessionTitleSnapshot &&
+          other.questionsSnapshot == this.questionsSnapshot &&
+          other.status == this.status &&
           other.totalActivities == this.totalActivities &&
           other.completedActivities == this.completedActivities &&
+          other.actualDurationMin == this.actualDurationMin &&
           other.startedAt == this.startedAt &&
           other.endedAt == this.endedAt);
 }
@@ -8687,16 +9001,24 @@ class StudySessionLogData extends DataClass
 class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
   final Value<String> id;
   final Value<String> studySessionId;
+  final Value<String> sessionTitleSnapshot;
+  final Value<String> questionsSnapshot;
+  final Value<String> status;
   final Value<int> totalActivities;
   final Value<int> completedActivities;
+  final Value<int?> actualDurationMin;
   final Value<int> startedAt;
   final Value<int?> endedAt;
   final Value<int> rowid;
   const StudySessionLogCompanion({
     this.id = const Value.absent(),
     this.studySessionId = const Value.absent(),
+    this.sessionTitleSnapshot = const Value.absent(),
+    this.questionsSnapshot = const Value.absent(),
+    this.status = const Value.absent(),
     this.totalActivities = const Value.absent(),
     this.completedActivities = const Value.absent(),
+    this.actualDurationMin = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -8704,18 +9026,28 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
   StudySessionLogCompanion.insert({
     required String id,
     required String studySessionId,
+    required String sessionTitleSnapshot,
+    required String questionsSnapshot,
+    this.status = const Value.absent(),
     this.totalActivities = const Value.absent(),
     this.completedActivities = const Value.absent(),
+    this.actualDurationMin = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       studySessionId = Value(studySessionId);
+       studySessionId = Value(studySessionId),
+       sessionTitleSnapshot = Value(sessionTitleSnapshot),
+       questionsSnapshot = Value(questionsSnapshot);
   static Insertable<StudySessionLogData> custom({
     Expression<String>? id,
     Expression<String>? studySessionId,
+    Expression<String>? sessionTitleSnapshot,
+    Expression<String>? questionsSnapshot,
+    Expression<String>? status,
     Expression<int>? totalActivities,
     Expression<int>? completedActivities,
+    Expression<int>? actualDurationMin,
     Expression<int>? startedAt,
     Expression<int>? endedAt,
     Expression<int>? rowid,
@@ -8723,9 +9055,14 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (studySessionId != null) 'study_session_id': studySessionId,
+      if (sessionTitleSnapshot != null)
+        'session_title_snapshot': sessionTitleSnapshot,
+      if (questionsSnapshot != null) 'questions_snapshot': questionsSnapshot,
+      if (status != null) 'status': status,
       if (totalActivities != null) 'total_activities': totalActivities,
       if (completedActivities != null)
         'completed_activities': completedActivities,
+      if (actualDurationMin != null) 'actual_duration_min': actualDurationMin,
       if (startedAt != null) 'started_at': startedAt,
       if (endedAt != null) 'ended_at': endedAt,
       if (rowid != null) 'rowid': rowid,
@@ -8735,8 +9072,12 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
   StudySessionLogCompanion copyWith({
     Value<String>? id,
     Value<String>? studySessionId,
+    Value<String>? sessionTitleSnapshot,
+    Value<String>? questionsSnapshot,
+    Value<String>? status,
     Value<int>? totalActivities,
     Value<int>? completedActivities,
+    Value<int?>? actualDurationMin,
     Value<int>? startedAt,
     Value<int?>? endedAt,
     Value<int>? rowid,
@@ -8744,8 +9085,12 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
     return StudySessionLogCompanion(
       id: id ?? this.id,
       studySessionId: studySessionId ?? this.studySessionId,
+      sessionTitleSnapshot: sessionTitleSnapshot ?? this.sessionTitleSnapshot,
+      questionsSnapshot: questionsSnapshot ?? this.questionsSnapshot,
+      status: status ?? this.status,
       totalActivities: totalActivities ?? this.totalActivities,
       completedActivities: completedActivities ?? this.completedActivities,
+      actualDurationMin: actualDurationMin ?? this.actualDurationMin,
       startedAt: startedAt ?? this.startedAt,
       endedAt: endedAt ?? this.endedAt,
       rowid: rowid ?? this.rowid,
@@ -8761,11 +9106,25 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
     if (studySessionId.present) {
       map['study_session_id'] = Variable<String>(studySessionId.value);
     }
+    if (sessionTitleSnapshot.present) {
+      map['session_title_snapshot'] = Variable<String>(
+        sessionTitleSnapshot.value,
+      );
+    }
+    if (questionsSnapshot.present) {
+      map['questions_snapshot'] = Variable<String>(questionsSnapshot.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
     if (totalActivities.present) {
       map['total_activities'] = Variable<int>(totalActivities.value);
     }
     if (completedActivities.present) {
       map['completed_activities'] = Variable<int>(completedActivities.value);
+    }
+    if (actualDurationMin.present) {
+      map['actual_duration_min'] = Variable<int>(actualDurationMin.value);
     }
     if (startedAt.present) {
       map['started_at'] = Variable<int>(startedAt.value);
@@ -8784,8 +9143,12 @@ class StudySessionLogCompanion extends UpdateCompanion<StudySessionLogData> {
     return (StringBuffer('StudySessionLogCompanion(')
           ..write('id: $id, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('sessionTitleSnapshot: $sessionTitleSnapshot, ')
+          ..write('questionsSnapshot: $questionsSnapshot, ')
+          ..write('status: $status, ')
           ..write('totalActivities: $totalActivities, ')
           ..write('completedActivities: $completedActivities, ')
+          ..write('actualDurationMin: $actualDurationMin, ')
           ..write('startedAt: $startedAt, ')
           ..write('endedAt: $endedAt, ')
           ..write('rowid: $rowid')
@@ -12474,6 +12837,30 @@ class MultipleChoiceResponseLog extends Table
     requiredDuringInsert: false,
     $customConstraints: 'REFERENCES study_session(id)ON DELETE SET NULL',
   );
+  static const VerificationMeta _studySessionLogIdMeta = const VerificationMeta(
+    'studySessionLogId',
+  );
+  late final GeneratedColumn<String> studySessionLogId =
+      GeneratedColumn<String>(
+        'study_session_log_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints:
+            'REFERENCES study_session_log(id)ON DELETE SET NULL',
+      );
+  static const VerificationMeta _questionSnapshotMeta = const VerificationMeta(
+    'questionSnapshot',
+  );
+  late final GeneratedColumn<String> questionSnapshot = GeneratedColumn<String>(
+    'question_snapshot',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (json_valid(question_snapshot))',
+  );
   static const VerificationMeta _questionChoiceSnapshotMeta =
       const VerificationMeta('questionChoiceSnapshot');
   late final GeneratedColumn<String> questionChoiceSnapshot =
@@ -12589,6 +12976,8 @@ class MultipleChoiceResponseLog extends Table
     id,
     multipleChoiceId,
     studySessionId,
+    studySessionLogId,
+    questionSnapshot,
     questionChoiceSnapshot,
     selectedChoiceIds,
     totalCorrectOption,
@@ -12636,6 +13025,26 @@ class MultipleChoiceResponseLog extends Table
           _studySessionIdMeta,
         ),
       );
+    }
+    if (data.containsKey('study_session_log_id')) {
+      context.handle(
+        _studySessionLogIdMeta,
+        studySessionLogId.isAcceptableOrUnknown(
+          data['study_session_log_id']!,
+          _studySessionLogIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('question_snapshot')) {
+      context.handle(
+        _questionSnapshotMeta,
+        questionSnapshot.isAcceptableOrUnknown(
+          data['question_snapshot']!,
+          _questionSnapshotMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_questionSnapshotMeta);
     }
     if (data.containsKey('question_choice_snapshot')) {
       context.handle(
@@ -12751,6 +13160,14 @@ class MultipleChoiceResponseLog extends Table
         DriftSqlType.string,
         data['${effectivePrefix}study_session_id'],
       ),
+      studySessionLogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}study_session_log_id'],
+      ),
+      questionSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}question_snapshot'],
+      )!,
       questionChoiceSnapshot: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}question_choice_snapshot'],
@@ -12808,6 +13225,8 @@ class MultipleChoiceResponseLogData extends DataClass
   final String id;
   final String multipleChoiceId;
   final String? studySessionId;
+  final String? studySessionLogId;
+  final String questionSnapshot;
   final String questionChoiceSnapshot;
   final String selectedChoiceIds;
   final int totalCorrectOption;
@@ -12822,6 +13241,8 @@ class MultipleChoiceResponseLogData extends DataClass
     required this.id,
     required this.multipleChoiceId,
     this.studySessionId,
+    this.studySessionLogId,
+    required this.questionSnapshot,
     required this.questionChoiceSnapshot,
     required this.selectedChoiceIds,
     required this.totalCorrectOption,
@@ -12841,6 +13262,10 @@ class MultipleChoiceResponseLogData extends DataClass
     if (!nullToAbsent || studySessionId != null) {
       map['study_session_id'] = Variable<String>(studySessionId);
     }
+    if (!nullToAbsent || studySessionLogId != null) {
+      map['study_session_log_id'] = Variable<String>(studySessionLogId);
+    }
+    map['question_snapshot'] = Variable<String>(questionSnapshot);
     map['question_choice_snapshot'] = Variable<String>(questionChoiceSnapshot);
     map['selected_choice_ids'] = Variable<String>(selectedChoiceIds);
     map['total_correct_option'] = Variable<int>(totalCorrectOption);
@@ -12867,6 +13292,10 @@ class MultipleChoiceResponseLogData extends DataClass
       studySessionId: studySessionId == null && nullToAbsent
           ? const Value.absent()
           : Value(studySessionId),
+      studySessionLogId: studySessionLogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(studySessionLogId),
+      questionSnapshot: Value(questionSnapshot),
       questionChoiceSnapshot: Value(questionChoiceSnapshot),
       selectedChoiceIds: Value(selectedChoiceIds),
       totalCorrectOption: Value(totalCorrectOption),
@@ -12895,6 +13324,10 @@ class MultipleChoiceResponseLogData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       multipleChoiceId: serializer.fromJson<String>(json['multiple_choice_id']),
       studySessionId: serializer.fromJson<String?>(json['study_session_id']),
+      studySessionLogId: serializer.fromJson<String?>(
+        json['study_session_log_id'],
+      ),
+      questionSnapshot: serializer.fromJson<String>(json['question_snapshot']),
       questionChoiceSnapshot: serializer.fromJson<String>(
         json['question_choice_snapshot'],
       ),
@@ -12920,6 +13353,8 @@ class MultipleChoiceResponseLogData extends DataClass
       'id': serializer.toJson<String>(id),
       'multiple_choice_id': serializer.toJson<String>(multipleChoiceId),
       'study_session_id': serializer.toJson<String?>(studySessionId),
+      'study_session_log_id': serializer.toJson<String?>(studySessionLogId),
+      'question_snapshot': serializer.toJson<String>(questionSnapshot),
       'question_choice_snapshot': serializer.toJson<String>(
         questionChoiceSnapshot,
       ),
@@ -12939,6 +13374,8 @@ class MultipleChoiceResponseLogData extends DataClass
     String? id,
     String? multipleChoiceId,
     Value<String?> studySessionId = const Value.absent(),
+    Value<String?> studySessionLogId = const Value.absent(),
+    String? questionSnapshot,
     String? questionChoiceSnapshot,
     String? selectedChoiceIds,
     int? totalCorrectOption,
@@ -12955,6 +13392,10 @@ class MultipleChoiceResponseLogData extends DataClass
     studySessionId: studySessionId.present
         ? studySessionId.value
         : this.studySessionId,
+    studySessionLogId: studySessionLogId.present
+        ? studySessionLogId.value
+        : this.studySessionLogId,
+    questionSnapshot: questionSnapshot ?? this.questionSnapshot,
     questionChoiceSnapshot:
         questionChoiceSnapshot ?? this.questionChoiceSnapshot,
     selectedChoiceIds: selectedChoiceIds ?? this.selectedChoiceIds,
@@ -12978,6 +13419,12 @@ class MultipleChoiceResponseLogData extends DataClass
       studySessionId: data.studySessionId.present
           ? data.studySessionId.value
           : this.studySessionId,
+      studySessionLogId: data.studySessionLogId.present
+          ? data.studySessionLogId.value
+          : this.studySessionLogId,
+      questionSnapshot: data.questionSnapshot.present
+          ? data.questionSnapshot.value
+          : this.questionSnapshot,
       questionChoiceSnapshot: data.questionChoiceSnapshot.present
           ? data.questionChoiceSnapshot.value
           : this.questionChoiceSnapshot,
@@ -13013,6 +13460,8 @@ class MultipleChoiceResponseLogData extends DataClass
           ..write('id: $id, ')
           ..write('multipleChoiceId: $multipleChoiceId, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('studySessionLogId: $studySessionLogId, ')
+          ..write('questionSnapshot: $questionSnapshot, ')
           ..write('questionChoiceSnapshot: $questionChoiceSnapshot, ')
           ..write('selectedChoiceIds: $selectedChoiceIds, ')
           ..write('totalCorrectOption: $totalCorrectOption, ')
@@ -13032,6 +13481,8 @@ class MultipleChoiceResponseLogData extends DataClass
     id,
     multipleChoiceId,
     studySessionId,
+    studySessionLogId,
+    questionSnapshot,
     questionChoiceSnapshot,
     selectedChoiceIds,
     totalCorrectOption,
@@ -13050,6 +13501,8 @@ class MultipleChoiceResponseLogData extends DataClass
           other.id == this.id &&
           other.multipleChoiceId == this.multipleChoiceId &&
           other.studySessionId == this.studySessionId &&
+          other.studySessionLogId == this.studySessionLogId &&
+          other.questionSnapshot == this.questionSnapshot &&
           other.questionChoiceSnapshot == this.questionChoiceSnapshot &&
           other.selectedChoiceIds == this.selectedChoiceIds &&
           other.totalCorrectOption == this.totalCorrectOption &&
@@ -13067,6 +13520,8 @@ class MultipleChoiceResponseLogCompanion
   final Value<String> id;
   final Value<String> multipleChoiceId;
   final Value<String?> studySessionId;
+  final Value<String?> studySessionLogId;
+  final Value<String> questionSnapshot;
   final Value<String> questionChoiceSnapshot;
   final Value<String> selectedChoiceIds;
   final Value<int> totalCorrectOption;
@@ -13082,6 +13537,8 @@ class MultipleChoiceResponseLogCompanion
     this.id = const Value.absent(),
     this.multipleChoiceId = const Value.absent(),
     this.studySessionId = const Value.absent(),
+    this.studySessionLogId = const Value.absent(),
+    this.questionSnapshot = const Value.absent(),
     this.questionChoiceSnapshot = const Value.absent(),
     this.selectedChoiceIds = const Value.absent(),
     this.totalCorrectOption = const Value.absent(),
@@ -13098,6 +13555,8 @@ class MultipleChoiceResponseLogCompanion
     required String id,
     required String multipleChoiceId,
     this.studySessionId = const Value.absent(),
+    this.studySessionLogId = const Value.absent(),
+    required String questionSnapshot,
     required String questionChoiceSnapshot,
     required String selectedChoiceIds,
     required int totalCorrectOption,
@@ -13111,6 +13570,7 @@ class MultipleChoiceResponseLogCompanion
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        multipleChoiceId = Value(multipleChoiceId),
+       questionSnapshot = Value(questionSnapshot),
        questionChoiceSnapshot = Value(questionChoiceSnapshot),
        selectedChoiceIds = Value(selectedChoiceIds),
        totalCorrectOption = Value(totalCorrectOption),
@@ -13121,6 +13581,8 @@ class MultipleChoiceResponseLogCompanion
     Expression<String>? id,
     Expression<String>? multipleChoiceId,
     Expression<String>? studySessionId,
+    Expression<String>? studySessionLogId,
+    Expression<String>? questionSnapshot,
     Expression<String>? questionChoiceSnapshot,
     Expression<String>? selectedChoiceIds,
     Expression<int>? totalCorrectOption,
@@ -13137,6 +13599,8 @@ class MultipleChoiceResponseLogCompanion
       if (id != null) 'id': id,
       if (multipleChoiceId != null) 'multiple_choice_id': multipleChoiceId,
       if (studySessionId != null) 'study_session_id': studySessionId,
+      if (studySessionLogId != null) 'study_session_log_id': studySessionLogId,
+      if (questionSnapshot != null) 'question_snapshot': questionSnapshot,
       if (questionChoiceSnapshot != null)
         'question_choice_snapshot': questionChoiceSnapshot,
       if (selectedChoiceIds != null) 'selected_choice_ids': selectedChoiceIds,
@@ -13157,6 +13621,8 @@ class MultipleChoiceResponseLogCompanion
     Value<String>? id,
     Value<String>? multipleChoiceId,
     Value<String?>? studySessionId,
+    Value<String?>? studySessionLogId,
+    Value<String>? questionSnapshot,
     Value<String>? questionChoiceSnapshot,
     Value<String>? selectedChoiceIds,
     Value<int>? totalCorrectOption,
@@ -13173,6 +13639,8 @@ class MultipleChoiceResponseLogCompanion
       id: id ?? this.id,
       multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
       studySessionId: studySessionId ?? this.studySessionId,
+      studySessionLogId: studySessionLogId ?? this.studySessionLogId,
+      questionSnapshot: questionSnapshot ?? this.questionSnapshot,
       questionChoiceSnapshot:
           questionChoiceSnapshot ?? this.questionChoiceSnapshot,
       selectedChoiceIds: selectedChoiceIds ?? this.selectedChoiceIds,
@@ -13199,6 +13667,12 @@ class MultipleChoiceResponseLogCompanion
     }
     if (studySessionId.present) {
       map['study_session_id'] = Variable<String>(studySessionId.value);
+    }
+    if (studySessionLogId.present) {
+      map['study_session_log_id'] = Variable<String>(studySessionLogId.value);
+    }
+    if (questionSnapshot.present) {
+      map['question_snapshot'] = Variable<String>(questionSnapshot.value);
     }
     if (questionChoiceSnapshot.present) {
       map['question_choice_snapshot'] = Variable<String>(
@@ -13244,6 +13718,8 @@ class MultipleChoiceResponseLogCompanion
           ..write('id: $id, ')
           ..write('multipleChoiceId: $multipleChoiceId, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('studySessionLogId: $studySessionLogId, ')
+          ..write('questionSnapshot: $questionSnapshot, ')
           ..write('questionChoiceSnapshot: $questionChoiceSnapshot, ')
           ..write('selectedChoiceIds: $selectedChoiceIds, ')
           ..write('totalCorrectOption: $totalCorrectOption, ')
@@ -13254,356 +13730,6 @@ class MultipleChoiceResponseLogCompanion
           ..write('userNotes: $userNotes, ')
           ..write('score: $score, ')
           ..write('answeredAt: $answeredAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class StudySessionHasMultipleChoiceQuestion extends Table
-    with
-        TableInfo<
-          StudySessionHasMultipleChoiceQuestion,
-          StudySessionHasMultipleChoiceQuestionData
-        > {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  StudySessionHasMultipleChoiceQuestion(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL PRIMARY KEY',
-  );
-  static const VerificationMeta _studySessionIdMeta = const VerificationMeta(
-    'studySessionId',
-  );
-  late final GeneratedColumn<String> studySessionId = GeneratedColumn<String>(
-    'study_session_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints:
-        'NOT NULL REFERENCES study_session(id)ON DELETE CASCADE',
-  );
-  static const VerificationMeta _multipleChoiceIdMeta = const VerificationMeta(
-    'multipleChoiceId',
-  );
-  late final GeneratedColumn<String> multipleChoiceId = GeneratedColumn<String>(
-    'multiple_choice_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints:
-        'NOT NULL REFERENCES multiple_choice(id)ON DELETE CASCADE',
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
-    defaultValue: const CustomExpression('unixepoch()'),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    studySessionId,
-    multipleChoiceId,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'study_session_has_multiple_choice_question';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<StudySessionHasMultipleChoiceQuestionData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('study_session_id')) {
-      context.handle(
-        _studySessionIdMeta,
-        studySessionId.isAcceptableOrUnknown(
-          data['study_session_id']!,
-          _studySessionIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_studySessionIdMeta);
-    }
-    if (data.containsKey('multiple_choice_id')) {
-      context.handle(
-        _multipleChoiceIdMeta,
-        multipleChoiceId.isAcceptableOrUnknown(
-          data['multiple_choice_id']!,
-          _multipleChoiceIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_multipleChoiceIdMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {studySessionId, multipleChoiceId},
-  ];
-  @override
-  StudySessionHasMultipleChoiceQuestionData map(
-    Map<String, dynamic> data, {
-    String? tablePrefix,
-  }) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudySessionHasMultipleChoiceQuestionData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      studySessionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}study_session_id'],
-      )!,
-      multipleChoiceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}multiple_choice_id'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  StudySessionHasMultipleChoiceQuestion createAlias(String alias) {
-    return StudySessionHasMultipleChoiceQuestion(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'CONSTRAINT study_session_multiple_choice_uq UNIQUE(study_session_id, multiple_choice_id)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class StudySessionHasMultipleChoiceQuestionData extends DataClass
-    implements Insertable<StudySessionHasMultipleChoiceQuestionData> {
-  final String id;
-  final String studySessionId;
-  final String multipleChoiceId;
-  final int createdAt;
-  const StudySessionHasMultipleChoiceQuestionData({
-    required this.id,
-    required this.studySessionId,
-    required this.multipleChoiceId,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['study_session_id'] = Variable<String>(studySessionId);
-    map['multiple_choice_id'] = Variable<String>(multipleChoiceId);
-    map['created_at'] = Variable<int>(createdAt);
-    return map;
-  }
-
-  StudySessionHasMultipleChoiceQuestionCompanion toCompanion(
-    bool nullToAbsent,
-  ) {
-    return StudySessionHasMultipleChoiceQuestionCompanion(
-      id: Value(id),
-      studySessionId: Value(studySessionId),
-      multipleChoiceId: Value(multipleChoiceId),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory StudySessionHasMultipleChoiceQuestionData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudySessionHasMultipleChoiceQuestionData(
-      id: serializer.fromJson<String>(json['id']),
-      studySessionId: serializer.fromJson<String>(json['study_session_id']),
-      multipleChoiceId: serializer.fromJson<String>(json['multiple_choice_id']),
-      createdAt: serializer.fromJson<int>(json['created_at']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'study_session_id': serializer.toJson<String>(studySessionId),
-      'multiple_choice_id': serializer.toJson<String>(multipleChoiceId),
-      'created_at': serializer.toJson<int>(createdAt),
-    };
-  }
-
-  StudySessionHasMultipleChoiceQuestionData copyWith({
-    String? id,
-    String? studySessionId,
-    String? multipleChoiceId,
-    int? createdAt,
-  }) => StudySessionHasMultipleChoiceQuestionData(
-    id: id ?? this.id,
-    studySessionId: studySessionId ?? this.studySessionId,
-    multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  StudySessionHasMultipleChoiceQuestionData copyWithCompanion(
-    StudySessionHasMultipleChoiceQuestionCompanion data,
-  ) {
-    return StudySessionHasMultipleChoiceQuestionData(
-      id: data.id.present ? data.id.value : this.id,
-      studySessionId: data.studySessionId.present
-          ? data.studySessionId.value
-          : this.studySessionId,
-      multipleChoiceId: data.multipleChoiceId.present
-          ? data.multipleChoiceId.value
-          : this.multipleChoiceId,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudySessionHasMultipleChoiceQuestionData(')
-          ..write('id: $id, ')
-          ..write('studySessionId: $studySessionId, ')
-          ..write('multipleChoiceId: $multipleChoiceId, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, studySessionId, multipleChoiceId, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudySessionHasMultipleChoiceQuestionData &&
-          other.id == this.id &&
-          other.studySessionId == this.studySessionId &&
-          other.multipleChoiceId == this.multipleChoiceId &&
-          other.createdAt == this.createdAt);
-}
-
-class StudySessionHasMultipleChoiceQuestionCompanion
-    extends UpdateCompanion<StudySessionHasMultipleChoiceQuestionData> {
-  final Value<String> id;
-  final Value<String> studySessionId;
-  final Value<String> multipleChoiceId;
-  final Value<int> createdAt;
-  final Value<int> rowid;
-  const StudySessionHasMultipleChoiceQuestionCompanion({
-    this.id = const Value.absent(),
-    this.studySessionId = const Value.absent(),
-    this.multipleChoiceId = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  StudySessionHasMultipleChoiceQuestionCompanion.insert({
-    required String id,
-    required String studySessionId,
-    required String multipleChoiceId,
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       studySessionId = Value(studySessionId),
-       multipleChoiceId = Value(multipleChoiceId);
-  static Insertable<StudySessionHasMultipleChoiceQuestionData> custom({
-    Expression<String>? id,
-    Expression<String>? studySessionId,
-    Expression<String>? multipleChoiceId,
-    Expression<int>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (studySessionId != null) 'study_session_id': studySessionId,
-      if (multipleChoiceId != null) 'multiple_choice_id': multipleChoiceId,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  StudySessionHasMultipleChoiceQuestionCompanion copyWith({
-    Value<String>? id,
-    Value<String>? studySessionId,
-    Value<String>? multipleChoiceId,
-    Value<int>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return StudySessionHasMultipleChoiceQuestionCompanion(
-      id: id ?? this.id,
-      studySessionId: studySessionId ?? this.studySessionId,
-      multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (studySessionId.present) {
-      map['study_session_id'] = Variable<String>(studySessionId.value);
-    }
-    if (multipleChoiceId.present) {
-      map['multiple_choice_id'] = Variable<String>(multipleChoiceId.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<int>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudySessionHasMultipleChoiceQuestionCompanion(')
-          ..write('id: $id, ')
-          ..write('studySessionId: $studySessionId, ')
-          ..write('multipleChoiceId: $multipleChoiceId, ')
-          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14290,6 +14416,470 @@ class OpenEndedCompanion extends UpdateCompanion<OpenEndedData> {
   }
 }
 
+class StudySessionQuestion extends Table
+    with TableInfo<StudySessionQuestion, StudySessionQuestionData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  StudySessionQuestion(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _studySessionIdMeta = const VerificationMeta(
+    'studySessionId',
+  );
+  late final GeneratedColumn<String> studySessionId = GeneratedColumn<String>(
+    'study_session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES study_session(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _multipleChoiceIdMeta = const VerificationMeta(
+    'multipleChoiceId',
+  );
+  late final GeneratedColumn<String> multipleChoiceId = GeneratedColumn<String>(
+    'multiple_choice_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES multiple_choice(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _openEndedIdMeta = const VerificationMeta(
+    'openEndedId',
+  );
+  late final GeneratedColumn<String> openEndedId = GeneratedColumn<String>(
+    'open_ended_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES open_ended(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _displayOrderMeta = const VerificationMeta(
+    'displayOrder',
+  );
+  late final GeneratedColumn<int> displayOrder = GeneratedColumn<int>(
+    'display_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (display_order >= 0)',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    studySessionId,
+    multipleChoiceId,
+    openEndedId,
+    displayOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'study_session_question';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StudySessionQuestionData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('study_session_id')) {
+      context.handle(
+        _studySessionIdMeta,
+        studySessionId.isAcceptableOrUnknown(
+          data['study_session_id']!,
+          _studySessionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_studySessionIdMeta);
+    }
+    if (data.containsKey('multiple_choice_id')) {
+      context.handle(
+        _multipleChoiceIdMeta,
+        multipleChoiceId.isAcceptableOrUnknown(
+          data['multiple_choice_id']!,
+          _multipleChoiceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_ended_id')) {
+      context.handle(
+        _openEndedIdMeta,
+        openEndedId.isAcceptableOrUnknown(
+          data['open_ended_id']!,
+          _openEndedIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('display_order')) {
+      context.handle(
+        _displayOrderMeta,
+        displayOrder.isAcceptableOrUnknown(
+          data['display_order']!,
+          _displayOrderMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayOrderMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {studySessionId, multipleChoiceId},
+    {studySessionId, openEndedId},
+    {studySessionId, displayOrder},
+  ];
+  @override
+  StudySessionQuestionData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StudySessionQuestionData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      studySessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}study_session_id'],
+      )!,
+      multipleChoiceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}multiple_choice_id'],
+      ),
+      openEndedId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}open_ended_id'],
+      ),
+      displayOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}display_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  StudySessionQuestion createAlias(String alias) {
+    return StudySessionQuestion(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'CHECK((multiple_choice_id IS NOT NULL AND open_ended_id IS NULL)OR(multiple_choice_id IS NULL AND open_ended_id IS NOT NULL))',
+    'CONSTRAINT study_session_question_mc_uq UNIQUE(study_session_id, multiple_choice_id)',
+    'CONSTRAINT study_session_question_oe_uq UNIQUE(study_session_id, open_ended_id)',
+    'CONSTRAINT study_session_question_order_uq UNIQUE(study_session_id, display_order)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class StudySessionQuestionData extends DataClass
+    implements Insertable<StudySessionQuestionData> {
+  final String id;
+  final String studySessionId;
+  final String? multipleChoiceId;
+  final String? openEndedId;
+  final int displayOrder;
+  final int createdAt;
+  const StudySessionQuestionData({
+    required this.id,
+    required this.studySessionId,
+    this.multipleChoiceId,
+    this.openEndedId,
+    required this.displayOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['study_session_id'] = Variable<String>(studySessionId);
+    if (!nullToAbsent || multipleChoiceId != null) {
+      map['multiple_choice_id'] = Variable<String>(multipleChoiceId);
+    }
+    if (!nullToAbsent || openEndedId != null) {
+      map['open_ended_id'] = Variable<String>(openEndedId);
+    }
+    map['display_order'] = Variable<int>(displayOrder);
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  StudySessionQuestionCompanion toCompanion(bool nullToAbsent) {
+    return StudySessionQuestionCompanion(
+      id: Value(id),
+      studySessionId: Value(studySessionId),
+      multipleChoiceId: multipleChoiceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(multipleChoiceId),
+      openEndedId: openEndedId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openEndedId),
+      displayOrder: Value(displayOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StudySessionQuestionData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StudySessionQuestionData(
+      id: serializer.fromJson<String>(json['id']),
+      studySessionId: serializer.fromJson<String>(json['study_session_id']),
+      multipleChoiceId: serializer.fromJson<String?>(
+        json['multiple_choice_id'],
+      ),
+      openEndedId: serializer.fromJson<String?>(json['open_ended_id']),
+      displayOrder: serializer.fromJson<int>(json['display_order']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'study_session_id': serializer.toJson<String>(studySessionId),
+      'multiple_choice_id': serializer.toJson<String?>(multipleChoiceId),
+      'open_ended_id': serializer.toJson<String?>(openEndedId),
+      'display_order': serializer.toJson<int>(displayOrder),
+      'created_at': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  StudySessionQuestionData copyWith({
+    String? id,
+    String? studySessionId,
+    Value<String?> multipleChoiceId = const Value.absent(),
+    Value<String?> openEndedId = const Value.absent(),
+    int? displayOrder,
+    int? createdAt,
+  }) => StudySessionQuestionData(
+    id: id ?? this.id,
+    studySessionId: studySessionId ?? this.studySessionId,
+    multipleChoiceId: multipleChoiceId.present
+        ? multipleChoiceId.value
+        : this.multipleChoiceId,
+    openEndedId: openEndedId.present ? openEndedId.value : this.openEndedId,
+    displayOrder: displayOrder ?? this.displayOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StudySessionQuestionData copyWithCompanion(
+    StudySessionQuestionCompanion data,
+  ) {
+    return StudySessionQuestionData(
+      id: data.id.present ? data.id.value : this.id,
+      studySessionId: data.studySessionId.present
+          ? data.studySessionId.value
+          : this.studySessionId,
+      multipleChoiceId: data.multipleChoiceId.present
+          ? data.multipleChoiceId.value
+          : this.multipleChoiceId,
+      openEndedId: data.openEndedId.present
+          ? data.openEndedId.value
+          : this.openEndedId,
+      displayOrder: data.displayOrder.present
+          ? data.displayOrder.value
+          : this.displayOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudySessionQuestionData(')
+          ..write('id: $id, ')
+          ..write('studySessionId: $studySessionId, ')
+          ..write('multipleChoiceId: $multipleChoiceId, ')
+          ..write('openEndedId: $openEndedId, ')
+          ..write('displayOrder: $displayOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    studySessionId,
+    multipleChoiceId,
+    openEndedId,
+    displayOrder,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StudySessionQuestionData &&
+          other.id == this.id &&
+          other.studySessionId == this.studySessionId &&
+          other.multipleChoiceId == this.multipleChoiceId &&
+          other.openEndedId == this.openEndedId &&
+          other.displayOrder == this.displayOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class StudySessionQuestionCompanion
+    extends UpdateCompanion<StudySessionQuestionData> {
+  final Value<String> id;
+  final Value<String> studySessionId;
+  final Value<String?> multipleChoiceId;
+  final Value<String?> openEndedId;
+  final Value<int> displayOrder;
+  final Value<int> createdAt;
+  final Value<int> rowid;
+  const StudySessionQuestionCompanion({
+    this.id = const Value.absent(),
+    this.studySessionId = const Value.absent(),
+    this.multipleChoiceId = const Value.absent(),
+    this.openEndedId = const Value.absent(),
+    this.displayOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StudySessionQuestionCompanion.insert({
+    required String id,
+    required String studySessionId,
+    this.multipleChoiceId = const Value.absent(),
+    this.openEndedId = const Value.absent(),
+    required int displayOrder,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       studySessionId = Value(studySessionId),
+       displayOrder = Value(displayOrder);
+  static Insertable<StudySessionQuestionData> custom({
+    Expression<String>? id,
+    Expression<String>? studySessionId,
+    Expression<String>? multipleChoiceId,
+    Expression<String>? openEndedId,
+    Expression<int>? displayOrder,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (studySessionId != null) 'study_session_id': studySessionId,
+      if (multipleChoiceId != null) 'multiple_choice_id': multipleChoiceId,
+      if (openEndedId != null) 'open_ended_id': openEndedId,
+      if (displayOrder != null) 'display_order': displayOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StudySessionQuestionCompanion copyWith({
+    Value<String>? id,
+    Value<String>? studySessionId,
+    Value<String?>? multipleChoiceId,
+    Value<String?>? openEndedId,
+    Value<int>? displayOrder,
+    Value<int>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return StudySessionQuestionCompanion(
+      id: id ?? this.id,
+      studySessionId: studySessionId ?? this.studySessionId,
+      multipleChoiceId: multipleChoiceId ?? this.multipleChoiceId,
+      openEndedId: openEndedId ?? this.openEndedId,
+      displayOrder: displayOrder ?? this.displayOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (studySessionId.present) {
+      map['study_session_id'] = Variable<String>(studySessionId.value);
+    }
+    if (multipleChoiceId.present) {
+      map['multiple_choice_id'] = Variable<String>(multipleChoiceId.value);
+    }
+    if (openEndedId.present) {
+      map['open_ended_id'] = Variable<String>(openEndedId.value);
+    }
+    if (displayOrder.present) {
+      map['display_order'] = Variable<int>(displayOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudySessionQuestionCompanion(')
+          ..write('id: $id, ')
+          ..write('studySessionId: $studySessionId, ')
+          ..write('multipleChoiceId: $multipleChoiceId, ')
+          ..write('openEndedId: $openEndedId, ')
+          ..write('displayOrder: $displayOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class OpenEndedResponseLog extends Table
     with TableInfo<OpenEndedResponseLog, OpenEndedResponseLogData> {
   @override
@@ -14327,6 +14917,19 @@ class OpenEndedResponseLog extends Table
     requiredDuringInsert: false,
     $customConstraints: 'REFERENCES study_session(id)ON DELETE SET NULL',
   );
+  static const VerificationMeta _studySessionLogIdMeta = const VerificationMeta(
+    'studySessionLogId',
+  );
+  late final GeneratedColumn<String> studySessionLogId =
+      GeneratedColumn<String>(
+        'study_session_log_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints:
+            'REFERENCES study_session_log(id)ON DELETE SET NULL',
+      );
   static const VerificationMeta _questionSnapshotMeta = const VerificationMeta(
     'questionSnapshot',
   );
@@ -14441,6 +15044,7 @@ class OpenEndedResponseLog extends Table
     id,
     openEndedId,
     studySessionId,
+    studySessionLogId,
     questionSnapshot,
     userAnswer,
     aiFeedback,
@@ -14486,6 +15090,15 @@ class OpenEndedResponseLog extends Table
         studySessionId.isAcceptableOrUnknown(
           data['study_session_id']!,
           _studySessionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('study_session_log_id')) {
+      context.handle(
+        _studySessionLogIdMeta,
+        studySessionLogId.isAcceptableOrUnknown(
+          data['study_session_log_id']!,
+          _studySessionLogIdMeta,
         ),
       );
     }
@@ -14581,6 +15194,10 @@ class OpenEndedResponseLog extends Table
         DriftSqlType.string,
         data['${effectivePrefix}study_session_id'],
       ),
+      studySessionLogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}study_session_log_id'],
+      ),
       questionSnapshot: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}question_snapshot'],
@@ -14638,6 +15255,7 @@ class OpenEndedResponseLogData extends DataClass
   final String id;
   final String openEndedId;
   final String? studySessionId;
+  final String? studySessionLogId;
   final String questionSnapshot;
   final String? userAnswer;
   final String? aiFeedback;
@@ -14652,6 +15270,7 @@ class OpenEndedResponseLogData extends DataClass
     required this.id,
     required this.openEndedId,
     this.studySessionId,
+    this.studySessionLogId,
     required this.questionSnapshot,
     this.userAnswer,
     this.aiFeedback,
@@ -14670,6 +15289,9 @@ class OpenEndedResponseLogData extends DataClass
     map['open_ended_id'] = Variable<String>(openEndedId);
     if (!nullToAbsent || studySessionId != null) {
       map['study_session_id'] = Variable<String>(studySessionId);
+    }
+    if (!nullToAbsent || studySessionLogId != null) {
+      map['study_session_log_id'] = Variable<String>(studySessionLogId);
     }
     map['question_snapshot'] = Variable<String>(questionSnapshot);
     if (!nullToAbsent || userAnswer != null) {
@@ -14705,6 +15327,9 @@ class OpenEndedResponseLogData extends DataClass
       studySessionId: studySessionId == null && nullToAbsent
           ? const Value.absent()
           : Value(studySessionId),
+      studySessionLogId: studySessionLogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(studySessionLogId),
       questionSnapshot: Value(questionSnapshot),
       userAnswer: userAnswer == null && nullToAbsent
           ? const Value.absent()
@@ -14741,6 +15366,9 @@ class OpenEndedResponseLogData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       openEndedId: serializer.fromJson<String>(json['open_ended_id']),
       studySessionId: serializer.fromJson<String?>(json['study_session_id']),
+      studySessionLogId: serializer.fromJson<String?>(
+        json['study_session_log_id'],
+      ),
       questionSnapshot: serializer.fromJson<String>(json['question_snapshot']),
       userAnswer: serializer.fromJson<String?>(json['user_answer']),
       aiFeedback: serializer.fromJson<String?>(json['ai_feedback']),
@@ -14762,6 +15390,7 @@ class OpenEndedResponseLogData extends DataClass
       'id': serializer.toJson<String>(id),
       'open_ended_id': serializer.toJson<String>(openEndedId),
       'study_session_id': serializer.toJson<String?>(studySessionId),
+      'study_session_log_id': serializer.toJson<String?>(studySessionLogId),
       'question_snapshot': serializer.toJson<String>(questionSnapshot),
       'user_answer': serializer.toJson<String?>(userAnswer),
       'ai_feedback': serializer.toJson<String?>(aiFeedback),
@@ -14779,6 +15408,7 @@ class OpenEndedResponseLogData extends DataClass
     String? id,
     String? openEndedId,
     Value<String?> studySessionId = const Value.absent(),
+    Value<String?> studySessionLogId = const Value.absent(),
     String? questionSnapshot,
     Value<String?> userAnswer = const Value.absent(),
     Value<String?> aiFeedback = const Value.absent(),
@@ -14795,6 +15425,9 @@ class OpenEndedResponseLogData extends DataClass
     studySessionId: studySessionId.present
         ? studySessionId.value
         : this.studySessionId,
+    studySessionLogId: studySessionLogId.present
+        ? studySessionLogId.value
+        : this.studySessionLogId,
     questionSnapshot: questionSnapshot ?? this.questionSnapshot,
     userAnswer: userAnswer.present ? userAnswer.value : this.userAnswer,
     aiFeedback: aiFeedback.present ? aiFeedback.value : this.aiFeedback,
@@ -14819,6 +15452,9 @@ class OpenEndedResponseLogData extends DataClass
       studySessionId: data.studySessionId.present
           ? data.studySessionId.value
           : this.studySessionId,
+      studySessionLogId: data.studySessionLogId.present
+          ? data.studySessionLogId.value
+          : this.studySessionLogId,
       questionSnapshot: data.questionSnapshot.present
           ? data.questionSnapshot.value
           : this.questionSnapshot,
@@ -14848,6 +15484,7 @@ class OpenEndedResponseLogData extends DataClass
           ..write('id: $id, ')
           ..write('openEndedId: $openEndedId, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('studySessionLogId: $studySessionLogId, ')
           ..write('questionSnapshot: $questionSnapshot, ')
           ..write('userAnswer: $userAnswer, ')
           ..write('aiFeedback: $aiFeedback, ')
@@ -14867,6 +15504,7 @@ class OpenEndedResponseLogData extends DataClass
     id,
     openEndedId,
     studySessionId,
+    studySessionLogId,
     questionSnapshot,
     userAnswer,
     aiFeedback,
@@ -14885,6 +15523,7 @@ class OpenEndedResponseLogData extends DataClass
           other.id == this.id &&
           other.openEndedId == this.openEndedId &&
           other.studySessionId == this.studySessionId &&
+          other.studySessionLogId == this.studySessionLogId &&
           other.questionSnapshot == this.questionSnapshot &&
           other.userAnswer == this.userAnswer &&
           other.aiFeedback == this.aiFeedback &&
@@ -14902,6 +15541,7 @@ class OpenEndedResponseLogCompanion
   final Value<String> id;
   final Value<String> openEndedId;
   final Value<String?> studySessionId;
+  final Value<String?> studySessionLogId;
   final Value<String> questionSnapshot;
   final Value<String?> userAnswer;
   final Value<String?> aiFeedback;
@@ -14917,6 +15557,7 @@ class OpenEndedResponseLogCompanion
     this.id = const Value.absent(),
     this.openEndedId = const Value.absent(),
     this.studySessionId = const Value.absent(),
+    this.studySessionLogId = const Value.absent(),
     this.questionSnapshot = const Value.absent(),
     this.userAnswer = const Value.absent(),
     this.aiFeedback = const Value.absent(),
@@ -14933,6 +15574,7 @@ class OpenEndedResponseLogCompanion
     required String id,
     required String openEndedId,
     this.studySessionId = const Value.absent(),
+    this.studySessionLogId = const Value.absent(),
     required String questionSnapshot,
     this.userAnswer = const Value.absent(),
     this.aiFeedback = const Value.absent(),
@@ -14951,6 +15593,7 @@ class OpenEndedResponseLogCompanion
     Expression<String>? id,
     Expression<String>? openEndedId,
     Expression<String>? studySessionId,
+    Expression<String>? studySessionLogId,
     Expression<String>? questionSnapshot,
     Expression<String>? userAnswer,
     Expression<String>? aiFeedback,
@@ -14967,6 +15610,7 @@ class OpenEndedResponseLogCompanion
       if (id != null) 'id': id,
       if (openEndedId != null) 'open_ended_id': openEndedId,
       if (studySessionId != null) 'study_session_id': studySessionId,
+      if (studySessionLogId != null) 'study_session_log_id': studySessionLogId,
       if (questionSnapshot != null) 'question_snapshot': questionSnapshot,
       if (userAnswer != null) 'user_answer': userAnswer,
       if (aiFeedback != null) 'ai_feedback': aiFeedback,
@@ -14986,6 +15630,7 @@ class OpenEndedResponseLogCompanion
     Value<String>? id,
     Value<String>? openEndedId,
     Value<String?>? studySessionId,
+    Value<String?>? studySessionLogId,
     Value<String>? questionSnapshot,
     Value<String?>? userAnswer,
     Value<String?>? aiFeedback,
@@ -15002,6 +15647,7 @@ class OpenEndedResponseLogCompanion
       id: id ?? this.id,
       openEndedId: openEndedId ?? this.openEndedId,
       studySessionId: studySessionId ?? this.studySessionId,
+      studySessionLogId: studySessionLogId ?? this.studySessionLogId,
       questionSnapshot: questionSnapshot ?? this.questionSnapshot,
       userAnswer: userAnswer ?? this.userAnswer,
       aiFeedback: aiFeedback ?? this.aiFeedback,
@@ -15027,6 +15673,9 @@ class OpenEndedResponseLogCompanion
     }
     if (studySessionId.present) {
       map['study_session_id'] = Variable<String>(studySessionId.value);
+    }
+    if (studySessionLogId.present) {
+      map['study_session_log_id'] = Variable<String>(studySessionLogId.value);
     }
     if (questionSnapshot.present) {
       map['question_snapshot'] = Variable<String>(questionSnapshot.value);
@@ -15070,6 +15719,7 @@ class OpenEndedResponseLogCompanion
           ..write('id: $id, ')
           ..write('openEndedId: $openEndedId, ')
           ..write('studySessionId: $studySessionId, ')
+          ..write('studySessionLogId: $studySessionLogId, ')
           ..write('questionSnapshot: $questionSnapshot, ')
           ..write('userAnswer: $userAnswer, ')
           ..write('aiFeedback: $aiFeedback, ')
@@ -15080,352 +15730,6 @@ class OpenEndedResponseLogCompanion
           ..write('score: $score, ')
           ..write('corrected: $corrected, ')
           ..write('answeredAt: $answeredAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class StudySessionHasOpenEndedQuestion extends Table
-    with
-        TableInfo<
-          StudySessionHasOpenEndedQuestion,
-          StudySessionHasOpenEndedQuestionData
-        > {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  StudySessionHasOpenEndedQuestion(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL PRIMARY KEY',
-  );
-  static const VerificationMeta _studySessionIdMeta = const VerificationMeta(
-    'studySessionId',
-  );
-  late final GeneratedColumn<String> studySessionId = GeneratedColumn<String>(
-    'study_session_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints:
-        'NOT NULL REFERENCES study_session(id)ON DELETE CASCADE',
-  );
-  static const VerificationMeta _openEndedIdMeta = const VerificationMeta(
-    'openEndedId',
-  );
-  late final GeneratedColumn<String> openEndedId = GeneratedColumn<String>(
-    'open_ended_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES open_ended(id)ON DELETE CASCADE',
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
-    defaultValue: const CustomExpression('unixepoch()'),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    studySessionId,
-    openEndedId,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'study_session_has_open_ended_question';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<StudySessionHasOpenEndedQuestionData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('study_session_id')) {
-      context.handle(
-        _studySessionIdMeta,
-        studySessionId.isAcceptableOrUnknown(
-          data['study_session_id']!,
-          _studySessionIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_studySessionIdMeta);
-    }
-    if (data.containsKey('open_ended_id')) {
-      context.handle(
-        _openEndedIdMeta,
-        openEndedId.isAcceptableOrUnknown(
-          data['open_ended_id']!,
-          _openEndedIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_openEndedIdMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {studySessionId, openEndedId},
-  ];
-  @override
-  StudySessionHasOpenEndedQuestionData map(
-    Map<String, dynamic> data, {
-    String? tablePrefix,
-  }) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudySessionHasOpenEndedQuestionData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      studySessionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}study_session_id'],
-      )!,
-      openEndedId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}open_ended_id'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  StudySessionHasOpenEndedQuestion createAlias(String alias) {
-    return StudySessionHasOpenEndedQuestion(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'CONSTRAINT study_session_open_ended_uq UNIQUE(study_session_id, open_ended_id)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class StudySessionHasOpenEndedQuestionData extends DataClass
-    implements Insertable<StudySessionHasOpenEndedQuestionData> {
-  final String id;
-  final String studySessionId;
-  final String openEndedId;
-  final int createdAt;
-  const StudySessionHasOpenEndedQuestionData({
-    required this.id,
-    required this.studySessionId,
-    required this.openEndedId,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['study_session_id'] = Variable<String>(studySessionId);
-    map['open_ended_id'] = Variable<String>(openEndedId);
-    map['created_at'] = Variable<int>(createdAt);
-    return map;
-  }
-
-  StudySessionHasOpenEndedQuestionCompanion toCompanion(bool nullToAbsent) {
-    return StudySessionHasOpenEndedQuestionCompanion(
-      id: Value(id),
-      studySessionId: Value(studySessionId),
-      openEndedId: Value(openEndedId),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory StudySessionHasOpenEndedQuestionData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudySessionHasOpenEndedQuestionData(
-      id: serializer.fromJson<String>(json['id']),
-      studySessionId: serializer.fromJson<String>(json['study_session_id']),
-      openEndedId: serializer.fromJson<String>(json['open_ended_id']),
-      createdAt: serializer.fromJson<int>(json['created_at']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'study_session_id': serializer.toJson<String>(studySessionId),
-      'open_ended_id': serializer.toJson<String>(openEndedId),
-      'created_at': serializer.toJson<int>(createdAt),
-    };
-  }
-
-  StudySessionHasOpenEndedQuestionData copyWith({
-    String? id,
-    String? studySessionId,
-    String? openEndedId,
-    int? createdAt,
-  }) => StudySessionHasOpenEndedQuestionData(
-    id: id ?? this.id,
-    studySessionId: studySessionId ?? this.studySessionId,
-    openEndedId: openEndedId ?? this.openEndedId,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  StudySessionHasOpenEndedQuestionData copyWithCompanion(
-    StudySessionHasOpenEndedQuestionCompanion data,
-  ) {
-    return StudySessionHasOpenEndedQuestionData(
-      id: data.id.present ? data.id.value : this.id,
-      studySessionId: data.studySessionId.present
-          ? data.studySessionId.value
-          : this.studySessionId,
-      openEndedId: data.openEndedId.present
-          ? data.openEndedId.value
-          : this.openEndedId,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudySessionHasOpenEndedQuestionData(')
-          ..write('id: $id, ')
-          ..write('studySessionId: $studySessionId, ')
-          ..write('openEndedId: $openEndedId, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, studySessionId, openEndedId, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudySessionHasOpenEndedQuestionData &&
-          other.id == this.id &&
-          other.studySessionId == this.studySessionId &&
-          other.openEndedId == this.openEndedId &&
-          other.createdAt == this.createdAt);
-}
-
-class StudySessionHasOpenEndedQuestionCompanion
-    extends UpdateCompanion<StudySessionHasOpenEndedQuestionData> {
-  final Value<String> id;
-  final Value<String> studySessionId;
-  final Value<String> openEndedId;
-  final Value<int> createdAt;
-  final Value<int> rowid;
-  const StudySessionHasOpenEndedQuestionCompanion({
-    this.id = const Value.absent(),
-    this.studySessionId = const Value.absent(),
-    this.openEndedId = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  StudySessionHasOpenEndedQuestionCompanion.insert({
-    required String id,
-    required String studySessionId,
-    required String openEndedId,
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       studySessionId = Value(studySessionId),
-       openEndedId = Value(openEndedId);
-  static Insertable<StudySessionHasOpenEndedQuestionData> custom({
-    Expression<String>? id,
-    Expression<String>? studySessionId,
-    Expression<String>? openEndedId,
-    Expression<int>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (studySessionId != null) 'study_session_id': studySessionId,
-      if (openEndedId != null) 'open_ended_id': openEndedId,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  StudySessionHasOpenEndedQuestionCompanion copyWith({
-    Value<String>? id,
-    Value<String>? studySessionId,
-    Value<String>? openEndedId,
-    Value<int>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return StudySessionHasOpenEndedQuestionCompanion(
-      id: id ?? this.id,
-      studySessionId: studySessionId ?? this.studySessionId,
-      openEndedId: openEndedId ?? this.openEndedId,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (studySessionId.present) {
-      map['study_session_id'] = Variable<String>(studySessionId.value);
-    }
-    if (openEndedId.present) {
-      map['open_ended_id'] = Variable<String>(openEndedId.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<int>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudySessionHasOpenEndedQuestionCompanion(')
-          ..write('id: $id, ')
-          ..write('studySessionId: $studySessionId, ')
-          ..write('openEndedId: $openEndedId, ')
-          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -17855,16 +18159,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Choice choice = Choice(this);
   late final MultipleChoiceResponseLog multipleChoiceResponseLog =
       MultipleChoiceResponseLog(this);
-  late final StudySessionHasMultipleChoiceQuestion
-  studySessionHasMultipleChoiceQuestion = StudySessionHasMultipleChoiceQuestion(
+  late final OpenEnded openEnded = OpenEnded(this);
+  late final StudySessionQuestion studySessionQuestion = StudySessionQuestion(
     this,
   );
-  late final OpenEnded openEnded = OpenEnded(this);
   late final OpenEndedResponseLog openEndedResponseLog = OpenEndedResponseLog(
     this,
   );
-  late final StudySessionHasOpenEndedQuestion studySessionHasOpenEndedQuestion =
-      StudySessionHasOpenEndedQuestion(this);
   late final FsrsState fsrsState = FsrsState(this);
   late final FsrsReviewLog fsrsReviewLog = FsrsReviewLog(this);
   late final DomainLog domainLog = DomainLog(this);
@@ -17941,6 +18242,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_study_session_log_study_session_id',
     'CREATE INDEX idx_study_session_log_study_session_id ON study_session_log (study_session_id)',
   );
+  late final Index idxStudySessionLogStartedAt = Index(
+    'idx_study_session_log_started_at',
+    'CREATE INDEX idx_study_session_log_started_at ON study_session_log (started_at)',
+  );
   late final Index idxSsukgGraphId = Index(
     'idx_ssukg_graph_id',
     'CREATE INDEX idx_ssukg_graph_id ON study_session_use_knowledge_graph (graph_id)',
@@ -17993,13 +18298,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_mc_response_log_study_session_id',
     'CREATE INDEX idx_mc_response_log_study_session_id ON multiple_choice_response_log (study_session_id)',
   );
-  late final Index idxAhmcqStudySessionId = Index(
-    'idx_ahmcq_study_session_id',
-    'CREATE INDEX idx_ahmcq_study_session_id ON study_session_has_multiple_choice_question (study_session_id)',
+  late final Index idxStudySessionQuestionSessionOrder = Index(
+    'idx_study_session_question_session_order',
+    'CREATE INDEX idx_study_session_question_session_order ON study_session_question (study_session_id, display_order)',
   );
-  late final Index idxAhmcqMultipleChoiceId = Index(
-    'idx_ahmcq_multiple_choice_id',
-    'CREATE INDEX idx_ahmcq_multiple_choice_id ON study_session_has_multiple_choice_question (multiple_choice_id)',
+  late final Index idxStudySessionQuestionMcId = Index(
+    'idx_study_session_question_mc_id',
+    'CREATE INDEX idx_study_session_question_mc_id ON study_session_question (multiple_choice_id)',
+  );
+  late final Index idxStudySessionQuestionOeId = Index(
+    'idx_study_session_question_oe_id',
+    'CREATE INDEX idx_study_session_question_oe_id ON study_session_question (open_ended_id)',
   );
   late final Index idxOpenEndedNodeId = Index(
     'idx_open_ended_node_id',
@@ -18013,13 +18322,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_oe_response_log_study_session_id',
     'CREATE INDEX idx_oe_response_log_study_session_id ON open_ended_response_log (study_session_id)',
   );
-  late final Index idxAhoeqStudySessionId = Index(
-    'idx_ahoeq_study_session_id',
-    'CREATE INDEX idx_ahoeq_study_session_id ON study_session_has_open_ended_question (study_session_id)',
+  late final Index idxOeResponseLogSessionLogId = Index(
+    'idx_oe_response_log_session_log_id',
+    'CREATE INDEX idx_oe_response_log_session_log_id ON open_ended_response_log (study_session_log_id)',
   );
-  late final Index idxAhoeqOpenEndedId = Index(
-    'idx_ahoeq_open_ended_id',
-    'CREATE INDEX idx_ahoeq_open_ended_id ON study_session_has_open_ended_question (open_ended_id)',
+  late final Index idxMcResponseLogSessionLogId = Index(
+    'idx_mc_response_log_session_log_id',
+    'CREATE INDEX idx_mc_response_log_session_log_id ON multiple_choice_response_log (study_session_log_id)',
   );
   late final Index idxFsrsStateNodeId = Index(
     'idx_fsrs_state_node_id',
@@ -18067,10 +18376,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     multipleChoice,
     choice,
     multipleChoiceResponseLog,
-    studySessionHasMultipleChoiceQuestion,
     openEnded,
+    studySessionQuestion,
     openEndedResponseLog,
-    studySessionHasOpenEndedQuestion,
     fsrsState,
     fsrsReviewLog,
     domainLog,
@@ -18093,6 +18401,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxNoteNodeNodeId,
     idxStudySessionUserId,
     idxStudySessionLogStudySessionId,
+    idxStudySessionLogStartedAt,
     idxSsukgGraphId,
     idxSsukgStudySessionId,
     idxSessionNodeStudySessionId,
@@ -18106,13 +18415,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxChoiceMultipleChoiceId,
     idxMcResponseLogMcId,
     idxMcResponseLogStudySessionId,
-    idxAhmcqStudySessionId,
-    idxAhmcqMultipleChoiceId,
+    idxStudySessionQuestionSessionOrder,
+    idxStudySessionQuestionMcId,
+    idxStudySessionQuestionOeId,
     idxOpenEndedNodeId,
     idxOeResponseLogOeId,
     idxOeResponseLogStudySessionId,
-    idxAhoeqStudySessionId,
-    idxAhoeqOpenEndedId,
+    idxOeResponseLogSessionLogId,
+    idxMcResponseLogSessionLogId,
     idxFsrsStateNodeId,
     idxFsrsReviewLogStateId,
     idxDomainLogNodeId,
@@ -18346,26 +18656,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'study_session',
+        'study_session_log',
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [
-        TableUpdate(
-          'study_session_has_multiple_choice_question',
-          kind: UpdateKind.delete,
-        ),
-      ],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'multiple_choice',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [
-        TableUpdate(
-          'study_session_has_multiple_choice_question',
-          kind: UpdateKind.delete,
-        ),
+        TableUpdate('multiple_choice_response_log', kind: UpdateKind.update),
       ],
     ),
     WritePropagation(
@@ -18374,6 +18669,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('open_ended', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_session',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_session_question', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'multiple_choice',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_session_question', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'open_ended',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_session_question', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -18391,27 +18707,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'study_session',
+        'study_session_log',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [
-        TableUpdate(
-          'study_session_has_open_ended_question',
-          kind: UpdateKind.delete,
-        ),
-      ],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'open_ended',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [
-        TableUpdate(
-          'study_session_has_open_ended_question',
-          kind: UpdateKind.delete,
-        ),
-      ],
+      result: [TableUpdate('open_ended_response_log', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -26270,6 +26569,8 @@ typedef $StudySessionCreateCompanionBuilder =
     StudySessionCompanion Function({
       required String id,
       required String userId,
+      required String title,
+      Value<String?> description,
       required String status,
       required int targetDurationMin,
       Value<int?> actualDurationMin,
@@ -26281,12 +26582,15 @@ typedef $StudySessionCreateCompanionBuilder =
       Value<int?> softDeletedAt,
       Value<int> startedAt,
       Value<int?> endedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $StudySessionUpdateCompanionBuilder =
     StudySessionCompanion Function({
       Value<String> id,
       Value<String> userId,
+      Value<String> title,
+      Value<String?> description,
       Value<String> status,
       Value<int> targetDurationMin,
       Value<int?> actualDurationMin,
@@ -26298,6 +26602,7 @@ typedef $StudySessionUpdateCompanionBuilder =
       Value<int?> softDeletedAt,
       Value<int> startedAt,
       Value<int?> endedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -26414,26 +26719,24 @@ final class $StudySessionReferences
   }
 
   static MultiTypedResultKey<
-    StudySessionHasMultipleChoiceQuestion,
-    List<StudySessionHasMultipleChoiceQuestionData>
+    StudySessionQuestion,
+    List<StudySessionQuestionData>
   >
-  _studySessionHasMultipleChoiceQuestionRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.studySessionHasMultipleChoiceQuestion,
-    aliasName:
-        'study_session__id__study_session_has_multiple_choice_question__study_session_id',
-  );
+  _studySessionQuestionRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.studySessionQuestion,
+        aliasName:
+            'study_session__id__study_session_question__study_session_id',
+      );
 
-  $StudySessionHasMultipleChoiceQuestionProcessedTableManager
-  get studySessionHasMultipleChoiceQuestionRefs {
-    final manager = $StudySessionHasMultipleChoiceQuestionTableManager(
+  $StudySessionQuestionProcessedTableManager get studySessionQuestionRefs {
+    final manager = $StudySessionQuestionTableManager(
       $_db,
-      $_db.studySessionHasMultipleChoiceQuestion,
+      $_db.studySessionQuestion,
     ).filter((f) => f.studySessionId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(
-      _studySessionHasMultipleChoiceQuestionRefsTable($_db),
+      _studySessionQuestionRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -26464,33 +26767,6 @@ final class $StudySessionReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
-
-  static MultiTypedResultKey<
-    StudySessionHasOpenEndedQuestion,
-    List<StudySessionHasOpenEndedQuestionData>
-  >
-  _studySessionHasOpenEndedQuestionRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.studySessionHasOpenEndedQuestion,
-    aliasName:
-        'study_session__id__study_session_has_open_ended_question__study_session_id',
-  );
-
-  $StudySessionHasOpenEndedQuestionProcessedTableManager
-  get studySessionHasOpenEndedQuestionRefs {
-    final manager = $StudySessionHasOpenEndedQuestionTableManager(
-      $_db,
-      $_db.studySessionHasOpenEndedQuestion,
-    ).filter((f) => f.studySessionId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _studySessionHasOpenEndedQuestionRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $StudySessionFilterComposer
@@ -26504,6 +26780,16 @@ class $StudySessionFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26559,6 +26845,11 @@ class $StudySessionFilterComposer
 
   ColumnFilters<int> get endedAt => $composableBuilder(
     column: $table.endedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26686,32 +26977,28 @@ class $StudySessionFilterComposer
     return f(composer);
   }
 
-  Expression<bool> studySessionHasMultipleChoiceQuestionRefs(
-    Expression<bool> Function(
-      $StudySessionHasMultipleChoiceQuestionFilterComposer f,
-    )
-    f,
+  Expression<bool> studySessionQuestionRefs(
+    Expression<bool> Function($StudySessionQuestionFilterComposer f) f,
   ) {
-    final $StudySessionHasMultipleChoiceQuestionFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasMultipleChoiceQuestion,
-          getReferencedColumn: (t) => t.studySessionId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+    final $StudySessionQuestionFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.studySessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionFilterComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasMultipleChoiceQuestionFilterComposer(
-                $db: $db,
-                $table: $db.studySessionHasMultipleChoiceQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return f(composer);
   }
 
@@ -26739,33 +27026,6 @@ class $StudySessionFilterComposer
     );
     return f(composer);
   }
-
-  Expression<bool> studySessionHasOpenEndedQuestionRefs(
-    Expression<bool> Function($StudySessionHasOpenEndedQuestionFilterComposer f)
-    f,
-  ) {
-    final $StudySessionHasOpenEndedQuestionFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasOpenEndedQuestion,
-          getReferencedColumn: (t) => t.studySessionId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasOpenEndedQuestionFilterComposer(
-                $db: $db,
-                $table: $db.studySessionHasOpenEndedQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $StudySessionOrderingComposer
@@ -26779,6 +27039,16 @@ class $StudySessionOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -26837,6 +27107,11 @@ class $StudySessionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $AppUserOrderingComposer get userId {
     final $AppUserOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -26872,6 +27147,14 @@ class $StudySessionAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -26921,6 +27204,9 @@ class $StudySessionAnnotationComposer
 
   GeneratedColumn<int> get endedAt =>
       $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $AppUserAnnotationComposer get userId {
     final $AppUserAnnotationComposer composer = $composerBuilder(
@@ -27048,32 +27334,28 @@ class $StudySessionAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> studySessionHasMultipleChoiceQuestionRefs<T extends Object>(
-    Expression<T> Function(
-      $StudySessionHasMultipleChoiceQuestionAnnotationComposer a,
-    )
-    f,
+  Expression<T> studySessionQuestionRefs<T extends Object>(
+    Expression<T> Function($StudySessionQuestionAnnotationComposer a) f,
   ) {
-    final $StudySessionHasMultipleChoiceQuestionAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasMultipleChoiceQuestion,
-          getReferencedColumn: (t) => t.studySessionId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+    final $StudySessionQuestionAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.studySessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionAnnotationComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasMultipleChoiceQuestionAnnotationComposer(
-                $db: $db,
-                $table: $db.studySessionHasMultipleChoiceQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return f(composer);
   }
 
@@ -27101,35 +27383,6 @@ class $StudySessionAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> studySessionHasOpenEndedQuestionRefs<T extends Object>(
-    Expression<T> Function(
-      $StudySessionHasOpenEndedQuestionAnnotationComposer a,
-    )
-    f,
-  ) {
-    final $StudySessionHasOpenEndedQuestionAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasOpenEndedQuestion,
-          getReferencedColumn: (t) => t.studySessionId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasOpenEndedQuestionAnnotationComposer(
-                $db: $db,
-                $table: $db.studySessionHasOpenEndedQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $StudySessionTableManager
@@ -27151,9 +27404,8 @@ class $StudySessionTableManager
             bool studySessionUseKnowledgeGraphRefs,
             bool sessionNodeRefs,
             bool multipleChoiceResponseLogRefs,
-            bool studySessionHasMultipleChoiceQuestionRefs,
+            bool studySessionQuestionRefs,
             bool openEndedResponseLogRefs,
-            bool studySessionHasOpenEndedQuestionRefs,
           })
         > {
   $StudySessionTableManager(_$AppDatabase db, StudySession table)
@@ -27171,6 +27423,8 @@ class $StudySessionTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<int> targetDurationMin = const Value.absent(),
                 Value<int?> actualDurationMin = const Value.absent(),
@@ -27182,10 +27436,13 @@ class $StudySessionTableManager
                 Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> startedAt = const Value.absent(),
                 Value<int?> endedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionCompanion(
                 id: id,
                 userId: userId,
+                title: title,
+                description: description,
                 status: status,
                 targetDurationMin: targetDurationMin,
                 actualDurationMin: actualDurationMin,
@@ -27197,12 +27454,15 @@ class $StudySessionTableManager
                 softDeletedAt: softDeletedAt,
                 startedAt: startedAt,
                 endedAt: endedAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String id,
                 required String userId,
+                required String title,
+                Value<String?> description = const Value.absent(),
                 required String status,
                 required int targetDurationMin,
                 Value<int?> actualDurationMin = const Value.absent(),
@@ -27214,10 +27474,13 @@ class $StudySessionTableManager
                 Value<int?> softDeletedAt = const Value.absent(),
                 Value<int> startedAt = const Value.absent(),
                 Value<int?> endedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionCompanion.insert(
                 id: id,
                 userId: userId,
+                title: title,
+                description: description,
                 status: status,
                 targetDurationMin: targetDurationMin,
                 actualDurationMin: actualDurationMin,
@@ -27229,6 +27492,7 @@ class $StudySessionTableManager
                 softDeletedAt: softDeletedAt,
                 startedAt: startedAt,
                 endedAt: endedAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -27244,9 +27508,8 @@ class $StudySessionTableManager
                 studySessionUseKnowledgeGraphRefs = false,
                 sessionNodeRefs = false,
                 multipleChoiceResponseLogRefs = false,
-                studySessionHasMultipleChoiceQuestionRefs = false,
+                studySessionQuestionRefs = false,
                 openEndedResponseLogRefs = false,
-                studySessionHasOpenEndedQuestionRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -27257,11 +27520,8 @@ class $StudySessionTableManager
                     if (sessionNodeRefs) db.sessionNode,
                     if (multipleChoiceResponseLogRefs)
                       db.multipleChoiceResponseLog,
-                    if (studySessionHasMultipleChoiceQuestionRefs)
-                      db.studySessionHasMultipleChoiceQuestion,
+                    if (studySessionQuestionRefs) db.studySessionQuestion,
                     if (openEndedResponseLogRefs) db.openEndedResponseLog,
-                    if (studySessionHasOpenEndedQuestionRefs)
-                      db.studySessionHasOpenEndedQuestion,
                   ],
                   addJoins:
                       <
@@ -27381,23 +27641,21 @@ class $StudySessionTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (studySessionHasMultipleChoiceQuestionRefs)
+                      if (studySessionQuestionRefs)
                         await $_getPrefetchedData<
                           StudySessionData,
                           StudySession,
-                          StudySessionHasMultipleChoiceQuestionData
+                          StudySessionQuestionData
                         >(
                           currentTable: table,
                           referencedTable: $StudySessionReferences
-                              ._studySessionHasMultipleChoiceQuestionRefsTable(
-                                db,
-                              ),
+                              ._studySessionQuestionRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $StudySessionReferences(
                                 db,
                                 table,
                                 p0,
-                              ).studySessionHasMultipleChoiceQuestionRefs,
+                              ).studySessionQuestionRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.studySessionId == item.id,
@@ -27419,27 +27677,6 @@ class $StudySessionTableManager
                                 table,
                                 p0,
                               ).openEndedResponseLogRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.studySessionId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (studySessionHasOpenEndedQuestionRefs)
-                        await $_getPrefetchedData<
-                          StudySessionData,
-                          StudySession,
-                          StudySessionHasOpenEndedQuestionData
-                        >(
-                          currentTable: table,
-                          referencedTable: $StudySessionReferences
-                              ._studySessionHasOpenEndedQuestionRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $StudySessionReferences(
-                                db,
-                                table,
-                                p0,
-                              ).studySessionHasOpenEndedQuestionRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.studySessionId == item.id,
@@ -27472,17 +27709,20 @@ typedef $StudySessionProcessedTableManager =
         bool studySessionUseKnowledgeGraphRefs,
         bool sessionNodeRefs,
         bool multipleChoiceResponseLogRefs,
-        bool studySessionHasMultipleChoiceQuestionRefs,
+        bool studySessionQuestionRefs,
         bool openEndedResponseLogRefs,
-        bool studySessionHasOpenEndedQuestionRefs,
       })
     >;
 typedef $StudySessionLogCreateCompanionBuilder =
     StudySessionLogCompanion Function({
       required String id,
       required String studySessionId,
+      required String sessionTitleSnapshot,
+      required String questionsSnapshot,
+      Value<String> status,
       Value<int> totalActivities,
       Value<int> completedActivities,
+      Value<int?> actualDurationMin,
       Value<int> startedAt,
       Value<int?> endedAt,
       Value<int> rowid,
@@ -27491,8 +27731,12 @@ typedef $StudySessionLogUpdateCompanionBuilder =
     StudySessionLogCompanion Function({
       Value<String> id,
       Value<String> studySessionId,
+      Value<String> sessionTitleSnapshot,
+      Value<String> questionsSnapshot,
+      Value<String> status,
       Value<int> totalActivities,
       Value<int> completedActivities,
+      Value<int?> actualDurationMin,
       Value<int> startedAt,
       Value<int?> endedAt,
       Value<int> rowid,
@@ -27519,6 +27763,65 @@ final class $StudySessionLogReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<
+    MultipleChoiceResponseLog,
+    List<MultipleChoiceResponseLogData>
+  >
+  _multipleChoiceResponseLogRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.multipleChoiceResponseLog,
+    aliasName:
+        'study_session_log__id__multiple_choice_response_log__study_session_log_id',
+  );
+
+  $MultipleChoiceResponseLogProcessedTableManager
+  get multipleChoiceResponseLogRefs {
+    final manager =
+        $MultipleChoiceResponseLogTableManager(
+          $_db,
+          $_db.multipleChoiceResponseLog,
+        ).filter(
+          (f) => f.studySessionLogId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _multipleChoiceResponseLogRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    OpenEndedResponseLog,
+    List<OpenEndedResponseLogData>
+  >
+  _openEndedResponseLogRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.openEndedResponseLog,
+    aliasName:
+        'study_session_log__id__open_ended_response_log__study_session_log_id',
+  );
+
+  $OpenEndedResponseLogProcessedTableManager get openEndedResponseLogRefs {
+    final manager =
+        $OpenEndedResponseLogTableManager(
+          $_db,
+          $_db.openEndedResponseLog,
+        ).filter(
+          (f) => f.studySessionLogId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _openEndedResponseLogRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $StudySessionLogFilterComposer
@@ -27535,6 +27838,21 @@ class $StudySessionLogFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get sessionTitleSnapshot => $composableBuilder(
+    column: $table.sessionTitleSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get questionsSnapshot => $composableBuilder(
+    column: $table.questionsSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get totalActivities => $composableBuilder(
     column: $table.totalActivities,
     builder: (column) => ColumnFilters(column),
@@ -27542,6 +27860,11 @@ class $StudySessionLogFilterComposer
 
   ColumnFilters<int> get completedActivities => $composableBuilder(
     column: $table.completedActivities,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get actualDurationMin => $composableBuilder(
+    column: $table.actualDurationMin,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27577,6 +27900,56 @@ class $StudySessionLogFilterComposer
     );
     return composer;
   }
+
+  Expression<bool> multipleChoiceResponseLogRefs(
+    Expression<bool> Function($MultipleChoiceResponseLogFilterComposer f) f,
+  ) {
+    final $MultipleChoiceResponseLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.multipleChoiceResponseLog,
+      getReferencedColumn: (t) => t.studySessionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $MultipleChoiceResponseLogFilterComposer(
+            $db: $db,
+            $table: $db.multipleChoiceResponseLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> openEndedResponseLogRefs(
+    Expression<bool> Function($OpenEndedResponseLogFilterComposer f) f,
+  ) {
+    final $OpenEndedResponseLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.openEndedResponseLog,
+      getReferencedColumn: (t) => t.studySessionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OpenEndedResponseLogFilterComposer(
+            $db: $db,
+            $table: $db.openEndedResponseLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $StudySessionLogOrderingComposer
@@ -27593,6 +27966,21 @@ class $StudySessionLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get sessionTitleSnapshot => $composableBuilder(
+    column: $table.sessionTitleSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get questionsSnapshot => $composableBuilder(
+    column: $table.questionsSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get totalActivities => $composableBuilder(
     column: $table.totalActivities,
     builder: (column) => ColumnOrderings(column),
@@ -27600,6 +27988,11 @@ class $StudySessionLogOrderingComposer
 
   ColumnOrderings<int> get completedActivities => $composableBuilder(
     column: $table.completedActivities,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get actualDurationMin => $composableBuilder(
+    column: $table.actualDurationMin,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -27649,6 +28042,19 @@ class $StudySessionLogAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get sessionTitleSnapshot => $composableBuilder(
+    column: $table.sessionTitleSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get questionsSnapshot => $composableBuilder(
+    column: $table.questionsSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
   GeneratedColumn<int> get totalActivities => $composableBuilder(
     column: $table.totalActivities,
     builder: (column) => column,
@@ -27656,6 +28062,11 @@ class $StudySessionLogAnnotationComposer
 
   GeneratedColumn<int> get completedActivities => $composableBuilder(
     column: $table.completedActivities,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get actualDurationMin => $composableBuilder(
+    column: $table.actualDurationMin,
     builder: (column) => column,
   );
 
@@ -27687,6 +28098,57 @@ class $StudySessionLogAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> multipleChoiceResponseLogRefs<T extends Object>(
+    Expression<T> Function($MultipleChoiceResponseLogAnnotationComposer a) f,
+  ) {
+    final $MultipleChoiceResponseLogAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.multipleChoiceResponseLog,
+          getReferencedColumn: (t) => t.studySessionLogId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $MultipleChoiceResponseLogAnnotationComposer(
+                $db: $db,
+                $table: $db.multipleChoiceResponseLog,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> openEndedResponseLogRefs<T extends Object>(
+    Expression<T> Function($OpenEndedResponseLogAnnotationComposer a) f,
+  ) {
+    final $OpenEndedResponseLogAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.openEndedResponseLog,
+      getReferencedColumn: (t) => t.studySessionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OpenEndedResponseLogAnnotationComposer(
+            $db: $db,
+            $table: $db.openEndedResponseLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $StudySessionLogTableManager
@@ -27702,7 +28164,11 @@ class $StudySessionLogTableManager
           $StudySessionLogUpdateCompanionBuilder,
           (StudySessionLogData, $StudySessionLogReferences),
           StudySessionLogData,
-          PrefetchHooks Function({bool studySessionId})
+          PrefetchHooks Function({
+            bool studySessionId,
+            bool multipleChoiceResponseLogRefs,
+            bool openEndedResponseLogRefs,
+          })
         > {
   $StudySessionLogTableManager(_$AppDatabase db, StudySessionLog table)
     : super(
@@ -27719,16 +28185,24 @@ class $StudySessionLogTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> studySessionId = const Value.absent(),
+                Value<String> sessionTitleSnapshot = const Value.absent(),
+                Value<String> questionsSnapshot = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<int> totalActivities = const Value.absent(),
                 Value<int> completedActivities = const Value.absent(),
+                Value<int?> actualDurationMin = const Value.absent(),
                 Value<int> startedAt = const Value.absent(),
                 Value<int?> endedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionLogCompanion(
                 id: id,
                 studySessionId: studySessionId,
+                sessionTitleSnapshot: sessionTitleSnapshot,
+                questionsSnapshot: questionsSnapshot,
+                status: status,
                 totalActivities: totalActivities,
                 completedActivities: completedActivities,
+                actualDurationMin: actualDurationMin,
                 startedAt: startedAt,
                 endedAt: endedAt,
                 rowid: rowid,
@@ -27737,16 +28211,24 @@ class $StudySessionLogTableManager
               ({
                 required String id,
                 required String studySessionId,
+                required String sessionTitleSnapshot,
+                required String questionsSnapshot,
+                Value<String> status = const Value.absent(),
                 Value<int> totalActivities = const Value.absent(),
                 Value<int> completedActivities = const Value.absent(),
+                Value<int?> actualDurationMin = const Value.absent(),
                 Value<int> startedAt = const Value.absent(),
                 Value<int?> endedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudySessionLogCompanion.insert(
                 id: id,
                 studySessionId: studySessionId,
+                sessionTitleSnapshot: sessionTitleSnapshot,
+                questionsSnapshot: questionsSnapshot,
+                status: status,
                 totalActivities: totalActivities,
                 completedActivities: completedActivities,
+                actualDurationMin: actualDurationMin,
                 startedAt: startedAt,
                 endedAt: endedAt,
                 rowid: rowid,
@@ -27759,47 +28241,99 @@ class $StudySessionLogTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({studySessionId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (studySessionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.studySessionId,
-                                referencedTable: $StudySessionLogReferences
-                                    ._studySessionIdTable(db),
-                                referencedColumn: $StudySessionLogReferences
-                                    ._studySessionIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                studySessionId = false,
+                multipleChoiceResponseLogRefs = false,
+                openEndedResponseLogRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (multipleChoiceResponseLogRefs)
+                      db.multipleChoiceResponseLog,
+                    if (openEndedResponseLogRefs) db.openEndedResponseLog,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (studySessionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studySessionId,
+                                    referencedTable: $StudySessionLogReferences
+                                        ._studySessionIdTable(db),
+                                    referencedColumn: $StudySessionLogReferences
+                                        ._studySessionIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (multipleChoiceResponseLogRefs)
+                        await $_getPrefetchedData<
+                          StudySessionLogData,
+                          StudySessionLog,
+                          MultipleChoiceResponseLogData
+                        >(
+                          currentTable: table,
+                          referencedTable: $StudySessionLogReferences
+                              ._multipleChoiceResponseLogRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $StudySessionLogReferences(
+                                db,
+                                table,
+                                p0,
+                              ).multipleChoiceResponseLogRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studySessionLogId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (openEndedResponseLogRefs)
+                        await $_getPrefetchedData<
+                          StudySessionLogData,
+                          StudySessionLog,
+                          OpenEndedResponseLogData
+                        >(
+                          currentTable: table,
+                          referencedTable: $StudySessionLogReferences
+                              ._openEndedResponseLogRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $StudySessionLogReferences(
+                                db,
+                                table,
+                                p0,
+                              ).openEndedResponseLogRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studySessionLogId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -27816,7 +28350,11 @@ typedef $StudySessionLogProcessedTableManager =
       $StudySessionLogUpdateCompanionBuilder,
       (StudySessionLogData, $StudySessionLogReferences),
       StudySessionLogData,
-      PrefetchHooks Function({bool studySessionId})
+      PrefetchHooks Function({
+        bool studySessionId,
+        bool multipleChoiceResponseLogRefs,
+        bool openEndedResponseLogRefs,
+      })
     >;
 typedef $StudySessionUseKnowledgeGraphCreateCompanionBuilder =
     StudySessionUseKnowledgeGraphCompanion Function({
@@ -30535,29 +31073,27 @@ final class $MultipleChoiceReferences
   }
 
   static MultiTypedResultKey<
-    StudySessionHasMultipleChoiceQuestion,
-    List<StudySessionHasMultipleChoiceQuestionData>
+    StudySessionQuestion,
+    List<StudySessionQuestionData>
   >
-  _studySessionHasMultipleChoiceQuestionRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.studySessionHasMultipleChoiceQuestion,
-    aliasName:
-        'multiple_choice__id__study_session_has_multiple_choice_question__multiple_choice_id',
-  );
+  _studySessionQuestionRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.studySessionQuestion,
+        aliasName:
+            'multiple_choice__id__study_session_question__multiple_choice_id',
+      );
 
-  $StudySessionHasMultipleChoiceQuestionProcessedTableManager
-  get studySessionHasMultipleChoiceQuestionRefs {
+  $StudySessionQuestionProcessedTableManager get studySessionQuestionRefs {
     final manager =
-        $StudySessionHasMultipleChoiceQuestionTableManager(
+        $StudySessionQuestionTableManager(
           $_db,
-          $_db.studySessionHasMultipleChoiceQuestion,
+          $_db.studySessionQuestion,
         ).filter(
           (f) => f.multipleChoiceId.id.sqlEquals($_itemColumn<String>('id')!),
         );
 
     final cache = $_typedResult.readTableOrNull(
-      _studySessionHasMultipleChoiceQuestionRefsTable($_db),
+      _studySessionQuestionRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -30687,32 +31223,28 @@ class $MultipleChoiceFilterComposer
     return f(composer);
   }
 
-  Expression<bool> studySessionHasMultipleChoiceQuestionRefs(
-    Expression<bool> Function(
-      $StudySessionHasMultipleChoiceQuestionFilterComposer f,
-    )
-    f,
+  Expression<bool> studySessionQuestionRefs(
+    Expression<bool> Function($StudySessionQuestionFilterComposer f) f,
   ) {
-    final $StudySessionHasMultipleChoiceQuestionFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasMultipleChoiceQuestion,
-          getReferencedColumn: (t) => t.multipleChoiceId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+    final $StudySessionQuestionFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.multipleChoiceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionFilterComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasMultipleChoiceQuestionFilterComposer(
-                $db: $db,
-                $table: $db.studySessionHasMultipleChoiceQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return f(composer);
   }
 }
@@ -30903,32 +31435,28 @@ class $MultipleChoiceAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> studySessionHasMultipleChoiceQuestionRefs<T extends Object>(
-    Expression<T> Function(
-      $StudySessionHasMultipleChoiceQuestionAnnotationComposer a,
-    )
-    f,
+  Expression<T> studySessionQuestionRefs<T extends Object>(
+    Expression<T> Function($StudySessionQuestionAnnotationComposer a) f,
   ) {
-    final $StudySessionHasMultipleChoiceQuestionAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasMultipleChoiceQuestion,
-          getReferencedColumn: (t) => t.multipleChoiceId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+    final $StudySessionQuestionAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.multipleChoiceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionAnnotationComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasMultipleChoiceQuestionAnnotationComposer(
-                $db: $db,
-                $table: $db.studySessionHasMultipleChoiceQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return f(composer);
   }
 }
@@ -30950,7 +31478,7 @@ class $MultipleChoiceTableManager
             bool nodeId,
             bool choiceRefs,
             bool multipleChoiceResponseLogRefs,
-            bool studySessionHasMultipleChoiceQuestionRefs,
+            bool studySessionQuestionRefs,
           })
         > {
   $MultipleChoiceTableManager(_$AppDatabase db, MultipleChoice table)
@@ -31025,7 +31553,7 @@ class $MultipleChoiceTableManager
                 nodeId = false,
                 choiceRefs = false,
                 multipleChoiceResponseLogRefs = false,
-                studySessionHasMultipleChoiceQuestionRefs = false,
+                studySessionQuestionRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -31033,8 +31561,7 @@ class $MultipleChoiceTableManager
                     if (choiceRefs) db.choice,
                     if (multipleChoiceResponseLogRefs)
                       db.multipleChoiceResponseLog,
-                    if (studySessionHasMultipleChoiceQuestionRefs)
-                      db.studySessionHasMultipleChoiceQuestion,
+                    if (studySessionQuestionRefs) db.studySessionQuestion,
                   ],
                   addJoins:
                       <
@@ -31112,23 +31639,21 @@ class $MultipleChoiceTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (studySessionHasMultipleChoiceQuestionRefs)
+                      if (studySessionQuestionRefs)
                         await $_getPrefetchedData<
                           MultipleChoiceData,
                           MultipleChoice,
-                          StudySessionHasMultipleChoiceQuestionData
+                          StudySessionQuestionData
                         >(
                           currentTable: table,
                           referencedTable: $MultipleChoiceReferences
-                              ._studySessionHasMultipleChoiceQuestionRefsTable(
-                                db,
-                              ),
+                              ._studySessionQuestionRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $MultipleChoiceReferences(
                                 db,
                                 table,
                                 p0,
-                              ).studySessionHasMultipleChoiceQuestionRefs,
+                              ).studySessionQuestionRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.multipleChoiceId == item.id,
@@ -31159,7 +31684,7 @@ typedef $MultipleChoiceProcessedTableManager =
         bool nodeId,
         bool choiceRefs,
         bool multipleChoiceResponseLogRefs,
-        bool studySessionHasMultipleChoiceQuestionRefs,
+        bool studySessionQuestionRefs,
       })
     >;
 typedef $ChoiceCreateCompanionBuilder =
@@ -31557,6 +32082,8 @@ typedef $MultipleChoiceResponseLogCreateCompanionBuilder =
       required String id,
       required String multipleChoiceId,
       Value<String?> studySessionId,
+      Value<String?> studySessionLogId,
+      required String questionSnapshot,
       required String questionChoiceSnapshot,
       required String selectedChoiceIds,
       required int totalCorrectOption,
@@ -31574,6 +32101,8 @@ typedef $MultipleChoiceResponseLogUpdateCompanionBuilder =
       Value<String> id,
       Value<String> multipleChoiceId,
       Value<String?> studySessionId,
+      Value<String?> studySessionLogId,
+      Value<String> questionSnapshot,
       Value<String> questionChoiceSnapshot,
       Value<String> selectedChoiceIds,
       Value<int> totalCorrectOption,
@@ -31637,6 +32166,26 @@ final class $MultipleChoiceResponseLogReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static StudySessionLog _studySessionLogIdTable(
+    _$AppDatabase db,
+  ) => db.studySessionLog.createAlias(
+    'multiple_choice_response_log__study_session_log_id__study_session_log__id',
+  );
+
+  $StudySessionLogProcessedTableManager? get studySessionLogId {
+    final $_column = $_itemColumn<String>('study_session_log_id');
+    if ($_column == null) return null;
+    final manager = $StudySessionLogTableManager(
+      $_db,
+      $_db.studySessionLog,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studySessionLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $MultipleChoiceResponseLogFilterComposer
@@ -31650,6 +32199,11 @@ class $MultipleChoiceResponseLogFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get questionSnapshot => $composableBuilder(
+    column: $table.questionSnapshot,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -31748,6 +32302,29 @@ class $MultipleChoiceResponseLogFilterComposer
     );
     return composer;
   }
+
+  $StudySessionLogFilterComposer get studySessionLogId {
+    final $StudySessionLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogFilterComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $MultipleChoiceResponseLogOrderingComposer
@@ -31761,6 +32338,11 @@ class $MultipleChoiceResponseLogOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get questionSnapshot => $composableBuilder(
+    column: $table.questionSnapshot,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -31859,6 +32441,29 @@ class $MultipleChoiceResponseLogOrderingComposer
     );
     return composer;
   }
+
+  $StudySessionLogOrderingComposer get studySessionLogId {
+    final $StudySessionLogOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogOrderingComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $MultipleChoiceResponseLogAnnotationComposer
@@ -31872,6 +32477,11 @@ class $MultipleChoiceResponseLogAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get questionSnapshot => $composableBuilder(
+    column: $table.questionSnapshot,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get questionChoiceSnapshot => $composableBuilder(
     column: $table.questionChoiceSnapshot,
@@ -31964,6 +32574,29 @@ class $MultipleChoiceResponseLogAnnotationComposer
     );
     return composer;
   }
+
+  $StudySessionLogAnnotationComposer get studySessionLogId {
+    final $StudySessionLogAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogAnnotationComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $MultipleChoiceResponseLogTableManager
@@ -31979,7 +32612,11 @@ class $MultipleChoiceResponseLogTableManager
           $MultipleChoiceResponseLogUpdateCompanionBuilder,
           (MultipleChoiceResponseLogData, $MultipleChoiceResponseLogReferences),
           MultipleChoiceResponseLogData,
-          PrefetchHooks Function({bool multipleChoiceId, bool studySessionId})
+          PrefetchHooks Function({
+            bool multipleChoiceId,
+            bool studySessionId,
+            bool studySessionLogId,
+          })
         > {
   $MultipleChoiceResponseLogTableManager(
     _$AppDatabase db,
@@ -32005,6 +32642,8 @@ class $MultipleChoiceResponseLogTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> multipleChoiceId = const Value.absent(),
                 Value<String?> studySessionId = const Value.absent(),
+                Value<String?> studySessionLogId = const Value.absent(),
+                Value<String> questionSnapshot = const Value.absent(),
                 Value<String> questionChoiceSnapshot = const Value.absent(),
                 Value<String> selectedChoiceIds = const Value.absent(),
                 Value<int> totalCorrectOption = const Value.absent(),
@@ -32020,6 +32659,8 @@ class $MultipleChoiceResponseLogTableManager
                 id: id,
                 multipleChoiceId: multipleChoiceId,
                 studySessionId: studySessionId,
+                studySessionLogId: studySessionLogId,
+                questionSnapshot: questionSnapshot,
                 questionChoiceSnapshot: questionChoiceSnapshot,
                 selectedChoiceIds: selectedChoiceIds,
                 totalCorrectOption: totalCorrectOption,
@@ -32037,6 +32678,8 @@ class $MultipleChoiceResponseLogTableManager
                 required String id,
                 required String multipleChoiceId,
                 Value<String?> studySessionId = const Value.absent(),
+                Value<String?> studySessionLogId = const Value.absent(),
+                required String questionSnapshot,
                 required String questionChoiceSnapshot,
                 required String selectedChoiceIds,
                 required int totalCorrectOption,
@@ -32052,6 +32695,8 @@ class $MultipleChoiceResponseLogTableManager
                 id: id,
                 multipleChoiceId: multipleChoiceId,
                 studySessionId: studySessionId,
+                studySessionLogId: studySessionLogId,
+                questionSnapshot: questionSnapshot,
                 questionChoiceSnapshot: questionChoiceSnapshot,
                 selectedChoiceIds: selectedChoiceIds,
                 totalCorrectOption: totalCorrectOption,
@@ -32073,7 +32718,11 @@ class $MultipleChoiceResponseLogTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({multipleChoiceId = false, studySessionId = false}) {
+              ({
+                multipleChoiceId = false,
+                studySessionId = false,
+                studySessionLogId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -32123,6 +32772,21 @@ class $MultipleChoiceResponseLogTableManager
                                   )
                                   as T;
                         }
+                        if (studySessionLogId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studySessionLogId,
+                                    referencedTable:
+                                        $MultipleChoiceResponseLogReferences
+                                            ._studySessionLogIdTable(db),
+                                    referencedColumn:
+                                        $MultipleChoiceResponseLogReferences
+                                            ._studySessionLogIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
                         return state;
                       },
@@ -32147,431 +32811,11 @@ typedef $MultipleChoiceResponseLogProcessedTableManager =
       $MultipleChoiceResponseLogUpdateCompanionBuilder,
       (MultipleChoiceResponseLogData, $MultipleChoiceResponseLogReferences),
       MultipleChoiceResponseLogData,
-      PrefetchHooks Function({bool multipleChoiceId, bool studySessionId})
-    >;
-typedef $StudySessionHasMultipleChoiceQuestionCreateCompanionBuilder =
-    StudySessionHasMultipleChoiceQuestionCompanion Function({
-      required String id,
-      required String studySessionId,
-      required String multipleChoiceId,
-      Value<int> createdAt,
-      Value<int> rowid,
-    });
-typedef $StudySessionHasMultipleChoiceQuestionUpdateCompanionBuilder =
-    StudySessionHasMultipleChoiceQuestionCompanion Function({
-      Value<String> id,
-      Value<String> studySessionId,
-      Value<String> multipleChoiceId,
-      Value<int> createdAt,
-      Value<int> rowid,
-    });
-
-final class $StudySessionHasMultipleChoiceQuestionReferences
-    extends
-        BaseReferences<
-          _$AppDatabase,
-          StudySessionHasMultipleChoiceQuestion,
-          StudySessionHasMultipleChoiceQuestionData
-        > {
-  $StudySessionHasMultipleChoiceQuestionReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static StudySession _studySessionIdTable(
-    _$AppDatabase db,
-  ) => db.studySession.createAlias(
-    'study_session_has_multiple_choice_question__study_session_id__study_session__id',
-  );
-
-  $StudySessionProcessedTableManager get studySessionId {
-    final $_column = $_itemColumn<String>('study_session_id')!;
-
-    final manager = $StudySessionTableManager(
-      $_db,
-      $_db.studySession,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_studySessionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultipleChoice _multipleChoiceIdTable(
-    _$AppDatabase db,
-  ) => db.multipleChoice.createAlias(
-    'study_session_has_multiple_choice_question__multiple_choice_id__multiple_choice__id',
-  );
-
-  $MultipleChoiceProcessedTableManager get multipleChoiceId {
-    final $_column = $_itemColumn<String>('multiple_choice_id')!;
-
-    final manager = $MultipleChoiceTableManager(
-      $_db,
-      $_db.multipleChoice,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_multipleChoiceIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $StudySessionHasMultipleChoiceQuestionFilterComposer
-    extends Composer<_$AppDatabase, StudySessionHasMultipleChoiceQuestion> {
-  $StudySessionHasMultipleChoiceQuestionFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $StudySessionFilterComposer get studySessionId {
-    final $StudySessionFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionFilterComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $MultipleChoiceFilterComposer get multipleChoiceId {
-    final $MultipleChoiceFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.multipleChoiceId,
-      referencedTable: $db.multipleChoice,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $MultipleChoiceFilterComposer(
-            $db: $db,
-            $table: $db.multipleChoice,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasMultipleChoiceQuestionOrderingComposer
-    extends Composer<_$AppDatabase, StudySessionHasMultipleChoiceQuestion> {
-  $StudySessionHasMultipleChoiceQuestionOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $StudySessionOrderingComposer get studySessionId {
-    final $StudySessionOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionOrderingComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $MultipleChoiceOrderingComposer get multipleChoiceId {
-    final $MultipleChoiceOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.multipleChoiceId,
-      referencedTable: $db.multipleChoice,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $MultipleChoiceOrderingComposer(
-            $db: $db,
-            $table: $db.multipleChoice,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasMultipleChoiceQuestionAnnotationComposer
-    extends Composer<_$AppDatabase, StudySessionHasMultipleChoiceQuestion> {
-  $StudySessionHasMultipleChoiceQuestionAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  $StudySessionAnnotationComposer get studySessionId {
-    final $StudySessionAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionAnnotationComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $MultipleChoiceAnnotationComposer get multipleChoiceId {
-    final $MultipleChoiceAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.multipleChoiceId,
-      referencedTable: $db.multipleChoice,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $MultipleChoiceAnnotationComposer(
-            $db: $db,
-            $table: $db.multipleChoice,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasMultipleChoiceQuestionTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          StudySessionHasMultipleChoiceQuestion,
-          StudySessionHasMultipleChoiceQuestionData,
-          $StudySessionHasMultipleChoiceQuestionFilterComposer,
-          $StudySessionHasMultipleChoiceQuestionOrderingComposer,
-          $StudySessionHasMultipleChoiceQuestionAnnotationComposer,
-          $StudySessionHasMultipleChoiceQuestionCreateCompanionBuilder,
-          $StudySessionHasMultipleChoiceQuestionUpdateCompanionBuilder,
-          (
-            StudySessionHasMultipleChoiceQuestionData,
-            $StudySessionHasMultipleChoiceQuestionReferences,
-          ),
-          StudySessionHasMultipleChoiceQuestionData,
-          PrefetchHooks Function({bool studySessionId, bool multipleChoiceId})
-        > {
-  $StudySessionHasMultipleChoiceQuestionTableManager(
-    _$AppDatabase db,
-    StudySessionHasMultipleChoiceQuestion table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $StudySessionHasMultipleChoiceQuestionFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $StudySessionHasMultipleChoiceQuestionOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $StudySessionHasMultipleChoiceQuestionAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> studySessionId = const Value.absent(),
-                Value<String> multipleChoiceId = const Value.absent(),
-                Value<int> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudySessionHasMultipleChoiceQuestionCompanion(
-                id: id,
-                studySessionId: studySessionId,
-                multipleChoiceId: multipleChoiceId,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String studySessionId,
-                required String multipleChoiceId,
-                Value<int> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudySessionHasMultipleChoiceQuestionCompanion.insert(
-                id: id,
-                studySessionId: studySessionId,
-                multipleChoiceId: multipleChoiceId,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $StudySessionHasMultipleChoiceQuestionReferences(
-                    db,
-                    table,
-                    e,
-                  ),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({studySessionId = false, multipleChoiceId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (studySessionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.studySessionId,
-                                referencedTable:
-                                    $StudySessionHasMultipleChoiceQuestionReferences
-                                        ._studySessionIdTable(db),
-                                referencedColumn:
-                                    $StudySessionHasMultipleChoiceQuestionReferences
-                                        ._studySessionIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (multipleChoiceId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.multipleChoiceId,
-                                referencedTable:
-                                    $StudySessionHasMultipleChoiceQuestionReferences
-                                        ._multipleChoiceIdTable(db),
-                                referencedColumn:
-                                    $StudySessionHasMultipleChoiceQuestionReferences
-                                        ._multipleChoiceIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $StudySessionHasMultipleChoiceQuestionProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      StudySessionHasMultipleChoiceQuestion,
-      StudySessionHasMultipleChoiceQuestionData,
-      $StudySessionHasMultipleChoiceQuestionFilterComposer,
-      $StudySessionHasMultipleChoiceQuestionOrderingComposer,
-      $StudySessionHasMultipleChoiceQuestionAnnotationComposer,
-      $StudySessionHasMultipleChoiceQuestionCreateCompanionBuilder,
-      $StudySessionHasMultipleChoiceQuestionUpdateCompanionBuilder,
-      (
-        StudySessionHasMultipleChoiceQuestionData,
-        $StudySessionHasMultipleChoiceQuestionReferences,
-      ),
-      StudySessionHasMultipleChoiceQuestionData,
-      PrefetchHooks Function({bool studySessionId, bool multipleChoiceId})
+      PrefetchHooks Function({
+        bool multipleChoiceId,
+        bool studySessionId,
+        bool studySessionLogId,
+      })
     >;
 typedef $OpenEndedCreateCompanionBuilder =
     OpenEndedCompanion Function({
@@ -32626,6 +32870,30 @@ final class $OpenEndedReferences
   }
 
   static MultiTypedResultKey<
+    StudySessionQuestion,
+    List<StudySessionQuestionData>
+  >
+  _studySessionQuestionRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.studySessionQuestion,
+        aliasName: 'open_ended__id__study_session_question__open_ended_id',
+      );
+
+  $StudySessionQuestionProcessedTableManager get studySessionQuestionRefs {
+    final manager = $StudySessionQuestionTableManager(
+      $_db,
+      $_db.studySessionQuestion,
+    ).filter((f) => f.openEndedId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _studySessionQuestionRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
     OpenEndedResponseLog,
     List<OpenEndedResponseLogData>
   >
@@ -32643,33 +32911,6 @@ final class $OpenEndedReferences
 
     final cache = $_typedResult.readTableOrNull(
       _openEndedResponseLogRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<
-    StudySessionHasOpenEndedQuestion,
-    List<StudySessionHasOpenEndedQuestionData>
-  >
-  _studySessionHasOpenEndedQuestionRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.studySessionHasOpenEndedQuestion,
-    aliasName:
-        'open_ended__id__study_session_has_open_ended_question__open_ended_id',
-  );
-
-  $StudySessionHasOpenEndedQuestionProcessedTableManager
-  get studySessionHasOpenEndedQuestionRefs {
-    final manager = $StudySessionHasOpenEndedQuestionTableManager(
-      $_db,
-      $_db.studySessionHasOpenEndedQuestion,
-    ).filter((f) => f.openEndedId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _studySessionHasOpenEndedQuestionRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -32758,6 +32999,31 @@ class $OpenEndedFilterComposer extends Composer<_$AppDatabase, OpenEnded> {
     return composer;
   }
 
+  Expression<bool> studySessionQuestionRefs(
+    Expression<bool> Function($StudySessionQuestionFilterComposer f) f,
+  ) {
+    final $StudySessionQuestionFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.openEndedId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionFilterComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<bool> openEndedResponseLogRefs(
     Expression<bool> Function($OpenEndedResponseLogFilterComposer f) f,
   ) {
@@ -32780,33 +33046,6 @@ class $OpenEndedFilterComposer extends Composer<_$AppDatabase, OpenEnded> {
                 $removeJoinBuilderFromRootComposer,
           ),
     );
-    return f(composer);
-  }
-
-  Expression<bool> studySessionHasOpenEndedQuestionRefs(
-    Expression<bool> Function($StudySessionHasOpenEndedQuestionFilterComposer f)
-    f,
-  ) {
-    final $StudySessionHasOpenEndedQuestionFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasOpenEndedQuestion,
-          getReferencedColumn: (t) => t.openEndedId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasOpenEndedQuestionFilterComposer(
-                $db: $db,
-                $table: $db.studySessionHasOpenEndedQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
     return f(composer);
   }
 }
@@ -32962,6 +33201,31 @@ class $OpenEndedAnnotationComposer extends Composer<_$AppDatabase, OpenEnded> {
     return composer;
   }
 
+  Expression<T> studySessionQuestionRefs<T extends Object>(
+    Expression<T> Function($StudySessionQuestionAnnotationComposer a) f,
+  ) {
+    final $StudySessionQuestionAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySessionQuestion,
+      getReferencedColumn: (t) => t.openEndedId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionQuestionAnnotationComposer(
+            $db: $db,
+            $table: $db.studySessionQuestion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> openEndedResponseLogRefs<T extends Object>(
     Expression<T> Function($OpenEndedResponseLogAnnotationComposer a) f,
   ) {
@@ -32986,35 +33250,6 @@ class $OpenEndedAnnotationComposer extends Composer<_$AppDatabase, OpenEnded> {
     );
     return f(composer);
   }
-
-  Expression<T> studySessionHasOpenEndedQuestionRefs<T extends Object>(
-    Expression<T> Function(
-      $StudySessionHasOpenEndedQuestionAnnotationComposer a,
-    )
-    f,
-  ) {
-    final $StudySessionHasOpenEndedQuestionAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studySessionHasOpenEndedQuestion,
-          getReferencedColumn: (t) => t.openEndedId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $StudySessionHasOpenEndedQuestionAnnotationComposer(
-                $db: $db,
-                $table: $db.studySessionHasOpenEndedQuestion,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $OpenEndedTableManager
@@ -33032,8 +33267,8 @@ class $OpenEndedTableManager
           OpenEndedData,
           PrefetchHooks Function({
             bool nodeId,
+            bool studySessionQuestionRefs,
             bool openEndedResponseLogRefs,
-            bool studySessionHasOpenEndedQuestionRefs,
           })
         > {
   $OpenEndedTableManager(_$AppDatabase db, OpenEnded table)
@@ -33111,15 +33346,14 @@ class $OpenEndedTableManager
           prefetchHooksCallback:
               ({
                 nodeId = false,
+                studySessionQuestionRefs = false,
                 openEndedResponseLogRefs = false,
-                studySessionHasOpenEndedQuestionRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (studySessionQuestionRefs) db.studySessionQuestion,
                     if (openEndedResponseLogRefs) db.openEndedResponseLog,
-                    if (studySessionHasOpenEndedQuestionRefs)
-                      db.studySessionHasOpenEndedQuestion,
                   ],
                   addJoins:
                       <
@@ -33155,6 +33389,26 @@ class $OpenEndedTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (studySessionQuestionRefs)
+                        await $_getPrefetchedData<
+                          OpenEndedData,
+                          OpenEnded,
+                          StudySessionQuestionData
+                        >(
+                          currentTable: table,
+                          referencedTable: $OpenEndedReferences
+                              ._studySessionQuestionRefsTable(db),
+                          managerFromTypedResult: (p0) => $OpenEndedReferences(
+                            db,
+                            table,
+                            p0,
+                          ).studySessionQuestionRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.openEndedId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (openEndedResponseLogRefs)
                         await $_getPrefetchedData<
                           OpenEndedData,
@@ -33169,26 +33423,6 @@ class $OpenEndedTableManager
                             table,
                             p0,
                           ).openEndedResponseLogRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.openEndedId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (studySessionHasOpenEndedQuestionRefs)
-                        await $_getPrefetchedData<
-                          OpenEndedData,
-                          OpenEnded,
-                          StudySessionHasOpenEndedQuestionData
-                        >(
-                          currentTable: table,
-                          referencedTable: $OpenEndedReferences
-                              ._studySessionHasOpenEndedQuestionRefsTable(db),
-                          managerFromTypedResult: (p0) => $OpenEndedReferences(
-                            db,
-                            table,
-                            p0,
-                          ).studySessionHasOpenEndedQuestionRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.openEndedId == item.id,
@@ -33217,8 +33451,552 @@ typedef $OpenEndedProcessedTableManager =
       OpenEndedData,
       PrefetchHooks Function({
         bool nodeId,
+        bool studySessionQuestionRefs,
         bool openEndedResponseLogRefs,
-        bool studySessionHasOpenEndedQuestionRefs,
+      })
+    >;
+typedef $StudySessionQuestionCreateCompanionBuilder =
+    StudySessionQuestionCompanion Function({
+      required String id,
+      required String studySessionId,
+      Value<String?> multipleChoiceId,
+      Value<String?> openEndedId,
+      required int displayOrder,
+      Value<int> createdAt,
+      Value<int> rowid,
+    });
+typedef $StudySessionQuestionUpdateCompanionBuilder =
+    StudySessionQuestionCompanion Function({
+      Value<String> id,
+      Value<String> studySessionId,
+      Value<String?> multipleChoiceId,
+      Value<String?> openEndedId,
+      Value<int> displayOrder,
+      Value<int> createdAt,
+      Value<int> rowid,
+    });
+
+final class $StudySessionQuestionReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          StudySessionQuestion,
+          StudySessionQuestionData
+        > {
+  $StudySessionQuestionReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static StudySession _studySessionIdTable(_$AppDatabase db) =>
+      db.studySession.createAlias(
+        'study_session_question__study_session_id__study_session__id',
+      );
+
+  $StudySessionProcessedTableManager get studySessionId {
+    final $_column = $_itemColumn<String>('study_session_id')!;
+
+    final manager = $StudySessionTableManager(
+      $_db,
+      $_db.studySession,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studySessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultipleChoice _multipleChoiceIdTable(_$AppDatabase db) =>
+      db.multipleChoice.createAlias(
+        'study_session_question__multiple_choice_id__multiple_choice__id',
+      );
+
+  $MultipleChoiceProcessedTableManager? get multipleChoiceId {
+    final $_column = $_itemColumn<String>('multiple_choice_id');
+    if ($_column == null) return null;
+    final manager = $MultipleChoiceTableManager(
+      $_db,
+      $_db.multipleChoice,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_multipleChoiceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static OpenEnded _openEndedIdTable(_$AppDatabase db) => db.openEnded
+      .createAlias('study_session_question__open_ended_id__open_ended__id');
+
+  $OpenEndedProcessedTableManager? get openEndedId {
+    final $_column = $_itemColumn<String>('open_ended_id');
+    if ($_column == null) return null;
+    final manager = $OpenEndedTableManager(
+      $_db,
+      $_db.openEnded,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_openEndedIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $StudySessionQuestionFilterComposer
+    extends Composer<_$AppDatabase, StudySessionQuestion> {
+  $StudySessionQuestionFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $StudySessionFilterComposer get studySessionId {
+    final $StudySessionFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionId,
+      referencedTable: $db.studySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionFilterComposer(
+            $db: $db,
+            $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $MultipleChoiceFilterComposer get multipleChoiceId {
+    final $MultipleChoiceFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.multipleChoiceId,
+      referencedTable: $db.multipleChoice,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $MultipleChoiceFilterComposer(
+            $db: $db,
+            $table: $db.multipleChoice,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OpenEndedFilterComposer get openEndedId {
+    final $OpenEndedFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.openEndedId,
+      referencedTable: $db.openEnded,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OpenEndedFilterComposer(
+            $db: $db,
+            $table: $db.openEnded,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $StudySessionQuestionOrderingComposer
+    extends Composer<_$AppDatabase, StudySessionQuestion> {
+  $StudySessionQuestionOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $StudySessionOrderingComposer get studySessionId {
+    final $StudySessionOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionId,
+      referencedTable: $db.studySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionOrderingComposer(
+            $db: $db,
+            $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $MultipleChoiceOrderingComposer get multipleChoiceId {
+    final $MultipleChoiceOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.multipleChoiceId,
+      referencedTable: $db.multipleChoice,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $MultipleChoiceOrderingComposer(
+            $db: $db,
+            $table: $db.multipleChoice,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OpenEndedOrderingComposer get openEndedId {
+    final $OpenEndedOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.openEndedId,
+      referencedTable: $db.openEnded,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OpenEndedOrderingComposer(
+            $db: $db,
+            $table: $db.openEnded,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $StudySessionQuestionAnnotationComposer
+    extends Composer<_$AppDatabase, StudySessionQuestion> {
+  $StudySessionQuestionAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $StudySessionAnnotationComposer get studySessionId {
+    final $StudySessionAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionId,
+      referencedTable: $db.studySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionAnnotationComposer(
+            $db: $db,
+            $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $MultipleChoiceAnnotationComposer get multipleChoiceId {
+    final $MultipleChoiceAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.multipleChoiceId,
+      referencedTable: $db.multipleChoice,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $MultipleChoiceAnnotationComposer(
+            $db: $db,
+            $table: $db.multipleChoice,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OpenEndedAnnotationComposer get openEndedId {
+    final $OpenEndedAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.openEndedId,
+      referencedTable: $db.openEnded,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OpenEndedAnnotationComposer(
+            $db: $db,
+            $table: $db.openEnded,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $StudySessionQuestionTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          StudySessionQuestion,
+          StudySessionQuestionData,
+          $StudySessionQuestionFilterComposer,
+          $StudySessionQuestionOrderingComposer,
+          $StudySessionQuestionAnnotationComposer,
+          $StudySessionQuestionCreateCompanionBuilder,
+          $StudySessionQuestionUpdateCompanionBuilder,
+          (StudySessionQuestionData, $StudySessionQuestionReferences),
+          StudySessionQuestionData,
+          PrefetchHooks Function({
+            bool studySessionId,
+            bool multipleChoiceId,
+            bool openEndedId,
+          })
+        > {
+  $StudySessionQuestionTableManager(
+    _$AppDatabase db,
+    StudySessionQuestion table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $StudySessionQuestionFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $StudySessionQuestionOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $StudySessionQuestionAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> studySessionId = const Value.absent(),
+                Value<String?> multipleChoiceId = const Value.absent(),
+                Value<String?> openEndedId = const Value.absent(),
+                Value<int> displayOrder = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StudySessionQuestionCompanion(
+                id: id,
+                studySessionId: studySessionId,
+                multipleChoiceId: multipleChoiceId,
+                openEndedId: openEndedId,
+                displayOrder: displayOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String studySessionId,
+                Value<String?> multipleChoiceId = const Value.absent(),
+                Value<String?> openEndedId = const Value.absent(),
+                required int displayOrder,
+                Value<int> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StudySessionQuestionCompanion.insert(
+                id: id,
+                studySessionId: studySessionId,
+                multipleChoiceId: multipleChoiceId,
+                openEndedId: openEndedId,
+                displayOrder: displayOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $StudySessionQuestionReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                studySessionId = false,
+                multipleChoiceId = false,
+                openEndedId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (studySessionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studySessionId,
+                                    referencedTable:
+                                        $StudySessionQuestionReferences
+                                            ._studySessionIdTable(db),
+                                    referencedColumn:
+                                        $StudySessionQuestionReferences
+                                            ._studySessionIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (multipleChoiceId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.multipleChoiceId,
+                                    referencedTable:
+                                        $StudySessionQuestionReferences
+                                            ._multipleChoiceIdTable(db),
+                                    referencedColumn:
+                                        $StudySessionQuestionReferences
+                                            ._multipleChoiceIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (openEndedId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.openEndedId,
+                                    referencedTable:
+                                        $StudySessionQuestionReferences
+                                            ._openEndedIdTable(db),
+                                    referencedColumn:
+                                        $StudySessionQuestionReferences
+                                            ._openEndedIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $StudySessionQuestionProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      StudySessionQuestion,
+      StudySessionQuestionData,
+      $StudySessionQuestionFilterComposer,
+      $StudySessionQuestionOrderingComposer,
+      $StudySessionQuestionAnnotationComposer,
+      $StudySessionQuestionCreateCompanionBuilder,
+      $StudySessionQuestionUpdateCompanionBuilder,
+      (StudySessionQuestionData, $StudySessionQuestionReferences),
+      StudySessionQuestionData,
+      PrefetchHooks Function({
+        bool studySessionId,
+        bool multipleChoiceId,
+        bool openEndedId,
       })
     >;
 typedef $OpenEndedResponseLogCreateCompanionBuilder =
@@ -33226,6 +34004,7 @@ typedef $OpenEndedResponseLogCreateCompanionBuilder =
       required String id,
       required String openEndedId,
       Value<String?> studySessionId,
+      Value<String?> studySessionLogId,
       required String questionSnapshot,
       Value<String?> userAnswer,
       Value<String?> aiFeedback,
@@ -33243,6 +34022,7 @@ typedef $OpenEndedResponseLogUpdateCompanionBuilder =
       Value<String> id,
       Value<String> openEndedId,
       Value<String?> studySessionId,
+      Value<String?> studySessionLogId,
       Value<String> questionSnapshot,
       Value<String?> userAnswer,
       Value<String?> aiFeedback,
@@ -33299,6 +34079,25 @@ final class $OpenEndedResponseLogReferences
       $_db.studySession,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_studySessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static StudySessionLog _studySessionLogIdTable(_$AppDatabase db) =>
+      db.studySessionLog.createAlias(
+        'open_ended_response_log__study_session_log_id__study_session_log__id',
+      );
+
+  $StudySessionLogProcessedTableManager? get studySessionLogId {
+    final $_column = $_itemColumn<String>('study_session_log_id');
+    if ($_column == null) return null;
+    final manager = $StudySessionLogTableManager(
+      $_db,
+      $_db.studySessionLog,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studySessionLogIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -33407,6 +34206,29 @@ class $OpenEndedResponseLogFilterComposer
           }) => $StudySessionFilterComposer(
             $db: $db,
             $table: $db.studySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $StudySessionLogFilterComposer get studySessionLogId {
+    final $StudySessionLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogFilterComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -33526,6 +34348,29 @@ class $OpenEndedResponseLogOrderingComposer
     );
     return composer;
   }
+
+  $StudySessionLogOrderingComposer get studySessionLogId {
+    final $StudySessionLogOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogOrderingComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $OpenEndedResponseLogAnnotationComposer
@@ -33625,6 +34470,29 @@ class $OpenEndedResponseLogAnnotationComposer
     );
     return composer;
   }
+
+  $StudySessionLogAnnotationComposer get studySessionLogId {
+    final $StudySessionLogAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studySessionLogId,
+      referencedTable: $db.studySessionLog,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $StudySessionLogAnnotationComposer(
+            $db: $db,
+            $table: $db.studySessionLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $OpenEndedResponseLogTableManager
@@ -33640,7 +34508,11 @@ class $OpenEndedResponseLogTableManager
           $OpenEndedResponseLogUpdateCompanionBuilder,
           (OpenEndedResponseLogData, $OpenEndedResponseLogReferences),
           OpenEndedResponseLogData,
-          PrefetchHooks Function({bool openEndedId, bool studySessionId})
+          PrefetchHooks Function({
+            bool openEndedId,
+            bool studySessionId,
+            bool studySessionLogId,
+          })
         > {
   $OpenEndedResponseLogTableManager(
     _$AppDatabase db,
@@ -33660,6 +34532,7 @@ class $OpenEndedResponseLogTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> openEndedId = const Value.absent(),
                 Value<String?> studySessionId = const Value.absent(),
+                Value<String?> studySessionLogId = const Value.absent(),
                 Value<String> questionSnapshot = const Value.absent(),
                 Value<String?> userAnswer = const Value.absent(),
                 Value<String?> aiFeedback = const Value.absent(),
@@ -33675,6 +34548,7 @@ class $OpenEndedResponseLogTableManager
                 id: id,
                 openEndedId: openEndedId,
                 studySessionId: studySessionId,
+                studySessionLogId: studySessionLogId,
                 questionSnapshot: questionSnapshot,
                 userAnswer: userAnswer,
                 aiFeedback: aiFeedback,
@@ -33692,6 +34566,7 @@ class $OpenEndedResponseLogTableManager
                 required String id,
                 required String openEndedId,
                 Value<String?> studySessionId = const Value.absent(),
+                Value<String?> studySessionLogId = const Value.absent(),
                 required String questionSnapshot,
                 Value<String?> userAnswer = const Value.absent(),
                 Value<String?> aiFeedback = const Value.absent(),
@@ -33707,6 +34582,7 @@ class $OpenEndedResponseLogTableManager
                 id: id,
                 openEndedId: openEndedId,
                 studySessionId: studySessionId,
+                studySessionLogId: studySessionLogId,
                 questionSnapshot: questionSnapshot,
                 userAnswer: userAnswer,
                 aiFeedback: aiFeedback,
@@ -33728,7 +34604,11 @@ class $OpenEndedResponseLogTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({openEndedId = false, studySessionId = false}) {
+              ({
+                openEndedId = false,
+                studySessionId = false,
+                studySessionLogId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -33778,6 +34658,21 @@ class $OpenEndedResponseLogTableManager
                                   )
                                   as T;
                         }
+                        if (studySessionLogId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studySessionLogId,
+                                    referencedTable:
+                                        $OpenEndedResponseLogReferences
+                                            ._studySessionLogIdTable(db),
+                                    referencedColumn:
+                                        $OpenEndedResponseLogReferences
+                                            ._studySessionLogIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
                         return state;
                       },
@@ -33802,426 +34697,11 @@ typedef $OpenEndedResponseLogProcessedTableManager =
       $OpenEndedResponseLogUpdateCompanionBuilder,
       (OpenEndedResponseLogData, $OpenEndedResponseLogReferences),
       OpenEndedResponseLogData,
-      PrefetchHooks Function({bool openEndedId, bool studySessionId})
-    >;
-typedef $StudySessionHasOpenEndedQuestionCreateCompanionBuilder =
-    StudySessionHasOpenEndedQuestionCompanion Function({
-      required String id,
-      required String studySessionId,
-      required String openEndedId,
-      Value<int> createdAt,
-      Value<int> rowid,
-    });
-typedef $StudySessionHasOpenEndedQuestionUpdateCompanionBuilder =
-    StudySessionHasOpenEndedQuestionCompanion Function({
-      Value<String> id,
-      Value<String> studySessionId,
-      Value<String> openEndedId,
-      Value<int> createdAt,
-      Value<int> rowid,
-    });
-
-final class $StudySessionHasOpenEndedQuestionReferences
-    extends
-        BaseReferences<
-          _$AppDatabase,
-          StudySessionHasOpenEndedQuestion,
-          StudySessionHasOpenEndedQuestionData
-        > {
-  $StudySessionHasOpenEndedQuestionReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static StudySession _studySessionIdTable(
-    _$AppDatabase db,
-  ) => db.studySession.createAlias(
-    'study_session_has_open_ended_question__study_session_id__study_session__id',
-  );
-
-  $StudySessionProcessedTableManager get studySessionId {
-    final $_column = $_itemColumn<String>('study_session_id')!;
-
-    final manager = $StudySessionTableManager(
-      $_db,
-      $_db.studySession,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_studySessionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static OpenEnded _openEndedIdTable(_$AppDatabase db) =>
-      db.openEnded.createAlias(
-        'study_session_has_open_ended_question__open_ended_id__open_ended__id',
-      );
-
-  $OpenEndedProcessedTableManager get openEndedId {
-    final $_column = $_itemColumn<String>('open_ended_id')!;
-
-    final manager = $OpenEndedTableManager(
-      $_db,
-      $_db.openEnded,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_openEndedIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $StudySessionHasOpenEndedQuestionFilterComposer
-    extends Composer<_$AppDatabase, StudySessionHasOpenEndedQuestion> {
-  $StudySessionHasOpenEndedQuestionFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $StudySessionFilterComposer get studySessionId {
-    final $StudySessionFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionFilterComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $OpenEndedFilterComposer get openEndedId {
-    final $OpenEndedFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.openEndedId,
-      referencedTable: $db.openEnded,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $OpenEndedFilterComposer(
-            $db: $db,
-            $table: $db.openEnded,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasOpenEndedQuestionOrderingComposer
-    extends Composer<_$AppDatabase, StudySessionHasOpenEndedQuestion> {
-  $StudySessionHasOpenEndedQuestionOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $StudySessionOrderingComposer get studySessionId {
-    final $StudySessionOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionOrderingComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $OpenEndedOrderingComposer get openEndedId {
-    final $OpenEndedOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.openEndedId,
-      referencedTable: $db.openEnded,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $OpenEndedOrderingComposer(
-            $db: $db,
-            $table: $db.openEnded,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasOpenEndedQuestionAnnotationComposer
-    extends Composer<_$AppDatabase, StudySessionHasOpenEndedQuestion> {
-  $StudySessionHasOpenEndedQuestionAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  $StudySessionAnnotationComposer get studySessionId {
-    final $StudySessionAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studySessionId,
-      referencedTable: $db.studySession,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $StudySessionAnnotationComposer(
-            $db: $db,
-            $table: $db.studySession,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $OpenEndedAnnotationComposer get openEndedId {
-    final $OpenEndedAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.openEndedId,
-      referencedTable: $db.openEnded,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $OpenEndedAnnotationComposer(
-            $db: $db,
-            $table: $db.openEnded,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $StudySessionHasOpenEndedQuestionTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          StudySessionHasOpenEndedQuestion,
-          StudySessionHasOpenEndedQuestionData,
-          $StudySessionHasOpenEndedQuestionFilterComposer,
-          $StudySessionHasOpenEndedQuestionOrderingComposer,
-          $StudySessionHasOpenEndedQuestionAnnotationComposer,
-          $StudySessionHasOpenEndedQuestionCreateCompanionBuilder,
-          $StudySessionHasOpenEndedQuestionUpdateCompanionBuilder,
-          (
-            StudySessionHasOpenEndedQuestionData,
-            $StudySessionHasOpenEndedQuestionReferences,
-          ),
-          StudySessionHasOpenEndedQuestionData,
-          PrefetchHooks Function({bool studySessionId, bool openEndedId})
-        > {
-  $StudySessionHasOpenEndedQuestionTableManager(
-    _$AppDatabase db,
-    StudySessionHasOpenEndedQuestion table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $StudySessionHasOpenEndedQuestionFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $StudySessionHasOpenEndedQuestionOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $StudySessionHasOpenEndedQuestionAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> studySessionId = const Value.absent(),
-                Value<String> openEndedId = const Value.absent(),
-                Value<int> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudySessionHasOpenEndedQuestionCompanion(
-                id: id,
-                studySessionId: studySessionId,
-                openEndedId: openEndedId,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String studySessionId,
-                required String openEndedId,
-                Value<int> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudySessionHasOpenEndedQuestionCompanion.insert(
-                id: id,
-                studySessionId: studySessionId,
-                openEndedId: openEndedId,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $StudySessionHasOpenEndedQuestionReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({studySessionId = false, openEndedId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (studySessionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.studySessionId,
-                                referencedTable:
-                                    $StudySessionHasOpenEndedQuestionReferences
-                                        ._studySessionIdTable(db),
-                                referencedColumn:
-                                    $StudySessionHasOpenEndedQuestionReferences
-                                        ._studySessionIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (openEndedId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.openEndedId,
-                                referencedTable:
-                                    $StudySessionHasOpenEndedQuestionReferences
-                                        ._openEndedIdTable(db),
-                                referencedColumn:
-                                    $StudySessionHasOpenEndedQuestionReferences
-                                        ._openEndedIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $StudySessionHasOpenEndedQuestionProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      StudySessionHasOpenEndedQuestion,
-      StudySessionHasOpenEndedQuestionData,
-      $StudySessionHasOpenEndedQuestionFilterComposer,
-      $StudySessionHasOpenEndedQuestionOrderingComposer,
-      $StudySessionHasOpenEndedQuestionAnnotationComposer,
-      $StudySessionHasOpenEndedQuestionCreateCompanionBuilder,
-      $StudySessionHasOpenEndedQuestionUpdateCompanionBuilder,
-      (
-        StudySessionHasOpenEndedQuestionData,
-        $StudySessionHasOpenEndedQuestionReferences,
-      ),
-      StudySessionHasOpenEndedQuestionData,
-      PrefetchHooks Function({bool studySessionId, bool openEndedId})
+      PrefetchHooks Function({
+        bool openEndedId,
+        bool studySessionId,
+        bool studySessionLogId,
+      })
     >;
 typedef $FsrsStateCreateCompanionBuilder =
     FsrsStateCompanion Function({
@@ -35983,22 +36463,12 @@ class $AppDatabaseManager {
         _db,
         _db.multipleChoiceResponseLog,
       );
-  $StudySessionHasMultipleChoiceQuestionTableManager
-  get studySessionHasMultipleChoiceQuestion =>
-      $StudySessionHasMultipleChoiceQuestionTableManager(
-        _db,
-        _db.studySessionHasMultipleChoiceQuestion,
-      );
   $OpenEndedTableManager get openEnded =>
       $OpenEndedTableManager(_db, _db.openEnded);
+  $StudySessionQuestionTableManager get studySessionQuestion =>
+      $StudySessionQuestionTableManager(_db, _db.studySessionQuestion);
   $OpenEndedResponseLogTableManager get openEndedResponseLog =>
       $OpenEndedResponseLogTableManager(_db, _db.openEndedResponseLog);
-  $StudySessionHasOpenEndedQuestionTableManager
-  get studySessionHasOpenEndedQuestion =>
-      $StudySessionHasOpenEndedQuestionTableManager(
-        _db,
-        _db.studySessionHasOpenEndedQuestion,
-      );
   $FsrsStateTableManager get fsrsState =>
       $FsrsStateTableManager(_db, _db.fsrsState);
   $FsrsReviewLogTableManager get fsrsReviewLog =>

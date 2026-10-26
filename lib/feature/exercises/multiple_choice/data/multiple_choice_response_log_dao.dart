@@ -11,12 +11,15 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> insertMultipleChoiceResponseLog({
     required String multipleChoiceId,
+    required String questionSnapshot,
     required String questionChoiceSnapshot,
     required String selectedChoiceIds,
     required int totalCorrectOption,
     required int correctSelected,
     required int wrongSelected,
     required int totalQuestions,
+    String? studySessionId,
+    String? studySessionLogId,
     String? aiFeedback,
     String? userNotes,
     double? score,
@@ -25,6 +28,9 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
       MultipleChoiceResponseLogCompanion.insert(
         id: Uuid().v4(),
         multipleChoiceId: multipleChoiceId,
+        questionSnapshot: questionSnapshot,
+        studySessionId: Value(studySessionId),
+        studySessionLogId: Value(studySessionLogId),
         questionChoiceSnapshot: questionChoiceSnapshot,
         selectedChoiceIds: selectedChoiceIds,
         totalCorrectOption: totalCorrectOption,
@@ -100,6 +106,16 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
           ..where((tbl) => tbl.multipleChoiceId.equals(multipleChoiceId))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.answeredAt)]))
         .get();
+  }
+
+  Future<MultipleChoiceResponseLogData?> getLatestResponseByQuestion({
+    required String multipleChoiceId,
+  }) {
+    return (select(attachedDatabase.multipleChoiceResponseLog)
+          ..where((tbl) => tbl.multipleChoiceId.equals(multipleChoiceId))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.answeredAt)])
+          ..limit(1))
+        .getSingleOrNull();
   }
 
   Future<int> deleteMultipleChoiceResponseLog({required String id}) {
