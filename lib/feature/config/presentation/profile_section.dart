@@ -1,15 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/tokens/durations.dart';
+import 'package:noema/core/network/connetction_checker.dart';
+import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_form_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/shared/editable_field/editable_field.dart';
 
-class ProfileSection extends ConsumerWidget {
+class ProfileSection extends ConsumerStatefulWidget {
   const ProfileSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileSection> createState() => _ProfileSectionState();
+}
+
+class _ProfileSectionState extends ConsumerState<ProfileSection> {
+  bool _syncing = false;
+  String? _syncError;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(configRefreshProvider, (previous, next) {
+      if (previous != next) _refreshFromServer();
+    });
+    ref.listenManual(serverConnectionChecker, (previous, next) {
+      if (next.value == true && previous?.value != true) {
+        _refreshFromServer();
+      }
+    });
+    _refreshFromServer();
+  }
+
+  Future<void> _refreshFromServer() async {
+    final isConnected =
+        (ref.read(serverConnectionChecker).value ??
+            await ref.read(serverConnectionChecker.future)) ==
+        true;
+    if (!isConnected || !mounted) return;
+
+    setState(() {
+      _syncing = true;
+      _syncError = null;
+    });
+    try {
+      await ref.read(userProvider.notifier).refreshFromServer();
+    } catch (error) {
+      if (mounted) {
+        setState(() => _syncError = 'Não foi possível atualizar o perfil.');
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
     final user = ref.watch(userProvider);
     final form = ref.watch(userFormProvider);
     final formNotifier = ref.watch(userFormProvider.notifier);
@@ -20,6 +67,17 @@ class ProfileSection extends ConsumerWidget {
 
     return Column(
       children: [
+        if (_syncing || _syncError != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _syncing ? 'Atualizando perfil do servidor…' : _syncError!,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
         Column(
           key: const ValueKey("View"),
           spacing: 30,

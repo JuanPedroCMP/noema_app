@@ -34,7 +34,7 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
     UserOut? remoteUser = response.data;
 
     final updateUser = UserUpdate((b) {
-      b.password  = clean(password);
+      b.password = clean(password);
       b.primaryEmail = clean(primaryEmail);
       b.userDisplayName = clean(displayName);
       b.userName = clean(userName);
@@ -57,6 +57,31 @@ class UserNotifier extends AsyncNotifier<AppUserData> {
     ref.invalidateSelf();
 
     return user;
+  }
+
+  Future<void> refreshFromServer() async {
+    final localUser = await getUser();
+    final response = await ref
+        .read(userApiProvider)
+        .currentUserApiV1UserGetGet();
+    final remoteUser = response.data;
+    if (remoteUser == null || remoteUser.id != localUser.remoteId) {
+      throw StateError('O servidor retornou um perfil de outra conta.');
+    }
+
+    final dao = AppUserDao(db);
+    await dao.updateUser(
+      id: localUser.id,
+      remoteId: remoteUser.id,
+      userName: remoteUser.userName,
+      displayName: remoteUser.userDisplayName,
+      primaryEmail: remoteUser.primaryEmail,
+    );
+    final updatedUser = await dao.getUserById(id: localUser.id);
+    if (updatedUser == null) {
+      throw StateError('Não foi possível atualizar o perfil local.');
+    }
+    state = AsyncData(updatedUser);
   }
 
   Future<AppUserData> getUser() async {

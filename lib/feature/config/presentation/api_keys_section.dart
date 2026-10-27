@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
 
@@ -28,7 +30,28 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
   @override
   void initState() {
     super.initState();
-    _load();
+    ref.listenManual(configRefreshProvider, (previous, next) {
+      if (previous != next) _loadIfConnected();
+    });
+    ref.listenManual(serverConnectionChecker, (previous, next) {
+      if (next.value == true && previous?.value != true) _load();
+    });
+    _loadIfConnected();
+  }
+
+  Future<void> _loadIfConnected() async {
+    final isConnected =
+        (ref.read(serverConnectionChecker).value ??
+            await ref.read(serverConnectionChecker.future)) ==
+        true;
+    if (isConnected) {
+      await _load();
+    } else if (mounted) {
+      setState(() {
+        _error = 'Conecte-se à internet para carregar as chaves do servidor.';
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _load() async {
@@ -212,7 +235,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
           Text(_error!),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: _load,
+            onPressed: _loadIfConnected,
             icon: const Icon(Icons.refresh),
             label: const Text('Tentar novamente'),
           ),

@@ -6,6 +6,7 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/providers/account_state.dart';
 import 'package:noema/feature/auth/providers/login_form_provider.dart';
+import 'package:noema/feature/auth/presentation/password_reset_dialog.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
 import 'package:noema/shared/widgets/async_action_button.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
@@ -43,6 +44,18 @@ class LoginPage extends ConsumerWidget {
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: "Senha",
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: form.loading
+                    ? null
+                    : () => showPasswordResetDialog(
+                        context,
+                        initialIdentificator: form.user,
+                      ),
+                child: const Text('Esqueceu a senha?'),
               ),
             ),
 

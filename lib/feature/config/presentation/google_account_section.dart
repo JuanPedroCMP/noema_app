@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,7 +25,29 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    ref.listenManual(configRefreshProvider, (previous, next) {
+      if (previous != next) _refreshIfConnected();
+    });
+    ref.listenManual(serverConnectionChecker, (previous, next) {
+      if (next.value == true && previous?.value != true) _refresh();
+    });
+    _refreshIfConnected();
+  }
+
+  Future<void> _refreshIfConnected() async {
+    final isConnected =
+        (ref.read(serverConnectionChecker).value ??
+            await ref.read(serverConnectionChecker.future)) ==
+        true;
+    if (isConnected) {
+      await _refresh();
+    } else if (mounted) {
+      setState(() {
+        _account = null;
+        _loading = false;
+        _error = 'Conecte-se à internet para consultar a conta Google.';
+      });
+    }
   }
 
   Future<void> _refresh() async {
@@ -81,6 +105,11 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           method: 'GET',
           followRedirects: false,
           validateStatus: (status) => status != null && status < 400,
+          extra: {
+            'secure': [
+              {'type': 'oauth2', 'name': 'OAuth2PasswordBearer'},
+            ],
+          },
         ),
       );
 
@@ -98,7 +127,9 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
 
       final baseUri = Uri.parse(client.dio.options.baseUrl);
       final oauthUri = baseUri.resolve(value);
-      if (oauthUri.scheme != 'https') {
+      if (oauthUri.scheme != 'https' ||
+          oauthUri.host != 'accounts.google.com' ||
+          !oauthUri.path.startsWith('/o/oauth2/')) {
         throw StateError('O endereço de autorização retornado é inválido.');
       }
       final launched = await launchUrl(
@@ -111,11 +142,42 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       _message(
         'Conclua a autorização no navegador. Depois, toque em “Atualizar status”.',
       );
+    } on DioException catch (error) {
+      _message(_linkFailureMessage(error));
     } catch (error) {
-      _message('Não foi possível iniciar o vínculo com Google. Tente novamente.');
+      final message = error is StateError
+          ? error.message
+          : 'Não foi possível abrir o navegador para iniciar o vínculo. '
+                'Verifique se há um navegador instalado e tente novamente.';
+      _message(message);
     } finally {
       if (mounted) setState(() => _working = false);
     }
+  }
+
+  String _linkFailureMessage(DioException error) {
+    switch (error.response?.statusCode) {
+      case 401:
+      case 403:
+        return 'Sua sessão expirou ou não está autorizada. Entre novamente '
+            'e tente vincular a conta Google.';
+      case 404:
+        return 'O servidor ainda não disponibiliza o vínculo com Google. '
+            'Atualize o app ou contate o suporte.';
+      case 503:
+        return 'O vínculo com Google não está configurado no servidor. '
+            'Contate o suporte.';
+      case final status? when status >= 500:
+        return 'O servidor falhou ao iniciar o vínculo com Google. '
+            'Tente novamente mais tarde.';
+    }
+
+    if (error.response == null) {
+      return 'Não foi possível alcançar o servidor. Verifique sua conexão '
+          'e tente novamente.';
+    }
+    return 'Não foi possível iniciar o vínculo com Google '
+        '(erro HTTP ${error.response!.statusCode}). Tente novamente.';
   }
 
   Future<void> _unlink() async {
@@ -182,7 +244,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           Text(_error!),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: _refresh,
+            onPressed: _refreshIfConnected,
             icon: const Icon(Icons.refresh),
             label: const Text('Tentar novamente'),
           ),
@@ -199,10 +261,11 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           'com o Google. As credenciais de OAuth são gerenciadas pela API.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        if (_working) const Padding(
-          padding: EdgeInsets.only(top: 12),
-          child: LinearProgressIndicator(),
-        ),
+        if (_working)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: LinearProgressIndicator(),
+          ),
         const SizedBox(height: 12),
         if (account == null)
           Card(
@@ -245,7 +308,9 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                   PopupMenuItem(
                     value: 'toggle',
                     child: Text(
-                      account.isActive ? 'Desativar integração' : 'Ativar integração',
+                      account.isActive
+                          ? 'Desativar integração'
+                          : 'Ativar integração',
                     ),
                   ),
                   const PopupMenuItem(
@@ -290,10 +355,14 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       }
       await _refresh();
       _message(
-        isActive ? 'Integração Google ativada.' : 'Integração Google desativada.',
+        isActive
+            ? 'Integração Google ativada.'
+            : 'Integração Google desativada.',
       );
     } catch (error) {
-      _message('Não foi possível alterar a integração Google. Tente novamente.');
+      _message(
+        'Não foi possível alterar a integração Google. Tente novamente.',
+      );
     } finally {
       if (mounted) setState(() => _working = false);
     }
