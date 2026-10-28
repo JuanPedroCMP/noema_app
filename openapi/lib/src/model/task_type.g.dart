@@ -8,6 +8,8 @@ part of 'task_type.dart';
 
 const TaskType _$manipulateGraph = const TaskType._('manipulateGraph');
 const TaskType _$manipulateNode = const TaskType._('manipulateNode');
+const TaskType _$generateNodeDescription =
+  const TaskType._('generateNodeDescription');
 const TaskType _$createStudySession = const TaskType._('createStudySession');
 const TaskType _$evaluateEssayQuestion =
     const TaskType._('evaluateEssayQuestion');
@@ -35,6 +37,8 @@ TaskType _$valueOf(String name) {
       return _$manipulateGraph;
     case 'manipulateNode':
       return _$manipulateNode;
+    case 'generateNodeDescription':
+      return _$generateNodeDescription;
     case 'createStudySession':
       return _$createStudySession;
     case 'evaluateEssayQuestion':
@@ -71,6 +75,7 @@ TaskType _$valueOf(String name) {
 final BuiltSet<TaskType> _$values = BuiltSet<TaskType>(const <TaskType>[
   _$manipulateGraph,
   _$manipulateNode,
+  _$generateNodeDescription,
   _$createStudySession,
   _$evaluateEssayQuestion,
   _$createEssayQuestion,
@@ -91,6 +96,7 @@ class _$TaskTypeMeta {
   const _$TaskTypeMeta();
   TaskType get manipulateGraph => _$manipulateGraph;
   TaskType get manipulateNode => _$manipulateNode;
+  TaskType get generateNodeDescription => _$generateNodeDescription;
   TaskType get createStudySession => _$createStudySession;
   TaskType get evaluateEssayQuestion => _$evaluateEssayQuestion;
   TaskType get createEssayQuestion => _$createEssayQuestion;
@@ -121,6 +127,7 @@ class _$TaskTypeSerializer implements PrimitiveSerializer<TaskType> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'manipulateGraph': 'manipulate_graph',
     'manipulateNode': 'manipulate_node',
+    'generateNodeDescription': 'generate_node_description',
     'createStudySession': 'create_study_session',
     'evaluateEssayQuestion': 'evaluate_essay_question',
     'createEssayQuestion': 'create_essay_question',
@@ -139,6 +146,7 @@ class _$TaskTypeSerializer implements PrimitiveSerializer<TaskType> {
   static const Map<Object, String> _fromWire = const <Object, String>{
     'manipulate_graph': 'manipulateGraph',
     'manipulate_node': 'manipulateNode',
+    'generate_node_description': 'generateNodeDescription',
     'create_study_session': 'createStudySession',
     'evaluate_essay_question': 'evaluateEssayQuestion',
     'create_essay_question': 'createEssayQuestion',

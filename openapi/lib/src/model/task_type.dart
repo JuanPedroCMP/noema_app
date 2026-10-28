@@ -15,6 +15,8 @@ class TaskType extends EnumClass {
   static const TaskType manipulateGraph = _$manipulateGraph;
   @BuiltValueEnumConst(wireName: r'manipulate_node')
   static const TaskType manipulateNode = _$manipulateNode;
+  @BuiltValueEnumConst(wireName: r'generate_node_description')
+  static const TaskType generateNodeDescription = _$generateNodeDescription;
   @BuiltValueEnumConst(wireName: r'create_study_session')
   static const TaskType createStudySession = _$createStudySession;
   @BuiltValueEnumConst(wireName: r'evaluate_essay_question')

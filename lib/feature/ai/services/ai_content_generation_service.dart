@@ -42,11 +42,16 @@ class AiContentGenerationService {
     required AiAgentTask task,
     required String prompt,
     String? agentId,
+    Map<String, dynamic>? context,
   }) async {
     final normalizedPrompt = prompt.trim();
     if (normalizedPrompt.isEmpty) {
       throw ArgumentError.value(prompt, 'prompt', 'must not be empty');
     }
+    final userPrompt = buildUserPrompt(
+      prompt: normalizedPrompt,
+      context: context,
+    );
 
     final matchingAgents = await listAgents(task: task);
     if (matchingAgents.isEmpty) {
@@ -69,7 +74,7 @@ class AiContentGenerationService {
     final response = await client
         .getAiRouterApi()
         .useAiApiV1AiRouterUseAiPost(
-          userPrompt: normalizedPrompt,
+          userPrompt: userPrompt,
           agentId: agent.id,
         );
     final data = response.data;
@@ -90,6 +95,15 @@ class AiContentGenerationService {
       throw const FormatException('A resposta da IA não é um objeto JSON.');
     }
     return normalizedPayload;
+  }
+
+  static String buildUserPrompt({
+    required String prompt,
+    Map<String, dynamic>? context,
+  }) {
+    final normalizedPrompt = prompt.trim();
+    if (context == null || context.isEmpty) return normalizedPrompt;
+    return '$normalizedPrompt\n\nContexto relevante (JSON):\n${jsonEncode(context)}';
   }
 
   dynamic _decodeJsonString(dynamic value) {

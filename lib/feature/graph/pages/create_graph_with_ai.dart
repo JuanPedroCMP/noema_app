@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -54,16 +55,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
           .read(aiContentGenerationServiceProvider)
           .generate(
             task: AiAgentTask.manipulateGraph,
-            prompt:
-                'Crie um grafo de conhecimento para o estudante com este '
-                'objetivo: $prompt. Gere uma estrutura inicial progressiva, '
-                'com um nó central de tipo AREA, tópicos e conceitos '
-                'conectados por relações válidas. Responda somente com os '
-                'campos do formato estruturado já definido pelo agente: '
-                'graph_title, nodes (node_id inteiro, title, type: AREA, '
-                'TOPIC, CONCEPT ou SUBCONCEPT) e edges (source_node, '
-                'target_node, type: SUBTOPIC ou PREREQUISITE). Use IDs '
-                'inteiros únicos, referências existentes e no máximo 30 nós.',
+            prompt: prompt
           );
       response.putIfAbsent('graph_description', () => prompt);
       final draft = GraphResponse.fromJson(response);
