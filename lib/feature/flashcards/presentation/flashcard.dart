@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
@@ -59,10 +60,12 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   List<FlashcardData> _studyCards = [];
   int _studyIndex = 0;
   int _reviewedCount = 0;
+  int _totalReviewSeconds = 0;
   bool _showAnswer = false;
   bool _isReviewing = false;
   bool _sessionComplete = false;
   String _search = '';
+  final Stopwatch _reviewTimer = Stopwatch();
 
   void _startDeck(
     String name,
@@ -81,8 +84,12 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       _studyCards = dueCards;
       _studyIndex = 0;
       _reviewedCount = 0;
+      _totalReviewSeconds = 0;
       _showAnswer = false;
       _sessionComplete = dueCards.isEmpty;
+      _reviewTimer
+        ..reset()
+        ..start();
     });
   }
 
@@ -94,8 +101,10 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       _studyCards = [];
       _studyIndex = 0;
       _reviewedCount = 0;
+      _totalReviewSeconds = 0;
       _showAnswer = false;
       _sessionComplete = false;
+      _reviewTimer.stop();
     });
   }
 
@@ -103,17 +112,37 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     if (_isReviewing) return;
     setState(() => _isReviewing = true);
     try {
-      await FlashcardDao(
-        ref.read(appDatabaseProvider),
-      ).logReview(card: card, rating: rating);
+      final durationSeconds = _reviewTimer.elapsed.inSeconds;
+      final result = await FlashcardDao(ref.read(appDatabaseProvider)).logReview(
+        card: card,
+        rating: rating,
+        durationSeconds: durationSeconds,
+      );
       if (!mounted) return;
       final nextIndex = _studyIndex + 1;
       setState(() {
         _reviewedCount++;
+        _totalReviewSeconds += durationSeconds;
         _studyIndex = nextIndex;
         _showAnswer = false;
         _sessionComplete = nextIndex >= _studyCards.length;
+        if (!_sessionComplete) {
+          _reviewTimer
+            ..reset()
+            ..start();
+        } else {
+          _reviewTimer.stop();
+        }
       });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Próxima revisão: ${DateFormat('dd/MM/yyyy HH:mm').format(result.dueAt.toLocal())}.',
+            ),
+          ),
+        );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -606,14 +635,19 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       return _StudyCompleteView(
         deckName: activeName,
         reviewedCount: _reviewedCount,
+        totalReviewSeconds: _totalReviewSeconds,
         hasCards: _studyCards.isNotEmpty,
         onBack: _stopStudy,
         onStudyAll: () => setState(() {
           _studyCards = List.of(_selectedDeckAllCards);
           _studyIndex = 0;
           _reviewedCount = 0;
+          _totalReviewSeconds = 0;
           _showAnswer = false;
           _sessionComplete = _studyCards.isEmpty;
+          _reviewTimer
+            ..reset()
+            ..start();
         }),
       );
     }
@@ -710,7 +744,7 @@ class _SectionHeader extends StatelessWidget {
             ],
           ),
         ),
-        ?trailing,
+        trailing ?? const SizedBox.shrink(),
       ],
     );
   }
@@ -932,6 +966,7 @@ class _StudyCompleteView extends StatelessWidget {
   const _StudyCompleteView({
     required this.deckName,
     required this.reviewedCount,
+    required this.totalReviewSeconds,
     required this.hasCards,
     required this.onBack,
     required this.onStudyAll,
@@ -939,6 +974,7 @@ class _StudyCompleteView extends StatelessWidget {
 
   final String deckName;
   final int reviewedCount;
+  final int totalReviewSeconds;
   final bool hasCards;
   final VoidCallback onBack;
   final VoidCallback onStudyAll;
@@ -962,6 +998,14 @@ class _StudyCompleteView extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
+            if (hasCards) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Tempo de revisão: ${_formatReviewDuration(totalReviewSeconds)}',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               hasCards
@@ -990,6 +1034,13 @@ class _StudyCompleteView extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatReviewDuration(int totalSeconds) {
+  final minutes = totalSeconds ~/ 60;
+  final seconds = totalSeconds % 60;
+  if (minutes == 0) return '$seconds s';
+  return seconds == 0 ? '$minutes min' : '$minutes min $seconds s';
 }
 
 class _FlashcardDraft {

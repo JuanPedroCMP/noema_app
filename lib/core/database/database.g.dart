@@ -12959,6 +12959,30 @@ class MultipleChoiceResponseLog extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _correctedMeta = const VerificationMeta(
+    'corrected',
+  );
+  late final GeneratedColumn<bool> corrected = GeneratedColumn<bool>(
+    'corrected',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (corrected IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (duration_seconds >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
   static const VerificationMeta _answeredAtMeta = const VerificationMeta(
     'answeredAt',
   );
@@ -12987,6 +13011,8 @@ class MultipleChoiceResponseLog extends Table
     aiFeedback,
     userNotes,
     score,
+    corrected,
+    durationSeconds,
     answeredAt,
   ];
   @override
@@ -13130,6 +13156,21 @@ class MultipleChoiceResponseLog extends Table
         score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
       );
     }
+    if (data.containsKey('corrected')) {
+      context.handle(
+        _correctedMeta,
+        corrected.isAcceptableOrUnknown(data['corrected']!, _correctedMeta),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
     if (data.containsKey('answered_at')) {
       context.handle(
         _answeredAtMeta,
@@ -13204,6 +13245,14 @@ class MultipleChoiceResponseLog extends Table
         DriftSqlType.double,
         data['${effectivePrefix}score'],
       ),
+      corrected: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}corrected'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
       answeredAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}answered_at'],
@@ -13236,6 +13285,8 @@ class MultipleChoiceResponseLogData extends DataClass
   final String? aiFeedback;
   final String? userNotes;
   final double? score;
+  final bool corrected;
+  final int durationSeconds;
   final int answeredAt;
   const MultipleChoiceResponseLogData({
     required this.id,
@@ -13252,6 +13303,8 @@ class MultipleChoiceResponseLogData extends DataClass
     this.aiFeedback,
     this.userNotes,
     this.score,
+    required this.corrected,
+    required this.durationSeconds,
     required this.answeredAt,
   });
   @override
@@ -13281,6 +13334,8 @@ class MultipleChoiceResponseLogData extends DataClass
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<double>(score);
     }
+    map['corrected'] = Variable<bool>(corrected);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
     map['answered_at'] = Variable<int>(answeredAt);
     return map;
   }
@@ -13311,6 +13366,8 @@ class MultipleChoiceResponseLogData extends DataClass
       score: score == null && nullToAbsent
           ? const Value.absent()
           : Value(score),
+      corrected: Value(corrected),
+      durationSeconds: Value(durationSeconds),
       answeredAt: Value(answeredAt),
     );
   }
@@ -13343,6 +13400,8 @@ class MultipleChoiceResponseLogData extends DataClass
       aiFeedback: serializer.fromJson<String?>(json['ai_feedback']),
       userNotes: serializer.fromJson<String?>(json['user_notes']),
       score: serializer.fromJson<double?>(json['score']),
+      corrected: serializer.fromJson<bool>(json['corrected']),
+      durationSeconds: serializer.fromJson<int>(json['duration_seconds']),
       answeredAt: serializer.fromJson<int>(json['answered_at']),
     );
   }
@@ -13366,6 +13425,8 @@ class MultipleChoiceResponseLogData extends DataClass
       'ai_feedback': serializer.toJson<String?>(aiFeedback),
       'user_notes': serializer.toJson<String?>(userNotes),
       'score': serializer.toJson<double?>(score),
+      'corrected': serializer.toJson<bool>(corrected),
+      'duration_seconds': serializer.toJson<int>(durationSeconds),
       'answered_at': serializer.toJson<int>(answeredAt),
     };
   }
@@ -13385,6 +13446,8 @@ class MultipleChoiceResponseLogData extends DataClass
     Value<String?> aiFeedback = const Value.absent(),
     Value<String?> userNotes = const Value.absent(),
     Value<double?> score = const Value.absent(),
+    bool? corrected,
+    int? durationSeconds,
     int? answeredAt,
   }) => MultipleChoiceResponseLogData(
     id: id ?? this.id,
@@ -13406,6 +13469,8 @@ class MultipleChoiceResponseLogData extends DataClass
     aiFeedback: aiFeedback.present ? aiFeedback.value : this.aiFeedback,
     userNotes: userNotes.present ? userNotes.value : this.userNotes,
     score: score.present ? score.value : this.score,
+    corrected: corrected ?? this.corrected,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
     answeredAt: answeredAt ?? this.answeredAt,
   );
   MultipleChoiceResponseLogData copyWithCompanion(
@@ -13448,6 +13513,10 @@ class MultipleChoiceResponseLogData extends DataClass
           : this.aiFeedback,
       userNotes: data.userNotes.present ? data.userNotes.value : this.userNotes,
       score: data.score.present ? data.score.value : this.score,
+      corrected: data.corrected.present ? data.corrected.value : this.corrected,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
       answeredAt: data.answeredAt.present
           ? data.answeredAt.value
           : this.answeredAt,
@@ -13471,6 +13540,8 @@ class MultipleChoiceResponseLogData extends DataClass
           ..write('aiFeedback: $aiFeedback, ')
           ..write('userNotes: $userNotes, ')
           ..write('score: $score, ')
+          ..write('corrected: $corrected, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('answeredAt: $answeredAt')
           ..write(')'))
         .toString();
@@ -13492,6 +13563,8 @@ class MultipleChoiceResponseLogData extends DataClass
     aiFeedback,
     userNotes,
     score,
+    corrected,
+    durationSeconds,
     answeredAt,
   );
   @override
@@ -13512,6 +13585,8 @@ class MultipleChoiceResponseLogData extends DataClass
           other.aiFeedback == this.aiFeedback &&
           other.userNotes == this.userNotes &&
           other.score == this.score &&
+          other.corrected == this.corrected &&
+          other.durationSeconds == this.durationSeconds &&
           other.answeredAt == this.answeredAt);
 }
 
@@ -13531,6 +13606,8 @@ class MultipleChoiceResponseLogCompanion
   final Value<String?> aiFeedback;
   final Value<String?> userNotes;
   final Value<double?> score;
+  final Value<bool> corrected;
+  final Value<int> durationSeconds;
   final Value<int> answeredAt;
   final Value<int> rowid;
   const MultipleChoiceResponseLogCompanion({
@@ -13548,6 +13625,8 @@ class MultipleChoiceResponseLogCompanion
     this.aiFeedback = const Value.absent(),
     this.userNotes = const Value.absent(),
     this.score = const Value.absent(),
+    this.corrected = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.answeredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -13566,6 +13645,8 @@ class MultipleChoiceResponseLogCompanion
     this.aiFeedback = const Value.absent(),
     this.userNotes = const Value.absent(),
     this.score = const Value.absent(),
+    this.corrected = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.answeredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -13592,6 +13673,8 @@ class MultipleChoiceResponseLogCompanion
     Expression<String>? aiFeedback,
     Expression<String>? userNotes,
     Expression<double>? score,
+    Expression<bool>? corrected,
+    Expression<int>? durationSeconds,
     Expression<int>? answeredAt,
     Expression<int>? rowid,
   }) {
@@ -13612,6 +13695,8 @@ class MultipleChoiceResponseLogCompanion
       if (aiFeedback != null) 'ai_feedback': aiFeedback,
       if (userNotes != null) 'user_notes': userNotes,
       if (score != null) 'score': score,
+      if (corrected != null) 'corrected': corrected,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (answeredAt != null) 'answered_at': answeredAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -13632,6 +13717,8 @@ class MultipleChoiceResponseLogCompanion
     Value<String?>? aiFeedback,
     Value<String?>? userNotes,
     Value<double?>? score,
+    Value<bool>? corrected,
+    Value<int>? durationSeconds,
     Value<int>? answeredAt,
     Value<int>? rowid,
   }) {
@@ -13651,6 +13738,8 @@ class MultipleChoiceResponseLogCompanion
       aiFeedback: aiFeedback ?? this.aiFeedback,
       userNotes: userNotes ?? this.userNotes,
       score: score ?? this.score,
+      corrected: corrected ?? this.corrected,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       answeredAt: answeredAt ?? this.answeredAt,
       rowid: rowid ?? this.rowid,
     );
@@ -13703,6 +13792,12 @@ class MultipleChoiceResponseLogCompanion
     if (score.present) {
       map['score'] = Variable<double>(score.value);
     }
+    if (corrected.present) {
+      map['corrected'] = Variable<bool>(corrected.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
     if (answeredAt.present) {
       map['answered_at'] = Variable<int>(answeredAt.value);
     }
@@ -13729,6 +13824,8 @@ class MultipleChoiceResponseLogCompanion
           ..write('aiFeedback: $aiFeedback, ')
           ..write('userNotes: $userNotes, ')
           ..write('score: $score, ')
+          ..write('corrected: $corrected, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('answeredAt: $answeredAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -15027,6 +15124,18 @@ class OpenEndedResponseLog extends Table
     $customConstraints: 'NOT NULL DEFAULT 0 CHECK (corrected IN (0, 1))',
     defaultValue: const CustomExpression('0'),
   );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (duration_seconds >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
   static const VerificationMeta _answeredAtMeta = const VerificationMeta(
     'answeredAt',
   );
@@ -15054,6 +15163,7 @@ class OpenEndedResponseLog extends Table
     masteryDemonstrated,
     score,
     corrected,
+    durationSeconds,
     answeredAt,
   ];
   @override
@@ -15164,6 +15274,15 @@ class OpenEndedResponseLog extends Table
         corrected.isAcceptableOrUnknown(data['corrected']!, _correctedMeta),
       );
     }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
     if (data.containsKey('answered_at')) {
       context.handle(
         _answeredAtMeta,
@@ -15234,6 +15353,10 @@ class OpenEndedResponseLog extends Table
         DriftSqlType.bool,
         data['${effectivePrefix}corrected'],
       )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
       answeredAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}answered_at'],
@@ -15265,6 +15388,7 @@ class OpenEndedResponseLogData extends DataClass
   final String? masteryDemonstrated;
   final double? score;
   final bool corrected;
+  final int durationSeconds;
   final int answeredAt;
   const OpenEndedResponseLogData({
     required this.id,
@@ -15280,6 +15404,7 @@ class OpenEndedResponseLogData extends DataClass
     this.masteryDemonstrated,
     this.score,
     required this.corrected,
+    required this.durationSeconds,
     required this.answeredAt,
   });
   @override
@@ -15316,6 +15441,7 @@ class OpenEndedResponseLogData extends DataClass
       map['score'] = Variable<double>(score);
     }
     map['corrected'] = Variable<bool>(corrected);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
     map['answered_at'] = Variable<int>(answeredAt);
     return map;
   }
@@ -15353,6 +15479,7 @@ class OpenEndedResponseLogData extends DataClass
           ? const Value.absent()
           : Value(score),
       corrected: Value(corrected),
+      durationSeconds: Value(durationSeconds),
       answeredAt: Value(answeredAt),
     );
   }
@@ -15380,6 +15507,7 @@ class OpenEndedResponseLogData extends DataClass
       ),
       score: serializer.fromJson<double?>(json['score']),
       corrected: serializer.fromJson<bool>(json['corrected']),
+      durationSeconds: serializer.fromJson<int>(json['duration_seconds']),
       answeredAt: serializer.fromJson<int>(json['answered_at']),
     );
   }
@@ -15400,6 +15528,7 @@ class OpenEndedResponseLogData extends DataClass
       'mastery_demonstrated': serializer.toJson<String?>(masteryDemonstrated),
       'score': serializer.toJson<double?>(score),
       'corrected': serializer.toJson<bool>(corrected),
+      'duration_seconds': serializer.toJson<int>(durationSeconds),
       'answered_at': serializer.toJson<int>(answeredAt),
     };
   }
@@ -15418,6 +15547,7 @@ class OpenEndedResponseLogData extends DataClass
     Value<String?> masteryDemonstrated = const Value.absent(),
     Value<double?> score = const Value.absent(),
     bool? corrected,
+    int? durationSeconds,
     int? answeredAt,
   }) => OpenEndedResponseLogData(
     id: id ?? this.id,
@@ -15439,6 +15569,7 @@ class OpenEndedResponseLogData extends DataClass
         : this.masteryDemonstrated,
     score: score.present ? score.value : this.score,
     corrected: corrected ?? this.corrected,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
     answeredAt: answeredAt ?? this.answeredAt,
   );
   OpenEndedResponseLogData copyWithCompanion(
@@ -15472,6 +15603,9 @@ class OpenEndedResponseLogData extends DataClass
           : this.masteryDemonstrated,
       score: data.score.present ? data.score.value : this.score,
       corrected: data.corrected.present ? data.corrected.value : this.corrected,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
       answeredAt: data.answeredAt.present
           ? data.answeredAt.value
           : this.answeredAt,
@@ -15494,6 +15628,7 @@ class OpenEndedResponseLogData extends DataClass
           ..write('masteryDemonstrated: $masteryDemonstrated, ')
           ..write('score: $score, ')
           ..write('corrected: $corrected, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('answeredAt: $answeredAt')
           ..write(')'))
         .toString();
@@ -15514,6 +15649,7 @@ class OpenEndedResponseLogData extends DataClass
     masteryDemonstrated,
     score,
     corrected,
+    durationSeconds,
     answeredAt,
   );
   @override
@@ -15533,6 +15669,7 @@ class OpenEndedResponseLogData extends DataClass
           other.masteryDemonstrated == this.masteryDemonstrated &&
           other.score == this.score &&
           other.corrected == this.corrected &&
+          other.durationSeconds == this.durationSeconds &&
           other.answeredAt == this.answeredAt);
 }
 
@@ -15551,6 +15688,7 @@ class OpenEndedResponseLogCompanion
   final Value<String?> masteryDemonstrated;
   final Value<double?> score;
   final Value<bool> corrected;
+  final Value<int> durationSeconds;
   final Value<int> answeredAt;
   final Value<int> rowid;
   const OpenEndedResponseLogCompanion({
@@ -15567,6 +15705,7 @@ class OpenEndedResponseLogCompanion
     this.masteryDemonstrated = const Value.absent(),
     this.score = const Value.absent(),
     this.corrected = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.answeredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -15584,6 +15723,7 @@ class OpenEndedResponseLogCompanion
     this.masteryDemonstrated = const Value.absent(),
     this.score = const Value.absent(),
     this.corrected = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.answeredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -15603,6 +15743,7 @@ class OpenEndedResponseLogCompanion
     Expression<String>? masteryDemonstrated,
     Expression<double>? score,
     Expression<bool>? corrected,
+    Expression<int>? durationSeconds,
     Expression<int>? answeredAt,
     Expression<int>? rowid,
   }) {
@@ -15621,6 +15762,7 @@ class OpenEndedResponseLogCompanion
         'mastery_demonstrated': masteryDemonstrated,
       if (score != null) 'score': score,
       if (corrected != null) 'corrected': corrected,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (answeredAt != null) 'answered_at': answeredAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -15640,6 +15782,7 @@ class OpenEndedResponseLogCompanion
     Value<String?>? masteryDemonstrated,
     Value<double?>? score,
     Value<bool>? corrected,
+    Value<int>? durationSeconds,
     Value<int>? answeredAt,
     Value<int>? rowid,
   }) {
@@ -15657,6 +15800,7 @@ class OpenEndedResponseLogCompanion
       masteryDemonstrated: masteryDemonstrated ?? this.masteryDemonstrated,
       score: score ?? this.score,
       corrected: corrected ?? this.corrected,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       answeredAt: answeredAt ?? this.answeredAt,
       rowid: rowid ?? this.rowid,
     );
@@ -15704,6 +15848,9 @@ class OpenEndedResponseLogCompanion
     if (corrected.present) {
       map['corrected'] = Variable<bool>(corrected.value);
     }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
     if (answeredAt.present) {
       map['answered_at'] = Variable<int>(answeredAt.value);
     }
@@ -15729,7 +15876,1184 @@ class OpenEndedResponseLogCompanion
           ..write('masteryDemonstrated: $masteryDemonstrated, ')
           ..write('score: $score, ')
           ..write('corrected: $corrected, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('answeredAt: $answeredAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ReviewItemState extends Table
+    with TableInfo<ReviewItemState, ReviewItemStateData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ReviewItemState(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES graph_node(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _itemTypeMeta = const VerificationMeta(
+    'itemType',
+  );
+  late final GeneratedColumn<String> itemType = GeneratedColumn<String>(
+    'item_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (item_type IN (\'FLASHCARD\', \'OPEN_ENDED\', \'MULTIPLE_CHOICE\'))',
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _cardStateJsonMeta = const VerificationMeta(
+    'cardStateJson',
+  );
+  late final GeneratedColumn<String> cardStateJson = GeneratedColumn<String>(
+    'card_state_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (json_valid(card_state_json))',
+  );
+  static const VerificationMeta _nextReviewAtMeta = const VerificationMeta(
+    'nextReviewAt',
+  );
+  late final GeneratedColumn<int> nextReviewAt = GeneratedColumn<int>(
+    'next_review_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nodeId,
+    itemType,
+    itemId,
+    cardStateJson,
+    nextReviewAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_item_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReviewItemStateData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeIdMeta);
+    }
+    if (data.containsKey('item_type')) {
+      context.handle(
+        _itemTypeMeta,
+        itemType.isAcceptableOrUnknown(data['item_type']!, _itemTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemTypeMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('card_state_json')) {
+      context.handle(
+        _cardStateJsonMeta,
+        cardStateJson.isAcceptableOrUnknown(
+          data['card_state_json']!,
+          _cardStateJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cardStateJsonMeta);
+    }
+    if (data.containsKey('next_review_at')) {
+      context.handle(
+        _nextReviewAtMeta,
+        nextReviewAt.isAcceptableOrUnknown(
+          data['next_review_at']!,
+          _nextReviewAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nextReviewAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {itemType, itemId},
+  ];
+  @override
+  ReviewItemStateData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewItemStateData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      )!,
+      itemType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_type'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      cardStateJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}card_state_json'],
+      )!,
+      nextReviewAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_review_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  ReviewItemState createAlias(String alias) {
+    return ReviewItemState(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'CONSTRAINT review_item_state_item_uq UNIQUE(item_type, item_id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ReviewItemStateData extends DataClass
+    implements Insertable<ReviewItemStateData> {
+  final String id;
+  final String nodeId;
+  final String itemType;
+  final String itemId;
+  final String cardStateJson;
+  final int nextReviewAt;
+  final int createdAt;
+  final int updatedAt;
+  const ReviewItemStateData({
+    required this.id,
+    required this.nodeId,
+    required this.itemType,
+    required this.itemId,
+    required this.cardStateJson,
+    required this.nextReviewAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['node_id'] = Variable<String>(nodeId);
+    map['item_type'] = Variable<String>(itemType);
+    map['item_id'] = Variable<String>(itemId);
+    map['card_state_json'] = Variable<String>(cardStateJson);
+    map['next_review_at'] = Variable<int>(nextReviewAt);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  ReviewItemStateCompanion toCompanion(bool nullToAbsent) {
+    return ReviewItemStateCompanion(
+      id: Value(id),
+      nodeId: Value(nodeId),
+      itemType: Value(itemType),
+      itemId: Value(itemId),
+      cardStateJson: Value(cardStateJson),
+      nextReviewAt: Value(nextReviewAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ReviewItemStateData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewItemStateData(
+      id: serializer.fromJson<String>(json['id']),
+      nodeId: serializer.fromJson<String>(json['node_id']),
+      itemType: serializer.fromJson<String>(json['item_type']),
+      itemId: serializer.fromJson<String>(json['item_id']),
+      cardStateJson: serializer.fromJson<String>(json['card_state_json']),
+      nextReviewAt: serializer.fromJson<int>(json['next_review_at']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'node_id': serializer.toJson<String>(nodeId),
+      'item_type': serializer.toJson<String>(itemType),
+      'item_id': serializer.toJson<String>(itemId),
+      'card_state_json': serializer.toJson<String>(cardStateJson),
+      'next_review_at': serializer.toJson<int>(nextReviewAt),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  ReviewItemStateData copyWith({
+    String? id,
+    String? nodeId,
+    String? itemType,
+    String? itemId,
+    String? cardStateJson,
+    int? nextReviewAt,
+    int? createdAt,
+    int? updatedAt,
+  }) => ReviewItemStateData(
+    id: id ?? this.id,
+    nodeId: nodeId ?? this.nodeId,
+    itemType: itemType ?? this.itemType,
+    itemId: itemId ?? this.itemId,
+    cardStateJson: cardStateJson ?? this.cardStateJson,
+    nextReviewAt: nextReviewAt ?? this.nextReviewAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ReviewItemStateData copyWithCompanion(ReviewItemStateCompanion data) {
+    return ReviewItemStateData(
+      id: data.id.present ? data.id.value : this.id,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      itemType: data.itemType.present ? data.itemType.value : this.itemType,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      cardStateJson: data.cardStateJson.present
+          ? data.cardStateJson.value
+          : this.cardStateJson,
+      nextReviewAt: data.nextReviewAt.present
+          ? data.nextReviewAt.value
+          : this.nextReviewAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewItemStateData(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('itemType: $itemType, ')
+          ..write('itemId: $itemId, ')
+          ..write('cardStateJson: $cardStateJson, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    nodeId,
+    itemType,
+    itemId,
+    cardStateJson,
+    nextReviewAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewItemStateData &&
+          other.id == this.id &&
+          other.nodeId == this.nodeId &&
+          other.itemType == this.itemType &&
+          other.itemId == this.itemId &&
+          other.cardStateJson == this.cardStateJson &&
+          other.nextReviewAt == this.nextReviewAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ReviewItemStateCompanion extends UpdateCompanion<ReviewItemStateData> {
+  final Value<String> id;
+  final Value<String> nodeId;
+  final Value<String> itemType;
+  final Value<String> itemId;
+  final Value<String> cardStateJson;
+  final Value<int> nextReviewAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const ReviewItemStateCompanion({
+    this.id = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.itemType = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.cardStateJson = const Value.absent(),
+    this.nextReviewAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReviewItemStateCompanion.insert({
+    required String id,
+    required String nodeId,
+    required String itemType,
+    required String itemId,
+    required String cardStateJson,
+    required int nextReviewAt,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nodeId = Value(nodeId),
+       itemType = Value(itemType),
+       itemId = Value(itemId),
+       cardStateJson = Value(cardStateJson),
+       nextReviewAt = Value(nextReviewAt);
+  static Insertable<ReviewItemStateData> custom({
+    Expression<String>? id,
+    Expression<String>? nodeId,
+    Expression<String>? itemType,
+    Expression<String>? itemId,
+    Expression<String>? cardStateJson,
+    Expression<int>? nextReviewAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nodeId != null) 'node_id': nodeId,
+      if (itemType != null) 'item_type': itemType,
+      if (itemId != null) 'item_id': itemId,
+      if (cardStateJson != null) 'card_state_json': cardStateJson,
+      if (nextReviewAt != null) 'next_review_at': nextReviewAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReviewItemStateCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nodeId,
+    Value<String>? itemType,
+    Value<String>? itemId,
+    Value<String>? cardStateJson,
+    Value<int>? nextReviewAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ReviewItemStateCompanion(
+      id: id ?? this.id,
+      nodeId: nodeId ?? this.nodeId,
+      itemType: itemType ?? this.itemType,
+      itemId: itemId ?? this.itemId,
+      cardStateJson: cardStateJson ?? this.cardStateJson,
+      nextReviewAt: nextReviewAt ?? this.nextReviewAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (itemType.present) {
+      map['item_type'] = Variable<String>(itemType.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (cardStateJson.present) {
+      map['card_state_json'] = Variable<String>(cardStateJson.value);
+    }
+    if (nextReviewAt.present) {
+      map['next_review_at'] = Variable<int>(nextReviewAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewItemStateCompanion(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('itemType: $itemType, ')
+          ..write('itemId: $itemId, ')
+          ..write('cardStateJson: $cardStateJson, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ReviewItemLog extends Table
+    with TableInfo<ReviewItemLog, ReviewItemLogData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ReviewItemLog(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _reviewItemStateIdMeta = const VerificationMeta(
+    'reviewItemStateId',
+  );
+  late final GeneratedColumn<String> reviewItemStateId =
+      GeneratedColumn<String>(
+        'review_item_state_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES review_item_state(id)ON DELETE CASCADE',
+      );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  late final GeneratedColumn<int> rating = GeneratedColumn<int>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (rating BETWEEN 1 AND 4)',
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (duration_seconds >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  late final GeneratedColumn<double> score = GeneratedColumn<double>(
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (score IS NULL OR(score >= 0 AND score <= 1))',
+  );
+  static const VerificationMeta _reviewMethodMeta = const VerificationMeta(
+    'reviewMethod',
+  );
+  late final GeneratedColumn<String> reviewMethod = GeneratedColumn<String>(
+    'review_method',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (review_method IN (\'SELF_RATING\', \'AUTO_SCORE\', \'AI_CORRECTION\', \'MANUAL_CORRECTION\'))',
+  );
+  static const VerificationMeta _sourceResponseIdMeta = const VerificationMeta(
+    'sourceResponseId',
+  );
+  late final GeneratedColumn<String> sourceResponseId = GeneratedColumn<String>(
+    'source_response_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _retrievabilityMeta = const VerificationMeta(
+    'retrievability',
+  );
+  late final GeneratedColumn<double> retrievability = GeneratedColumn<double>(
+    'retrievability',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (retrievability IS NULL OR(retrievability >= 0 AND retrievability <= 1))',
+  );
+  static const VerificationMeta _scheduledDaysMeta = const VerificationMeta(
+    'scheduledDays',
+  );
+  late final GeneratedColumn<int> scheduledDays = GeneratedColumn<int>(
+    'scheduled_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (scheduled_days >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
+    'reviewedAt',
+  );
+  late final GeneratedColumn<int> reviewedAt = GeneratedColumn<int>(
+    'reviewed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    reviewItemStateId,
+    rating,
+    durationSeconds,
+    score,
+    reviewMethod,
+    sourceResponseId,
+    retrievability,
+    scheduledDays,
+    reviewedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_item_log';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReviewItemLogData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('review_item_state_id')) {
+      context.handle(
+        _reviewItemStateIdMeta,
+        reviewItemStateId.isAcceptableOrUnknown(
+          data['review_item_state_id']!,
+          _reviewItemStateIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewItemStateIdMeta);
+    }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ratingMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
+    if (data.containsKey('review_method')) {
+      context.handle(
+        _reviewMethodMeta,
+        reviewMethod.isAcceptableOrUnknown(
+          data['review_method']!,
+          _reviewMethodMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewMethodMeta);
+    }
+    if (data.containsKey('source_response_id')) {
+      context.handle(
+        _sourceResponseIdMeta,
+        sourceResponseId.isAcceptableOrUnknown(
+          data['source_response_id']!,
+          _sourceResponseIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retrievability')) {
+      context.handle(
+        _retrievabilityMeta,
+        retrievability.isAcceptableOrUnknown(
+          data['retrievability']!,
+          _retrievabilityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('scheduled_days')) {
+      context.handle(
+        _scheduledDaysMeta,
+        scheduledDays.isAcceptableOrUnknown(
+          data['scheduled_days']!,
+          _scheduledDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reviewed_at')) {
+      context.handle(
+        _reviewedAtMeta,
+        reviewedAt.isAcceptableOrUnknown(data['reviewed_at']!, _reviewedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReviewItemLogData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewItemLogData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      reviewItemStateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}review_item_state_id'],
+      )!,
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rating'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}score'],
+      ),
+      reviewMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}review_method'],
+      )!,
+      sourceResponseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_response_id'],
+      ),
+      retrievability: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}retrievability'],
+      ),
+      scheduledDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}scheduled_days'],
+      )!,
+      reviewedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviewed_at'],
+      )!,
+    );
+  }
+
+  @override
+  ReviewItemLog createAlias(String alias) {
+    return ReviewItemLog(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ReviewItemLogData extends DataClass
+    implements Insertable<ReviewItemLogData> {
+  final String id;
+  final String reviewItemStateId;
+  final int rating;
+  final int durationSeconds;
+  final double? score;
+  final String reviewMethod;
+  final String? sourceResponseId;
+  final double? retrievability;
+  final int scheduledDays;
+  final int reviewedAt;
+  const ReviewItemLogData({
+    required this.id,
+    required this.reviewItemStateId,
+    required this.rating,
+    required this.durationSeconds,
+    this.score,
+    required this.reviewMethod,
+    this.sourceResponseId,
+    this.retrievability,
+    required this.scheduledDays,
+    required this.reviewedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['review_item_state_id'] = Variable<String>(reviewItemStateId);
+    map['rating'] = Variable<int>(rating);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    if (!nullToAbsent || score != null) {
+      map['score'] = Variable<double>(score);
+    }
+    map['review_method'] = Variable<String>(reviewMethod);
+    if (!nullToAbsent || sourceResponseId != null) {
+      map['source_response_id'] = Variable<String>(sourceResponseId);
+    }
+    if (!nullToAbsent || retrievability != null) {
+      map['retrievability'] = Variable<double>(retrievability);
+    }
+    map['scheduled_days'] = Variable<int>(scheduledDays);
+    map['reviewed_at'] = Variable<int>(reviewedAt);
+    return map;
+  }
+
+  ReviewItemLogCompanion toCompanion(bool nullToAbsent) {
+    return ReviewItemLogCompanion(
+      id: Value(id),
+      reviewItemStateId: Value(reviewItemStateId),
+      rating: Value(rating),
+      durationSeconds: Value(durationSeconds),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
+      reviewMethod: Value(reviewMethod),
+      sourceResponseId: sourceResponseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceResponseId),
+      retrievability: retrievability == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retrievability),
+      scheduledDays: Value(scheduledDays),
+      reviewedAt: Value(reviewedAt),
+    );
+  }
+
+  factory ReviewItemLogData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewItemLogData(
+      id: serializer.fromJson<String>(json['id']),
+      reviewItemStateId: serializer.fromJson<String>(
+        json['review_item_state_id'],
+      ),
+      rating: serializer.fromJson<int>(json['rating']),
+      durationSeconds: serializer.fromJson<int>(json['duration_seconds']),
+      score: serializer.fromJson<double?>(json['score']),
+      reviewMethod: serializer.fromJson<String>(json['review_method']),
+      sourceResponseId: serializer.fromJson<String?>(
+        json['source_response_id'],
+      ),
+      retrievability: serializer.fromJson<double?>(json['retrievability']),
+      scheduledDays: serializer.fromJson<int>(json['scheduled_days']),
+      reviewedAt: serializer.fromJson<int>(json['reviewed_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'review_item_state_id': serializer.toJson<String>(reviewItemStateId),
+      'rating': serializer.toJson<int>(rating),
+      'duration_seconds': serializer.toJson<int>(durationSeconds),
+      'score': serializer.toJson<double?>(score),
+      'review_method': serializer.toJson<String>(reviewMethod),
+      'source_response_id': serializer.toJson<String?>(sourceResponseId),
+      'retrievability': serializer.toJson<double?>(retrievability),
+      'scheduled_days': serializer.toJson<int>(scheduledDays),
+      'reviewed_at': serializer.toJson<int>(reviewedAt),
+    };
+  }
+
+  ReviewItemLogData copyWith({
+    String? id,
+    String? reviewItemStateId,
+    int? rating,
+    int? durationSeconds,
+    Value<double?> score = const Value.absent(),
+    String? reviewMethod,
+    Value<String?> sourceResponseId = const Value.absent(),
+    Value<double?> retrievability = const Value.absent(),
+    int? scheduledDays,
+    int? reviewedAt,
+  }) => ReviewItemLogData(
+    id: id ?? this.id,
+    reviewItemStateId: reviewItemStateId ?? this.reviewItemStateId,
+    rating: rating ?? this.rating,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    score: score.present ? score.value : this.score,
+    reviewMethod: reviewMethod ?? this.reviewMethod,
+    sourceResponseId: sourceResponseId.present
+        ? sourceResponseId.value
+        : this.sourceResponseId,
+    retrievability: retrievability.present
+        ? retrievability.value
+        : this.retrievability,
+    scheduledDays: scheduledDays ?? this.scheduledDays,
+    reviewedAt: reviewedAt ?? this.reviewedAt,
+  );
+  ReviewItemLogData copyWithCompanion(ReviewItemLogCompanion data) {
+    return ReviewItemLogData(
+      id: data.id.present ? data.id.value : this.id,
+      reviewItemStateId: data.reviewItemStateId.present
+          ? data.reviewItemStateId.value
+          : this.reviewItemStateId,
+      rating: data.rating.present ? data.rating.value : this.rating,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      score: data.score.present ? data.score.value : this.score,
+      reviewMethod: data.reviewMethod.present
+          ? data.reviewMethod.value
+          : this.reviewMethod,
+      sourceResponseId: data.sourceResponseId.present
+          ? data.sourceResponseId.value
+          : this.sourceResponseId,
+      retrievability: data.retrievability.present
+          ? data.retrievability.value
+          : this.retrievability,
+      scheduledDays: data.scheduledDays.present
+          ? data.scheduledDays.value
+          : this.scheduledDays,
+      reviewedAt: data.reviewedAt.present
+          ? data.reviewedAt.value
+          : this.reviewedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewItemLogData(')
+          ..write('id: $id, ')
+          ..write('reviewItemStateId: $reviewItemStateId, ')
+          ..write('rating: $rating, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('score: $score, ')
+          ..write('reviewMethod: $reviewMethod, ')
+          ..write('sourceResponseId: $sourceResponseId, ')
+          ..write('retrievability: $retrievability, ')
+          ..write('scheduledDays: $scheduledDays, ')
+          ..write('reviewedAt: $reviewedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    reviewItemStateId,
+    rating,
+    durationSeconds,
+    score,
+    reviewMethod,
+    sourceResponseId,
+    retrievability,
+    scheduledDays,
+    reviewedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewItemLogData &&
+          other.id == this.id &&
+          other.reviewItemStateId == this.reviewItemStateId &&
+          other.rating == this.rating &&
+          other.durationSeconds == this.durationSeconds &&
+          other.score == this.score &&
+          other.reviewMethod == this.reviewMethod &&
+          other.sourceResponseId == this.sourceResponseId &&
+          other.retrievability == this.retrievability &&
+          other.scheduledDays == this.scheduledDays &&
+          other.reviewedAt == this.reviewedAt);
+}
+
+class ReviewItemLogCompanion extends UpdateCompanion<ReviewItemLogData> {
+  final Value<String> id;
+  final Value<String> reviewItemStateId;
+  final Value<int> rating;
+  final Value<int> durationSeconds;
+  final Value<double?> score;
+  final Value<String> reviewMethod;
+  final Value<String?> sourceResponseId;
+  final Value<double?> retrievability;
+  final Value<int> scheduledDays;
+  final Value<int> reviewedAt;
+  final Value<int> rowid;
+  const ReviewItemLogCompanion({
+    this.id = const Value.absent(),
+    this.reviewItemStateId = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.score = const Value.absent(),
+    this.reviewMethod = const Value.absent(),
+    this.sourceResponseId = const Value.absent(),
+    this.retrievability = const Value.absent(),
+    this.scheduledDays = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReviewItemLogCompanion.insert({
+    required String id,
+    required String reviewItemStateId,
+    required int rating,
+    this.durationSeconds = const Value.absent(),
+    this.score = const Value.absent(),
+    required String reviewMethod,
+    this.sourceResponseId = const Value.absent(),
+    this.retrievability = const Value.absent(),
+    this.scheduledDays = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       reviewItemStateId = Value(reviewItemStateId),
+       rating = Value(rating),
+       reviewMethod = Value(reviewMethod);
+  static Insertable<ReviewItemLogData> custom({
+    Expression<String>? id,
+    Expression<String>? reviewItemStateId,
+    Expression<int>? rating,
+    Expression<int>? durationSeconds,
+    Expression<double>? score,
+    Expression<String>? reviewMethod,
+    Expression<String>? sourceResponseId,
+    Expression<double>? retrievability,
+    Expression<int>? scheduledDays,
+    Expression<int>? reviewedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reviewItemStateId != null) 'review_item_state_id': reviewItemStateId,
+      if (rating != null) 'rating': rating,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (score != null) 'score': score,
+      if (reviewMethod != null) 'review_method': reviewMethod,
+      if (sourceResponseId != null) 'source_response_id': sourceResponseId,
+      if (retrievability != null) 'retrievability': retrievability,
+      if (scheduledDays != null) 'scheduled_days': scheduledDays,
+      if (reviewedAt != null) 'reviewed_at': reviewedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReviewItemLogCompanion copyWith({
+    Value<String>? id,
+    Value<String>? reviewItemStateId,
+    Value<int>? rating,
+    Value<int>? durationSeconds,
+    Value<double?>? score,
+    Value<String>? reviewMethod,
+    Value<String?>? sourceResponseId,
+    Value<double?>? retrievability,
+    Value<int>? scheduledDays,
+    Value<int>? reviewedAt,
+    Value<int>? rowid,
+  }) {
+    return ReviewItemLogCompanion(
+      id: id ?? this.id,
+      reviewItemStateId: reviewItemStateId ?? this.reviewItemStateId,
+      rating: rating ?? this.rating,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      score: score ?? this.score,
+      reviewMethod: reviewMethod ?? this.reviewMethod,
+      sourceResponseId: sourceResponseId ?? this.sourceResponseId,
+      retrievability: retrievability ?? this.retrievability,
+      scheduledDays: scheduledDays ?? this.scheduledDays,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (reviewItemStateId.present) {
+      map['review_item_state_id'] = Variable<String>(reviewItemStateId.value);
+    }
+    if (rating.present) {
+      map['rating'] = Variable<int>(rating.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<double>(score.value);
+    }
+    if (reviewMethod.present) {
+      map['review_method'] = Variable<String>(reviewMethod.value);
+    }
+    if (sourceResponseId.present) {
+      map['source_response_id'] = Variable<String>(sourceResponseId.value);
+    }
+    if (retrievability.present) {
+      map['retrievability'] = Variable<double>(retrievability.value);
+    }
+    if (scheduledDays.present) {
+      map['scheduled_days'] = Variable<int>(scheduledDays.value);
+    }
+    if (reviewedAt.present) {
+      map['reviewed_at'] = Variable<int>(reviewedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewItemLogCompanion(')
+          ..write('id: $id, ')
+          ..write('reviewItemStateId: $reviewItemStateId, ')
+          ..write('rating: $rating, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('score: $score, ')
+          ..write('reviewMethod: $reviewMethod, ')
+          ..write('sourceResponseId: $sourceResponseId, ')
+          ..write('retrievability: $retrievability, ')
+          ..write('scheduledDays: $scheduledDays, ')
+          ..write('reviewedAt: $reviewedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18166,6 +19490,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final OpenEndedResponseLog openEndedResponseLog = OpenEndedResponseLog(
     this,
   );
+  late final ReviewItemState reviewItemState = ReviewItemState(this);
+  late final ReviewItemLog reviewItemLog = ReviewItemLog(this);
   late final FsrsState fsrsState = FsrsState(this);
   late final FsrsReviewLog fsrsReviewLog = FsrsReviewLog(this);
   late final DomainLog domainLog = DomainLog(this);
@@ -18330,6 +19656,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_mc_response_log_session_log_id',
     'CREATE INDEX idx_mc_response_log_session_log_id ON multiple_choice_response_log (study_session_log_id)',
   );
+  late final Index idxReviewItemStateNodeId = Index(
+    'idx_review_item_state_node_id',
+    'CREATE INDEX idx_review_item_state_node_id ON review_item_state (node_id)',
+  );
+  late final Index idxReviewItemStateDue = Index(
+    'idx_review_item_state_due',
+    'CREATE INDEX idx_review_item_state_due ON review_item_state (next_review_at)',
+  );
+  late final Index idxReviewItemLogStateId = Index(
+    'idx_review_item_log_state_id',
+    'CREATE INDEX idx_review_item_log_state_id ON review_item_log (review_item_state_id)',
+  );
+  late final Index idxReviewItemLogSourceResponseId = Index(
+    'idx_review_item_log_source_response_id',
+    'CREATE INDEX idx_review_item_log_source_response_id ON review_item_log (source_response_id)',
+  );
   late final Index idxFsrsStateNodeId = Index(
     'idx_fsrs_state_node_id',
     'CREATE INDEX idx_fsrs_state_node_id ON fsrs_state (node_id)',
@@ -18379,6 +19721,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     openEnded,
     studySessionQuestion,
     openEndedResponseLog,
+    reviewItemState,
+    reviewItemLog,
     fsrsState,
     fsrsReviewLog,
     domainLog,
@@ -18423,6 +19767,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxOeResponseLogStudySessionId,
     idxOeResponseLogSessionLogId,
     idxMcResponseLogSessionLogId,
+    idxReviewItemStateNodeId,
+    idxReviewItemStateDue,
+    idxReviewItemLogStateId,
+    idxReviewItemLogSourceResponseId,
     idxFsrsStateNodeId,
     idxFsrsReviewLogStateId,
     idxDomainLogNodeId,
@@ -18711,6 +20059,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('open_ended_response_log', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'graph_node',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('review_item_state', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'review_item_state',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('review_item_log', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -22624,6 +23986,26 @@ final class $GraphNodeReferences
     );
   }
 
+  static MultiTypedResultKey<ReviewItemState, List<ReviewItemStateData>>
+  _reviewItemStateRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reviewItemState,
+    aliasName: 'graph_node__id__review_item_state__node_id',
+  );
+
+  $ReviewItemStateProcessedTableManager get reviewItemStateRefs {
+    final manager = $ReviewItemStateTableManager(
+      $_db,
+      $_db.reviewItemState,
+    ).filter((f) => f.nodeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _reviewItemStateRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<FsrsState, List<FsrsStateData>>
   _fsrsStateRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.fsrsState,
@@ -22958,6 +24340,31 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
           }) => $OpenEndedFilterComposer(
             $db: $db,
             $table: $db.openEnded,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> reviewItemStateRefs(
+    Expression<bool> Function($ReviewItemStateFilterComposer f) f,
+  ) {
+    final $ReviewItemStateFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewItemState,
+      getReferencedColumn: (t) => t.nodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemStateFilterComposer(
+            $db: $db,
+            $table: $db.reviewItemState,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -23415,6 +24822,31 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
     return f(composer);
   }
 
+  Expression<T> reviewItemStateRefs<T extends Object>(
+    Expression<T> Function($ReviewItemStateAnnotationComposer a) f,
+  ) {
+    final $ReviewItemStateAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewItemState,
+      getReferencedColumn: (t) => t.nodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemStateAnnotationComposer(
+            $db: $db,
+            $table: $db.reviewItemState,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> fsrsStateRefs<T extends Object>(
     Expression<T> Function($FsrsStateAnnotationComposer a) f,
   ) {
@@ -23489,6 +24921,7 @@ class $GraphNodeTableManager
             bool flashcardGroupRefs,
             bool multipleChoiceRefs,
             bool openEndedRefs,
+            bool reviewItemStateRefs,
             bool fsrsStateRefs,
             bool domainLogRefs,
           })
@@ -23596,6 +25029,7 @@ class $GraphNodeTableManager
                 flashcardGroupRefs = false,
                 multipleChoiceRefs = false,
                 openEndedRefs = false,
+                reviewItemStateRefs = false,
                 fsrsStateRefs = false,
                 domainLogRefs = false,
               }) {
@@ -23610,6 +25044,7 @@ class $GraphNodeTableManager
                     if (flashcardGroupRefs) db.flashcardGroup,
                     if (multipleChoiceRefs) db.multipleChoice,
                     if (openEndedRefs) db.openEnded,
+                    if (reviewItemStateRefs) db.reviewItemState,
                     if (fsrsStateRefs) db.fsrsState,
                     if (domainLogRefs) db.domainLog,
                   ],
@@ -23795,6 +25230,26 @@ class $GraphNodeTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (reviewItemStateRefs)
+                        await $_getPrefetchedData<
+                          GraphNodeData,
+                          GraphNode,
+                          ReviewItemStateData
+                        >(
+                          currentTable: table,
+                          referencedTable: $GraphNodeReferences
+                              ._reviewItemStateRefsTable(db),
+                          managerFromTypedResult: (p0) => $GraphNodeReferences(
+                            db,
+                            table,
+                            p0,
+                          ).reviewItemStateRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.nodeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (fsrsStateRefs)
                         await $_getPrefetchedData<
                           GraphNodeData,
@@ -23859,6 +25314,7 @@ typedef $GraphNodeProcessedTableManager =
         bool flashcardGroupRefs,
         bool multipleChoiceRefs,
         bool openEndedRefs,
+        bool reviewItemStateRefs,
         bool fsrsStateRefs,
         bool domainLogRefs,
       })
@@ -32093,6 +33549,8 @@ typedef $MultipleChoiceResponseLogCreateCompanionBuilder =
       Value<String?> aiFeedback,
       Value<String?> userNotes,
       Value<double?> score,
+      Value<bool> corrected,
+      Value<int> durationSeconds,
       Value<int> answeredAt,
       Value<int> rowid,
     });
@@ -32112,6 +33570,8 @@ typedef $MultipleChoiceResponseLogUpdateCompanionBuilder =
       Value<String?> aiFeedback,
       Value<String?> userNotes,
       Value<double?> score,
+      Value<bool> corrected,
+      Value<int> durationSeconds,
       Value<int> answeredAt,
       Value<int> rowid,
     });
@@ -32249,6 +33709,16 @@ class $MultipleChoiceResponseLogFilterComposer
 
   ColumnFilters<double> get score => $composableBuilder(
     column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get corrected => $composableBuilder(
+    column: $table.corrected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32391,6 +33861,16 @@ class $MultipleChoiceResponseLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get corrected => $composableBuilder(
+    column: $table.corrected,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnOrderings(column),
@@ -32524,6 +34004,14 @@ class $MultipleChoiceResponseLogAnnotationComposer
   GeneratedColumn<double> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
 
+  GeneratedColumn<bool> get corrected =>
+      $composableBuilder(column: $table.corrected, builder: (column) => column);
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => column,
@@ -32653,6 +34141,8 @@ class $MultipleChoiceResponseLogTableManager
                 Value<String?> aiFeedback = const Value.absent(),
                 Value<String?> userNotes = const Value.absent(),
                 Value<double?> score = const Value.absent(),
+                Value<bool> corrected = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceResponseLogCompanion(
@@ -32670,6 +34160,8 @@ class $MultipleChoiceResponseLogTableManager
                 aiFeedback: aiFeedback,
                 userNotes: userNotes,
                 score: score,
+                corrected: corrected,
+                durationSeconds: durationSeconds,
                 answeredAt: answeredAt,
                 rowid: rowid,
               ),
@@ -32689,6 +34181,8 @@ class $MultipleChoiceResponseLogTableManager
                 Value<String?> aiFeedback = const Value.absent(),
                 Value<String?> userNotes = const Value.absent(),
                 Value<double?> score = const Value.absent(),
+                Value<bool> corrected = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MultipleChoiceResponseLogCompanion.insert(
@@ -32706,6 +34200,8 @@ class $MultipleChoiceResponseLogTableManager
                 aiFeedback: aiFeedback,
                 userNotes: userNotes,
                 score: score,
+                corrected: corrected,
+                durationSeconds: durationSeconds,
                 answeredAt: answeredAt,
                 rowid: rowid,
               ),
@@ -34014,6 +35510,7 @@ typedef $OpenEndedResponseLogCreateCompanionBuilder =
       Value<String?> masteryDemonstrated,
       Value<double?> score,
       Value<bool> corrected,
+      Value<int> durationSeconds,
       Value<int> answeredAt,
       Value<int> rowid,
     });
@@ -34032,6 +35529,7 @@ typedef $OpenEndedResponseLogUpdateCompanionBuilder =
       Value<String?> masteryDemonstrated,
       Value<double?> score,
       Value<bool> corrected,
+      Value<int> durationSeconds,
       Value<int> answeredAt,
       Value<int> rowid,
     });
@@ -34161,6 +35659,11 @@ class $OpenEndedResponseLogFilterComposer
 
   ColumnFilters<bool> get corrected => $composableBuilder(
     column: $table.corrected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -34298,6 +35801,11 @@ class $OpenEndedResponseLogOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
     builder: (column) => ColumnOrderings(column),
@@ -34419,6 +35927,11 @@ class $OpenEndedResponseLogAnnotationComposer
 
   GeneratedColumn<bool> get corrected =>
       $composableBuilder(column: $table.corrected, builder: (column) => column);
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get answeredAt => $composableBuilder(
     column: $table.answeredAt,
@@ -34542,6 +36055,7 @@ class $OpenEndedResponseLogTableManager
                 Value<String?> masteryDemonstrated = const Value.absent(),
                 Value<double?> score = const Value.absent(),
                 Value<bool> corrected = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedResponseLogCompanion(
@@ -34558,6 +36072,7 @@ class $OpenEndedResponseLogTableManager
                 masteryDemonstrated: masteryDemonstrated,
                 score: score,
                 corrected: corrected,
+                durationSeconds: durationSeconds,
                 answeredAt: answeredAt,
                 rowid: rowid,
               ),
@@ -34576,6 +36091,7 @@ class $OpenEndedResponseLogTableManager
                 Value<String?> masteryDemonstrated = const Value.absent(),
                 Value<double?> score = const Value.absent(),
                 Value<bool> corrected = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<int> answeredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OpenEndedResponseLogCompanion.insert(
@@ -34592,6 +36108,7 @@ class $OpenEndedResponseLogTableManager
                 masteryDemonstrated: masteryDemonstrated,
                 score: score,
                 corrected: corrected,
+                durationSeconds: durationSeconds,
                 answeredAt: answeredAt,
                 rowid: rowid,
               ),
@@ -34702,6 +36219,902 @@ typedef $OpenEndedResponseLogProcessedTableManager =
         bool studySessionId,
         bool studySessionLogId,
       })
+    >;
+typedef $ReviewItemStateCreateCompanionBuilder =
+    ReviewItemStateCompanion Function({
+      required String id,
+      required String nodeId,
+      required String itemType,
+      required String itemId,
+      required String cardStateJson,
+      required int nextReviewAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+typedef $ReviewItemStateUpdateCompanionBuilder =
+    ReviewItemStateCompanion Function({
+      Value<String> id,
+      Value<String> nodeId,
+      Value<String> itemType,
+      Value<String> itemId,
+      Value<String> cardStateJson,
+      Value<int> nextReviewAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $ReviewItemStateReferences
+    extends
+        BaseReferences<_$AppDatabase, ReviewItemState, ReviewItemStateData> {
+  $ReviewItemStateReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static GraphNode _nodeIdTable(_$AppDatabase db) =>
+      db.graphNode.createAlias('review_item_state__node_id__graph_node__id');
+
+  $GraphNodeProcessedTableManager get nodeId {
+    final $_column = $_itemColumn<String>('node_id')!;
+
+    final manager = $GraphNodeTableManager(
+      $_db,
+      $_db.graphNode,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_nodeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<ReviewItemLog, List<ReviewItemLogData>>
+  _reviewItemLogRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reviewItemLog,
+    aliasName: 'review_item_state__id__review_item_log__review_item_state_id',
+  );
+
+  $ReviewItemLogProcessedTableManager get reviewItemLogRefs {
+    final manager = $ReviewItemLogTableManager($_db, $_db.reviewItemLog).filter(
+      (f) => f.reviewItemStateId.id.sqlEquals($_itemColumn<String>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_reviewItemLogRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $ReviewItemStateFilterComposer
+    extends Composer<_$AppDatabase, ReviewItemState> {
+  $ReviewItemStateFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemType => $composableBuilder(
+    column: $table.itemType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cardStateJson => $composableBuilder(
+    column: $table.cardStateJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $GraphNodeFilterComposer get nodeId {
+    final $GraphNodeFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeFilterComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> reviewItemLogRefs(
+    Expression<bool> Function($ReviewItemLogFilterComposer f) f,
+  ) {
+    final $ReviewItemLogFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewItemLog,
+      getReferencedColumn: (t) => t.reviewItemStateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemLogFilterComposer(
+            $db: $db,
+            $table: $db.reviewItemLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $ReviewItemStateOrderingComposer
+    extends Composer<_$AppDatabase, ReviewItemState> {
+  $ReviewItemStateOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemType => $composableBuilder(
+    column: $table.itemType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cardStateJson => $composableBuilder(
+    column: $table.cardStateJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $GraphNodeOrderingComposer get nodeId {
+    final $GraphNodeOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeOrderingComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ReviewItemStateAnnotationComposer
+    extends Composer<_$AppDatabase, ReviewItemState> {
+  $ReviewItemStateAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get itemType =>
+      $composableBuilder(column: $table.itemType, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get cardStateJson => $composableBuilder(
+    column: $table.cardStateJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $GraphNodeAnnotationComposer get nodeId {
+    final $GraphNodeAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeAnnotationComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> reviewItemLogRefs<T extends Object>(
+    Expression<T> Function($ReviewItemLogAnnotationComposer a) f,
+  ) {
+    final $ReviewItemLogAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewItemLog,
+      getReferencedColumn: (t) => t.reviewItemStateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemLogAnnotationComposer(
+            $db: $db,
+            $table: $db.reviewItemLog,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $ReviewItemStateTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          ReviewItemState,
+          ReviewItemStateData,
+          $ReviewItemStateFilterComposer,
+          $ReviewItemStateOrderingComposer,
+          $ReviewItemStateAnnotationComposer,
+          $ReviewItemStateCreateCompanionBuilder,
+          $ReviewItemStateUpdateCompanionBuilder,
+          (ReviewItemStateData, $ReviewItemStateReferences),
+          ReviewItemStateData,
+          PrefetchHooks Function({bool nodeId, bool reviewItemLogRefs})
+        > {
+  $ReviewItemStateTableManager(_$AppDatabase db, ReviewItemState table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ReviewItemStateFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ReviewItemStateOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ReviewItemStateAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nodeId = const Value.absent(),
+                Value<String> itemType = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> cardStateJson = const Value.absent(),
+                Value<int> nextReviewAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewItemStateCompanion(
+                id: id,
+                nodeId: nodeId,
+                itemType: itemType,
+                itemId: itemId,
+                cardStateJson: cardStateJson,
+                nextReviewAt: nextReviewAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nodeId,
+                required String itemType,
+                required String itemId,
+                required String cardStateJson,
+                required int nextReviewAt,
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewItemStateCompanion.insert(
+                id: id,
+                nodeId: nodeId,
+                itemType: itemType,
+                itemId: itemId,
+                cardStateJson: cardStateJson,
+                nextReviewAt: nextReviewAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $ReviewItemStateReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({nodeId = false, reviewItemLogRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (reviewItemLogRefs) db.reviewItemLog,
+              ],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (nodeId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.nodeId,
+                                referencedTable: $ReviewItemStateReferences
+                                    ._nodeIdTable(db),
+                                referencedColumn: $ReviewItemStateReferences
+                                    ._nodeIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (reviewItemLogRefs)
+                    await $_getPrefetchedData<
+                      ReviewItemStateData,
+                      ReviewItemState,
+                      ReviewItemLogData
+                    >(
+                      currentTable: table,
+                      referencedTable: $ReviewItemStateReferences
+                          ._reviewItemLogRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $ReviewItemStateReferences(
+                            db,
+                            table,
+                            p0,
+                          ).reviewItemLogRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.reviewItemStateId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $ReviewItemStateProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      ReviewItemState,
+      ReviewItemStateData,
+      $ReviewItemStateFilterComposer,
+      $ReviewItemStateOrderingComposer,
+      $ReviewItemStateAnnotationComposer,
+      $ReviewItemStateCreateCompanionBuilder,
+      $ReviewItemStateUpdateCompanionBuilder,
+      (ReviewItemStateData, $ReviewItemStateReferences),
+      ReviewItemStateData,
+      PrefetchHooks Function({bool nodeId, bool reviewItemLogRefs})
+    >;
+typedef $ReviewItemLogCreateCompanionBuilder =
+    ReviewItemLogCompanion Function({
+      required String id,
+      required String reviewItemStateId,
+      required int rating,
+      Value<int> durationSeconds,
+      Value<double?> score,
+      required String reviewMethod,
+      Value<String?> sourceResponseId,
+      Value<double?> retrievability,
+      Value<int> scheduledDays,
+      Value<int> reviewedAt,
+      Value<int> rowid,
+    });
+typedef $ReviewItemLogUpdateCompanionBuilder =
+    ReviewItemLogCompanion Function({
+      Value<String> id,
+      Value<String> reviewItemStateId,
+      Value<int> rating,
+      Value<int> durationSeconds,
+      Value<double?> score,
+      Value<String> reviewMethod,
+      Value<String?> sourceResponseId,
+      Value<double?> retrievability,
+      Value<int> scheduledDays,
+      Value<int> reviewedAt,
+      Value<int> rowid,
+    });
+
+final class $ReviewItemLogReferences
+    extends BaseReferences<_$AppDatabase, ReviewItemLog, ReviewItemLogData> {
+  $ReviewItemLogReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static ReviewItemState _reviewItemStateIdTable(_$AppDatabase db) =>
+      db.reviewItemState.createAlias(
+        'review_item_log__review_item_state_id__review_item_state__id',
+      );
+
+  $ReviewItemStateProcessedTableManager get reviewItemStateId {
+    final $_column = $_itemColumn<String>('review_item_state_id')!;
+
+    final manager = $ReviewItemStateTableManager(
+      $_db,
+      $_db.reviewItemState,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_reviewItemStateIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $ReviewItemLogFilterComposer
+    extends Composer<_$AppDatabase, ReviewItemLog> {
+  $ReviewItemLogFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reviewMethod => $composableBuilder(
+    column: $table.reviewMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceResponseId => $composableBuilder(
+    column: $table.sourceResponseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get retrievability => $composableBuilder(
+    column: $table.retrievability,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get scheduledDays => $composableBuilder(
+    column: $table.scheduledDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $ReviewItemStateFilterComposer get reviewItemStateId {
+    final $ReviewItemStateFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewItemStateId,
+      referencedTable: $db.reviewItemState,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemStateFilterComposer(
+            $db: $db,
+            $table: $db.reviewItemState,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ReviewItemLogOrderingComposer
+    extends Composer<_$AppDatabase, ReviewItemLog> {
+  $ReviewItemLogOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reviewMethod => $composableBuilder(
+    column: $table.reviewMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceResponseId => $composableBuilder(
+    column: $table.sourceResponseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get retrievability => $composableBuilder(
+    column: $table.retrievability,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get scheduledDays => $composableBuilder(
+    column: $table.scheduledDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $ReviewItemStateOrderingComposer get reviewItemStateId {
+    final $ReviewItemStateOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewItemStateId,
+      referencedTable: $db.reviewItemState,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemStateOrderingComposer(
+            $db: $db,
+            $table: $db.reviewItemState,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ReviewItemLogAnnotationComposer
+    extends Composer<_$AppDatabase, ReviewItemLog> {
+  $ReviewItemLogAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get reviewMethod => $composableBuilder(
+    column: $table.reviewMethod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceResponseId => $composableBuilder(
+    column: $table.sourceResponseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get retrievability => $composableBuilder(
+    column: $table.retrievability,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get scheduledDays => $composableBuilder(
+    column: $table.scheduledDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => column,
+  );
+
+  $ReviewItemStateAnnotationComposer get reviewItemStateId {
+    final $ReviewItemStateAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewItemStateId,
+      referencedTable: $db.reviewItemState,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ReviewItemStateAnnotationComposer(
+            $db: $db,
+            $table: $db.reviewItemState,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ReviewItemLogTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          ReviewItemLog,
+          ReviewItemLogData,
+          $ReviewItemLogFilterComposer,
+          $ReviewItemLogOrderingComposer,
+          $ReviewItemLogAnnotationComposer,
+          $ReviewItemLogCreateCompanionBuilder,
+          $ReviewItemLogUpdateCompanionBuilder,
+          (ReviewItemLogData, $ReviewItemLogReferences),
+          ReviewItemLogData,
+          PrefetchHooks Function({bool reviewItemStateId})
+        > {
+  $ReviewItemLogTableManager(_$AppDatabase db, ReviewItemLog table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ReviewItemLogFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ReviewItemLogOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ReviewItemLogAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> reviewItemStateId = const Value.absent(),
+                Value<int> rating = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<double?> score = const Value.absent(),
+                Value<String> reviewMethod = const Value.absent(),
+                Value<String?> sourceResponseId = const Value.absent(),
+                Value<double?> retrievability = const Value.absent(),
+                Value<int> scheduledDays = const Value.absent(),
+                Value<int> reviewedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewItemLogCompanion(
+                id: id,
+                reviewItemStateId: reviewItemStateId,
+                rating: rating,
+                durationSeconds: durationSeconds,
+                score: score,
+                reviewMethod: reviewMethod,
+                sourceResponseId: sourceResponseId,
+                retrievability: retrievability,
+                scheduledDays: scheduledDays,
+                reviewedAt: reviewedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String reviewItemStateId,
+                required int rating,
+                Value<int> durationSeconds = const Value.absent(),
+                Value<double?> score = const Value.absent(),
+                required String reviewMethod,
+                Value<String?> sourceResponseId = const Value.absent(),
+                Value<double?> retrievability = const Value.absent(),
+                Value<int> scheduledDays = const Value.absent(),
+                Value<int> reviewedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewItemLogCompanion.insert(
+                id: id,
+                reviewItemStateId: reviewItemStateId,
+                rating: rating,
+                durationSeconds: durationSeconds,
+                score: score,
+                reviewMethod: reviewMethod,
+                sourceResponseId: sourceResponseId,
+                retrievability: retrievability,
+                scheduledDays: scheduledDays,
+                reviewedAt: reviewedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $ReviewItemLogReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reviewItemStateId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (reviewItemStateId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.reviewItemStateId,
+                                referencedTable: $ReviewItemLogReferences
+                                    ._reviewItemStateIdTable(db),
+                                referencedColumn: $ReviewItemLogReferences
+                                    ._reviewItemStateIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $ReviewItemLogProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      ReviewItemLog,
+      ReviewItemLogData,
+      $ReviewItemLogFilterComposer,
+      $ReviewItemLogOrderingComposer,
+      $ReviewItemLogAnnotationComposer,
+      $ReviewItemLogCreateCompanionBuilder,
+      $ReviewItemLogUpdateCompanionBuilder,
+      (ReviewItemLogData, $ReviewItemLogReferences),
+      ReviewItemLogData,
+      PrefetchHooks Function({bool reviewItemStateId})
     >;
 typedef $FsrsStateCreateCompanionBuilder =
     FsrsStateCompanion Function({
@@ -36469,6 +38882,10 @@ class $AppDatabaseManager {
       $StudySessionQuestionTableManager(_db, _db.studySessionQuestion);
   $OpenEndedResponseLogTableManager get openEndedResponseLog =>
       $OpenEndedResponseLogTableManager(_db, _db.openEndedResponseLog);
+  $ReviewItemStateTableManager get reviewItemState =>
+      $ReviewItemStateTableManager(_db, _db.reviewItemState);
+  $ReviewItemLogTableManager get reviewItemLog =>
+      $ReviewItemLogTableManager(_db, _db.reviewItemLog);
   $FsrsStateTableManager get fsrsState =>
       $FsrsStateTableManager(_db, _db.fsrsState);
   $FsrsReviewLogTableManager get fsrsReviewLog =>

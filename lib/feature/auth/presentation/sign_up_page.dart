@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +23,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     final form = ref.watch(signUpFormProvider);
     final formNotifier = ref.read(signUpFormProvider.notifier);
     final signUpState = ref.watch(signUpControllerProvider);
+    final loginPath = RoutePaths.withReturnPath(
+      RoutePaths.login,
+      GoRouterState.of(context).uri.queryParameters['from'],
+    );
 
     return AppResponsiveContent(
       maxWidth: 560,
@@ -92,9 +95,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 }
                 if (form.password != _passwordConfirmation) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("As senhas não coincidem."),
-                    ),
+                    const SnackBar(content: Text("As senhas não coincidem.")),
                   );
                   return;
                 }
@@ -113,7 +114,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     throw StateError("Falha ao criar conta");
                   }
 
-                  if (context.mounted) context.go(RoutePaths.login);
+                  if (context.mounted) context.go(loginPath);
                 } catch (_) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +128,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             ),
             TextButton(
               onPressed: () {
-                context.go(RoutePaths.login);
+                context.go(loginPath);
               },
               child: Text("Cancelar"),
             ),

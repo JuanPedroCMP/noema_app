@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
+import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/feature/ai/models/ai_agent_task.dart';
+import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
@@ -12,6 +16,7 @@ import 'package:noema/feature/exercises/multiple_choice/widgets/choise.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_choise.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/graph_access.dart';
+import 'package:noema/feature/review/data/fsrs_review_service.dart';
 import 'package:noema/core/database/database.dart'
     show ChoiceData, MultipleChoiceResponseLogData;
 import 'package:noema/shared/floating_card/floating_card.dart';
@@ -50,7 +55,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   bool isEditing = false;
   bool _isSaving = false;
   bool _isSending = false;
+  bool _isGenerating = false;
+  bool _isAiGenerated = false;
   bool _hasSubmitted = false;
+  final Stopwatch _answerTimer = Stopwatch();
   MultipleChoiceResponseLogData? _latestResponse;
   final Set<String> _latestSelectedChoiceIds = {};
   String editTarget = "";
@@ -68,6 +76,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   void initState() {
     super.initState();
     mode = widget.defaultMode;
+    _answerTimer.start();
 
     titleController = TextEditingController();
     statementController = TextEditingController();
@@ -143,6 +152,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         _isLoading = false;
         title = data.title;
         statement = data.statement;
+        _isAiGenerated = data.isAiGenerated;
         choises = listChoises;
         _loadError = null;
         _latestResponse = latestResponse;
@@ -190,6 +200,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         nodeId: widget.nodeId,
         title: normalizedTitle,
         statement: normalizedStatement,
+        isAiGenerated: _isAiGenerated,
       );
       tempId = newId;
       return newId;
@@ -198,10 +209,273 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         id: currentId,
         title: normalizedTitle,
         statement: normalizedStatement,
+        isAiGenerated: _isAiGenerated,
       );
 
       return currentId;
     }
+  }
+
+  Future<void> _generateWithAi() async {
+    if (_isGenerating || _isSaving) return;
+    final instructions = await _askAiInstructions();
+    if (instructions == null || !mounted) return;
+
+    setState(() {
+      _isGenerating = true;
+      _loadError = null;
+    });
+
+    try {
+      final user = await ref.read(userProvider.future);
+      final node = await getGraphNodeForUser(
+        db: ref.read(appDatabaseProvider),
+        nodeId: widget.nodeId,
+        userId: user.id,
+      );
+      final prompt = StringBuffer()
+        ..writeln(
+          'Crie uma questão de múltipla escolha para este nó de estudo.',
+        )
+        ..writeln('Nó: ${node.title}')
+        ..writeln('Descrição: ${node.description ?? "não informada"}')
+        ..writeln(
+          'Instruções adicionais: ${instructions.trim().isEmpty ? "sem instruções adicionais" : instructions.trim()}',
+        )
+        ..writeln(
+          'Retorne título, enunciado e pelo menos 4 alternativas objetivas, '
+          'com uma única alternativa correta. Cada alternativa deve incluir '
+          'is_correct (boolean), statement, explanation e weigth (inteiro).',
+        );
+      final response = await ref
+          .read(aiContentGenerationServiceProvider)
+          .generate(
+            task: AiAgentTask.createMultipleChoiceQuestion,
+            prompt: prompt.toString(),
+          );
+      final draft = _parseAiQuestion(response);
+      if (!mounted) return;
+      final accepted = await _previewAiQuestion(draft);
+      if (accepted != true || !mounted) return;
+
+      final db = ref.read(appDatabaseProvider);
+      final savedQuestionId = await db.transaction(() async {
+        title = draft.title;
+        statement = draft.statement;
+        _isAiGenerated = true;
+        titleController.text = title;
+        statementController.text = statement;
+        final id = await save();
+        if (id == null) {
+          throw StateError('A questão gerada não pôde ser salva.');
+        }
+
+        final choiceDao = ChoiceDao(db);
+        await choiceDao.deleteChoicesByQuestion(multipleChoiceId: id);
+        for (final choice in draft.choices) {
+          await choiceDao.insertChoice(
+            multipleChoiceId: id,
+            isCorrect: choice.isCorrect,
+            statement: choice.statement,
+            explanation: choice.explanation,
+            weight: choice.weight,
+            isAiGenerated: true,
+          );
+        }
+        return id;
+      });
+
+      tempId = savedQuestionId;
+      await _loadData();
+      if (mounted) _showAiMessage('Questão gerada e aplicada ao editor.');
+    } on DioException catch (error) {
+      if (mounted) _showAiMessage(_aiApiError(error));
+    } on FormatException catch (error) {
+      if (mounted) _showAiMessage('Resposta da IA inválida: ${error.message}');
+    } catch (error) {
+      if (mounted) {
+        _showAiMessage(
+          error is StateError
+              ? error.message
+              : 'Não foi possível gerar a questão. Verifique a configuração '
+                    'do agente e das chaves de IA.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
+    }
+  }
+
+  Future<String?> _askAiInstructions() async {
+    final controller = TextEditingController();
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Gerar questão com IA'),
+          content: SizedBox(
+            width: 440,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'A questão será baseada no nó atual. Você pode orientar '
+                  'a dificuldade ou o aspecto que deseja avaliar.',
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLines: 3,
+                  maxLength: 300,
+                  decoration: const InputDecoration(
+                    labelText: 'Orientação adicional (opcional)',
+                    hintText: 'Ex.: nível intermediário, foco em aplicação',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(dialogContext, controller.text),
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Gerar'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  _AiMultipleChoiceDraft _parseAiQuestion(Map<String, dynamic> response) {
+    final choices = response['choises'] ?? response['choices'];
+    if (choices is! List) {
+      throw const FormatException('A lista de alternativas não foi retornada.');
+    }
+    final parsedChoices = choices.map((item) {
+      if (item is! Map) {
+        throw const FormatException('Uma alternativa possui formato inválido.');
+      }
+      final isCorrect = item['is_correct'];
+      final choiceStatement = item['statement'];
+      if (isCorrect is! bool ||
+          choiceStatement is! String ||
+          choiceStatement.trim().isEmpty) {
+        throw const FormatException('Uma alternativa está incompleta.');
+      }
+      final explanation = item['explanation'];
+      final weightValue = item['weigth'] ?? item['weight'];
+      return _AiChoiceDraft(
+        isCorrect: isCorrect,
+        statement: choiceStatement.trim(),
+        explanation: explanation is String ? explanation.trim() : '',
+        weight: weightValue is num ? weightValue.toInt() : null,
+      );
+    }).toList();
+    if (parsedChoices.length < 2 ||
+        parsedChoices.where((choice) => choice.isCorrect).length != 1) {
+      throw const FormatException(
+        'A questão precisa ter pelo menos duas alternativas e exatamente '
+        'uma correta.',
+      );
+    }
+    final generatedTitle = response['title'];
+    final generatedStatement = response['statement'];
+    if (generatedTitle is! String ||
+        generatedTitle.trim().isEmpty ||
+        generatedStatement is! String ||
+        generatedStatement.trim().isEmpty) {
+      throw const FormatException('Título ou enunciado não foi retornado.');
+    }
+    return _AiMultipleChoiceDraft(
+      title: generatedTitle.trim(),
+      statement: generatedStatement.trim(),
+      choices: parsedChoices,
+    );
+  }
+
+  Future<bool?> _previewAiQuestion(_AiMultipleChoiceDraft draft) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Revise a questão gerada'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  draft.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(draft.statement),
+                const Divider(height: 24),
+                for (var index = 0; index < draft.choices.length; index++)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      draft.choices[index].isCorrect
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: draft.choices[index].isCorrect
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    title: Text(draft.choices[index].statement),
+                    subtitle: draft.choices[index].explanation.isEmpty
+                        ? null
+                        : Text(draft.choices[index].explanation),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Descartar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.check),
+            label: const Text('Aplicar ao editor'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _aiApiError(DioException error) {
+    final status = error.response?.statusCode;
+    if (status == 401 || status == 403) {
+      return 'Sua sessão expirou ou não está autorizada para usar a IA.';
+    }
+    if (status == 404) return 'O agente de geração de questões não existe.';
+    if (status == 429) return 'Muitas solicitações. Aguarde e tente novamente.';
+    if (status != null && status >= 500) {
+      return 'O serviço de IA falhou. Tente novamente mais tarde.';
+    }
+    if (error.response == null) {
+      return 'Sem conexão com o serviço de IA. Verifique sua internet.';
+    }
+    return 'Não foi possível gerar a questão (HTTP $status).';
+  }
+
+  void _showAiMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> sendAnswer() async {
@@ -239,34 +513,54 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     setState(() => _isSending = true);
     final selectedCorrect = _selectedChoiceIds.intersection(correctIds).length;
     final wrongSelected = _selectedChoiceIds.difference(correctIds).length;
+    final score = ((selectedCorrect - wrongSelected) / correctIds.length).clamp(
+      0.0,
+      1.0,
+    );
+    final durationSeconds = _answerTimer.elapsed.inSeconds;
     final db = ref.read(appDatabaseProvider);
     final responseDao = MultipleChoiceResponseLogDao(db);
 
     try {
-      final rawScore = correctIds.isEmpty
-          ? 0.0
-          : (selectedCorrect - wrongSelected) / correctIds.length;
-      await responseDao.insertMultipleChoiceResponseLog(
-        multipleChoiceId: questionId,
-        questionSnapshot: jsonEncode({'title': title, 'statement': statement}),
-        questionChoiceSnapshot: jsonEncode(
-          choises.map((choice) => choice.toJson()).toList(),
-        ),
-        selectedChoiceIds: jsonEncode(_selectedChoiceIds.toList()),
-        totalCorrectOption: correctIds.length,
-        correctSelected: selectedCorrect,
-        wrongSelected: wrongSelected,
-        totalQuestions: choises.length,
-        studySessionId: widget.studySessionId,
-        studySessionLogId: widget.studySessionLogId,
-        score: rawScore.clamp(0.0, 1.0),
-      );
+      await db.transaction(() async {
+        final responseId = await responseDao.insertMultipleChoiceResponseLog(
+          multipleChoiceId: questionId,
+          questionSnapshot: jsonEncode({
+            'title': title,
+            'statement': statement,
+          }),
+          questionChoiceSnapshot: jsonEncode(
+            choises.map((choice) => choice.toJson()).toList(),
+          ),
+          selectedChoiceIds: jsonEncode(_selectedChoiceIds.toList()),
+          totalCorrectOption: correctIds.length,
+          correctSelected: selectedCorrect,
+          wrongSelected: wrongSelected,
+          totalQuestions: choises.length,
+          studySessionId: widget.studySessionId,
+          studySessionLogId: widget.studySessionLogId,
+          score: score,
+          durationSeconds: durationSeconds,
+        );
+        await FsrsReviewService(db).review(
+          itemType: ReviewItemType.multipleChoice,
+          itemId: questionId,
+          nodeId: widget.nodeId,
+          rating: _ratingForScore(score),
+          durationSeconds: durationSeconds,
+          score: score,
+          method: ReviewMethod.autoScore,
+          sourceResponseId: responseId,
+        );
+      });
+      _answerTimer.stop();
       if (!mounted) return;
       if (widget.onSendAnswer case final onSendAnswer?) {
         onSendAnswer();
       } else if (mounted) {
         setState(() => _hasSubmitted = true);
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -287,6 +581,13 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  fsrs.Rating _ratingForScore(double score) {
+    if (score < 0.25) return fsrs.Rating.again;
+    if (score < 0.6) return fsrs.Rating.hard;
+    if (score < 0.9) return fsrs.Rating.good;
+    return fsrs.Rating.easy;
   }
 
   Future<String?> _ensureQuestionSaved() async {
@@ -393,6 +694,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
 
   @override
   void dispose() {
+    _answerTimer.stop();
     titleController.dispose();
     statementController.dispose();
     super.dispose();
@@ -434,6 +736,28 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                             decoration: InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: "Enunciado",
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: _isGenerating || _isSaving
+                                  ? null
+                                  : _generateWithAi,
+                              icon: _isGenerating
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.auto_awesome),
+                              label: Text(
+                                _isGenerating
+                                    ? 'Gerando questão...'
+                                    : 'Gerar questão com IA',
+                              ),
                             ),
                           ),
                           for (final choise in choises) ...[
@@ -701,6 +1025,32 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       ),
     );
   }
+}
+
+class _AiMultipleChoiceDraft {
+  const _AiMultipleChoiceDraft({
+    required this.title,
+    required this.statement,
+    required this.choices,
+  });
+
+  final String title;
+  final String statement;
+  final List<_AiChoiceDraft> choices;
+}
+
+class _AiChoiceDraft {
+  const _AiChoiceDraft({
+    required this.isCorrect,
+    required this.statement,
+    required this.explanation,
+    required this.weight,
+  });
+
+  final bool isCorrect;
+  final String statement;
+  final String explanation;
+  final int? weight;
 }
 
 class _QuestionPrompt extends StatelessWidget {

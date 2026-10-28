@@ -8,4 +8,5 @@ analyzer:
     - macos/**
     - linux/**
     - '**/*.g.dart'
+    - openapi/**
 include: package:flutter_lints/flutter.yaml

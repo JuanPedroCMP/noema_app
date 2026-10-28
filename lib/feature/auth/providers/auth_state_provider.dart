@@ -18,7 +18,7 @@ import 'package:noema/feature/auth/services/login_service.dart';
 final authStateProvider = FutureProvider<bool>((ref) async {
   final storage = ref.read(secureSorageProvider);
   final apiClient = ref.read(apiClientProvider);
-  apiClient.removeOAuthToken('OAuth2PasswordBearer');
+  clearApiAccessToken(apiClient);
   final db = ref.read(appDatabaseProvider);
   final userDao = AppUserDao(db);
   final token = await storage.read(key: 'access_token');
@@ -35,7 +35,7 @@ final authStateProvider = FutureProvider<bool>((ref) async {
     return false;
   }
 
-  apiClient.setOAuthToken('OAuth2PasswordBearer', token);
+  setApiAccessToken(apiClient, token);
   await storage.write(key: 'access_token_remote_owner_id', value: tokenOwnerId);
 
   final isConnected = ref.read(serverConnectionChecker).value ?? false;

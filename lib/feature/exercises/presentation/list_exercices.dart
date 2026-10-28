@@ -9,7 +9,7 @@ import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/graph_access.dart';
 
-enum _ExerciseFilter { all, openEnded, multipleChoice }
+enum _ExerciseFilter { all, due, openEnded, multipleChoice }
 
 class ExercicesList extends ConsumerStatefulWidget {
   const ExercicesList({super.key, required this.nodeId});
@@ -23,7 +23,11 @@ class ExercicesList extends ConsumerStatefulWidget {
 class _ExercicesList extends ConsumerState<ExercicesList> {
   List<OpenEndedData> _openEndeds = [];
   List<MultipleChoiceData> _multipleChoices = [];
+  Set<String> _dueOpenEndedIds = {};
+  Set<String> _dueMultipleChoiceIds = {};
   bool _isLoading = true;
+  bool _isRefreshing = false;
+  bool _hasLoaded = false;
   String? _error;
   String _search = '';
   _ExerciseFilter _filter = _ExerciseFilter.all;
@@ -35,7 +39,14 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   }
 
   Future<void> carregar() async {
-    if (mounted) setState(() => _isLoading = true);
+    if (_isRefreshing) return;
+    final isInitialLoad = !_hasLoaded;
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+        if (isInitialLoad) _isLoading = true;
+      });
+    }
 
     try {
       final db = ref.read(appDatabaseProvider);
@@ -45,20 +56,61 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
         OpenEndedDao(db).getOpenEndedsByNode(nodeId: widget.nodeId),
         MultipleChoiceDao(db).getMultipleChoicesByNode(nodeId: widget.nodeId),
       ]);
+      final reviewStates =
+          await (db.select(db.reviewItemState)
+                ..where((state) => state.nodeId.equals(widget.nodeId)))
+              .get();
+      final scheduledAtByItem = {
+        for (final state in reviewStates)
+          '${state.itemType}:${state.itemId}': state.nextReviewAt,
+      };
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final openEndedItems = results[0] as List<OpenEndedData>;
+      final multipleChoiceItems = results[1] as List<MultipleChoiceData>;
+      final dueOpenEndedIds = openEndedItems
+          .where(
+            (item) =>
+                (scheduledAtByItem['OPEN_ENDED:${item.id}'] ?? 0) <= now,
+          )
+          .map((item) => item.id)
+          .toSet();
+      final dueMultipleChoiceIds = multipleChoiceItems
+          .where(
+            (item) =>
+                (scheduledAtByItem['MULTIPLE_CHOICE:${item.id}'] ?? 0) <= now,
+          )
+          .map((item) => item.id)
+          .toSet();
       if (!mounted) return;
 
       setState(() {
-        _openEndeds = results[0] as List<OpenEndedData>;
-        _multipleChoices = results[1] as List<MultipleChoiceData>;
+        _openEndeds = openEndedItems;
+        _multipleChoices = multipleChoiceItems;
+        _dueOpenEndedIds = dueOpenEndedIds;
+        _dueMultipleChoiceIds = dueMultipleChoiceIds;
+        _hasLoaded = true;
         _isLoading = false;
+        _isRefreshing = false;
         _error = null;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Não foi possível carregar as questões.';
+        _isRefreshing = false;
+        if (isInitialLoad) {
+          _error = 'Não foi possível carregar as questões.';
+        }
       });
+      if (!isInitialLoad) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Não foi possível atualizar as questões.'),
+            ),
+          );
+      }
     }
   }
 
@@ -220,17 +272,22 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     final query = _search.trim().toLowerCase();
     final openEnded = _openEndeds.where((exercise) {
       return _filter != _ExerciseFilter.multipleChoice &&
+          (_filter != _ExerciseFilter.due ||
+              _dueOpenEndedIds.contains(exercise.id)) &&
           '${exercise.title} ${exercise.statement}'.toLowerCase().contains(
             query,
           );
     }).toList();
     final multipleChoice = _multipleChoices.where((exercise) {
       return _filter != _ExerciseFilter.openEnded &&
+          (_filter != _ExerciseFilter.due ||
+              _dueMultipleChoiceIds.contains(exercise.id)) &&
           '${exercise.title} ${exercise.statement}'.toLowerCase().contains(
             query,
           );
     }).toList();
     final total = _openEndeds.length + _multipleChoices.length;
+    final dueCount = _dueOpenEndedIds.length + _dueMultipleChoiceIds.length;
     final hasResults = openEnded.isNotEmpty || multipleChoice.isNotEmpty;
 
     return Padding(
@@ -255,8 +312,13 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               ),
               IconButton(
                 tooltip: 'Atualizar lista',
-                onPressed: carregar,
-                icon: const Icon(Icons.refresh),
+                onPressed: _isRefreshing ? null : carregar,
+                icon: _isRefreshing
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh),
               ),
             ],
           ),
@@ -271,8 +333,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 label: const Text('Questão aberta'),
               ),
               OutlinedButton.icon(
-                onPressed: () =>
-                    _navigate('$currentUri/multiple-choice/create'),
+                onPressed: () => _navigate('$currentUri/multiple-choice/create'),
                 icon: const Icon(Icons.checklist_rounded),
                 label: const Text('Múltipla escolha'),
               ),
@@ -286,27 +347,40 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
           const SizedBox(height: 12),
           TextField(
             onChanged: (value) => setState(() => _search = value),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
               hintText: 'Buscar por título ou enunciado',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpar busca',
+                      onPressed: () => setState(() => _search = ''),
+                      icon: const Icon(Icons.clear),
+                    ),
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (final (filter, label) in [
-                (_ExerciseFilter.all, 'Todas'),
-                (_ExerciseFilter.openEnded, 'Abertas'),
-                (_ExerciseFilter.multipleChoice, 'Múltipla escolha'),
-              ])
-                ChoiceChip(
-                  label: Text(label),
-                  selected: _filter == filter,
-                  onSelected: (_) => setState(() => _filter = filter),
-                ),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final (filter, label) in [
+                  (_ExerciseFilter.all, 'Todas'),
+                  (_ExerciseFilter.due, 'Para revisar ($dueCount)'),
+                  (_ExerciseFilter.openEnded, 'Abertas'),
+                  (_ExerciseFilter.multipleChoice, 'Múltipla escolha'),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(label),
+                      selected: _filter == filter,
+                      onSelected: (_) => setState(() => _filter = filter),
+                    ),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -345,6 +419,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                         Text(
                           total == 0
                               ? 'Nenhuma questão por aqui ainda'
+                              : _filter == _ExerciseFilter.due &&
+                                    dueCount == 0
+                              ? 'Não há questões vencidas para revisar agora'
                               : 'Nenhuma questão encontrada',
                           textAlign: TextAlign.center,
                           style: context.textTheme.titleMedium,

@@ -12,8 +12,10 @@ part 'database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  AppDatabase.forTesting(super.e);
+
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -49,6 +51,79 @@ class AppDatabase extends _$AppDatabase {
                 THEN soft_deleted_at / 1000 ELSE soft_deleted_at
               END
         ''');
+      }
+      if (from < 5 && to >= 5) {
+        await customStatement(
+          'ALTER TABLE multiple_choice_response_log ADD COLUMN '
+          'corrected BOOLEAN NOT NULL DEFAULT 0 '
+          'CHECK (corrected IN (0, 1))',
+        );
+        await customStatement(
+          'ALTER TABLE multiple_choice_response_log ADD COLUMN '
+          'duration_seconds INTEGER NOT NULL DEFAULT 0 '
+          'CHECK (duration_seconds >= 0)',
+        );
+        await customStatement(
+          'ALTER TABLE open_ended_response_log ADD COLUMN '
+          'duration_seconds INTEGER NOT NULL DEFAULT 0 '
+          'CHECK (duration_seconds >= 0)',
+        );
+        await customStatement('''
+          CREATE TABLE review_item_state (
+            id TEXT NOT NULL PRIMARY KEY,
+            node_id TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+            item_type TEXT NOT NULL CHECK (
+              item_type IN ('FLASHCARD', 'OPEN_ENDED', 'MULTIPLE_CHOICE')
+            ),
+            item_id TEXT NOT NULL,
+            card_state_json TEXT NOT NULL CHECK (json_valid(card_state_json)),
+            next_review_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            CONSTRAINT review_item_state_item_uq UNIQUE (item_type, item_id)
+          )
+        ''');
+        await customStatement('''
+          CREATE TABLE review_item_log (
+            id TEXT NOT NULL PRIMARY KEY,
+            review_item_state_id TEXT NOT NULL
+              REFERENCES review_item_state(id) ON DELETE CASCADE,
+            rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 4),
+            duration_seconds INTEGER NOT NULL DEFAULT 0
+              CHECK (duration_seconds >= 0),
+            score REAL CHECK (score IS NULL OR (score >= 0 AND score <= 1)),
+            review_method TEXT NOT NULL CHECK (
+              review_method IN (
+                'SELF_RATING', 'AUTO_SCORE', 'AI_CORRECTION',
+                'MANUAL_CORRECTION'
+              )
+            ),
+            source_response_id TEXT,
+            retrievability REAL CHECK (
+              retrievability IS NULL OR
+              (retrievability >= 0 AND retrievability <= 1)
+            ),
+            scheduled_days INTEGER NOT NULL DEFAULT 0
+              CHECK (scheduled_days >= 0),
+            reviewed_at INTEGER NOT NULL DEFAULT (unixepoch())
+          )
+        ''');
+        await customStatement(
+          'CREATE INDEX idx_review_item_state_node_id '
+          'ON review_item_state(node_id)',
+        );
+        await customStatement(
+          'CREATE INDEX idx_review_item_state_due '
+          'ON review_item_state(next_review_at)',
+        );
+        await customStatement(
+          'CREATE INDEX idx_review_item_log_state_id '
+          'ON review_item_log(review_item_state_id)',
+        );
+        await customStatement(
+          'CREATE INDEX idx_review_item_log_source_response_id '
+          'ON review_item_log(source_response_id)',
+        );
       }
     },
     beforeOpen: (details) async {
@@ -157,7 +232,9 @@ class AppDatabase extends _$AppDatabase {
         FROM study_session_has_open_ended_question
       )
     ''');
-    await customStatement('DROP TABLE study_session_has_multiple_choice_question');
+    await customStatement(
+      'DROP TABLE study_session_has_multiple_choice_question',
+    );
     await customStatement('DROP TABLE study_session_has_open_ended_question');
     await customStatement(
       'CREATE INDEX idx_study_session_log_started_at '

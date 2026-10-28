@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/feature/ai/models/ai_agent_task.dart';
+import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/core/database/database.dart'
     show OpenEndedResponseLogData;
 import 'package:noema/core/database/database_provider.dart';
@@ -53,7 +56,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isSending = false;
+  bool _isGenerating = false;
+  bool _isAiGenerated = false;
   bool _hasSubmitted = false;
+  final Stopwatch _answerTimer = Stopwatch();
   OpenEndedResponseLogData? _latestResponse;
   String? _loadError;
 
@@ -71,6 +77,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     super.initState();
 
     mode = widget.defaultMode;
+    _answerTimer.start();
 
     titleController = TextEditingController();
     statementController = TextEditingController();
@@ -119,11 +126,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     try {
       final db = ref.read(appDatabaseProvider);
       final user = await ref.read(userProvider.future);
-      await getGraphNodeForUser(
-        db: db,
-        nodeId: widget.nodeId,
-        userId: user.id,
-      );
+      await getGraphNodeForUser(db: db, nodeId: widget.nodeId, userId: user.id);
       final data = await OpenEndedDao(db).getOpenEnded(id: widget.openEndedId!);
       if (!mounted) return;
       if (data == null) {
@@ -151,6 +154,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         _isLoading = false;
         title = data.title;
         statement = data.statement;
+        _isAiGenerated = data.isAiGenerated;
         type = data.type.toLowerCase() == "feynman"
             ? OpenEndedType.feynman
             : OpenEndedType.essay;
@@ -193,6 +197,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         statement: statement.trim(),
         type: type.name.toUpperCase(),
         referenceCorrectAnswer: referenceCorrectAnswer.trim(),
+        isAiGenerated: _isAiGenerated,
       );
       tempId = inserted;
     } else {
@@ -203,10 +208,223 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         statement: statement.trim(),
         type: type.name.toUpperCase(),
         referenceCorrectAnswer: referenceCorrectAnswer.trim(),
+        isAiGenerated: _isAiGenerated,
       );
     }
     widget.onSave?.call();
     return true;
+  }
+
+  Future<void> _generateWithAi() async {
+    if (_isGenerating || _isSaving) return;
+    final instructions = await _askAiInstructions();
+    if (instructions == null || !mounted) return;
+
+    setState(() {
+      _isGenerating = true;
+      _loadError = null;
+    });
+
+    try {
+      final user = await ref.read(userProvider.future);
+      final node = await getGraphNodeForUser(
+        db: ref.read(appDatabaseProvider),
+        nodeId: widget.nodeId,
+        userId: user.id,
+      );
+      final task = type == OpenEndedType.feynman
+          ? AiAgentTask.createFeynman
+          : AiAgentTask.createEssayQuestion;
+      final prompt = StringBuffer()
+        ..writeln(
+          type == OpenEndedType.feynman
+              ? 'Crie uma questão para o estudante explicar o conceito pelo '
+                    'método Feynman.'
+              : 'Crie uma questão dissertativa para avaliar compreensão '
+                    'profunda do conceito.',
+        )
+        ..writeln('Nó: ${node.title}')
+        ..writeln('Descrição: ${node.description ?? "não informada"}')
+        ..writeln(
+          'Instruções adicionais: ${instructions.trim().isEmpty ? "sem instruções adicionais" : instructions.trim()}',
+        )
+        ..writeln(
+          'Retorne título, statement e reference_correct_answer. O enunciado '
+          'deve ser claro e a resposta de referência deve ser completa, '
+          'correta e útil para revisão.',
+        );
+      final response = await ref
+          .read(aiContentGenerationServiceProvider)
+          .generate(task: task, prompt: prompt.toString());
+      final draft = _parseAiQuestion(response);
+      if (!mounted) return;
+      final accepted = await _previewAiQuestion(draft);
+      if (accepted != true || !mounted) return;
+
+      setState(() {
+        title = draft.title;
+        statement = draft.statement;
+        referenceCorrectAnswer = draft.referenceAnswer;
+        _isAiGenerated = true;
+        titleController.text = title;
+        statementController.text = statement;
+        referenceCorrectAnswerController.text = referenceCorrectAnswer;
+      });
+      _showAiMessage('Questão gerada no editor. Salve para confirmar.');
+    } on DioException catch (error) {
+      if (mounted) _showAiMessage(_aiApiError(error));
+    } on FormatException catch (error) {
+      if (mounted) _showAiMessage('Resposta da IA inválida: ${error.message}');
+    } catch (error) {
+      if (mounted) {
+        _showAiMessage(
+          error is StateError
+              ? error.message
+              : 'Não foi possível gerar a questão. Verifique a configuração '
+                    'do agente e das chaves de IA.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
+    }
+  }
+
+  Future<String?> _askAiInstructions() async {
+    final controller = TextEditingController();
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Gerar questão com IA'),
+          content: SizedBox(
+            width: 440,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'A questão será baseada no nó atual e no formato '
+                  '${type == OpenEndedType.feynman ? "Feynman" : "dissertativo"}.',
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLines: 3,
+                  maxLength: 300,
+                  decoration: const InputDecoration(
+                    labelText: 'Orientação adicional (opcional)',
+                    hintText: 'Ex.: nível avançado, foco em comparação',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(dialogContext, controller.text),
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Gerar'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  _AiOpenEndedDraft _parseAiQuestion(Map<String, dynamic> response) {
+    final generatedTitle = response['title'];
+    final generatedStatement = response['statement'];
+    final generatedAnswer =
+        response['reference_correct_answer'] ??
+        response['referenceCorrectAnswer'];
+    if (generatedTitle is! String ||
+        generatedTitle.trim().isEmpty ||
+        generatedStatement is! String ||
+        generatedStatement.trim().isEmpty ||
+        generatedAnswer is! String ||
+        generatedAnswer.trim().isEmpty) {
+      throw const FormatException(
+        'Título, enunciado ou resposta de referência não foi retornado.',
+      );
+    }
+    return _AiOpenEndedDraft(
+      title: generatedTitle.trim(),
+      statement: generatedStatement.trim(),
+      referenceAnswer: generatedAnswer.trim(),
+    );
+  }
+
+  Future<bool?> _previewAiQuestion(_AiOpenEndedDraft draft) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Revise a questão gerada'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  draft.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(draft.statement),
+                const Divider(height: 24),
+                Text(
+                  'Resposta de referência',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(draft.referenceAnswer),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Descartar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.check),
+            label: const Text('Aplicar ao editor'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _aiApiError(DioException error) {
+    final status = error.response?.statusCode;
+    if (status == 401 || status == 403) {
+      return 'Sua sessão expirou ou não está autorizada para usar a IA.';
+    }
+    if (status == 404) return 'O agente de geração de questões não existe.';
+    if (status == 429) return 'Muitas solicitações. Aguarde e tente novamente.';
+    if (status != null && status >= 500) {
+      return 'O serviço de IA falhou. Tente novamente mais tarde.';
+    }
+    if (error.response == null) {
+      return 'Sem conexão com o serviço de IA. Verifique sua internet.';
+    }
+    return 'Não foi possível gerar a questão (HTTP $status).';
+  }
+
+  void _showAiMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> sendAnswer() async {
@@ -255,7 +473,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         studySessionId: widget.studySessionId,
         studySessionLogId: widget.studySessionLogId,
         userAnswer: userAnswer.trim(),
+        durationSeconds: _answerTimer.elapsed.inSeconds,
       );
+      _answerTimer.stop();
       if (!mounted) return;
       if (widget.onSendAnswer case final onSendAnswer?) {
         onSendAnswer();
@@ -286,6 +506,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
 
   @override
   void dispose() {
+    _answerTimer.stop();
     titleController.dispose();
     statementController.dispose();
     typeController.dispose();
@@ -428,6 +649,28 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: "Enunciado",
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: _isGenerating || _isSaving
+                            ? null
+                            : _generateWithAi,
+                        icon: _isGenerating
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.auto_awesome),
+                        label: Text(
+                          _isGenerating
+                              ? 'Gerando questão...'
+                              : 'Gerar questão com IA',
+                        ),
                       ),
                     ),
                     TextField(
@@ -682,4 +925,16 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       ),
     );
   }
+}
+
+class _AiOpenEndedDraft {
+  const _AiOpenEndedDraft({
+    required this.title,
+    required this.statement,
+    required this.referenceAnswer,
+  });
+
+  final String title;
+  final String statement;
+  final String referenceAnswer;
 }

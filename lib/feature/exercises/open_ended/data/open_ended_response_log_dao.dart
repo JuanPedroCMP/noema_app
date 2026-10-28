@@ -9,7 +9,7 @@ class OpenEndedResponseLogDao extends DatabaseAccessor<AppDatabase>
     with _$OpenEndedResponseLogDaoMixin {
   OpenEndedResponseLogDao(super.db);
 
-  Future<int> insertOpenEndedResponseLog({
+  Future<String> insertOpenEndedResponseLog({
     required String openEndedId,
     required String questionSnapshot,
     String? studySessionId,
@@ -21,10 +21,12 @@ class OpenEndedResponseLogDao extends DatabaseAccessor<AppDatabase>
     bool? isCorrect,
     String? masteryDemonstrated,
     double? score,
+    required int durationSeconds,
   }) {
+    final id = Uuid().v4();
     return into(attachedDatabase.openEndedResponseLog).insert(
       OpenEndedResponseLogCompanion.insert(
-        id: Uuid().v4(),
+        id: id,
         openEndedId: openEndedId,
         studySessionId: Value(studySessionId),
         studySessionLogId: Value(studySessionLogId),
@@ -36,8 +38,9 @@ class OpenEndedResponseLogDao extends DatabaseAccessor<AppDatabase>
         isCorrect: Value(isCorrect),
         masteryDemonstrated: Value(masteryDemonstrated),
         score: Value(score),
+        durationSeconds: Value(durationSeconds),
       ),
-    );
+    ).then((_) => id);
   }
 
   Future<int> updateOpenEndedResponseLog({
@@ -51,6 +54,8 @@ class OpenEndedResponseLogDao extends DatabaseAccessor<AppDatabase>
     bool? isCorrect,
     String? masteryDemonstrated,
     double? score,
+    bool? corrected,
+    int? durationSeconds,
   }) {
     return (update(
       attachedDatabase.openEndedResponseLog,
@@ -75,6 +80,12 @@ class OpenEndedResponseLogDao extends DatabaseAccessor<AppDatabase>
             ? const Value.absent()
             : Value(masteryDemonstrated),
         score: score == null ? const Value.absent() : Value(score),
+        corrected: corrected == null
+            ? const Value.absent()
+            : Value(corrected),
+        durationSeconds: durationSeconds == null
+            ? const Value.absent()
+            : Value(durationSeconds),
       ),
     );
   }

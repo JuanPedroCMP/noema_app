@@ -34,7 +34,7 @@ class LoginService {
       value: remoteId,
     );
 
-    ref.read(apiClientProvider).setOAuthToken("OAuth2PasswordBearer", token);
+    setApiAccessToken(ref.read(apiClientProvider), token);
 
     return token;
   }

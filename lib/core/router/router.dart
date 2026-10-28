@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/router/app_shell.dart';
 import 'package:noema/core/router/route_paths.dart';
@@ -24,27 +25,43 @@ import 'package:noema/feature/study_session/presentation/study_sessions_page.dar
 import 'package:noema/teste_page.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  final refreshListenable = _RouterRefreshListenable();
+  ref.listen(authStateProvider, (_, _) => refreshListenable.refresh());
 
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: RoutePaths.home,
+    refreshListenable: refreshListenable,
 
     redirect: (context, state) {
+      final authState = ref.read(authStateProvider);
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
       final isSigninUp = state.matchedLocation == RoutePaths.signUp;
+      final isSplash = state.matchedLocation == RoutePaths.splash;
       final isAuthLoading = authState.isLoading;
       final isLoggedIn = authState.value == true;
+      final requestedPath = state.uri.toString();
+      final returnTo = RoutePaths.safeReturnPath(
+        state.uri.queryParameters['from'],
+      );
 
       if (isAuthLoading) {
-        return RoutePaths.splash;
+        if (isSplash) return null;
+        return Uri(
+          path: RoutePaths.splash,
+          queryParameters: {'from': requestedPath},
+        ).toString();
       }
 
-      if (!isLoggedIn && !isLoggingIn && !isSigninUp) {
-        return RoutePaths.login;
+      if (!isLoggedIn) {
+        if (isLoggingIn || isSigninUp) return null;
+        return Uri(
+          path: RoutePaths.login,
+          queryParameters: {'from': returnTo ?? requestedPath},
+        ).toString();
       }
 
-      if (isLoggedIn && (isLoggingIn || state.matchedLocation == "/splash")) {
-        return RoutePaths.home;
+      if (isLoggingIn || isSigninUp || isSplash) {
+        return returnTo ?? RoutePaths.home;
       }
 
       return null;
@@ -62,6 +79,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
+      GoRoute(
+        path: RoutePaths.test,
+        builder: (_, _) => M3ShowcaseApp(),
+      ),
+
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(
@@ -76,40 +98,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RoutePaths.home,
                 builder: (_, _) => const HomePage(),
-                routes: [
-                  GoRoute(
-                    path: 'study-sessions',
-                    builder: (_, _) => const StudySessionsPage(),
-                    routes: [
-                      GoRoute(
-                        path: 'create',
-                        builder: (_, _) => const StudySessionCreatePage(),
-                      ),
-                      GoRoute(
-                        path: ':sessionId',
-                        builder: (context, state) => StudySessionDetailPage(
-                          sessionId: state.pathParameters['sessionId']!,
-                        ),
-                        routes: [
-                          GoRoute(
-                            path: 'edit',
-                            builder: (context, state) =>
-                                StudySessionCreatePage(
-                                  sessionId:
-                                      state.pathParameters['sessionId']!,
-                                ),
-                          ),
-                          GoRoute(
-                            path: 'run',
-                            builder: (context, state) => StudySessionRunPage(
-                              sessionId: state.pathParameters['sessionId']!,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ],
           ),
@@ -117,21 +105,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(path: RoutePaths.notes, builder: (_, _) => NotesPage()),
-            ],
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage()),
-            ],
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RoutePaths.test,
-                builder: (_, _) => M3ShowcaseApp(),
-              ),
             ],
           ),
 
@@ -290,8 +263,56 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.studySessions,
+                builder: (_, _) => const StudySessionsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    builder: (_, _) => const StudySessionCreatePage(),
+                  ),
+                  GoRoute(
+                    path: ':sessionId',
+                    builder: (context, state) => StudySessionDetailPage(
+                      sessionId: state.pathParameters['sessionId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (context, state) => StudySessionCreatePage(
+                          sessionId: state.pathParameters['sessionId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'run',
+                        builder: (context, state) => StudySessionRunPage(
+                          sessionId: state.pathParameters['sessionId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage()),
+            ],
+          ),
         ],
       ),
     ],
   );
+  ref.onDispose(() {
+    router.dispose();
+    refreshListenable.dispose();
+  });
+  return router;
 });
+
+class _RouterRefreshListenable extends ChangeNotifier {
+  void refresh() => notifyListeners();
+}

@@ -32,8 +32,9 @@ class _M3ShowcaseAppState extends State<M3ShowcaseApp> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      _themeMode = _themeMode == ThemeMode.light
+          ? ThemeMode.dark
+          : ThemeMode.light;
     });
   }
 
@@ -53,10 +54,7 @@ class _M3ShowcaseAppState extends State<M3ShowcaseApp> {
         colorSchemeSeed: Colors.deepPurple,
         brightness: Brightness.dark,
       ),
-      home: M3ShowcasePage(
-        themeMode: _themeMode,
-        onToggleTheme: _toggleTheme,
-      ),
+      home: M3ShowcasePage(themeMode: _themeMode, onToggleTheme: _toggleTheme),
     );
   }
 }
@@ -141,7 +139,10 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
       builder: (context) => SizedBox(
         height: 200,
         child: Center(
-          child: Text('Modal Bottom Sheet', style: context.textTheme.titleMedium),
+          child: Text(
+            'Modal Bottom Sheet',
+            style: context.textTheme.titleMedium,
+          ),
         ),
       ),
     );
@@ -201,50 +202,190 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
 
           const _GroupLabel('Primary'),
           _demoWrap([
-            _ColorSample(role: 'primary', onRole: 'onPrimary', color: cs.primary, onColor: cs.onPrimary),
-            _ColorSample(role: 'primaryContainer', onRole: 'onPrimaryContainer', color: cs.primaryContainer, onColor: cs.onPrimaryContainer),
-            _ColorSample(role: 'primaryFixed', onRole: 'onPrimaryFixed', color: cs.primaryFixed, onColor: cs.onPrimaryFixed),
-            _ColorSample(role: 'primaryFixedDim', onRole: 'onPrimaryFixed', color: cs.primaryFixedDim, onColor: cs.onPrimaryFixed),
-            _ColorSample(role: 'primaryFixed', onRole: 'onPrimaryFixedVariant', color: cs.primaryFixed, onColor: cs.onPrimaryFixedVariant),
-            _ColorSample(role: 'inverseSurface', onRole: 'inversePrimary', color: cs.inverseSurface, onColor: cs.inversePrimary),
+            _ColorSample(
+              role: 'primary',
+              onRole: 'onPrimary',
+              color: cs.primary,
+              onColor: cs.onPrimary,
+            ),
+            _ColorSample(
+              role: 'primaryContainer',
+              onRole: 'onPrimaryContainer',
+              color: cs.primaryContainer,
+              onColor: cs.onPrimaryContainer,
+            ),
+            _ColorSample(
+              role: 'primaryFixed',
+              onRole: 'onPrimaryFixed',
+              color: cs.primaryFixed,
+              onColor: cs.onPrimaryFixed,
+            ),
+            _ColorSample(
+              role: 'primaryFixedDim',
+              onRole: 'onPrimaryFixed',
+              color: cs.primaryFixedDim,
+              onColor: cs.onPrimaryFixed,
+            ),
+            _ColorSample(
+              role: 'primaryFixed',
+              onRole: 'onPrimaryFixedVariant',
+              color: cs.primaryFixed,
+              onColor: cs.onPrimaryFixedVariant,
+            ),
+            _ColorSample(
+              role: 'inverseSurface',
+              onRole: 'inversePrimary',
+              color: cs.inverseSurface,
+              onColor: cs.inversePrimary,
+            ),
           ]),
 
           const _GroupLabel('Secondary'),
           _demoWrap([
-            _ColorSample(role: 'secondary', onRole: 'onSecondary', color: cs.secondary, onColor: cs.onSecondary),
-            _ColorSample(role: 'secondaryContainer', onRole: 'onSecondaryContainer', color: cs.secondaryContainer, onColor: cs.onSecondaryContainer),
-            _ColorSample(role: 'secondaryFixed', onRole: 'onSecondaryFixed', color: cs.secondaryFixed, onColor: cs.onSecondaryFixed),
-            _ColorSample(role: 'secondaryFixedDim', onRole: 'onSecondaryFixed', color: cs.secondaryFixedDim, onColor: cs.onSecondaryFixed),
-            _ColorSample(role: 'secondaryFixed', onRole: 'onSecondaryFixedVariant', color: cs.secondaryFixed, onColor: cs.onSecondaryFixedVariant),
+            _ColorSample(
+              role: 'secondary',
+              onRole: 'onSecondary',
+              color: cs.secondary,
+              onColor: cs.onSecondary,
+            ),
+            _ColorSample(
+              role: 'secondaryContainer',
+              onRole: 'onSecondaryContainer',
+              color: cs.secondaryContainer,
+              onColor: cs.onSecondaryContainer,
+            ),
+            _ColorSample(
+              role: 'secondaryFixed',
+              onRole: 'onSecondaryFixed',
+              color: cs.secondaryFixed,
+              onColor: cs.onSecondaryFixed,
+            ),
+            _ColorSample(
+              role: 'secondaryFixedDim',
+              onRole: 'onSecondaryFixed',
+              color: cs.secondaryFixedDim,
+              onColor: cs.onSecondaryFixed,
+            ),
+            _ColorSample(
+              role: 'secondaryFixed',
+              onRole: 'onSecondaryFixedVariant',
+              color: cs.secondaryFixed,
+              onColor: cs.onSecondaryFixedVariant,
+            ),
           ]),
 
           const _GroupLabel('Tertiary'),
           _demoWrap([
-            _ColorSample(role: 'tertiary', onRole: 'onTertiary', color: cs.tertiary, onColor: cs.onTertiary),
-            _ColorSample(role: 'tertiaryContainer', onRole: 'onTertiaryContainer', color: cs.tertiaryContainer, onColor: cs.onTertiaryContainer),
-            _ColorSample(role: 'tertiaryFixed', onRole: 'onTertiaryFixed', color: cs.tertiaryFixed, onColor: cs.onTertiaryFixed),
-            _ColorSample(role: 'tertiaryFixedDim', onRole: 'onTertiaryFixed', color: cs.tertiaryFixedDim, onColor: cs.onTertiaryFixed),
-            _ColorSample(role: 'tertiaryFixed', onRole: 'onTertiaryFixedVariant', color: cs.tertiaryFixed, onColor: cs.onTertiaryFixedVariant),
+            _ColorSample(
+              role: 'tertiary',
+              onRole: 'onTertiary',
+              color: cs.tertiary,
+              onColor: cs.onTertiary,
+            ),
+            _ColorSample(
+              role: 'tertiaryContainer',
+              onRole: 'onTertiaryContainer',
+              color: cs.tertiaryContainer,
+              onColor: cs.onTertiaryContainer,
+            ),
+            _ColorSample(
+              role: 'tertiaryFixed',
+              onRole: 'onTertiaryFixed',
+              color: cs.tertiaryFixed,
+              onColor: cs.onTertiaryFixed,
+            ),
+            _ColorSample(
+              role: 'tertiaryFixedDim',
+              onRole: 'onTertiaryFixed',
+              color: cs.tertiaryFixedDim,
+              onColor: cs.onTertiaryFixed,
+            ),
+            _ColorSample(
+              role: 'tertiaryFixed',
+              onRole: 'onTertiaryFixedVariant',
+              color: cs.tertiaryFixed,
+              onColor: cs.onTertiaryFixedVariant,
+            ),
           ]),
 
           const _GroupLabel('Error'),
           _demoWrap([
-            _ColorSample(role: 'error', onRole: 'onError', color: cs.error, onColor: cs.onError),
-            _ColorSample(role: 'errorContainer', onRole: 'onErrorContainer', color: cs.errorContainer, onColor: cs.onErrorContainer),
+            _ColorSample(
+              role: 'error',
+              onRole: 'onError',
+              color: cs.error,
+              onColor: cs.onError,
+            ),
+            _ColorSample(
+              role: 'errorContainer',
+              onRole: 'onErrorContainer',
+              color: cs.errorContainer,
+              onColor: cs.onErrorContainer,
+            ),
           ]),
 
           const _GroupLabel('Surface'),
           _demoWrap([
-            _ColorSample(role: 'surface', onRole: 'onSurface', color: cs.surface, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceDim', onRole: 'onSurface', color: cs.surfaceDim, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceBright', onRole: 'onSurface', color: cs.surfaceBright, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceContainerLowest', onRole: 'onSurface', color: cs.surfaceContainerLowest, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceContainerLow', onRole: 'onSurface', color: cs.surfaceContainerLow, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceContainer', onRole: 'onSurface', color: cs.surfaceContainer, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceContainerHigh', onRole: 'onSurface', color: cs.surfaceContainerHigh, onColor: cs.onSurface),
-            _ColorSample(role: 'surfaceContainerHighest', onRole: 'onSurface', color: cs.surfaceContainerHighest, onColor: cs.onSurface),
-            _ColorSample(role: 'surface', onRole: 'onSurfaceVariant', color: cs.surface, onColor: cs.onSurfaceVariant),
-            _ColorSample(role: 'inverseSurface', onRole: 'onInverseSurface', color: cs.inverseSurface, onColor: cs.onInverseSurface),
+            _ColorSample(
+              role: 'surface',
+              onRole: 'onSurface',
+              color: cs.surface,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceDim',
+              onRole: 'onSurface',
+              color: cs.surfaceDim,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceBright',
+              onRole: 'onSurface',
+              color: cs.surfaceBright,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceContainerLowest',
+              onRole: 'onSurface',
+              color: cs.surfaceContainerLowest,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceContainerLow',
+              onRole: 'onSurface',
+              color: cs.surfaceContainerLow,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceContainer',
+              onRole: 'onSurface',
+              color: cs.surfaceContainer,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceContainerHigh',
+              onRole: 'onSurface',
+              color: cs.surfaceContainerHigh,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surfaceContainerHighest',
+              onRole: 'onSurface',
+              color: cs.surfaceContainerHighest,
+              onColor: cs.onSurface,
+            ),
+            _ColorSample(
+              role: 'surface',
+              onRole: 'onSurfaceVariant',
+              color: cs.surface,
+              onColor: cs.onSurfaceVariant,
+            ),
+            _ColorSample(
+              role: 'inverseSurface',
+              onRole: 'onInverseSurface',
+              color: cs.inverseSurface,
+              onColor: cs.onInverseSurface,
+            ),
           ]),
 
           const _GroupLabel('Outline & Effects'),
@@ -260,21 +401,81 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
 
           //region Text Theme
           const _SectionTitle('Text Theme'),
-          _TextStyleSample('Display Large', 'displayLarge', context.textTheme.displayLarge),
-          _TextStyleSample('Display Medium', 'displayMedium', context.textTheme.displayMedium),
-          _TextStyleSample('Display Small', 'displaySmall', context.textTheme.displaySmall),
-          _TextStyleSample('Headline Large', 'headlineLarge', context.textTheme.headlineLarge),
-          _TextStyleSample('Headline Medium', 'headlineMedium', context.textTheme.headlineMedium),
-          _TextStyleSample('Headline Small', 'headlineSmall', context.textTheme.headlineSmall),
-          _TextStyleSample('Title Large', 'titleLarge', context.textTheme.titleLarge),
-          _TextStyleSample('Title Medium', 'titleMedium', context.textTheme.titleMedium),
-          _TextStyleSample('Title Small', 'titleSmall', context.textTheme.titleSmall),
-          _TextStyleSample('Body Large', 'bodyLarge', context.textTheme.bodyLarge),
-          _TextStyleSample('Body Medium', 'bodyMedium', context.textTheme.bodyMedium),
-          _TextStyleSample('Body Small', 'bodySmall', context.textTheme.bodySmall),
-          _TextStyleSample('Label Large', 'labelLarge', context.textTheme.labelLarge),
-          _TextStyleSample('Label Medium', 'labelMedium', context.textTheme.labelMedium),
-          _TextStyleSample('Label Small', 'labelSmall', context.textTheme.labelSmall),
+          _TextStyleSample(
+            'Display Large',
+            'displayLarge',
+            context.textTheme.displayLarge,
+          ),
+          _TextStyleSample(
+            'Display Medium',
+            'displayMedium',
+            context.textTheme.displayMedium,
+          ),
+          _TextStyleSample(
+            'Display Small',
+            'displaySmall',
+            context.textTheme.displaySmall,
+          ),
+          _TextStyleSample(
+            'Headline Large',
+            'headlineLarge',
+            context.textTheme.headlineLarge,
+          ),
+          _TextStyleSample(
+            'Headline Medium',
+            'headlineMedium',
+            context.textTheme.headlineMedium,
+          ),
+          _TextStyleSample(
+            'Headline Small',
+            'headlineSmall',
+            context.textTheme.headlineSmall,
+          ),
+          _TextStyleSample(
+            'Title Large',
+            'titleLarge',
+            context.textTheme.titleLarge,
+          ),
+          _TextStyleSample(
+            'Title Medium',
+            'titleMedium',
+            context.textTheme.titleMedium,
+          ),
+          _TextStyleSample(
+            'Title Small',
+            'titleSmall',
+            context.textTheme.titleSmall,
+          ),
+          _TextStyleSample(
+            'Body Large',
+            'bodyLarge',
+            context.textTheme.bodyLarge,
+          ),
+          _TextStyleSample(
+            'Body Medium',
+            'bodyMedium',
+            context.textTheme.bodyMedium,
+          ),
+          _TextStyleSample(
+            'Body Small',
+            'bodySmall',
+            context.textTheme.bodySmall,
+          ),
+          _TextStyleSample(
+            'Label Large',
+            'labelLarge',
+            context.textTheme.labelLarge,
+          ),
+          _TextStyleSample(
+            'Label Medium',
+            'labelMedium',
+            context.textTheme.labelMedium,
+          ),
+          _TextStyleSample(
+            'Label Small',
+            'labelSmall',
+            context.textTheme.labelSmall,
+          ),
           const SizedBox(height: 32),
           //endregion
 
@@ -283,22 +484,49 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           _demoWrap([
             ElevatedButton(onPressed: () {}, child: const Text('Elevated')),
             FilledButton(onPressed: () {}, child: const Text('Filled')),
-            FilledButton.tonal(onPressed: () {}, child: const Text('Filled Tonal')),
+            FilledButton.tonal(
+              onPressed: () {},
+              child: const Text('Filled Tonal'),
+            ),
             OutlinedButton(onPressed: () {}, child: const Text('Outlined')),
             TextButton(onPressed: () {}, child: const Text('Text')),
           ]),
           const SizedBox(height: 16),
           _demoWrap([
-            IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_border)),
-            IconButton.filled(onPressed: () {}, icon: const Icon(Icons.favorite)),
-            IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.favorite)),
-            IconButton.outlined(onPressed: () {}, icon: const Icon(Icons.favorite_border)),
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.favorite_border),
+            ),
+            IconButton.filled(
+              onPressed: () {},
+              icon: const Icon(Icons.favorite),
+            ),
+            IconButton.filledTonal(
+              onPressed: () {},
+              icon: const Icon(Icons.favorite),
+            ),
+            IconButton.outlined(
+              onPressed: () {},
+              icon: const Icon(Icons.favorite_border),
+            ),
           ]),
           const SizedBox(height: 16),
           _demoWrap([
-            FloatingActionButton.small(onPressed: () {}, heroTag: 'fabSmall', child: const Icon(Icons.add)),
-            FloatingActionButton(onPressed: () {}, heroTag: 'fabRegular', child: const Icon(Icons.add)),
-            FloatingActionButton.large(onPressed: () {}, heroTag: 'fabLarge', child: const Icon(Icons.add)),
+            FloatingActionButton.small(
+              onPressed: () {},
+              heroTag: 'fabSmall',
+              child: const Icon(Icons.add),
+            ),
+            FloatingActionButton(
+              onPressed: () {},
+              heroTag: 'fabRegular',
+              child: const Icon(Icons.add),
+            ),
+            FloatingActionButton.large(
+              onPressed: () {},
+              heroTag: 'fabLarge',
+              child: const Icon(Icons.add),
+            ),
             FloatingActionButton.extended(
               onPressed: () {},
               heroTag: 'fabExtended',
@@ -309,12 +537,25 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           const SizedBox(height: 16),
           SegmentedButton<int>(
             segments: const [
-              ButtonSegment(value: 0, label: Text('Day'), icon: Icon(Icons.calendar_view_day)),
-              ButtonSegment(value: 1, label: Text('Week'), icon: Icon(Icons.calendar_view_week)),
-              ButtonSegment(value: 2, label: Text('Month'), icon: Icon(Icons.calendar_view_month)),
+              ButtonSegment(
+                value: 0,
+                label: Text('Day'),
+                icon: Icon(Icons.calendar_view_day),
+              ),
+              ButtonSegment(
+                value: 1,
+                label: Text('Week'),
+                icon: Icon(Icons.calendar_view_week),
+              ),
+              ButtonSegment(
+                value: 2,
+                label: Text('Month'),
+                icon: Icon(Icons.calendar_view_month),
+              ),
             ],
             selected: _segmentedSelection,
-            onSelectionChanged: (selection) => setState(() => _segmentedSelection = selection),
+            onSelectionChanged: (selection) =>
+                setState(() => _segmentedSelection = selection),
           ),
           const SizedBox(height: 32),
           //endregion
@@ -322,31 +563,62 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Selection Controls
           const _SectionTitle('Selection Controls'),
           _demoWrap([
-            Switch(value: _switchValue, onChanged: (v) => setState(() => _switchValue = v)),
+            Switch(
+              value: _switchValue,
+              onChanged: (v) => setState(() => _switchValue = v),
+            ),
             Checkbox(
               value: _checkboxValue,
               tristate: true,
               onChanged: (v) => setState(() => _checkboxValue = v),
             ),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Radio<int>(value: 0, groupValue: _radioValue, onChanged: (v) => setState(() => _radioValue = v!)),
-              const Text('Option A'),
-            ]),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Radio<int>(value: 1, groupValue: _radioValue, onChanged: (v) => setState(() => _radioValue = v!)),
-              const Text('Option B'),
-            ]),
+            RadioGroup<int>(
+              groupValue: _radioValue,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _radioValue = value);
+                }
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Radio<int>(value: 0),
+                      const Text('Option A'),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Radio<int>(value: 1),
+                      const Text('Option B'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ]),
           const SizedBox(height: 8),
-          Slider(value: _sliderValue, onChanged: (v) => setState(() => _sliderValue = v)),
-          RangeSlider(values: _rangeValues, onChanged: (v) => setState(() => _rangeValues = v)),
+          Slider(
+            value: _sliderValue,
+            onChanged: (v) => setState(() => _sliderValue = v),
+          ),
+          RangeSlider(
+            values: _rangeValues,
+            onChanged: (v) => setState(() => _rangeValues = v),
+          ),
           const SizedBox(height: 24),
           //endregion
 
           //region Chips
           const _SectionTitle('Chips'),
           _demoWrap([
-            const Chip(label: Text('Chip'), avatar: CircleAvatar(child: Icon(Icons.tag, size: 16))),
+            const Chip(
+              label: Text('Chip'),
+              avatar: CircleAvatar(child: Icon(Icons.tag, size: 16)),
+            ),
             InputChip(label: const Text('Input'), onDeleted: () {}),
             ChoiceChip(
               label: const Text('Choice'),
@@ -366,9 +638,24 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Cards
           const _SectionTitle('Cards'),
           _demoWrap([
-            SizedBox(width: 220, child: Card(child: _cardBody(context, 'Elevated Card', 'Card() default'))),
-            SizedBox(width: 220, child: Card.filled(child: _cardBody(context, 'Filled Card', 'Card.filled()'))),
-            SizedBox(width: 220, child: Card.outlined(child: _cardBody(context, 'Outlined Card', 'Card.outlined()'))),
+            SizedBox(
+              width: 220,
+              child: Card(
+                child: _cardBody(context, 'Elevated Card', 'Card() default'),
+              ),
+            ),
+            SizedBox(
+              width: 220,
+              child: Card.filled(
+                child: _cardBody(context, 'Filled Card', 'Card.filled()'),
+              ),
+            ),
+            SizedBox(
+              width: 220,
+              child: Card.outlined(
+                child: _cardBody(context, 'Outlined Card', 'Card.outlined()'),
+              ),
+            ),
           ]),
           const SizedBox(height: 32),
           //endregion
@@ -403,7 +690,10 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Progress Indicators
           const _SectionTitle('Progress Indicators'),
           _demoWrap([
-            const SizedBox(width: 220, child: LinearProgressIndicator(value: 0.6)),
+            const SizedBox(
+              width: 220,
+              child: LinearProgressIndicator(value: 0.6),
+            ),
             const SizedBox(width: 220, child: LinearProgressIndicator()),
             const CircularProgressIndicator(value: 0.6),
             const CircularProgressIndicator(),
@@ -414,11 +704,26 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Feedback & Overlays
           const _SectionTitle('Feedback & Overlays'),
           _demoWrap([
-            FilledButton(onPressed: () => _showSnackBarDemo(context), child: const Text('Show SnackBar')),
-            FilledButton.tonal(onPressed: () => _showDialogDemo(context), child: const Text('Show Dialog')),
-            OutlinedButton(onPressed: () => _showBottomSheetDemo(context), child: const Text('Show Bottom Sheet')),
-            OutlinedButton(onPressed: () => _showDatePickerDemo(context), child: const Text('Show Date Picker')),
-            OutlinedButton(onPressed: () => _showTimePickerDemo(context), child: const Text('Show Time Picker')),
+            FilledButton(
+              onPressed: () => _showSnackBarDemo(context),
+              child: const Text('Show SnackBar'),
+            ),
+            FilledButton.tonal(
+              onPressed: () => _showDialogDemo(context),
+              child: const Text('Show Dialog'),
+            ),
+            OutlinedButton(
+              onPressed: () => _showBottomSheetDemo(context),
+              child: const Text('Show Bottom Sheet'),
+            ),
+            OutlinedButton(
+              onPressed: () => _showDatePickerDemo(context),
+              child: const Text('Show Date Picker'),
+            ),
+            OutlinedButton(
+              onPressed: () => _showTimePickerDemo(context),
+              child: const Text('Show Time Picker'),
+            ),
           ]),
           const SizedBox(height: 16),
           _demoWrap([
@@ -428,7 +733,10 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
             ),
             Badge(
               label: const Text('3'),
-              child: Icon(Icons.notifications_outlined, color: cs.onSurfaceVariant),
+              child: Icon(
+                Icons.notifications_outlined,
+                color: cs.onSurfaceVariant,
+              ),
             ),
             Badge(
               backgroundColor: cs.error,
@@ -465,9 +773,27 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
                     DataColumn(label: Text('Status')),
                   ],
                   rows: const [
-                    DataRow(cells: [DataCell(Text('Ana')), DataCell(Text('Dev')), DataCell(Text('Active'))]),
-                    DataRow(cells: [DataCell(Text('Bruno')), DataCell(Text('Design')), DataCell(Text('Away'))]),
-                    DataRow(cells: [DataCell(Text('Carla')), DataCell(Text('QA')), DataCell(Text('Active'))]),
+                    DataRow(
+                      cells: [
+                        DataCell(Text('Ana')),
+                        DataCell(Text('Dev')),
+                        DataCell(Text('Active')),
+                      ],
+                    ),
+                    DataRow(
+                      cells: [
+                        DataCell(Text('Bruno')),
+                        DataCell(Text('Design')),
+                        DataCell(Text('Away')),
+                      ],
+                    ),
+                    DataRow(
+                      cells: [
+                        DataCell(Text('Carla')),
+                        DataCell(Text('QA')),
+                        DataCell(Text('Active')),
+                      ],
+                    ),
                   ],
                 ),
               ),

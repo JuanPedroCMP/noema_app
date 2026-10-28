@@ -62,7 +62,7 @@ class TransformationControllerNotifier
           viewportSize.height / 2 - targetPoint.dy * scale,
           0,
         ) *
-        Matrix4.diagonal3Values(scale, scale, 3);
+        Matrix4.diagonal3Values(scale, scale, 1);
 
     animateTo(destination);
   }

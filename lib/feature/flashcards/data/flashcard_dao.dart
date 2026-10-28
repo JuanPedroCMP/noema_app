@@ -1,7 +1,7 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
+import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:noema/core/database/database.dart';
+import 'package:noema/feature/review/data/fsrs_review_service.dart';
 import 'package:uuid/uuid.dart';
 
 part 'flashcard_dao.g.dart';
@@ -299,32 +299,37 @@ class FlashcardDao extends DatabaseAccessor<AppDatabase>
     if (cards.isEmpty) return const [];
 
     final cardIds = cards.map((card) => card.id).toSet();
-    final reviews =
+    final states =
+        await (select(attachedDatabase.reviewItemState)
+              ..where((state) => state.itemType.equals('FLASHCARD'))
+              ..where((state) => state.itemId.isIn(cardIds)))
+            .get();
+    final legacyLogs =
         await (select(attachedDatabase.flashcardResponseLog)
               ..where((review) => review.flashcardId.isIn(cardIds))
               ..orderBy([(review) => OrderingTerm.desc(review.answeredAt)]))
             .get();
-    final latestReview = <String, FlashcardResponseLogData>{};
-    for (final review in reviews) {
-      if (cardIds.contains(review.flashcardId)) {
-        latestReview.putIfAbsent(review.flashcardId, () => review);
-      }
+    final latestLegacyReview = <String, FlashcardResponseLogData>{};
+    for (final review in legacyLogs) {
+      latestLegacyReview.putIfAbsent(review.flashcardId, () => review);
     }
-
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final nextReviewById = {
+      for (final state in states) state.itemId: state.nextReviewAt,
+    };
     return cards.where((card) {
-      final review = latestReview[card.id];
-      if (review == null) return true;
-
-      final interval = switch (review.answer.toLowerCase()) {
+      final nextReviewAt = nextReviewById[card.id];
+      if (nextReviewAt != null) return nextReviewAt <= now;
+      final legacyReview = latestLegacyReview[card.id];
+      if (legacyReview == null) return true;
+      final interval = switch (legacyReview.answer.toLowerCase()) {
         'again' => const Duration(minutes: 10),
         'hard' => const Duration(days: 1),
         'good' => const Duration(days: 3),
         'easy' => const Duration(days: 7),
         _ => Duration.zero,
       };
-      final dueAt = review.answeredAt + interval.inSeconds;
-      return dueAt <= now;
+      return legacyReview.answeredAt + interval.inSeconds <= now;
     }).toList();
   }
 
@@ -401,21 +406,25 @@ class FlashcardDao extends DatabaseAccessor<AppDatabase>
     return changed > 0;
   }
 
-  Future<void> logReview({
+  Future<FsrsReviewResult> logReview({
     required FlashcardData card,
     required String rating,
+    required int durationSeconds,
   }) {
-    return into(attachedDatabase.flashcardResponseLog).insert(
-      FlashcardResponseLogCompanion.insert(
-        id: const Uuid().v4(),
-        flashcardId: card.id,
-        flashcardSnapshot: jsonEncode({
-          'title': card.title,
-          'statement': card.statement,
-          'targetSkill': card.targetSkill,
-        }),
-        answer: rating,
-      ),
+    final fsrsRating = switch (rating.toLowerCase()) {
+      'again' => fsrs.Rating.again,
+      'hard' => fsrs.Rating.hard,
+      'good' => fsrs.Rating.good,
+      'easy' => fsrs.Rating.easy,
+      _ => throw ArgumentError.value(rating, 'rating'),
+    };
+    return FsrsReviewService(attachedDatabase).review(
+      itemType: ReviewItemType.flashcard,
+      itemId: card.id,
+      nodeId: card.nodeId,
+      rating: fsrsRating,
+      durationSeconds: durationSeconds,
+      method: ReviewMethod.selfRating,
     );
   }
 }

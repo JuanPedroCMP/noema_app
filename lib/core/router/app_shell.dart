@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:noema/core/database/database.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/page_chrome.dart';
-import 'package:noema/core/router/route_paths.dart';
-import 'package:noema/core/router/widgets/app_side_bar/app_side_bar.dart';
-import 'package:noema/core/router/widgets/navigation_item/navigation_item.dart';
-import 'package:noema/feature/config/providers/user_provider.dart';
+
+enum DisplaySize { mobile, tablet, desktop }
+
+const _navigationItems = <(String, String, IconData, IconData)>[
+  ('/', 'Início', Icons.home_outlined, Icons.home_rounded),
+  ('/notes', 'Notas', Icons.notes_outlined, Icons.notes_rounded),
+  (
+    '/graphs',
+    'Grafos',
+    Icons.account_tree_outlined,
+    Icons.account_tree_rounded,
+  ),
+  ('/flashcards', 'Flashcards', Icons.style_outlined, Icons.style_rounded),
+  (
+    '/study-sessions',
+    'Sessões',
+    Icons.playlist_add_check_circle_outlined,
+    Icons.playlist_add_check_circle,
+  ),
+  ('/config', 'Configuração', Icons.settings_outlined, Icons.settings_rounded),
+];
 
 List<String> buildCumulativePaths(BuildContext context) {
   final segments = GoRouterState.of(context).uri.pathSegments;
@@ -22,15 +37,25 @@ List<String> buildCumulativePaths(BuildContext context) {
     'flashcards',
     'study-sessions',
   };
-  if (!topLevelRoutes.contains(segments.first)) {
+  if (!topLevelRoutes.contains(segments.first)) return paths;
+  paths.add('/${segments.first}');
+
+  if (segments.first == 'study-sessions') {
+    if (segments.length >= 2 && segments[1] == 'create') {
+      paths.add('/study-sessions/create');
+    } else if (segments.length >= 2) {
+      paths.add('/study-sessions/${segments[1]}');
+    }
+    if (segments.length >= 3 && const {'edit', 'run'}.contains(segments[2])) {
+      paths.add('/study-sessions/${segments[1]}/${segments[2]}');
+    }
     return paths;
   }
-  paths.add('/${segments.first}');
 
   if (segments.first != 'graphs' || segments.length < 2) return paths;
   paths.add('/graphs/${segments[1]}');
 
-  if (segments.length == 4 && segments[2] == 'flashcards') {
+  if (segments.length >= 4 && segments[2] == 'flashcards') {
     paths.add('/graphs/${segments[1]}/flashcards/${segments[3]}');
     return paths;
   }
@@ -41,11 +66,6 @@ List<String> buildCumulativePaths(BuildContext context) {
 
   final suffix = segments.skip(4).toList();
   if (suffix.isEmpty) return paths;
-  if (suffix.length == 1 && suffix[0] == 'responses') {
-    paths.add('$exercisesPath/responses');
-    return paths;
-  }
-
   final isOpenEndedRoute =
       (suffix.length == 2 &&
           suffix[0] == 'open-ended' &&
@@ -60,8 +80,9 @@ List<String> buildCumulativePaths(BuildContext context) {
       (suffix.length == 3 &&
           suffix[0] == 'multiple-choice' &&
           const {'edit', 'answer', 'view'}.contains(suffix[2]));
-
-  if (isOpenEndedRoute || isMultipleChoiceRoute) {
+  if (suffix.length == 1 && suffix[0] == 'responses') {
+    paths.add('$exercisesPath/responses');
+  } else if (isOpenEndedRoute || isMultipleChoiceRoute) {
     paths.add('$exercisesPath/${suffix.join('/')}');
   }
   return paths;
@@ -69,9 +90,16 @@ List<String> buildCumulativePaths(BuildContext context) {
 
 String breadcrumbLabel(String path) {
   if (path == '/') return 'Início';
-
   final segments = Uri.parse(path).pathSegments;
   final segment = segments.last;
+
+  if (segments.first == 'study-sessions') {
+    if (segment == 'study-sessions') return 'Sessões de estudo';
+    if (segment == 'create') return 'Criar sessão';
+    if (segment == 'edit') return 'Editar sessão';
+    if (segment == 'run') return 'Sessão em andamento';
+    return 'Sessão de estudo';
+  }
 
   switch (segment) {
     case 'notes':
@@ -84,8 +112,6 @@ String breadcrumbLabel(String path) {
       return 'Grafos';
     case 'flashcards':
       return 'Flashcards';
-    case 'study-sessions':
-      return 'Sessões de estudo';
     case 'exercises':
       return 'Exercícios';
     case 'responses':
@@ -119,312 +145,166 @@ String breadcrumbLabel(String path) {
           segments[segments.length - 2] == 'flashcards') {
         return 'Flashcards do nó';
       }
-      if (segments.length >= 2 &&
-          segments[segments.length - 2] == 'study-sessions') {
-        return segment == 'create' ? 'Criar sessão' : 'Sessão';
-      }
       return Uri.decodeComponent(segment);
   }
 }
 
-enum DisplaySize { mobile, tablet, desktop }
-
-class AppShell extends ConsumerWidget {
-  final StatefulNavigationShell navigationShell;
-  final String currentPath;
-
+class AppShell extends StatelessWidget {
   const AppShell({
     super.key,
     required this.navigationShell,
     required this.currentPath,
   });
 
+  final StatefulNavigationShell navigationShell;
+  final String currentPath;
+
   static DisplaySize spacingFor(double width) {
     if (width >= 900) return DisplaySize.desktop;
     if (width >= 600) return DisplaySize.tablet;
-
     return DisplaySize.mobile;
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final chrome = chromeForPath(currentPath);
-    final user = ref.watch(userProvider);
-
     final width = MediaQuery.sizeOf(context).width;
-
     final displaySize = spacingFor(width);
-
     final paths = buildCumulativePaths(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        toolbarHeight: displaySize == DisplaySize.mobile ? 64 : 72,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Flexible(
-              flex: 2,
-              child: Text(chrome.title, overflow: TextOverflow.ellipsis),
+            Text(
+              chrome.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.titleMedium,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var index = 0; index < paths.length; index++) ...[
-                      if (index > 0)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Icon(
-                            Icons.chevron_right,
-                            size: 18,
-                            color: context.colors.outline,
-                          ),
-                        ),
-                      Builder(
-                        builder: (context) {
-                          final path = paths[index];
-                          final isCurrent = index == paths.length - 1;
-                          final label = breadcrumbLabel(path);
-
-                          return Semantics(
-                            button: !isCurrent,
-                            label: isCurrent
-                                ? 'Localização atual: $label'
-                                : 'Navegar para $label',
-                            child: Tooltip(
-                              message: isCurrent
-                                  ? 'Localização atual'
-                                  : 'Navegar para $label',
-                              child: TextButton(
-                                onPressed: isCurrent
-                                    ? null
-                                    : () => context.go(path),
-                                style: TextButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 6,
-                                  ),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  label,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: BuildContextThemeExtension(context)
-                                      .textTheme
-                                      .labelLarge
-                                      ?.copyWith(
-                                        color: isCurrent
-                                            ? context.colors.onSurface
-                                            : context.colors.primary,
-                                        fontWeight: isCurrent
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                      ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            if (displaySize != DisplaySize.mobile && paths.length > 1)
+              _Breadcrumbs(paths: paths, currentPath: currentPath),
           ],
         ),
         actions: chrome.actions,
       ),
-
-      drawer: displaySize == DisplaySize.mobile
-          ? _buildDrawer(context, chrome, navigationShell, user)
-          : null,
-
       bottomNavigationBar: displaySize == DisplaySize.mobile
-          ? _buildBottomNavigationBar(navigationShell)
+          ? NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: _goBranch,
+              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              destinations: [
+                for (final item in _navigationItems)
+                  NavigationDestination(
+                    icon: Icon(item.$3),
+                    selectedIcon: Icon(item.$4),
+                    label: item.$2,
+                  ),
+              ],
+            )
           : null,
-
       body: displaySize == DisplaySize.mobile
-          ? _buildBody(context, navigationShell)
+          ? navigationShell
           : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AppSideBar(
-                  navigationWidgets: _navigationItems(navigationShell),
-                  pageWidgets: chrome.pageItens,
-                  bottonWidgets: [
-                    Icon(Icons.more_vert_rounded),
-                    SizedBox(height: context.spacing.md),
-                    Icon(Icons.person),
+                NavigationRail(
+                  selectedIndex: navigationShell.currentIndex,
+                  onDestinationSelected: _goBranch,
+                  extended: displaySize == DisplaySize.desktop && width >= 1200,
+                  labelType:
+                      displaySize == DisplaySize.desktop && width >= 1200
+                      ? NavigationRailLabelType.none
+                      : NavigationRailLabelType.all,
+                  destinations: [
+                    for (final item in _navigationItems)
+                      NavigationRailDestination(
+                        icon: Icon(item.$3),
+                        selectedIcon: Icon(item.$4),
+                        label: Text(item.$2),
+                      ),
                   ],
                 ),
-
                 const VerticalDivider(width: 1),
-                Expanded(child: _buildBody(context, navigationShell)),
+                Expanded(child: navigationShell),
               ],
             ),
     );
   }
+
+  void _goBranch(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
+  }
 }
 
-List<Widget> _navigationItems(StatefulNavigationShell navigationShell) {
-  const items = [
-    (0, 'Início', Icons.home_rounded),
-    (1, 'Notas', Icons.notes_rounded),
-    (2, 'Configuração', Icons.settings_rounded),
-    (3, 'Teste', Icons.smart_button_rounded),
-    (4, 'Grafos', Icons.account_tree_rounded),
-    (5, 'Flashcards', Icons.style_rounded),
-  ];
+class _Breadcrumbs extends StatelessWidget {
+  const _Breadcrumbs({required this.paths, required this.currentPath});
 
-  return [
-    for (final item in items)
-      NavigationItem(
-        index: item.$1,
-        label: item.$2,
-        navigationShell: navigationShell,
-        icon: Icon(item.$3),
-      ),
-  ];
-}
+  final List<String> paths;
+  final String currentPath;
 
-Widget _buildBottomNavigationBar(StatefulNavigationShell navigationShell) {
-  return NavigationBar(
-    selectedIndex: navigationShell.currentIndex,
-    onDestinationSelected: navigationShell.goBranch,
-    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-    destinations: const [
-      NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home_rounded),
-        label: 'Início',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.notes_outlined),
-        selectedIcon: Icon(Icons.notes_rounded),
-        label: 'Notas',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.settings_outlined),
-        selectedIcon: Icon(Icons.settings_rounded),
-        label: 'Configuração',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.smart_button_outlined),
-        selectedIcon: Icon(Icons.smart_button_rounded),
-        label: 'Teste',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.account_tree_outlined),
-        selectedIcon: Icon(Icons.account_tree_rounded),
-        label: 'Grafos',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.style_outlined),
-        selectedIcon: Icon(Icons.style_rounded),
-        label: 'Flashcards',
-      ),
-    ],
-  );
-}
-
-Widget _buildBody(
-  BuildContext context,
-  StatefulNavigationShell navigationShell,
-) {
-  return Container(child: navigationShell);
-}
-
-Widget _buildDrawer(
-  BuildContext context,
-  PageChrome chrome,
-  StatefulNavigationShell navigationShell,
-  AsyncValue<AppUserData> user,
-) {
-  return Drawer(
-    child: SafeArea(
-      child: Column(
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
-            fit: FlexFit.loose,
-            child: Row(
-              children: [
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: ListView(
-                    children: [
-                      ListTile(
-                        onTap: () {
-                          navigationShell.goBranch(0);
-                        },
-                        selected: navigationShell.currentIndex == 0,
-                        title: const Text("Início"),
-                      ),
-
-                      ListTile(
-                        onTap: () {
-                          navigationShell.goBranch(1);
-                        },
-                        selected: navigationShell.currentIndex == 1,
-                        title: const Text("Notas"),
-                      ),
-                      ListTile(
-                        onTap: () => navigationShell.goBranch(2),
-                        selected: navigationShell.currentIndex == 2,
-                        title: const Text("Configuração"),
-                      ),
-                      ListTile(
-                        onTap: () => navigationShell.goBranch(3),
-                        selected: navigationShell.currentIndex == 3,
-                        title: const Text("Teste"),
-                      ),
-                      ListTile(
-                        onTap: () => navigationShell.goBranch(4),
-                        selected: navigationShell.currentIndex == 4,
-                        title: const Text("Grafos"),
-                      ),
-                      ListTile(
-                        onTap: () => navigationShell.goBranch(5),
-                        selected: navigationShell.currentIndex == 5,
-                        title: const Text("Flashcards"),
-                      ),
-                    ],
-                  ),
+          for (var index = 0; index < paths.length; index++) ...[
+            if (index > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: context.colors.outline,
                 ),
-                VerticalDivider(width: 1),
-                Flexible(child: ListView(children: chrome.pageItens)),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              spacing: 15,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    navigationShell.goBranch(2);
-                    context.go(RoutePaths.config);
-                  },
-                  child: const Icon(Icons.person),
-                ),
-                user.when(
-                  data: (user) => Text(user.displayName),
-                  loading: () => const Text("Carregando..."),
-                  error: (e, _) => const Text("Erro"),
-                ),
-                const Icon(Icons.settings),
-              ],
-            ),
-          ),
+              ),
+            _BreadcrumbButton(path: paths[index], currentPath: currentPath),
+          ],
         ],
       ),
-    ),
-  );
+    );
+  }
+}
+
+class _BreadcrumbButton extends StatelessWidget {
+  const _BreadcrumbButton({required this.path, required this.currentPath});
+
+  final String path;
+  final String currentPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCurrent = Uri.parse(path).path == Uri.parse(currentPath).path;
+    final label = breadcrumbLabel(path);
+    return Semantics(
+      button: !isCurrent,
+      selected: isCurrent,
+      label: isCurrent ? 'Localização atual: $label' : 'Navegar para $label',
+      child: TextButton(
+        onPressed: isCurrent ? null : () => context.go(path),
+        style: TextButton.styleFrom(
+          minimumSize: const Size(32, 28),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.labelMedium?.copyWith(
+            color: isCurrent ? context.colors.onSurface : context.colors.primary,
+            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
 }

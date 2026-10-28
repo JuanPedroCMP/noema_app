@@ -1,7 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/teste_page.dart';
 
 class GraphNode {
   GraphNode({required this.radius, required this.position});
@@ -32,32 +33,41 @@ class GraphPainter extends CustomPainter {
     canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.translate(origin.dx, origin.dy);
 
+    final colors = context.colors;
     final edgePaint = Paint()
-      ..color = context.colorScheme.tertiary
-      ..strokeWidth = 4
+      ..color = colors.outlineVariant
+      ..strokeWidth = 2.2
       ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
       ..isAntiAlias = true;
 
     final edgePaintSelected = Paint()
-      ..color = context.colorScheme.onPrimary
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = true;
-
-    final nodePaint = Paint()
-      ..color = context.colorScheme.surfaceContainer
+      ..color = colors.primary
+      ..strokeWidth = 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.miter
-      ..strokeWidth = 4
       ..isAntiAlias = true;
 
-    final nodePaintSelected = Paint()
-      ..color = context.colorScheme.surfaceContainerHigh
+    final nodeFillPaint = Paint()
+      ..color = colors.surfaceContainerLow
       ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.miter
-      ..strokeWidth = 4
+      ..isAntiAlias = true;
+
+    final nodeBorderPaint = Paint()
+      ..color = colors.outlineVariant
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..isAntiAlias = true;
+
+    final nodeSelectedPaint = Paint()
+      ..color = colors.primaryContainer
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    final selectedBorderPaint = Paint()
+      ..color = colors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
       ..isAntiAlias = true;
 
     final nodesById = {for (final node in nodes) node.id: node};
@@ -81,11 +91,7 @@ class GraphPainter extends CustomPainter {
 
         path.lineTo(target.positionX, target.positionY - nodeHeight / 2);
 
-        if (edge.id == selected) {
-          canvas.drawPath(path, edgePaintSelected);
-        } else {
-          canvas.drawPath(path, edgePaint);
-        }
+        _drawEdge(canvas, path, edge.id == selected ? edgePaintSelected : edgePaint);
       }
     } else if (option == 2) {
       //// Ângulo Reto
@@ -106,11 +112,7 @@ class GraphPainter extends CustomPainter {
           Offset(target.positionX, target.positionY - nodeHeight / 2),
         ], false);
 
-        if (edge.id == selected) {
-          canvas.drawPath(path, edgePaintSelected);
-        } else {
-          canvas.drawPath(path, edgePaint);
-        }
+        _drawEdge(canvas, path, edge.id == selected ? edgePaintSelected : edgePaint);
       }
     } else if (option == 3) {
       //// Um vértice
@@ -130,11 +132,7 @@ class GraphPainter extends CustomPainter {
           Offset(target.positionX, target.positionY - nodeHeight / 2),
         ], false);
 
-        if (edge.id == selected) {
-          canvas.drawPath(path, edgePaintSelected);
-        } else {
-          canvas.drawPath(path, edgePaint);
-        }
+        _drawEdge(canvas, path, edge.id == selected ? edgePaintSelected : edgePaint);
       }
     } else {
       //// Curvado
@@ -157,11 +155,7 @@ class GraphPainter extends CustomPainter {
           target.positionY - nodeHeight / 2,
         );
 
-        if (edge.id == selected) {
-          canvas.drawPath(path, edgePaintSelected);
-        } else {
-          canvas.drawPath(path, edgePaint);
-        }
+        _drawEdge(canvas, path, edge.id == selected ? edgePaintSelected : edgePaint);
       }
     }
 
@@ -179,41 +173,94 @@ class GraphPainter extends CustomPainter {
         Radius.circular(context.radius.card),
       );
 
-      if (node.id == selected) {
-        canvas.drawRRect(rrect, nodePaintSelected);
-      } else {
-        canvas.drawRRect(rrect, nodePaint);
-      }
+      final isSelected = node.id == selected;
+      final fillPaint = isSelected ? nodeSelectedPaint : nodeFillPaint;
+      if (isSelected) canvas.drawShadow(Path()..addRRect(rrect), colors.shadow, 5, true);
+      canvas.drawRRect(rrect, fillPaint);
+      canvas.drawRRect(rrect, isSelected ? selectedBorderPaint : nodeBorderPaint);
 
-      final textStyle = TextStyle(
-        color: const Color.fromARGB(255, 255, 255, 255),
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
+      final typePainter = TextPainter(
+        text: TextSpan(
+          text: _nodeTypeLabel(node.type),
+          style: TextStyle(
+            color: isSelected ? colors.onPrimaryContainer : colors.primary,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
+        ),
+        textDirection: Directionality.of(context),
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: nodeWidth - 28);
+      typePainter.paint(
+        canvas,
+        Offset(node.positionX - typePainter.width / 2, node.positionY - 26),
       );
 
-      // 2. Create a TextSpan configuration tree
-      final textSpan = TextSpan(text: node.title, style: textStyle);
-
-      // 3. Initialize the TextPainter object
-      final textPainter = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
+      final titlePainter = TextPainter(
+        text: TextSpan(
+          text: node.title,
+          style: TextStyle(
+            color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            height: 1.15,
+          ),
+        ),
+        textDirection: Directionality.of(context),
         textAlign: TextAlign.center,
         maxLines: 2,
-        ellipsis: '...',
-      );
-
-      // 4. Compute constraints and layout the paragraph geometry
-      textPainter.layout(maxWidth: nodeWidth - 20);
-
-      // 6. Paint the computed text paragraph onto the canvas
-      textPainter.paint(
+        ellipsis: '…',
+      )..layout(maxWidth: nodeWidth - 24);
+      titlePainter.paint(
         canvas,
         Offset(
-          node.positionX - textPainter.width / 2,
-          node.positionY - textPainter.height / 2,
+          node.positionX - titlePainter.width / 2,
+          node.positionY - titlePainter.height / 2 + 8,
         ),
       );
+    }
+  }
+
+  void _drawEdge(Canvas canvas, Path path, Paint paint) {
+    canvas.drawPath(path, paint);
+    final metrics = path.computeMetrics().iterator;
+    if (!metrics.moveNext()) return;
+    final metric = metrics.current;
+    if (metric.length < 10) return;
+    final tangent = metric.getTangentForOffset(metric.length - 2);
+    if (tangent == null) return;
+
+    const arrowLength = 8.0;
+    const arrowAngle = 0.48;
+    final angle = tangent.angle;
+    final arrow = Path()
+      ..moveTo(tangent.position.dx, tangent.position.dy)
+      ..lineTo(
+        tangent.position.dx - arrowLength * math.cos(angle - arrowAngle),
+        tangent.position.dy - arrowLength * math.sin(angle - arrowAngle),
+      )
+      ..moveTo(tangent.position.dx, tangent.position.dy)
+      ..lineTo(
+        tangent.position.dx - arrowLength * math.cos(angle + arrowAngle),
+        tangent.position.dy - arrowLength * math.sin(angle + arrowAngle),
+      );
+    canvas.drawPath(arrow, paint);
+  }
+
+  String _nodeTypeLabel(String type) {
+    switch (type.toUpperCase()) {
+      case 'AREA':
+        return 'ÁREA';
+      case 'TOPIC':
+        return 'TÓPICO';
+      case 'CONCEPT':
+        return 'CONCEITO';
+      case 'SUBCONCEPT':
+        return 'SUBCONCEITO';
+      default:
+        return type.toUpperCase();
     }
   }
 

@@ -9,7 +9,7 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
     with _$MultipleChoiceResponseLogDaoMixin {
   MultipleChoiceResponseLogDao(super.db);
 
-  Future<int> insertMultipleChoiceResponseLog({
+  Future<String> insertMultipleChoiceResponseLog({
     required String multipleChoiceId,
     required String questionSnapshot,
     required String questionChoiceSnapshot,
@@ -23,25 +23,32 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
     String? aiFeedback,
     String? userNotes,
     double? score,
+    required int durationSeconds,
+    bool corrected = false,
   }) {
-    return into(attachedDatabase.multipleChoiceResponseLog).insert(
-      MultipleChoiceResponseLogCompanion.insert(
-        id: Uuid().v4(),
-        multipleChoiceId: multipleChoiceId,
-        questionSnapshot: questionSnapshot,
-        studySessionId: Value(studySessionId),
-        studySessionLogId: Value(studySessionLogId),
-        questionChoiceSnapshot: questionChoiceSnapshot,
-        selectedChoiceIds: selectedChoiceIds,
-        totalCorrectOption: totalCorrectOption,
-        correctSelected: correctSelected,
-        wrongSelected: wrongSelected,
-        aiFeedback: Value(aiFeedback),
-        userNotes: Value(userNotes),
-        score: Value(score),
-        totalQuestions: totalQuestions,
-      ),
-    );
+    final id = Uuid().v4();
+    return into(attachedDatabase.multipleChoiceResponseLog)
+        .insert(
+          MultipleChoiceResponseLogCompanion.insert(
+            id: id,
+            multipleChoiceId: multipleChoiceId,
+            questionSnapshot: questionSnapshot,
+            studySessionId: Value(studySessionId),
+            studySessionLogId: Value(studySessionLogId),
+            questionChoiceSnapshot: questionChoiceSnapshot,
+            selectedChoiceIds: selectedChoiceIds,
+            totalCorrectOption: totalCorrectOption,
+            correctSelected: correctSelected,
+            wrongSelected: wrongSelected,
+            aiFeedback: Value(aiFeedback),
+            userNotes: Value(userNotes),
+            score: Value(score),
+            totalQuestions: totalQuestions,
+            corrected: Value(corrected),
+            durationSeconds: Value(durationSeconds),
+          ),
+        )
+        .then((_) => id);
   }
 
   Future<int> updateMultipleChoiceResponseLog({
@@ -57,6 +64,8 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
     String? aiFeedback,
     String? userNotes,
     double? score,
+    bool? corrected,
+    int? durationSeconds,
   }) {
     return (update(
       attachedDatabase.multipleChoiceResponseLog,
@@ -88,6 +97,10 @@ class MultipleChoiceResponseLogDao extends DatabaseAccessor<AppDatabase>
             : Value(aiFeedback),
         userNotes: userNotes == null ? const Value.absent() : Value(userNotes),
         score: score == null ? const Value.absent() : Value(score),
+        corrected: corrected == null ? const Value.absent() : Value(corrected),
+        durationSeconds: durationSeconds == null
+            ? const Value.absent()
+            : Value(durationSeconds),
       ),
     );
   }

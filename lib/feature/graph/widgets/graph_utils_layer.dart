@@ -2,126 +2,97 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/feature/graph/provider/graph_states_provider.dart';
-import 'package:noema/feature/graph/provider/selected_provider.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
-import 'package:noema/feature/graph/service/sugiyama.dart';
+import 'package:noema/feature/graph/provider/graph_states_provider.dart';
+import 'package:noema/feature/graph/provider/selected_provider.dart';
 
-class GraphUtilsLayer extends ConsumerStatefulWidget {
-  const GraphUtilsLayer({super.key, required this.graphId});
+class GraphUtilsLayer extends ConsumerWidget {
+  const GraphUtilsLayer({
+    super.key,
+    required this.onOrganize,
+    required this.onCreateNode,
+    required this.onCreateEdge,
+    required this.canOrganize,
+    this.isOrganizing = false,
+  });
 
-  final String graphId;
+  final Future<void> Function() onOrganize;
+  final VoidCallback onCreateNode;
+  final VoidCallback onCreateEdge;
+  final bool canOrganize;
+  final bool isOrganizing;
 
   @override
-  ConsumerState<GraphUtilsLayer> createState() => _GraphUtilsLayer();
-}
-
-class _GraphUtilsLayer extends ConsumerState<GraphUtilsLayer> {
-  @override
-  Widget build(BuildContext context) {
-    final graphStatesNotifier = ref.watch(graphStatesProvider.notifier);
+  Widget build(BuildContext context, WidgetRef ref) {
     final graphStates = ref.watch(graphStatesProvider);
+    final graphStatesNotifier = ref.read(graphStatesProvider.notifier);
     final selected = ref.watch(selectedProvider);
 
-    return Wrap(
-      spacing: context.spacing.lg,
-      runSpacing: context.spacing.sm,
-      children: [
-        if (graphStates.isEditing) ...[
-          OutlinedButton(
-            onPressed: () {
-              graphStatesNotifier.isCreatingNodeChanged(
-                !graphStates.isCreatingNode,
-              );
-            },
-            style: _actionStyle(context, graphStates.isCreatingNode),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.add_circle_outline),
-                SizedBox(width: 6),
-                Text('Adicionar nó'),
-              ],
-            ),
-          ),
-
-          OutlinedButton(
-            onPressed: () {
-              graphStatesNotifier.isCreatingEdgeChanged(!graphStates.isCreatingEdge);
-            },
-            style: _actionStyle(context, graphStates.isCreatingEdge),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.linear_scale),
-                SizedBox(width: 6),
-                Text('Adicionar relação'),
-              ],
-            ),
-          ),
-
-          OutlinedButton(
-            onPressed: selected.isEmpty
-                ? null
-                : () => _deleteSelected(context, ref, selected),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.delete_outline),
-                SizedBox(width: 6),
-                Text('Excluir selecionado'),
-              ],
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () => graphStatesNotifier.isEditingChanged(false),
-            icon: const Icon(Icons.close),
-            label: const Text('Concluir'),
-          ),
-        ],
-        if (!graphStates.isEditing) ...[
-          OutlinedButton(
-            onPressed: () {
-              graphStatesNotifier.isEditingChanged(!graphStates.isEditing);
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.edit_outlined),
-                SizedBox(width: 6),
-                Text('Editar grafo'),
-              ],
-            ),
-          ),
-
-          OutlinedButton(
-            onPressed: () {
-              sugiyama(widget.graphId, ref);
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.auto_awesome_mosaic),
-                SizedBox(width: 6),
-                Text('Organizar'),
-              ],
-            ),
-          ),
-        ]
-      ],
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: graphStates.isEditing
+          ? [
+              FilledButton.tonalIcon(
+                onPressed: onCreateNode,
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('Adicionar nó'),
+                style: _actionStyle(context, false),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.tonalIcon(
+                onPressed: onCreateEdge,
+                icon: const Icon(Icons.linear_scale),
+                label: const Text('Adicionar relação'),
+                style: _actionStyle(context, graphStates.isCreatingEdge),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: selected.isEmpty
+                    ? null
+                    : () => _deleteSelected(context, ref, selected),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Excluir selecionado'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => graphStatesNotifier.isEditingChanged(false),
+                icon: const Icon(Icons.check_rounded),
+                label: const Text('Concluir edição'),
+              ),
+            ]
+          : [
+              FilledButton.tonalIcon(
+                onPressed: () => graphStatesNotifier.isEditingChanged(true),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Editar grafo'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: !canOrganize || isOrganizing ? null : onOrganize,
+                icon: isOrganizing
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome_mosaic_outlined),
+                label: Text(isOrganizing ? 'Organizando…' : 'Organizar'),
+              ),
+            ],
     );
   }
 
   ButtonStyle _actionStyle(BuildContext context, bool active) {
-    return OutlinedButton.styleFrom(
+    return FilledButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       backgroundColor: active
-          ? context.colors.primary.withValues(alpha: 0.12)
-          : null,
+          ? context.colors.primaryContainer
+          : context.colors.surfaceContainerLow,
+      foregroundColor: active
+          ? context.colors.onPrimaryContainer
+          : context.colors.onSurface,
       side: BorderSide(
-        color: active ? context.colors.primary : context.colors.outline,
-        width: active ? 2 : 1,
+        color: active ? context.colors.primary : context.colors.outlineVariant,
       ),
     );
   }
@@ -157,17 +128,18 @@ class _GraphUtilsLayer extends ConsumerState<GraphUtilsLayer> {
     final edgeDao = GraphEdgeDao(db);
     try {
       final node = await nodeDao.getGraphNode(id: selected);
-
       if (node != null) {
         await edgeDao.deleteEdgesByNode(nodeId: node.id);
         await nodeDao.deleteGraphNode(id: node.id);
       } else {
         await edgeDao.deleteGraphEdge(id: selected);
       }
-    } catch (_) {
+    } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível excluir o elemento.')),
+          SnackBar(
+            content: Text('Não foi possível excluir o elemento: $error'),
+          ),
         );
       }
       return;
@@ -175,9 +147,9 @@ class _GraphUtilsLayer extends ConsumerState<GraphUtilsLayer> {
 
     ref.read(selectedProvider.notifier).clear();
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Elemento excluído.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Elemento excluído.')));
     }
   }
 }

@@ -55,9 +55,7 @@ class HomePage extends ConsumerWidget {
                         }
                         return;
                       }
-                      ref
-                          .read(apiClientProvider)
-                          .removeOAuthToken('OAuth2PasswordBearer');
+                      clearApiAccessToken(ref.read(apiClientProvider));
                       try {
                         await AppUserDao(
                           ref.read(appDatabaseProvider),

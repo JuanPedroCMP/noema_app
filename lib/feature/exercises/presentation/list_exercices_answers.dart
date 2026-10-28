@@ -1,12 +1,21 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart' show OrderingTerm, innerJoin;
+import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
+import 'package:noema/feature/ai/models/ai_agent_task.dart';
+import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
+import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
+import 'package:noema/feature/exercises/presentation/exercise_correction_dialog.dart';
+import 'package:noema/feature/graph/data/graph_access.dart';
+import 'package:noema/feature/review/data/fsrs_review_service.dart';
 
 class ExercicesAnswerList extends ConsumerStatefulWidget {
   const ExercicesAnswerList({super.key, required this.nodeId});
@@ -22,6 +31,8 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   List<(MultipleChoiceResponseLogData, MultipleChoiceData)>
   _multipleChoiceLogs = [];
   bool _isLoading = true;
+  bool _isRefreshing = false;
+  bool _hasLoaded = false;
   String? _error;
   String _search = '';
   String _filter = 'all';
@@ -33,7 +44,14 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   }
 
   Future<void> carregar() async {
-    if (mounted) setState(() => _isLoading = true);
+    if (_isRefreshing) return;
+    final isInitialLoad = !_hasLoaded;
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+        if (isInitialLoad) _isLoading = true;
+      });
+    }
 
     try {
       final db = ref.read(appDatabaseProvider);
@@ -82,15 +100,29 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
               ),
             )
             .toList();
+        _hasLoaded = true;
         _isLoading = false;
+        _isRefreshing = false;
         _error = null;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Não foi possível carregar o histórico de respostas.';
+        _isRefreshing = false;
+        if (isInitialLoad) {
+          _error = 'Não foi possível carregar o histórico de respostas.';
+        }
       });
+      if (!isInitialLoad) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Não foi possível atualizar o histórico.'),
+            ),
+          );
+      }
     }
   }
 
@@ -141,6 +173,220 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
     return '${(score * 100).round()}% de aproveitamento';
   }
 
+  String _duration(int seconds) {
+    if (seconds <= 0) return 'tempo não registrado';
+    final minutes = seconds ~/ 60;
+    final remainder = seconds % 60;
+    if (minutes == 0) return '$remainder s';
+    return remainder == 0 ? '$minutes min' : '$minutes min $remainder s';
+  }
+
+  Future<void> _reviewOpenEnded(
+    OpenEndedResponseLogData response,
+    OpenEndedData question,
+  ) async {
+    final snapshot = _decodeSnapshot(response.questionSnapshot);
+    final draft = await _showCorrectionDialog(
+      title: _openEndedTitle(response, question),
+      initialFeedback: response.aiFeedback,
+      initialNotes: response.userNotes,
+      initialScore: response.score,
+      initialMastery: response.masteryDemonstrated,
+      initialRating: _ratingForScore(response.score),
+      onAiCorrection: () => _evaluateResponse(
+        nodeId: question.nodeId,
+        task: (snapshot['type'] as String?)?.toUpperCase() == 'FEYNMAN'
+            ? AiAgentTask.evaluateFeynman
+            : AiAgentTask.evaluateEssayQuestion,
+        context: {
+          'question': snapshot,
+          'student_answer': response.userAnswer ?? '',
+        },
+      ),
+    );
+    if (draft == null || !mounted) return;
+
+    try {
+      final db = ref.read(appDatabaseProvider);
+      await db.transaction(() async {
+        await OpenEndedResponseLogDao(db).updateOpenEndedResponseLog(
+          id: response.id,
+          aiFeedback: draft.feedback,
+          userNotes: draft.notes,
+          score: draft.score,
+          isCorrect: draft.score >= 0.6,
+          masteryDemonstrated: draft.mastery,
+          corrected: true,
+        );
+        await FsrsReviewService(db).review(
+          itemType: ReviewItemType.openEnded,
+          itemId: question.id,
+          nodeId: question.nodeId,
+          rating: draft.rating,
+          durationSeconds: response.durationSeconds,
+          score: draft.score,
+          method: draft.usedAi
+              ? ReviewMethod.aiCorrection
+              : ReviewMethod.manualCorrection,
+          sourceResponseId: response.id,
+        );
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Correção salva e próxima revisão agendada.'),
+        ),
+      );
+      await carregar();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível salvar a correção.')),
+      );
+    }
+  }
+
+  Future<void> _reviewMultipleChoice(
+    MultipleChoiceResponseLogData response,
+    MultipleChoiceData question,
+  ) async {
+    final snapshot = _decodeSnapshot(response.questionSnapshot);
+    final choices = _decodeChoices(response.questionChoiceSnapshot);
+    final selectedIds = <String>{};
+    try {
+      final decoded = jsonDecode(response.selectedChoiceIds);
+      if (decoded is List) selectedIds.addAll(decoded.whereType<String>());
+    } on FormatException {
+      // Older attempts can have incomplete selection snapshots.
+    }
+
+    final draft = await _showCorrectionDialog(
+      title: _multipleChoiceTitle(response, question),
+      initialFeedback: response.aiFeedback,
+      initialNotes: response.userNotes,
+      initialScore: response.score,
+      initialMastery: null,
+      initialRating: _ratingForScore(response.score),
+      onAiCorrection: () => _evaluateResponse(
+        nodeId: question.nodeId,
+        task: AiAgentTask.evaluateMultipleChoiceQuestion,
+        context: {
+          'question': snapshot,
+          'alternatives': choices,
+          'selected_alternative_ids': selectedIds.toList(),
+          'objective_score': response.score,
+          'correct_alternatives': choices
+              .where((choice) => choice['is_correct'] == true)
+              .toList(),
+        },
+      ),
+    );
+    if (draft == null || !mounted) return;
+
+    try {
+      final db = ref.read(appDatabaseProvider);
+      await db.transaction(() async {
+        await MultipleChoiceResponseLogDao(db).updateMultipleChoiceResponseLog(
+          id: response.id,
+          aiFeedback: draft.feedback,
+          userNotes: draft.notes,
+          score: draft.score,
+          corrected: true,
+        );
+        await FsrsReviewService(db).review(
+          itemType: ReviewItemType.multipleChoice,
+          itemId: question.id,
+          nodeId: question.nodeId,
+          rating: draft.rating,
+          durationSeconds: response.durationSeconds,
+          score: draft.score,
+          method: draft.usedAi
+              ? ReviewMethod.aiCorrection
+              : ReviewMethod.manualCorrection,
+          sourceResponseId: response.id,
+        );
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Revisão salva e próxima revisão agendada.'),
+        ),
+      );
+      await carregar();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível salvar a revisão.')),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> _evaluateResponse({
+    required String nodeId,
+    required AiAgentTask task,
+    required Map<String, dynamic> context,
+  }) async {
+    final user = await ref.read(userProvider.future);
+    final node = await getGraphNodeForUser(
+      db: ref.read(appDatabaseProvider),
+      nodeId: nodeId,
+      userId: user.id,
+    );
+    final prompt =
+        '''
+Avalie esta tentativa de estudo com rigor pedagógico, respeito e foco no aprendizado.
+Tipo de tarefa: ${task.label}.
+Contexto do nó: ${jsonEncode({'title': node.title, 'description': node.description, 'type': node.type})}
+Dados da tentativa: ${jsonEncode(context)}
+
+Considere a resposta de referência e as alternativas corretas quando estiverem
+presentes. Não invente informações ausentes. Em múltipla escolha, explique por
+que a seleção está correta ou incorreta e corrija equívocos conceituais.
+Retorne somente um objeto JSON com:
+{
+  "feedback": "feedback claro e específico em português",
+  "score": 0.0,
+  "is_correct": false,
+  "mastery_demonstrated": "WEAK|PARTIAL|ADEQUATE|STRONG",
+  "weight": 0
+}
+score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
+''';
+    return ref
+        .read(aiContentGenerationServiceProvider)
+        .generate(task: task, prompt: prompt);
+  }
+
+  Future<ExerciseCorrectionDraft?> _showCorrectionDialog({
+    required String title,
+    required String? initialFeedback,
+    required String? initialNotes,
+    required double? initialScore,
+    required String? initialMastery,
+    required fsrs.Rating initialRating,
+    required Future<Map<String, dynamic>> Function() onAiCorrection,
+  }) {
+    return showDialog<ExerciseCorrectionDraft>(
+      context: context,
+      builder: (context) => ExerciseCorrectionDialog(
+        title: title,
+        initialFeedback: initialFeedback,
+        initialNotes: initialNotes,
+        initialScore: initialScore,
+        initialMastery: initialMastery,
+        initialRating: initialRating,
+        onAiCorrection: onAiCorrection,
+      ),
+    );
+  }
+
+  fsrs.Rating _ratingForScore(double? score) {
+    if (score == null || score < 0.25) return fsrs.Rating.again;
+    if (score < 0.6) return fsrs.Rating.hard;
+    if (score < 0.9) return fsrs.Rating.good;
+    return fsrs.Rating.easy;
+  }
+
   Future<void> _showOpenEndedAnswer(
     OpenEndedResponseLogData response,
     OpenEndedData question,
@@ -180,10 +426,29 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                 const SizedBox(height: 4),
                 Text(response.aiFeedback!),
               ],
+              if (response.userNotes?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Anotações da revisão',
+                  style: context.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(response.userNotes!),
+              ],
             ],
           ),
         ),
         actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _reviewOpenEnded(response, question);
+            },
+            icon: const Icon(Icons.rate_review_outlined),
+            label: Text(
+              response.corrected ? 'Revisar correção' : 'Corrigir resposta',
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Fechar'),
@@ -223,6 +488,21 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                 'Resultado: ${_score(response.score)}',
                 style: context.textTheme.titleSmall,
               ),
+              if (response.aiFeedback?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Text('Feedback', style: context.textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(response.aiFeedback!),
+              ],
+              if (response.userNotes?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Anotações da revisão',
+                  style: context.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(response.userNotes!),
+              ],
               const SizedBox(height: 16),
               Text('Alternativas', style: context.textTheme.titleSmall),
               const SizedBox(height: 4),
@@ -269,6 +549,16 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           ),
         ),
         actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _reviewMultipleChoice(response, question);
+            },
+            icon: const Icon(Icons.rate_review_outlined),
+            label: Text(
+              response.corrected ? 'Revisar feedback' : 'Adicionar feedback',
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Fechar'),
@@ -281,6 +571,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
   Widget _responseCard({
     required String title,
     required String type,
+    required bool corrected,
     required String subtitle,
     required String score,
     required VoidCallback onTap,
@@ -302,7 +593,20 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                   children: [
                     Text(title, style: context.textTheme.titleMedium),
                     const SizedBox(height: 4),
-                    Text(type, style: context.textTheme.labelMedium),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(type, style: context.textTheme.labelMedium),
+                        Chip(
+                          label: Text(corrected ? 'Corrigida' : 'A corrigir'),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          labelStyle: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
@@ -357,6 +661,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
               int answeredAt,
               String title,
               String type,
+              bool corrected,
               String searchText,
               Widget card,
             })
@@ -366,13 +671,16 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                 answeredAt: response.answeredAt,
                 title: _openEndedTitle(response, question),
                 type: 'open',
+                corrected: response.corrected,
                 searchText:
                     '${_openEndedTitle(response, question)} '
                     '${_decodeSnapshot(response.questionSnapshot)['statement'] ?? question.statement}',
                 card: _responseCard(
                   title: _openEndedTitle(response, question),
                   type: 'Questão aberta',
-                  subtitle: _date(response.answeredAt),
+                  corrected: response.corrected,
+                  subtitle:
+                      '${_date(response.answeredAt)} · ${_duration(response.durationSeconds)}',
                   score: _score(response.score),
                   icon: Icons.edit_note_rounded,
                   onTap: () => _showOpenEndedAnswer(response, question),
@@ -383,13 +691,16 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                 answeredAt: response.answeredAt,
                 title: _multipleChoiceTitle(response, question),
                 type: 'multiple',
+                corrected: response.corrected,
                 searchText:
                     '${_multipleChoiceTitle(response, question)} '
                     '${_decodeSnapshot(response.questionSnapshot)['statement'] ?? question.statement}',
                 card: _responseCard(
                   title: _multipleChoiceTitle(response, question),
                   type: 'Múltipla escolha',
-                  subtitle: _date(response.answeredAt),
+                  corrected: response.corrected,
+                  subtitle:
+                      '${_date(response.answeredAt)} · ${_duration(response.durationSeconds)}',
                   score: _score(response.score),
                   icon: Icons.checklist_rounded,
                   onTap: () => _showMultipleChoiceAnswer(response, question),
@@ -399,9 +710,19 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           ..sort((a, b) => b.answeredAt.compareTo(a.answeredAt));
     final query = _search.trim().toLowerCase();
     final filteredResponses = responses.where((response) {
-      return (_filter == 'all' || response.type == _filter) &&
+      final matchesFilter = switch (_filter) {
+        'queue' => !response.corrected,
+        'corrected' => response.corrected,
+        'open' => response.type == 'open',
+        'multiple' => response.type == 'multiple',
+        _ => true,
+      };
+      return matchesFilter &&
           (query.isEmpty || response.searchText.toLowerCase().contains(query));
     }).toList();
+    final pendingCount = responses
+        .where((response) => !response.corrected)
+        .length;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -420,15 +741,20 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${responses.length} ${responses.length == 1 ? 'tentativa registrada' : 'tentativas registradas'}',
+                      '${responses.length} ${responses.length == 1 ? 'tentativa' : 'tentativas'} · $pendingCount aguardando correção',
                     ),
                   ],
                 ),
               ),
               IconButton(
                 tooltip: 'Atualizar histórico',
-                onPressed: carregar,
-                icon: const Icon(Icons.refresh),
+                onPressed: _isRefreshing ? null : carregar,
+                icon: _isRefreshing
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh),
               ),
             ],
           ),
@@ -451,9 +777,12 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: [
               for (final (value, label) in [
                 ('all', 'Todas'),
+                ('queue', 'Fila de correção'),
+                ('corrected', 'Corrigidas'),
                 ('open', 'Dissertativas'),
                 ('multiple', 'Múltipla escolha'),
               ])

@@ -68,12 +68,17 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
     });
 
     try {
-      await ref
-          .read(apiClientProvider)
-          .getAuthenticationApi()
-          .sendPwdResetApiV1AuthCallPasswordRestPost(
-            identificator: _identificatorController.text.trim(),
-          );
+      final apiClient = ref.read(apiClientProvider);
+      await apiClient.dio.post<Object?>(
+        '/api/v1/auth/call_password_rest',
+        queryParameters: {
+          'identificator': _identificatorController.text.trim(),
+        },
+        options: Options(
+          responseType: ResponseType.plain,
+          receiveTimeout: const Duration(seconds: 45),
+        ),
+      );
       if (!mounted) return;
       setState(() => _codeRequested = true);
     } on DioException catch (error) {
@@ -133,6 +138,10 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
   }
 
   String _requestErrorMessage(DioException error) {
+    if (error.type == DioExceptionType.receiveTimeout) {
+      return 'A solicitação demorou mais que o esperado. Confira sua caixa de '
+          'entrada e o spam antes de pedir outro código.';
+    }
     if (error.response == null) {
       return 'Sem conexão com o servidor. Verifique a internet e tente novamente.';
     }

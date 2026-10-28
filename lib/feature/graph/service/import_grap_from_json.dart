@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 String _mapEdgeTypeToDb(String value) {
   switch (value.toUpperCase()) {
     case 'PREREQUISITE':
-      return 'SUBTOPIC';
+      return 'PREREQUISITE';
     case 'SUBTOPIC':
       return 'SUBTOPIC';
     case 'RELATED':
@@ -28,8 +28,10 @@ Future<String> importGraphFromJson({
   required AppDatabase db,
   required String userId,
   required String jsonString,
+  bool isAiGenerated = false,
 }) async {
   final graph = ai.GraphResponse.fromJsonString(jsonString);
+  graph.validate();
   final graphId = const Uuid().v4();
 
   final nodeIdMap = <int, String>{};
@@ -68,7 +70,9 @@ Future<String> importGraphFromJson({
     final current = queue.removeAt(0);
     final currentLevel = levelByNodeId[current] ?? 0;
 
-    for (final edge in hierarchicalEdges.where((e) => e.sourceNode == current)) {
+    for (final edge in hierarchicalEdges.where(
+      (e) => e.sourceNode == current,
+    )) {
       final nextLevel = currentLevel + 1;
       final previousLevel = levelByNodeId[edge.targetNode];
 
@@ -90,14 +94,17 @@ Future<String> importGraphFromJson({
   }
 
   await db.transaction(() async {
-    await db.into(db.knowledgeGraph).insert(
-      KnowledgeGraphCompanion.insert(
-        id: graphId,
-        userId: userId,
-        title: graph.graphTitle,
-        description: Value(graph.graphDescription),
-      ),
-    );
+    await db
+        .into(db.knowledgeGraph)
+        .insert(
+          KnowledgeGraphCompanion.insert(
+            id: graphId,
+            userId: userId,
+            title: graph.graphTitle,
+            description: Value(graph.graphDescription),
+            isAiGenerated: Value(isAiGenerated),
+          ),
+        );
 
     const double xSpacing = 260;
     const double ySpacing = 180;
@@ -119,14 +126,15 @@ Future<String> importGraphFromJson({
             db.graphNode,
             GraphNodeCompanion.insert(
               id: dbNodeId,
-              graphId: graphId,            
+              graphId: graphId,
               type: node.type.value,
               title: node.title,
               description: Value(node.description),
               positionX: startX + (index * xSpacing),
               positionY: startY + (level * ySpacing),
+              isAiGenerated: Value(isAiGenerated),
               masteryScore: const Value.absent(),
-              isSkipped: const Value.absent(),        
+              isSkipped: const Value.absent(),
               fsrsRating: const Value.absent(),
             ),
           );
@@ -148,8 +156,8 @@ Future<String> importGraphFromJson({
             graphId: graphId,
             sourceNodeId: sourceId,
             targetNodeId: targetId,
-            type: _mapEdgeTypeToDb(edge.type),         
-            weight: const Value.absent(),   
+            type: _mapEdgeTypeToDb(edge.type),
+            weight: const Value.absent(),
           ),
         );
       }

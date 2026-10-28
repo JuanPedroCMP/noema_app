@@ -64,51 +64,61 @@ class LoginPage extends ConsumerWidget {
               label: "Entrar",
               onPressed: () async {
                 if (form.user.trim().isEmpty || form.password.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Informe usuário e senha.")),
-                    );
-                    return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Informe usuário e senha.")),
+                  );
+                  return;
                 }
 
                 formNotifier.loadingChanged(true);
 
                 try {
-                    final loginService = ref.read(loginServiceProvider);
+                  final loginService = ref.read(loginServiceProvider);
 
-                    await loginService.login(
-                      user: form.user.trim(),
-                      password: form.password,
+                  await loginService.login(
+                    user: form.user.trim(),
+                    password: form.password,
+                  );
+
+                  if (!context.mounted) return;
+                  ref.invalidate(authStateProvider);
+                  final authenticated = await ref.read(
+                    authStateProvider.future,
+                  );
+
+                  if (!authenticated) {
+                    throw StateError("Não foi possível validar a sessão.");
+                  }
+
+                  resetAccountScopedState(ref);
+                  if (context.mounted) {
+                    final returnPath = RoutePaths.safeReturnPath(
+                      GoRouterState.of(context).uri.queryParameters['from'],
                     );
-
-                    if (!context.mounted) return;
-                    ref.invalidate(authStateProvider);
-                    final authenticated = await ref.read(
-                      authStateProvider.future,
-                    );
-
-                    if (!authenticated) {
-                      throw StateError("Não foi possível validar a sessão.");
-                    }
-
-                    resetAccountScopedState(ref);
-                    if (context.mounted) context.go("/");
+                    context.go(returnPath ?? RoutePaths.home);
+                  }
                 } catch (_) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Não foi possível entrar. Verifique suas credenciais.",
-                          ),
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Não foi possível entrar. Verifique suas credenciais.",
                         ),
-                      );
-                    }
+                      ),
+                    );
+                  }
                 } finally {
-                    formNotifier.loadingChanged(false);
+                  formNotifier.loadingChanged(false);
                 }
               },
             ),
             TextButton(
-              onPressed: () => context.go(RoutePaths.signUp),
+              onPressed: () => context.go(
+                RoutePaths.withReturnPath(
+                  RoutePaths.signUp,
+                  GoRouterState.of(context).uri.queryParameters['from'],
+                ),
+              ),
               child: const Text("Criar conta"),
             ),
           ],

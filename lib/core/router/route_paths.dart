@@ -12,6 +12,21 @@ abstract final class RoutePaths {
 
   static String graph(String graphId) => '$graphs/$graphId';
 
+  static String withReturnPath(String path, String? returnPath) {
+    if (returnPath == null) return path;
+    return Uri(path: path, queryParameters: {'from': returnPath}).toString();
+  }
+
+  static String? safeReturnPath(String? path) {
+    if (path == null || !path.startsWith('/') || path.startsWith('//')) {
+      return null;
+    }
+    final uri = Uri.tryParse(path);
+    if (uri == null || uri.hasScheme || uri.hasAuthority) return null;
+    if ({login, signUp, splash}.contains(uri.path)) return null;
+    return uri.toString();
+  }
+
   static String studySession(String sessionId) => '$studySessions/$sessionId';
 
   static String studySessionEdit(String sessionId) =>

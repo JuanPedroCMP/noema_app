@@ -16,28 +16,21 @@ class GraphResponse {
   factory GraphResponse.fromJson(Map<String, dynamic> json) {
     return GraphResponse(
       graphTitle: json['graph_title'] as String? ?? '',
-      graphDescription: json['graph_description'] as String? ?? '',
+      graphDescription:
+          json['graph_description'] as String? ??
+          json['description'] as String? ??
+          '',
       nodes: (json['nodes'] as List<dynamic>? ?? [])
-          .map(
-            (node) => GraphNode.fromJson(
-              node as Map<String, dynamic>,
-            ),
-          )
+          .map((node) => GraphNode.fromJson(node as Map<String, dynamic>))
           .toList(),
       edges: (json['edges'] as List<dynamic>? ?? [])
-          .map(
-            (edge) => GraphEdge.fromJson(
-              edge as Map<String, dynamic>,
-            ),
-          )
+          .map((edge) => GraphEdge.fromJson(edge as Map<String, dynamic>))
           .toList(),
     );
   }
 
   factory GraphResponse.fromJsonString(String source) {
-    return GraphResponse.fromJson(
-      jsonDecode(source) as Map<String, dynamic>,
-    );
+    return GraphResponse.fromJson(jsonDecode(source) as Map<String, dynamic>);
   }
 
   Map<String, dynamic> toJson() {
@@ -51,6 +44,68 @@ class GraphResponse {
 
   String toJsonString() {
     return jsonEncode(toJson());
+  }
+
+  void validate() {
+    if (graphTitle.trim().isEmpty) {
+      throw const FormatException('O grafo gerado está sem título.');
+    }
+    if (nodes.isEmpty) {
+      throw const FormatException('A IA não gerou nenhum nó para o grafo.');
+    }
+    if (nodes.length > 30) {
+      throw const FormatException('O grafo gerado excede o limite de 30 nós.');
+    }
+
+    final nodeIds = <int>{};
+    for (final node in nodes) {
+      if (!nodeIds.add(node.nodeId)) {
+        throw FormatException('A IA repetiu o identificador ${node.nodeId}.');
+      }
+      if (node.title.trim().isEmpty) {
+        throw FormatException('O nó ${node.nodeId} gerado está sem título.');
+      }
+    }
+
+    for (final edge in edges) {
+      if (edge.sourceNode == edge.targetNode ||
+          !nodeIds.contains(edge.sourceNode) ||
+          !nodeIds.contains(edge.targetNode)) {
+        throw const FormatException(
+          'A estrutura do grafo contém uma relação inválida.',
+        );
+      }
+    }
+
+    final hierarchy = <int, List<int>>{
+      for (final node in nodes) node.nodeId: <int>[],
+    };
+    for (final edge in edges) {
+      final type = edge.type.toUpperCase();
+      if (type == 'SUBTOPIC' || type == 'PREREQUISITE') {
+        hierarchy[edge.sourceNode]!.add(edge.targetNode);
+      }
+    }
+
+    final visited = <int>{};
+    final active = <int>{};
+
+    bool hasCycle(int nodeId) {
+      if (active.contains(nodeId)) return true;
+      if (!visited.add(nodeId)) return false;
+      active.add(nodeId);
+      for (final targetId in hierarchy[nodeId]!) {
+        if (hasCycle(targetId)) return true;
+      }
+      active.remove(nodeId);
+      return false;
+    }
+
+    if (nodes.any((node) => hasCycle(node.nodeId))) {
+      throw const FormatException(
+        'As relações hierárquicas geradas contêm um ciclo.',
+      );
+    }
   }
 }
 
@@ -143,16 +198,12 @@ class GraphEdge {
     return GraphEdge(
       sourceNode: json['source_node'] as int,
       targetNode: json['target_node'] as int,
-      type: "PREREQUISITE",
+      type: json['type'] as String? ?? 'SUBTOPIC',
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'source_node': sourceNode,
-      'target_node': targetNode,
-      'type': type,
-    };
+    return {'source_node': sourceNode, 'target_node': targetNode, 'type': type};
   }
 }
 
