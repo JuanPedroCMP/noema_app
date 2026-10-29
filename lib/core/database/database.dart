@@ -15,7 +15,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -124,6 +124,94 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX idx_review_item_log_source_response_id '
           'ON review_item_log(source_response_id)',
         );
+      }
+      if (from < 6 && to >= 6) {
+        await customStatement(
+          'ALTER TABLE config ADD COLUMN ai_max_concurrent_requests '
+          'INTEGER NOT NULL DEFAULT 1 CHECK '
+          '(ai_max_concurrent_requests BETWEEN 1 AND 8)',
+        );
+      }
+      if (from < 7 && to >= 7) {
+        await customStatement('''
+          CREATE TABLE ai_background_task (
+            id TEXT NOT NULL PRIMARY KEY,
+            node_id TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+            task_type TEXT NOT NULL CHECK (task_type IN ('NODE_DESCRIPTION')),
+            status TEXT NOT NULL DEFAULT 'PENDING' CHECK (
+              status IN (
+                'PENDING', 'RUNNING', 'RETRY_WAIT', 'FAILED',
+                'COMPLETED', 'CANCELED'
+              )
+            ),
+            attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+            next_attempt_at INTEGER,
+            last_error TEXT,
+            created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            CONSTRAINT ai_background_task_node_task_uq
+              UNIQUE (node_id, task_type)
+          )
+        ''');
+        await customStatement(
+          'CREATE INDEX ai_background_task_status_next_attempt_idx '
+          'ON ai_background_task(status, next_attempt_at)',
+        );
+      }
+      if (from < 8 && to >= 8) {
+        await customStatement('''
+          CREATE TABLE ai_background_task_v8 (
+            id TEXT NOT NULL PRIMARY KEY,
+            node_id TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+            task_type TEXT NOT NULL CHECK (
+              task_type IN (
+                'NODE_DESCRIPTION',
+                'OPEN_ENDED_CORRECTION',
+                'MULTIPLE_CHOICE_CORRECTION'
+              )
+            ),
+            subject_id TEXT,
+            status TEXT NOT NULL DEFAULT 'PENDING' CHECK (
+              status IN (
+                'PENDING', 'RUNNING', 'RETRY_WAIT', 'FAILED',
+                'COMPLETED', 'CANCELED'
+              )
+            ),
+            attempt_count INTEGER NOT NULL DEFAULT 0
+              CHECK (attempt_count >= 0),
+            next_attempt_at INTEGER,
+            last_error TEXT,
+            created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+          )
+        ''');
+        await customStatement('''
+          INSERT INTO ai_background_task_v8 (
+            id, node_id, task_type, status, attempt_count, next_attempt_at,
+            last_error, created_at, updated_at
+          )
+          SELECT id, node_id, task_type, status, attempt_count,
+                 next_attempt_at, last_error, created_at, updated_at
+          FROM ai_background_task
+        ''');
+        await customStatement('DROP TABLE ai_background_task');
+        await customStatement(
+          'ALTER TABLE ai_background_task_v8 RENAME TO ai_background_task',
+        );
+        await customStatement(
+          'CREATE INDEX ai_background_task_status_next_attempt_idx '
+          'ON ai_background_task(status, next_attempt_at)',
+        );
+        await customStatement('''
+          CREATE UNIQUE INDEX ai_background_task_node_description_uq
+          ON ai_background_task(node_id)
+          WHERE task_type = 'NODE_DESCRIPTION'
+        ''');
+        await customStatement('''
+          CREATE UNIQUE INDEX ai_background_task_subject_task_uq
+          ON ai_background_task(subject_id, task_type)
+          WHERE subject_id IS NOT NULL
+        ''');
       }
     },
     beforeOpen: (details) async {

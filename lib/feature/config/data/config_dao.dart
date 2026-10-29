@@ -15,6 +15,7 @@ class ConfigDao extends DatabaseAccessor<AppDatabase> with _$ConfigDaoMixin {
     required String preferences,
     DateTime? lastSync,
     bool? autoSync,
+    int? aiMaxConcurrentRequests,
     required String deviceFingerprint,
   }) {
     return into(attachedDatabase.config).insert(
@@ -26,6 +27,9 @@ class ConfigDao extends DatabaseAccessor<AppDatabase> with _$ConfigDaoMixin {
         preferences: preferences,
         lastSync: Value(lastSync?.millisecondsSinceEpoch),
         autoSync: autoSync == null ? const Value.absent() : Value(autoSync),
+        aiMaxConcurrentRequests: aiMaxConcurrentRequests == null
+            ? const Value.absent()
+            : Value(aiMaxConcurrentRequests),
         deviceFingerprint: deviceFingerprint,
       ),
     );
@@ -39,6 +43,7 @@ class ConfigDao extends DatabaseAccessor<AppDatabase> with _$ConfigDaoMixin {
     String? preferences,
     DateTime? lastSync,
     bool? autoSync,
+    int? aiMaxConcurrentRequests,
     String? deviceFingerprint,
   }) {
     return (update(
@@ -51,6 +56,9 @@ class ConfigDao extends DatabaseAccessor<AppDatabase> with _$ConfigDaoMixin {
         preferences: preferences == null ? const Value.absent() : Value(preferences),
         lastSync: lastSync == null ? const Value.absent() : Value(lastSync.millisecondsSinceEpoch),
         autoSync: autoSync == null ? const Value.absent() : Value(autoSync),
+        aiMaxConcurrentRequests: aiMaxConcurrentRequests == null
+            ? const Value.absent()
+            : Value(aiMaxConcurrentRequests),
         deviceFingerprint: deviceFingerprint == null ? const Value.absent() : Value(deviceFingerprint),
       ),
     );

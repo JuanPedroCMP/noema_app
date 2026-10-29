@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:noema/core/database/database.dart' hide GraphNode;
+import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/feature/graph/data/converter_ai_response.dart' as ai;
 import 'package:uuid/uuid.dart';
 
@@ -29,6 +30,7 @@ Future<String> importGraphFromJson({
   required String userId,
   required String jsonString,
   bool isAiGenerated = false,
+  bool queueMissingAiDescriptions = false,
 }) async {
   final graph = ai.GraphResponse.fromJsonString(jsonString);
   graph.validate();
@@ -112,6 +114,8 @@ Future<String> importGraphFromJson({
     const double startY = 180;
 
     await db.batch((batch) async {
+      final insertedEdgePairs = <(int, int)>{};
+
       for (final entry in levels.entries) {
         final level = entry.key;
         final nodeIds = entry.value;
@@ -141,7 +145,30 @@ Future<String> importGraphFromJson({
         }
       }
 
+      if (isAiGenerated && queueMissingAiDescriptions) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        for (final node in graph.nodes) {
+          if (node.description.trim().isNotEmpty) continue;
+          final dbNodeId = nodeIdMap[node.nodeId];
+          if (dbNodeId == null) continue;
+          batch.insert(
+            db.aiBackgroundTask,
+            AiBackgroundTaskCompanion.insert(
+              id: const Uuid().v4(),
+              nodeId: dbNodeId,
+              taskType: aiNodeDescriptionTaskType,
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+      }
+
       for (final edge in graph.edges) {
+        if (!insertedEdgePairs.add((edge.sourceNode, edge.targetNode))) {
+          continue;
+        }
+
         final sourceId = nodeIdMap[edge.sourceNode];
         final targetId = nodeIdMap[edge.targetNode];
 

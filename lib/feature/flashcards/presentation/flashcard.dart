@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -420,6 +421,16 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
               ),
             )
           else ...[
+            if (data.dueCards.isNotEmpty)
+              _ReviewOverview(
+                dueCount: data.dueCards.length,
+                totalCount: data.cards.length,
+                onReview: () => _startDeck(
+                  'Revisão pendente',
+                  data.cards,
+                  data.dueCards,
+                ),
+              ),
             _SectionHeader(
               title: 'Decks automáticos',
               subtitle: 'Gerados a partir dos seus grafos e nós.',
@@ -603,6 +614,12 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
                 text:
                     'Tudo em dia. Os cartões já revisados voltarão na data programada.',
               ),
+            if (dueCards.isNotEmpty)
+              _ReviewOverview(
+                dueCount: dueCards.length,
+                totalCount: cards.length,
+                onReview: () => _startDeck(nodeName, cards, dueCards),
+              ),
             Text(
               'Cartões do nó',
               style: Theme.of(context).textTheme.titleLarge,
@@ -656,57 +673,95 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final completed = _reviewedCount;
     final progress = _studyCards.isEmpty ? 0.0 : completed / _studyCards.length;
 
-    return Column(
-      children: [
-        Row(
+    void flip() => setState(() => _showAnswer = !_showAnswer);
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.space): flip,
+        const SingleActivator(LogicalKeyboardKey.enter): () {
+          if (!_showAnswer) setState(() => _showAnswer = true);
+        },
+        const SingleActivator(LogicalKeyboardKey.escape): _stopStudy,
+        const SingleActivator(LogicalKeyboardKey.digit1): () {
+          if (_showAnswer && !_isReviewing) _review(card, 'again');
+        },
+        const SingleActivator(LogicalKeyboardKey.digit2): () {
+          if (_showAnswer && !_isReviewing) _review(card, 'hard');
+        },
+        const SingleActivator(LogicalKeyboardKey.digit3): () {
+          if (_showAnswer && !_isReviewing) _review(card, 'good');
+        },
+        const SingleActivator(LogicalKeyboardKey.digit4): () {
+          if (_showAnswer && !_isReviewing) _review(card, 'easy');
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Column(
           children: [
-            IconButton(
-              tooltip: 'Voltar aos decks',
-              onPressed: _stopStudy,
-              icon: const Icon(Icons.arrow_back),
+            Row(
+              children: [
+                IconButton(
+                  tooltip: 'Voltar aos decks (Esc)',
+                  onPressed: _stopStudy,
+                  icon: const Icon(Icons.arrow_back),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activeName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Cartão ${_studyIndex + 1} de ${_studyCards.length} · '
+                        '$completed revisados',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
+            Semantics(
+              label: 'Progresso da revisão',
+              value: '${(progress * 100).round()} por cento',
+              child: LinearProgressIndicator(value: progress),
+            ),
+            const SizedBox(height: 20),
             Expanded(
-              child: Text(
-                activeName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Center(
+                child: _StudyCard(
+                  key: ValueKey('${card.id}-$_showAnswer'),
+                  card: card,
+                  showAnswer: _showAnswer,
+                  onFlip: flip,
+                ),
               ),
             ),
-            Text('${_studyIndex + 1}/${_studyCards.length}'),
+            const SizedBox(height: 16),
+            if (!_showAnswer)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => setState(() => _showAnswer = true),
+                  child: const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: Text('Mostrar resposta · Espaço'),
+                  ),
+                ),
+              )
+            else
+              _RatingBar(
+                isSaving: _isReviewing,
+                onRate: (rating) => _review(card, rating),
+              ),
           ],
         ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(value: progress),
-        const SizedBox(height: 20),
-        Expanded(
-          child: Center(
-            child: _StudyCard(
-              key: ValueKey('${card.id}-$_showAnswer'),
-              card: card,
-              showAnswer: _showAnswer,
-              onFlip: () => setState(() => _showAnswer = !_showAnswer),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (!_showAnswer)
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => setState(() => _showAnswer = true),
-              child: const Padding(
-                padding: EdgeInsets.all(14),
-                child: Text('Mostrar resposta'),
-              ),
-            ),
-          )
-        else
-          _RatingBar(
-            isSaving: _isReviewing,
-            onRate: (rating) => _review(card, rating),
-          ),
-      ],
+      ),
     );
   }
 }
@@ -848,6 +903,64 @@ class _HintCard extends StatelessWidget {
   }
 }
 
+class _ReviewOverview extends StatelessWidget {
+  const _ReviewOverview({
+    required this.dueCount,
+    required this.totalCount,
+    required this.onReview,
+  });
+
+  final int dueCount;
+  final int totalCount;
+  final VoidCallback onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      color: theme.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.bolt_rounded,
+              size: 28,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$dueCount ${dueCount == 1 ? 'cartão vencido' : 'cartões vencidos'}',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  Text(
+                    'Revise em um único fluxo · $totalCount no total',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonalIcon(
+              onPressed: onReview,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Revisar agora'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _StudyCard extends StatelessWidget {
   const _StudyCard({
     super.key,
@@ -863,50 +976,56 @@ class _StudyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label: showAnswer ? 'Resposta do flashcard' : 'Pergunta do flashcard',
+      hint: 'Toque, pressione espaço ou deslize para revelar',
       onTap: onFlip,
-      onVerticalDragEnd: (details) {
-        if ((details.primaryVelocity ?? 0) < -250) onFlip();
-      },
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 680, minHeight: 280),
-        child: Card(
-          color: showAnswer
-              ? colors.secondaryContainer
-              : colors.surfaceContainerHigh,
-          clipBehavior: Clip.antiAlias,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            ),
-            child: Padding(
-              key: ValueKey(showAnswer),
-              padding: const EdgeInsets.all(32),
-              child: SizedBox(
-                width: double.infinity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      showAnswer ? 'RESPOSTA' : 'CARTÃO',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    SelectableText(
-                      showAnswer ? card.statement : card.title,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      showAnswer
-                          ? 'Toque para voltar à pergunta'
-                          : 'Toque ou deslize para cima para revelar',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+      child: GestureDetector(
+        onTap: onFlip,
+        onVerticalDragEnd: (details) {
+          if ((details.primaryVelocity ?? 0) < -250) onFlip();
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680, minHeight: 280),
+          child: Card(
+            color: showAnswer
+                ? colors.secondaryContainer
+                : colors.surfaceContainerHigh,
+            clipBehavior: Clip.antiAlias,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(scale: animation, child: child),
+              ),
+              child: Padding(
+                key: ValueKey(showAnswer),
+                padding: const EdgeInsets.all(32),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        showAnswer ? 'RESPOSTA' : 'PERGUNTA',
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      const SizedBox(height: 24),
+                      SelectableText(
+                        showAnswer ? card.statement : card.title,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        showAnswer
+                            ? 'Toque para voltar à pergunta'
+                            : 'Toque ou deslize para cima para revelar',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -926,10 +1045,10 @@ class _RatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ratings = [
-      ('De novo', 'again', '10 min', Theme.of(context).colorScheme.error),
-      ('Difícil', 'hard', '1 dia', Theme.of(context).colorScheme.tertiary),
-      ('Bom', 'good', '3 dias', Theme.of(context).colorScheme.primary),
-      ('Fácil', 'easy', '7 dias', Theme.of(context).colorScheme.secondary),
+      ('Não lembrei', 'again', '1', Theme.of(context).colorScheme.error),
+      ('Difícil', 'hard', '2', Theme.of(context).colorScheme.tertiary),
+      ('Lembrei', 'good', '3', Theme.of(context).colorScheme.primary),
+      ('Fácil', 'easy', '4', Theme.of(context).colorScheme.secondary),
     ];
     return Wrap(
       alignment: WrapAlignment.center,
@@ -948,7 +1067,10 @@ class _RatingBar extends StatelessWidget {
               children: [
                 Text(rating.$1),
                 const SizedBox(height: 2),
-                Text(rating.$3, style: Theme.of(context).textTheme.labelSmall),
+                Text(
+                  'Tecla ${rating.$3}',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
               ],
             ),
           ),

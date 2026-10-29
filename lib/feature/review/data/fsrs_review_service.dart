@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:noema/core/database/database.dart';
+import 'package:noema/feature/review/data/domain_mastery_service.dart';
 import 'package:uuid/uuid.dart';
 
 enum ReviewItemType {
@@ -74,6 +75,8 @@ class FsrsReviewService {
     required ReviewMethod method,
     double? score,
     String? sourceResponseId,
+    DomainEventOrigin eventOrigin = DomainEventOrigin.revision,
+    String? sourceStudySessionType,
     DateTime? reviewedAt,
   }) async {
     if (itemId.trim().isEmpty || nodeId.trim().isEmpty) {
@@ -163,6 +166,22 @@ class FsrsReviewService {
           scheduledDays: Value(scheduledDays),
           reviewedAt: Value(nowSeconds),
         ),
+      );
+
+      await DomainMasteryService(_database).recordReview(
+        nodeId: nodeId,
+        rating: rating,
+        assessmentScore: score,
+        retrievability: beforeRetrievability,
+        reviewedAt: reviewTime,
+        eventOrigin: eventOrigin,
+        sourceStudySessionType:
+            sourceStudySessionType ??
+            switch (itemType) {
+              ReviewItemType.flashcard => 'FLASHCARD',
+              ReviewItemType.openEnded => 'ESSAY',
+              ReviewItemType.multipleChoice => 'MULTIPLE_CHOICE',
+            },
       );
 
       result = FsrsReviewResult(

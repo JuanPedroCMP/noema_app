@@ -4,6 +4,7 @@ import 'package:openapi/openapi.dart';
 
 final apiClientProvider = Provider<Openapi>((ref) {
   final client = Openapi(basePathOverride: "https://api.tccnoema.me");
+  client.dio.options.receiveTimeout = const Duration(minutes: 2);
   client.dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
@@ -32,7 +33,7 @@ final apiClientProvider = Provider<Openapi>((ref) {
 
 void setApiAccessToken(Openapi client, String token) {
   client.setOAuthToken('OAuth2PasswordBearer', token);
-  client.dio.options.headers['Authorization'] = 'Bearer $token';
+  client.dio.options.headers['Authorization'] = ['Bearer', token].join(' ');
 }
 
 void clearApiAccessToken(Openapi client) {
@@ -40,7 +41,7 @@ void clearApiAccessToken(Openapi client) {
   client.dio.options.headers.remove('Authorization');
 }
 
-final userApiProvider = Provider((ref){
+final userApiProvider = Provider((ref) {
   return ref.watch(apiClientProvider).getUserApi();
 });
 

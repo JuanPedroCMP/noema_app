@@ -8,6 +8,7 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/presentation/login_page.dart';
 import 'package:noema/feature/auth/presentation/sign_up_page.dart';
 import 'package:noema/feature/config/presentation/config_page.dart';
+import 'package:noema/feature/ai/presentation/ai_queue_page.dart';
 import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
 import 'package:noema/feature/exercises/open_ended/presentation/open_ended.dart';
 import 'package:noema/feature/exercises/presentation/list_exercices.dart';
@@ -79,10 +80,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      GoRoute(
-        path: RoutePaths.test,
-        builder: (_, _) => M3ShowcaseApp(),
-      ),
+      GoRoute(path: RoutePaths.test, builder: (_, _) => M3ShowcaseApp()),
 
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -104,7 +102,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
           StatefulShellBranch(
             routes: [
-              GoRoute(path: RoutePaths.notes, builder: (_, _) => NotesPage()),
+              GoRoute(
+                path: RoutePaths.notes,
+                builder: (_, _) => NotesPage(key: notesPageKey),
+              ),
             ],
           ),
 
@@ -300,6 +301,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(path: RoutePaths.config, builder: (_, _) => ConfigPage()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.aiQueue,
+                builder: (_, _) => const AiQueuePage(),
+              ),
             ],
           ),
         ],

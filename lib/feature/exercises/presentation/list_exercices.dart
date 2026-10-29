@@ -56,10 +56,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
         OpenEndedDao(db).getOpenEndedsByNode(nodeId: widget.nodeId),
         MultipleChoiceDao(db).getMultipleChoicesByNode(nodeId: widget.nodeId),
       ]);
-      final reviewStates =
-          await (db.select(db.reviewItemState)
-                ..where((state) => state.nodeId.equals(widget.nodeId)))
-              .get();
+      final reviewStates = await (db.select(
+        db.reviewItemState,
+      )..where((state) => state.nodeId.equals(widget.nodeId))).get();
       final scheduledAtByItem = {
         for (final state in reviewStates)
           '${state.itemType}:${state.itemId}': state.nextReviewAt,
@@ -69,8 +68,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
       final multipleChoiceItems = results[1] as List<MultipleChoiceData>;
       final dueOpenEndedIds = openEndedItems
           .where(
-            (item) =>
-                (scheduledAtByItem['OPEN_ENDED:${item.id}'] ?? 0) <= now,
+            (item) => (scheduledAtByItem['OPEN_ENDED:${item.id}'] ?? 0) <= now,
           )
           .map((item) => item.id)
           .toSet();
@@ -164,6 +162,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     required String title,
     required String statement,
     required bool isOpenEnded,
+    required bool isDue,
     required String currentUri,
   }) {
     final typeLabel = isOpenEnded ? 'Questão aberta' : 'Múltipla escolha';
@@ -206,13 +205,32 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
               ],
             ),
-            Chip(
-              avatar: Icon(
-                isOpenEnded ? Icons.edit_note_rounded : Icons.checklist_rounded,
-                size: 18,
-              ),
-              label: Text(typeLabel),
-              visualDensity: VisualDensity.compact,
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                Chip(
+                  avatar: Icon(
+                    isOpenEnded
+                        ? Icons.edit_note_rounded
+                        : Icons.checklist_rounded,
+                    size: 18,
+                  ),
+                  label: Text(typeLabel),
+                  visualDensity: VisualDensity.compact,
+                ),
+                Chip(
+                  avatar: Icon(
+                    isDue ? Icons.schedule_rounded : Icons.check_circle_outline,
+                    size: 17,
+                  ),
+                  label: Text(isDue ? 'Para revisar' : 'Em dia'),
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: isDue
+                      ? Theme.of(context).colorScheme.tertiaryContainer
+                      : Theme.of(context).colorScheme.surfaceContainerLow,
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -233,8 +251,10 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
                 FilledButton.tonalIcon(
                   onPressed: () => _navigate('$currentUri/$route/$id/answer'),
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('Responder'),
+                  icon: Icon(
+                    isDue ? Icons.play_arrow_rounded : Icons.replay_rounded,
+                  ),
+                  label: Text(isDue ? 'Revisar agora' : 'Responder'),
                 ),
               ],
             ),
@@ -289,6 +309,16 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     final total = _openEndeds.length + _multipleChoices.length;
     final dueCount = _dueOpenEndedIds.length + _dueMultipleChoiceIds.length;
     final hasResults = openEnded.isNotEmpty || multipleChoice.isNotEmpty;
+    openEnded.sort((first, second) {
+      final firstDue = _dueOpenEndedIds.contains(first.id);
+      final secondDue = _dueOpenEndedIds.contains(second.id);
+      return firstDue == secondDue ? 0 : (firstDue ? -1 : 1);
+    });
+    multipleChoice.sort((first, second) {
+      final firstDue = _dueMultipleChoiceIds.contains(first.id);
+      final secondDue = _dueMultipleChoiceIds.contains(second.id);
+      return firstDue == secondDue ? 0 : (firstDue ? -1 : 1);
+    });
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -333,7 +363,8 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 label: const Text('Questão aberta'),
               ),
               OutlinedButton.icon(
-                onPressed: () => _navigate('$currentUri/multiple-choice/create'),
+                onPressed: () =>
+                    _navigate('$currentUri/multiple-choice/create'),
                 icon: const Icon(Icons.checklist_rounded),
                 label: const Text('Múltipla escolha'),
               ),
@@ -344,6 +375,42 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               ),
             ],
           ),
+          if (total > 0)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      dueCount > 0
+                          ? Icons.bolt_rounded
+                          : Icons.check_circle_outline,
+                      color: dueCount > 0
+                          ? Theme.of(context).colorScheme.tertiary
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        dueCount > 0
+                            ? '$dueCount ${dueCount == 1 ? 'questão precisa' : 'questões precisam'} de revisão'
+                            : 'Tudo em dia. As questões voltarão à fila conforme o FSRS.',
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
+                    if (dueCount > 0)
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => _filter = _ExerciseFilter.due),
+                        child: const Text('Ver pendentes'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(height: 12),
           TextField(
             onChanged: (value) => setState(() => _search = value),
@@ -395,6 +462,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                             title: exercise.title,
                             statement: exercise.statement,
                             isOpenEnded: true,
+                            isDue: _dueOpenEndedIds.contains(exercise.id),
                             currentUri: currentUri,
                           ),
                         for (final exercise in multipleChoice)
@@ -403,6 +471,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                             title: exercise.title,
                             statement: exercise.statement,
                             isOpenEnded: false,
+                            isDue: _dueMultipleChoiceIds.contains(exercise.id),
                             currentUri: currentUri,
                           ),
                       ],
@@ -419,8 +488,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                         Text(
                           total == 0
                               ? 'Nenhuma questão por aqui ainda'
-                              : _filter == _ExerciseFilter.due &&
-                                    dueCount == 0
+                              : _filter == _ExerciseFilter.due && dueCount == 0
                               ? 'Não há questões vencidas para revisar agora'
                               : 'Nenhuma questão encontrada',
                           textAlign: TextAlign.center,

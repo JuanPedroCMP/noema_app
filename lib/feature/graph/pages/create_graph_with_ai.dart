@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +11,8 @@ import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/graph/data/converter_ai_response.dart';
 import 'package:noema/feature/graph/service/import_grap_from_json.dart';
+
+const _graphManipulatorAgentId = 'c85e5671-a9bb-4c68-9734-3b8f492e5aff';
 
 class CreateGraphWithAi extends ConsumerStatefulWidget {
   const CreateGraphWithAi({super.key});
@@ -51,14 +52,29 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     });
 
     try {
-      final response = await ref
-          .read(aiContentGenerationServiceProvider)
-          .generate(
-            task: AiAgentTask.manipulateGraph,
-            prompt: prompt
-          );
+      final ai = ref.read(aiContentGenerationServiceProvider);
+      final response = await ai.generate(
+        task: AiAgentTask.manipulateGraph,
+        prompt: prompt,
+        agentId: _graphManipulatorAgentId,
+      );
       response.putIfAbsent('graph_description', () => prompt);
-      final draft = GraphResponse.fromJson(response);
+      final generatedGraph = GraphResponse.fromJson(response);
+      final draft = GraphResponse(
+        graphTitle: generatedGraph.graphTitle,
+        graphDescription: generatedGraph.graphDescription,
+        nodes: generatedGraph.nodes
+            .map(
+              (node) => GraphNode(
+                nodeId: node.nodeId,
+                title: node.title,
+                description: '',
+                type: node.type,
+              ),
+            )
+            .toList(growable: false),
+        edges: generatedGraph.edges,
+      );
       draft.validate();
       if (!mounted) return;
       setState(() => _draft = draft);
@@ -97,6 +113,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
         userId: user.id,
         jsonString: jsonEncode(draft.toJson()),
         isAiGenerated: true,
+        queueMissingAiDescriptions: true,
       );
       if (mounted) context.go(RoutePaths.graph(graphId));
     } catch (error) {
@@ -110,6 +127,9 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
 
   String _apiError(DioException error) {
     final status = error.response?.statusCode;
+    if (error.type == DioExceptionType.receiveTimeout) {
+      return 'A geração demorou mais que o esperado. Tente novamente.';
+    }
     if (status == 401 || status == 403) {
       return 'Sua sessão não está autorizada para usar a IA. Entre novamente.';
     }
@@ -140,8 +160,9 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Descreva o que você quer aprender. Revise a estrutura gerada antes '
-          'de salvá-la; nada será adicionado ao seu espaço até você confirmar.',
+          'Descreva o que você quer aprender. Revise a estrutura e crie o grafo '
+          'sem esperar pelas descrições; elas serão geradas em segundo plano '
+          'e você poderá acompanhar o progresso na fila de IA.',
         ),
         const SizedBox(height: 16),
         TextField(
@@ -178,8 +199,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
           const LinearProgressIndicator(),
           const SizedBox(height: 8),
           Text(
-            'A IA está organizando os conceitos e suas relações. '
-            'Isso pode levar alguns instantes.',
+            'A IA está organizando os conceitos e suas relações.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -215,7 +235,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.check_circle_outline),
-              label: Text(_isSaving ? 'Salvando...' : 'Criar este grafo'),
+              label: Text(
+                _isSaving
+                    ? 'Criando grafo...'
+                    : 'Criar grafo e gerar descrições em segundo plano',
+              ),
             ),
           ),
         ],
@@ -241,7 +265,10 @@ class _GraphDraftPreview extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.account_tree_outlined, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.account_tree_outlined,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -281,10 +308,7 @@ class _GraphDraftPreview extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(child: Text(node.title)),
                     const SizedBox(width: 8),
-                    Text(
-                      node.type.value,
-                      style: theme.textTheme.labelSmall,
-                    ),
+                    Text(node.type.value, style: theme.textTheme.labelSmall),
                   ],
                 ),
               ),

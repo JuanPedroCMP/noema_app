@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
+import 'package:noema/feature/exercises/data/exercise_correction_queue.dart';
 import 'package:noema/core/database/database.dart'
     show OpenEndedResponseLogData;
 import 'package:noema/core/database/database_provider.dart';
@@ -467,7 +469,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         'type': question.type,
         'referenceCorrectAnswer': question.referenceCorrectAnswer,
       });
-      await responseLogDao.insertOpenEndedResponseLog(
+      final responseId = await responseLogDao.insertOpenEndedResponseLog(
         openEndedId: id,
         questionSnapshot: questionSnapshot,
         studySessionId: widget.studySessionId,
@@ -476,6 +478,24 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         durationSeconds: _answerTimer.elapsed.inSeconds,
       );
       _answerTimer.stop();
+      var correctionMessage = '';
+      try {
+        final result = await enqueueExerciseCorrectionIfAutomatic(
+          ref: ref,
+          nodeId: question.nodeId,
+          responseId: responseId,
+          taskType: aiOpenEndedCorrectionTaskType,
+        );
+        correctionMessage = switch (result) {
+          ExerciseCorrectionEnqueueResult.queued =>
+            ' A correção com IA entrou na fila.',
+          ExerciseCorrectionEnqueueResult.manual =>
+            ' Você poderá corrigi-la manualmente pelo histórico.',
+        };
+      } catch (error) {
+        correctionMessage =
+            ' A resposta foi salva, mas não foi possível agendar a correção: $error';
+      }
       if (!mounted) return;
       if (widget.onSendAnswer case final onSendAnswer?) {
         onSendAnswer();
@@ -485,17 +505,15 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.onSendAnswer == null
-                ? "Resposta registrada. Confira a resposta de referência."
-                : "Resposta registrada.",
+            'Resposta registrada.$correctionMessage',
           ),
         ),
       );
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Não foi possível registrar a resposta."),
+          SnackBar(
+            content: Text('Não foi possível registrar a resposta: $error'),
           ),
         );
       }
@@ -814,6 +832,8 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                           labelText: "Sua resposta",
                           hintText:
                               "Explique seu raciocínio. Você pode usar várias linhas.",
+                          helperText:
+                              "Sua tentativa ficará disponível no Histórico.",
                         ),
                       ),
                       Align(
@@ -826,7 +846,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: _isSending ? null : sendAnswer,
+                          onPressed: _isSending || userAnswer.trim().isEmpty
+                              ? null
+                              : sendAnswer,
                           icon: _isSending
                               ? const SizedBox.square(
                                   dimension: 18,

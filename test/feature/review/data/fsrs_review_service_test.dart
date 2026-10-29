@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
@@ -88,6 +89,8 @@ void main() {
 
     final state = await database.select(database.reviewItemState).getSingle();
     final log = await database.select(database.reviewItemLog).getSingle();
+    final masteryLog = await database.select(database.domainLog).getSingle();
+    final node = await database.select(database.graphNode).getSingle();
     expect(state.itemType, ReviewItemType.openEnded.databaseValue);
     expect(state.itemId, 'question-id');
     expect(state.nextReviewAt, result.dueAt.millisecondsSinceEpoch ~/ 1000);
@@ -97,6 +100,13 @@ void main() {
     expect(log.reviewMethod, ReviewMethod.manualCorrection.databaseValue);
     expect(log.sourceResponseId, 'response-id');
     expect(log.scheduledDays, result.scheduledDays);
+    expect(node.masteryScore, closeTo(0.79, 0.001));
+    expect(node.fsrsRating, fsrs.Rating.good.value);
+    expect(masteryLog.nodeId, 'node-id');
+    expect(masteryLog.eventOrigin, 'REVISION');
+    expect(masteryLog.sourceStudySessionType, 'ESSAY');
+    expect(masteryLog.scoreAfter, closeTo(0.79, 0.001));
+    expect(masteryLog.levelAfter, 'ADEQUATE');
   });
 
   test('uses previous card state for the next review', () async {
@@ -127,7 +137,33 @@ void main() {
     expect(secondResult.retrievabilityBeforeReview, isNotNull);
     expect(secondResult.dueAt.isAfter(secondReview), isTrue);
     expect(await database.select(database.reviewItemLog).get(), hasLength(2));
+    expect(await database.select(database.domainLog).get(), hasLength(2));
   });
+
+  test(
+    'rolls back review scheduling when mastery cannot be recorded',
+    () async {
+      await (database.update(database.graphNode)
+            ..where((node) => node.id.equals('node-id')))
+          .write(const GraphNodeCompanion(softDeleted: Value(true)));
+
+      await expectLater(
+        service.review(
+          itemType: ReviewItemType.openEnded,
+          itemId: 'question-id',
+          nodeId: 'node-id',
+          rating: fsrs.Rating.good,
+          durationSeconds: 30,
+          method: ReviewMethod.manualCorrection,
+        ),
+        throwsStateError,
+      );
+
+      expect(await database.select(database.reviewItemState).get(), isEmpty);
+      expect(await database.select(database.reviewItemLog).get(), isEmpty);
+      expect(await database.select(database.domainLog).get(), isEmpty);
+    },
+  );
 
   test('rejects invalid review inputs without persisting state', () async {
     await expectLater(

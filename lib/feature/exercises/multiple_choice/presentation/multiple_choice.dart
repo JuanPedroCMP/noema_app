@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
+import 'package:noema/feature/exercises/data/exercise_correction_queue.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/choise.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_choise.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
@@ -520,10 +522,11 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     final durationSeconds = _answerTimer.elapsed.inSeconds;
     final db = ref.read(appDatabaseProvider);
     final responseDao = MultipleChoiceResponseLogDao(db);
+    String? responseId;
 
     try {
       await db.transaction(() async {
-        final responseId = await responseDao.insertMultipleChoiceResponseLog(
+        responseId = await responseDao.insertMultipleChoiceResponseLog(
           multipleChoiceId: questionId,
           questionSnapshot: jsonEncode({
             'title': title,
@@ -553,6 +556,24 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
           sourceResponseId: responseId,
         );
       });
+      var correctionMessage = '';
+      try {
+        final result = await enqueueExerciseCorrectionIfAutomatic(
+          ref: ref,
+          nodeId: widget.nodeId,
+          responseId: responseId!,
+          taskType: aiMultipleChoiceCorrectionTaskType,
+        );
+        correctionMessage = switch (result) {
+          ExerciseCorrectionEnqueueResult.queued =>
+            ' A explicação com IA entrou na fila.',
+          ExerciseCorrectionEnqueueResult.manual =>
+            ' Você poderá revisar a tentativa manualmente pelo histórico.',
+        };
+      } catch (error) {
+        correctionMessage =
+            ' A resposta foi salva, mas não foi possível agendar a correção: $error';
+      }
       _answerTimer.stop();
       if (!mounted) return;
       if (widget.onSendAnswer case final onSendAnswer?) {
@@ -564,17 +585,15 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.onSendAnswer == null
-                ? "Resposta registrada. Confira o resultado abaixo."
-                : "Resposta registrada.",
+            'Resposta registrada.$correctionMessage',
           ),
         ),
       );
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Não foi possível registrar a resposta."),
+          SnackBar(
+            content: Text('Não foi possível registrar a resposta: $error'),
           ),
         );
       }
@@ -855,7 +874,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                           ],
                           if (_hasSubmitted) _buildResultSummary(),
                           FilledButton.icon(
-                            onPressed: _isSending || _hasSubmitted
+                            onPressed:
+                                _isSending ||
+                                    _hasSubmitted ||
+                                    _selectedChoiceIds.isEmpty
                                 ? null
                                 : sendAnswer,
                             icon: Icon(
@@ -868,6 +890,8 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                                   ? "Registrando..."
                                   : _hasSubmitted
                                   ? "Resposta registrada"
+                                  : _selectedChoiceIds.isEmpty
+                                  ? "Selecione uma alternativa"
                                   : "Enviar resposta",
                             ),
                           ),

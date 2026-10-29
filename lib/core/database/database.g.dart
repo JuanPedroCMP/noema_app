@@ -1894,6 +1894,19 @@ class Config extends Table with TableInfo<Config, ConfigData> {
     $customConstraints: 'NOT NULL DEFAULT 1 CHECK (auto_sync IN (0, 1))',
     defaultValue: const CustomExpression('1'),
   );
+  static const VerificationMeta _aiMaxConcurrentRequestsMeta =
+      const VerificationMeta('aiMaxConcurrentRequests');
+  late final GeneratedColumn<int>
+  aiMaxConcurrentRequests = GeneratedColumn<int>(
+    'ai_max_concurrent_requests',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'NOT NULL DEFAULT 1 CHECK (ai_max_concurrent_requests BETWEEN 1 AND 8)',
+    defaultValue: const CustomExpression('1'),
+  );
   static const VerificationMeta _deviceFingerprintMeta = const VerificationMeta(
     'deviceFingerprint',
   );
@@ -1916,6 +1929,7 @@ class Config extends Table with TableInfo<Config, ConfigData> {
     updatedAt,
     lastSync,
     autoSync,
+    aiMaxConcurrentRequests,
     deviceFingerprint,
   ];
   @override
@@ -1994,6 +2008,15 @@ class Config extends Table with TableInfo<Config, ConfigData> {
         autoSync.isAcceptableOrUnknown(data['auto_sync']!, _autoSyncMeta),
       );
     }
+    if (data.containsKey('ai_max_concurrent_requests')) {
+      context.handle(
+        _aiMaxConcurrentRequestsMeta,
+        aiMaxConcurrentRequests.isAcceptableOrUnknown(
+          data['ai_max_concurrent_requests']!,
+          _aiMaxConcurrentRequestsMeta,
+        ),
+      );
+    }
     if (data.containsKey('device_fingerprint')) {
       context.handle(
         _deviceFingerprintMeta,
@@ -2050,6 +2073,10 @@ class Config extends Table with TableInfo<Config, ConfigData> {
         DriftSqlType.bool,
         data['${effectivePrefix}auto_sync'],
       )!,
+      aiMaxConcurrentRequests: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ai_max_concurrent_requests'],
+      )!,
       deviceFingerprint: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}device_fingerprint'],
@@ -2079,6 +2106,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
   final int updatedAt;
   final int? lastSync;
   final bool autoSync;
+  final int aiMaxConcurrentRequests;
   final String deviceFingerprint;
   const ConfigData({
     required this.id,
@@ -2089,6 +2117,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     required this.updatedAt,
     this.lastSync,
     required this.autoSync,
+    required this.aiMaxConcurrentRequests,
     required this.deviceFingerprint,
   });
   @override
@@ -2104,6 +2133,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
       map['last_sync'] = Variable<int>(lastSync);
     }
     map['auto_sync'] = Variable<bool>(autoSync);
+    map['ai_max_concurrent_requests'] = Variable<int>(aiMaxConcurrentRequests);
     map['device_fingerprint'] = Variable<String>(deviceFingerprint);
     return map;
   }
@@ -2120,6 +2150,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
           ? const Value.absent()
           : Value(lastSync),
       autoSync: Value(autoSync),
+      aiMaxConcurrentRequests: Value(aiMaxConcurrentRequests),
       deviceFingerprint: Value(deviceFingerprint),
     );
   }
@@ -2140,6 +2171,9 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
       updatedAt: serializer.fromJson<int>(json['updated_at']),
       lastSync: serializer.fromJson<int?>(json['last_sync']),
       autoSync: serializer.fromJson<bool>(json['auto_sync']),
+      aiMaxConcurrentRequests: serializer.fromJson<int>(
+        json['ai_max_concurrent_requests'],
+      ),
       deviceFingerprint: serializer.fromJson<String>(
         json['device_fingerprint'],
       ),
@@ -2157,6 +2191,9 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
       'updated_at': serializer.toJson<int>(updatedAt),
       'last_sync': serializer.toJson<int?>(lastSync),
       'auto_sync': serializer.toJson<bool>(autoSync),
+      'ai_max_concurrent_requests': serializer.toJson<int>(
+        aiMaxConcurrentRequests,
+      ),
       'device_fingerprint': serializer.toJson<String>(deviceFingerprint),
     };
   }
@@ -2170,6 +2207,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     int? updatedAt,
     Value<int?> lastSync = const Value.absent(),
     bool? autoSync,
+    int? aiMaxConcurrentRequests,
     String? deviceFingerprint,
   }) => ConfigData(
     id: id ?? this.id,
@@ -2180,6 +2218,8 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     updatedAt: updatedAt ?? this.updatedAt,
     lastSync: lastSync.present ? lastSync.value : this.lastSync,
     autoSync: autoSync ?? this.autoSync,
+    aiMaxConcurrentRequests:
+        aiMaxConcurrentRequests ?? this.aiMaxConcurrentRequests,
     deviceFingerprint: deviceFingerprint ?? this.deviceFingerprint,
   );
   ConfigData copyWithCompanion(ConfigCompanion data) {
@@ -2198,6 +2238,9 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       autoSync: data.autoSync.present ? data.autoSync.value : this.autoSync,
+      aiMaxConcurrentRequests: data.aiMaxConcurrentRequests.present
+          ? data.aiMaxConcurrentRequests.value
+          : this.aiMaxConcurrentRequests,
       deviceFingerprint: data.deviceFingerprint.present
           ? data.deviceFingerprint.value
           : this.deviceFingerprint,
@@ -2215,6 +2258,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
           ..write('updatedAt: $updatedAt, ')
           ..write('lastSync: $lastSync, ')
           ..write('autoSync: $autoSync, ')
+          ..write('aiMaxConcurrentRequests: $aiMaxConcurrentRequests, ')
           ..write('deviceFingerprint: $deviceFingerprint')
           ..write(')'))
         .toString();
@@ -2230,6 +2274,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
     updatedAt,
     lastSync,
     autoSync,
+    aiMaxConcurrentRequests,
     deviceFingerprint,
   );
   @override
@@ -2244,6 +2289,7 @@ class ConfigData extends DataClass implements Insertable<ConfigData> {
           other.updatedAt == this.updatedAt &&
           other.lastSync == this.lastSync &&
           other.autoSync == this.autoSync &&
+          other.aiMaxConcurrentRequests == this.aiMaxConcurrentRequests &&
           other.deviceFingerprint == this.deviceFingerprint);
 }
 
@@ -2256,6 +2302,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
   final Value<int> updatedAt;
   final Value<int?> lastSync;
   final Value<bool> autoSync;
+  final Value<int> aiMaxConcurrentRequests;
   final Value<String> deviceFingerprint;
   final Value<int> rowid;
   const ConfigCompanion({
@@ -2267,6 +2314,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     this.updatedAt = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.autoSync = const Value.absent(),
+    this.aiMaxConcurrentRequests = const Value.absent(),
     this.deviceFingerprint = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2279,6 +2327,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     this.updatedAt = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.autoSync = const Value.absent(),
+    this.aiMaxConcurrentRequests = const Value.absent(),
     required String deviceFingerprint,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2296,6 +2345,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     Expression<int>? updatedAt,
     Expression<int>? lastSync,
     Expression<bool>? autoSync,
+    Expression<int>? aiMaxConcurrentRequests,
     Expression<String>? deviceFingerprint,
     Expression<int>? rowid,
   }) {
@@ -2308,6 +2358,8 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (lastSync != null) 'last_sync': lastSync,
       if (autoSync != null) 'auto_sync': autoSync,
+      if (aiMaxConcurrentRequests != null)
+        'ai_max_concurrent_requests': aiMaxConcurrentRequests,
       if (deviceFingerprint != null) 'device_fingerprint': deviceFingerprint,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2322,6 +2374,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     Value<int>? updatedAt,
     Value<int?>? lastSync,
     Value<bool>? autoSync,
+    Value<int>? aiMaxConcurrentRequests,
     Value<String>? deviceFingerprint,
     Value<int>? rowid,
   }) {
@@ -2334,6 +2387,8 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
       updatedAt: updatedAt ?? this.updatedAt,
       lastSync: lastSync ?? this.lastSync,
       autoSync: autoSync ?? this.autoSync,
+      aiMaxConcurrentRequests:
+          aiMaxConcurrentRequests ?? this.aiMaxConcurrentRequests,
       deviceFingerprint: deviceFingerprint ?? this.deviceFingerprint,
       rowid: rowid ?? this.rowid,
     );
@@ -2366,6 +2421,11 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
     if (autoSync.present) {
       map['auto_sync'] = Variable<bool>(autoSync.value);
     }
+    if (aiMaxConcurrentRequests.present) {
+      map['ai_max_concurrent_requests'] = Variable<int>(
+        aiMaxConcurrentRequests.value,
+      );
+    }
     if (deviceFingerprint.present) {
       map['device_fingerprint'] = Variable<String>(deviceFingerprint.value);
     }
@@ -2386,6 +2446,7 @@ class ConfigCompanion extends UpdateCompanion<ConfigData> {
           ..write('updatedAt: $updatedAt, ')
           ..write('lastSync: $lastSync, ')
           ..write('autoSync: $autoSync, ')
+          ..write('aiMaxConcurrentRequests: $aiMaxConcurrentRequests, ')
           ..write('deviceFingerprint: $deviceFingerprint, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -4414,6 +4475,623 @@ class GraphNodeCompanion extends UpdateCompanion<GraphNodeData> {
           ..write('isAiGenerated: $isAiGenerated, ')
           ..write('softDeleted: $softDeleted, ')
           ..write('softDeletedAt: $softDeletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class AiBackgroundTask extends Table
+    with TableInfo<AiBackgroundTask, AiBackgroundTaskData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  AiBackgroundTask(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES graph_node(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _taskTypeMeta = const VerificationMeta(
+    'taskType',
+  );
+  late final GeneratedColumn<String> taskType = GeneratedColumn<String>(
+    'task_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (task_type IN (\'NODE_DESCRIPTION\', \'OPEN_ENDED_CORRECTION\', \'MULTIPLE_CHOICE_CORRECTION\'))',
+  );
+  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
+    'subjectId',
+  );
+  late final GeneratedColumn<String> subjectId = GeneratedColumn<String>(
+    'subject_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'NOT NULL DEFAULT \'PENDING\' CHECK (status IN (\'PENDING\', \'RUNNING\', \'RETRY_WAIT\', \'FAILED\', \'COMPLETED\', \'CANCELED\'))',
+    defaultValue: const CustomExpression('\'PENDING\''),
+  );
+  static const VerificationMeta _attemptCountMeta = const VerificationMeta(
+    'attemptCount',
+  );
+  late final GeneratedColumn<int> attemptCount = GeneratedColumn<int>(
+    'attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (attempt_count >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _nextAttemptAtMeta = const VerificationMeta(
+    'nextAttemptAt',
+  );
+  late final GeneratedColumn<int> nextAttemptAt = GeneratedColumn<int>(
+    'next_attempt_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT (unixepoch())',
+    defaultValue: const CustomExpression('unixepoch()'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nodeId,
+    taskType,
+    subjectId,
+    status,
+    attemptCount,
+    nextAttemptAt,
+    lastError,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_background_task';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiBackgroundTaskData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeIdMeta);
+    }
+    if (data.containsKey('task_type')) {
+      context.handle(
+        _taskTypeMeta,
+        taskType.isAcceptableOrUnknown(data['task_type']!, _taskTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskTypeMeta);
+    }
+    if (data.containsKey('subject_id')) {
+      context.handle(
+        _subjectIdMeta,
+        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('attempt_count')) {
+      context.handle(
+        _attemptCountMeta,
+        attemptCount.isAcceptableOrUnknown(
+          data['attempt_count']!,
+          _attemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('next_attempt_at')) {
+      context.handle(
+        _nextAttemptAtMeta,
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiBackgroundTaskData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiBackgroundTaskData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      )!,
+      taskType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_type'],
+      )!,
+      subjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_id'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      attemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_count'],
+      )!,
+      nextAttemptAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_attempt_at'],
+      ),
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  AiBackgroundTask createAlias(String alias) {
+    return AiBackgroundTask(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class AiBackgroundTaskData extends DataClass
+    implements Insertable<AiBackgroundTaskData> {
+  final String id;
+  final String nodeId;
+  final String taskType;
+  final String? subjectId;
+  final String status;
+  final int attemptCount;
+  final int? nextAttemptAt;
+  final String? lastError;
+  final int createdAt;
+  final int updatedAt;
+  const AiBackgroundTaskData({
+    required this.id,
+    required this.nodeId,
+    required this.taskType,
+    this.subjectId,
+    required this.status,
+    required this.attemptCount,
+    this.nextAttemptAt,
+    this.lastError,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['node_id'] = Variable<String>(nodeId);
+    map['task_type'] = Variable<String>(taskType);
+    if (!nullToAbsent || subjectId != null) {
+      map['subject_id'] = Variable<String>(subjectId);
+    }
+    map['status'] = Variable<String>(status);
+    map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || nextAttemptAt != null) {
+      map['next_attempt_at'] = Variable<int>(nextAttemptAt);
+    }
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  AiBackgroundTaskCompanion toCompanion(bool nullToAbsent) {
+    return AiBackgroundTaskCompanion(
+      id: Value(id),
+      nodeId: Value(nodeId),
+      taskType: Value(taskType),
+      subjectId: subjectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subjectId),
+      status: Value(status),
+      attemptCount: Value(attemptCount),
+      nextAttemptAt: nextAttemptAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextAttemptAt),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AiBackgroundTaskData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiBackgroundTaskData(
+      id: serializer.fromJson<String>(json['id']),
+      nodeId: serializer.fromJson<String>(json['node_id']),
+      taskType: serializer.fromJson<String>(json['task_type']),
+      subjectId: serializer.fromJson<String?>(json['subject_id']),
+      status: serializer.fromJson<String>(json['status']),
+      attemptCount: serializer.fromJson<int>(json['attempt_count']),
+      nextAttemptAt: serializer.fromJson<int?>(json['next_attempt_at']),
+      lastError: serializer.fromJson<String?>(json['last_error']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      updatedAt: serializer.fromJson<int>(json['updated_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'node_id': serializer.toJson<String>(nodeId),
+      'task_type': serializer.toJson<String>(taskType),
+      'subject_id': serializer.toJson<String?>(subjectId),
+      'status': serializer.toJson<String>(status),
+      'attempt_count': serializer.toJson<int>(attemptCount),
+      'next_attempt_at': serializer.toJson<int?>(nextAttemptAt),
+      'last_error': serializer.toJson<String?>(lastError),
+      'created_at': serializer.toJson<int>(createdAt),
+      'updated_at': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  AiBackgroundTaskData copyWith({
+    String? id,
+    String? nodeId,
+    String? taskType,
+    Value<String?> subjectId = const Value.absent(),
+    String? status,
+    int? attemptCount,
+    Value<int?> nextAttemptAt = const Value.absent(),
+    Value<String?> lastError = const Value.absent(),
+    int? createdAt,
+    int? updatedAt,
+  }) => AiBackgroundTaskData(
+    id: id ?? this.id,
+    nodeId: nodeId ?? this.nodeId,
+    taskType: taskType ?? this.taskType,
+    subjectId: subjectId.present ? subjectId.value : this.subjectId,
+    status: status ?? this.status,
+    attemptCount: attemptCount ?? this.attemptCount,
+    nextAttemptAt: nextAttemptAt.present
+        ? nextAttemptAt.value
+        : this.nextAttemptAt,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AiBackgroundTaskData copyWithCompanion(AiBackgroundTaskCompanion data) {
+    return AiBackgroundTaskData(
+      id: data.id.present ? data.id.value : this.id,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      taskType: data.taskType.present ? data.taskType.value : this.taskType,
+      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
+      status: data.status.present ? data.status.value : this.status,
+      attemptCount: data.attemptCount.present
+          ? data.attemptCount.value
+          : this.attemptCount,
+      nextAttemptAt: data.nextAttemptAt.present
+          ? data.nextAttemptAt.value
+          : this.nextAttemptAt,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiBackgroundTaskData(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('taskType: $taskType, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('status: $status, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    nodeId,
+    taskType,
+    subjectId,
+    status,
+    attemptCount,
+    nextAttemptAt,
+    lastError,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiBackgroundTaskData &&
+          other.id == this.id &&
+          other.nodeId == this.nodeId &&
+          other.taskType == this.taskType &&
+          other.subjectId == this.subjectId &&
+          other.status == this.status &&
+          other.attemptCount == this.attemptCount &&
+          other.nextAttemptAt == this.nextAttemptAt &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
+  final Value<String> id;
+  final Value<String> nodeId;
+  final Value<String> taskType;
+  final Value<String?> subjectId;
+  final Value<String> status;
+  final Value<int> attemptCount;
+  final Value<int?> nextAttemptAt;
+  final Value<String?> lastError;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const AiBackgroundTaskCompanion({
+    this.id = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.taskType = const Value.absent(),
+    this.subjectId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiBackgroundTaskCompanion.insert({
+    required String id,
+    required String nodeId,
+    required String taskType,
+    this.subjectId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nodeId = Value(nodeId),
+       taskType = Value(taskType);
+  static Insertable<AiBackgroundTaskData> custom({
+    Expression<String>? id,
+    Expression<String>? nodeId,
+    Expression<String>? taskType,
+    Expression<String>? subjectId,
+    Expression<String>? status,
+    Expression<int>? attemptCount,
+    Expression<int>? nextAttemptAt,
+    Expression<String>? lastError,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nodeId != null) 'node_id': nodeId,
+      if (taskType != null) 'task_type': taskType,
+      if (subjectId != null) 'subject_id': subjectId,
+      if (status != null) 'status': status,
+      if (attemptCount != null) 'attempt_count': attemptCount,
+      if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiBackgroundTaskCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nodeId,
+    Value<String>? taskType,
+    Value<String?>? subjectId,
+    Value<String>? status,
+    Value<int>? attemptCount,
+    Value<int?>? nextAttemptAt,
+    Value<String?>? lastError,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AiBackgroundTaskCompanion(
+      id: id ?? this.id,
+      nodeId: nodeId ?? this.nodeId,
+      taskType: taskType ?? this.taskType,
+      subjectId: subjectId ?? this.subjectId,
+      status: status ?? this.status,
+      attemptCount: attemptCount ?? this.attemptCount,
+      nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (taskType.present) {
+      map['task_type'] = Variable<String>(taskType.value);
+    }
+    if (subjectId.present) {
+      map['subject_id'] = Variable<String>(subjectId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (attemptCount.present) {
+      map['attempt_count'] = Variable<int>(attemptCount.value);
+    }
+    if (nextAttemptAt.present) {
+      map['next_attempt_at'] = Variable<int>(nextAttemptAt.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiBackgroundTaskCompanion(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('taskType: $taskType, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('status: $status, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -19457,6 +20135,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final KnowledgeGraph knowledgeGraph = KnowledgeGraph(this);
   late final GraphVersion graphVersion = GraphVersion(this);
   late final GraphNode graphNode = GraphNode(this);
+  late final AiBackgroundTask aiBackgroundTask = AiBackgroundTask(this);
+  late final Index aiBackgroundTaskStatusNextAttemptIdx = Index(
+    'ai_background_task_status_next_attempt_idx',
+    'CREATE INDEX ai_background_task_status_next_attempt_idx ON ai_background_task (status, next_attempt_at)',
+  );
+  late final Index aiBackgroundTaskNodeDescriptionUq = Index(
+    'ai_background_task_node_description_uq',
+    'CREATE UNIQUE INDEX ai_background_task_node_description_uq ON ai_background_task (node_id) WHERE task_type = \'NODE_DESCRIPTION\'',
+  );
+  late final Index aiBackgroundTaskSubjectTaskUq = Index(
+    'ai_background_task_subject_task_uq',
+    'CREATE UNIQUE INDEX ai_background_task_subject_task_uq ON ai_background_task (subject_id, task_type) WHERE subject_id IS NOT NULL',
+  );
   late final GraphEdge graphEdge = GraphEdge(this);
   late final NodeSkill nodeSkill = NodeSkill(this);
   late final LearningResource learningResource = LearningResource(this);
@@ -19700,6 +20391,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     knowledgeGraph,
     graphVersion,
     graphNode,
+    aiBackgroundTask,
+    aiBackgroundTaskStatusNextAttemptIdx,
+    aiBackgroundTaskNodeDescriptionUq,
+    aiBackgroundTaskSubjectTaskUq,
     graphEdge,
     nodeSkill,
     learningResource,
@@ -19819,6 +20514,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('graph_node', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'graph_node',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('ai_background_task', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -22038,6 +22740,7 @@ typedef $ConfigCreateCompanionBuilder =
       Value<int> updatedAt,
       Value<int?> lastSync,
       Value<bool> autoSync,
+      Value<int> aiMaxConcurrentRequests,
       required String deviceFingerprint,
       Value<int> rowid,
     });
@@ -22051,6 +22754,7 @@ typedef $ConfigUpdateCompanionBuilder =
       Value<int> updatedAt,
       Value<int?> lastSync,
       Value<bool> autoSync,
+      Value<int> aiMaxConcurrentRequests,
       Value<String> deviceFingerprint,
       Value<int> rowid,
     });
@@ -22142,6 +22846,11 @@ class $ConfigFilterComposer extends Composer<_$AppDatabase, Config> {
 
   ColumnFilters<bool> get autoSync => $composableBuilder(
     column: $table.autoSync,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aiMaxConcurrentRequests => $composableBuilder(
+    column: $table.aiMaxConcurrentRequests,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -22253,6 +22962,11 @@ class $ConfigOrderingComposer extends Composer<_$AppDatabase, Config> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get aiMaxConcurrentRequests => $composableBuilder(
+    column: $table.aiMaxConcurrentRequests,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get deviceFingerprint => $composableBuilder(
     column: $table.deviceFingerprint,
     builder: (column) => ColumnOrderings(column),
@@ -22352,6 +23066,11 @@ class $ConfigAnnotationComposer extends Composer<_$AppDatabase, Config> {
 
   GeneratedColumn<bool> get autoSync =>
       $composableBuilder(column: $table.autoSync, builder: (column) => column);
+
+  GeneratedColumn<int> get aiMaxConcurrentRequests => $composableBuilder(
+    column: $table.aiMaxConcurrentRequests,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get deviceFingerprint => $composableBuilder(
     column: $table.deviceFingerprint,
@@ -22468,6 +23187,7 @@ class $ConfigTableManager
                 Value<int> updatedAt = const Value.absent(),
                 Value<int?> lastSync = const Value.absent(),
                 Value<bool> autoSync = const Value.absent(),
+                Value<int> aiMaxConcurrentRequests = const Value.absent(),
                 Value<String> deviceFingerprint = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConfigCompanion(
@@ -22479,6 +23199,7 @@ class $ConfigTableManager
                 updatedAt: updatedAt,
                 lastSync: lastSync,
                 autoSync: autoSync,
+                aiMaxConcurrentRequests: aiMaxConcurrentRequests,
                 deviceFingerprint: deviceFingerprint,
                 rowid: rowid,
               ),
@@ -22492,6 +23213,7 @@ class $ConfigTableManager
                 Value<int> updatedAt = const Value.absent(),
                 Value<int?> lastSync = const Value.absent(),
                 Value<bool> autoSync = const Value.absent(),
+                Value<int> aiMaxConcurrentRequests = const Value.absent(),
                 required String deviceFingerprint,
                 Value<int> rowid = const Value.absent(),
               }) => ConfigCompanion.insert(
@@ -22503,6 +23225,7 @@ class $ConfigTableManager
                 updatedAt: updatedAt,
                 lastSync: lastSync,
                 autoSync: autoSync,
+                aiMaxConcurrentRequests: aiMaxConcurrentRequests,
                 deviceFingerprint: deviceFingerprint,
                 rowid: rowid,
               ),
@@ -23839,6 +24562,26 @@ final class $GraphNodeReferences
     );
   }
 
+  static MultiTypedResultKey<AiBackgroundTask, List<AiBackgroundTaskData>>
+  _aiBackgroundTaskRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.aiBackgroundTask,
+    aliasName: 'graph_node__id__ai_background_task__node_id',
+  );
+
+  $AiBackgroundTaskProcessedTableManager get aiBackgroundTaskRefs {
+    final manager = $AiBackgroundTaskTableManager(
+      $_db,
+      $_db.aiBackgroundTask,
+    ).filter((f) => f.nodeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _aiBackgroundTaskRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<NodeSkill, List<NodeSkillData>>
   _nodeSkillRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.nodeSkill,
@@ -24147,6 +24890,31 @@ class $GraphNodeFilterComposer extends Composer<_$AppDatabase, GraphNode> {
           ),
     );
     return composer;
+  }
+
+  Expression<bool> aiBackgroundTaskRefs(
+    Expression<bool> Function($AiBackgroundTaskFilterComposer f) f,
+  ) {
+    final $AiBackgroundTaskFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.aiBackgroundTask,
+      getReferencedColumn: (t) => t.nodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AiBackgroundTaskFilterComposer(
+            $db: $db,
+            $table: $db.aiBackgroundTask,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 
   Expression<bool> nodeSkillRefs(
@@ -24622,6 +25390,31 @@ class $GraphNodeAnnotationComposer extends Composer<_$AppDatabase, GraphNode> {
     return composer;
   }
 
+  Expression<T> aiBackgroundTaskRefs<T extends Object>(
+    Expression<T> Function($AiBackgroundTaskAnnotationComposer a) f,
+  ) {
+    final $AiBackgroundTaskAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.aiBackgroundTask,
+      getReferencedColumn: (t) => t.nodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AiBackgroundTaskAnnotationComposer(
+            $db: $db,
+            $table: $db.aiBackgroundTask,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> nodeSkillRefs<T extends Object>(
     Expression<T> Function($NodeSkillAnnotationComposer a) f,
   ) {
@@ -24913,6 +25706,7 @@ class $GraphNodeTableManager
           GraphNodeData,
           PrefetchHooks Function({
             bool graphId,
+            bool aiBackgroundTaskRefs,
             bool nodeSkillRefs,
             bool learningResourceRefs,
             bool noteNodeRefs,
@@ -25021,6 +25815,7 @@ class $GraphNodeTableManager
           prefetchHooksCallback:
               ({
                 graphId = false,
+                aiBackgroundTaskRefs = false,
                 nodeSkillRefs = false,
                 learningResourceRefs = false,
                 noteNodeRefs = false,
@@ -25036,6 +25831,7 @@ class $GraphNodeTableManager
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (aiBackgroundTaskRefs) db.aiBackgroundTask,
                     if (nodeSkillRefs) db.nodeSkill,
                     if (learningResourceRefs) db.learningResource,
                     if (noteNodeRefs) db.noteNode,
@@ -25082,6 +25878,26 @@ class $GraphNodeTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (aiBackgroundTaskRefs)
+                        await $_getPrefetchedData<
+                          GraphNodeData,
+                          GraphNode,
+                          AiBackgroundTaskData
+                        >(
+                          currentTable: table,
+                          referencedTable: $GraphNodeReferences
+                              ._aiBackgroundTaskRefsTable(db),
+                          managerFromTypedResult: (p0) => $GraphNodeReferences(
+                            db,
+                            table,
+                            p0,
+                          ).aiBackgroundTaskRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.nodeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (nodeSkillRefs)
                         await $_getPrefetchedData<
                           GraphNodeData,
@@ -25306,6 +26122,7 @@ typedef $GraphNodeProcessedTableManager =
       GraphNodeData,
       PrefetchHooks Function({
         bool graphId,
+        bool aiBackgroundTaskRefs,
         bool nodeSkillRefs,
         bool learningResourceRefs,
         bool noteNodeRefs,
@@ -25318,6 +26135,423 @@ typedef $GraphNodeProcessedTableManager =
         bool fsrsStateRefs,
         bool domainLogRefs,
       })
+    >;
+typedef $AiBackgroundTaskCreateCompanionBuilder =
+    AiBackgroundTaskCompanion Function({
+      required String id,
+      required String nodeId,
+      required String taskType,
+      Value<String?> subjectId,
+      Value<String> status,
+      Value<int> attemptCount,
+      Value<int?> nextAttemptAt,
+      Value<String?> lastError,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+typedef $AiBackgroundTaskUpdateCompanionBuilder =
+    AiBackgroundTaskCompanion Function({
+      Value<String> id,
+      Value<String> nodeId,
+      Value<String> taskType,
+      Value<String?> subjectId,
+      Value<String> status,
+      Value<int> attemptCount,
+      Value<int?> nextAttemptAt,
+      Value<String?> lastError,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $AiBackgroundTaskReferences
+    extends
+        BaseReferences<_$AppDatabase, AiBackgroundTask, AiBackgroundTaskData> {
+  $AiBackgroundTaskReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static GraphNode _nodeIdTable(_$AppDatabase db) =>
+      db.graphNode.createAlias('ai_background_task__node_id__graph_node__id');
+
+  $GraphNodeProcessedTableManager get nodeId {
+    final $_column = $_itemColumn<String>('node_id')!;
+
+    final manager = $GraphNodeTableManager(
+      $_db,
+      $_db.graphNode,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_nodeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $AiBackgroundTaskFilterComposer
+    extends Composer<_$AppDatabase, AiBackgroundTask> {
+  $AiBackgroundTaskFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get taskType => $composableBuilder(
+    column: $table.taskType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $GraphNodeFilterComposer get nodeId {
+    final $GraphNodeFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeFilterComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $AiBackgroundTaskOrderingComposer
+    extends Composer<_$AppDatabase, AiBackgroundTask> {
+  $AiBackgroundTaskOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get taskType => $composableBuilder(
+    column: $table.taskType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $GraphNodeOrderingComposer get nodeId {
+    final $GraphNodeOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeOrderingComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $AiBackgroundTaskAnnotationComposer
+    extends Composer<_$AppDatabase, AiBackgroundTask> {
+  $AiBackgroundTaskAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get taskType =>
+      $composableBuilder(column: $table.taskType, builder: (column) => column);
+
+  GeneratedColumn<String> get subjectId =>
+      $composableBuilder(column: $table.subjectId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $GraphNodeAnnotationComposer get nodeId {
+    final $GraphNodeAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.nodeId,
+      referencedTable: $db.graphNode,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $GraphNodeAnnotationComposer(
+            $db: $db,
+            $table: $db.graphNode,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $AiBackgroundTaskTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          AiBackgroundTask,
+          AiBackgroundTaskData,
+          $AiBackgroundTaskFilterComposer,
+          $AiBackgroundTaskOrderingComposer,
+          $AiBackgroundTaskAnnotationComposer,
+          $AiBackgroundTaskCreateCompanionBuilder,
+          $AiBackgroundTaskUpdateCompanionBuilder,
+          (AiBackgroundTaskData, $AiBackgroundTaskReferences),
+          AiBackgroundTaskData,
+          PrefetchHooks Function({bool nodeId})
+        > {
+  $AiBackgroundTaskTableManager(_$AppDatabase db, AiBackgroundTask table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $AiBackgroundTaskFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $AiBackgroundTaskOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $AiBackgroundTaskAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nodeId = const Value.absent(),
+                Value<String> taskType = const Value.absent(),
+                Value<String?> subjectId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<int?> nextAttemptAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiBackgroundTaskCompanion(
+                id: id,
+                nodeId: nodeId,
+                taskType: taskType,
+                subjectId: subjectId,
+                status: status,
+                attemptCount: attemptCount,
+                nextAttemptAt: nextAttemptAt,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nodeId,
+                required String taskType,
+                Value<String?> subjectId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<int?> nextAttemptAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiBackgroundTaskCompanion.insert(
+                id: id,
+                nodeId: nodeId,
+                taskType: taskType,
+                subjectId: subjectId,
+                status: status,
+                attemptCount: attemptCount,
+                nextAttemptAt: nextAttemptAt,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $AiBackgroundTaskReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({nodeId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (nodeId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.nodeId,
+                                referencedTable: $AiBackgroundTaskReferences
+                                    ._nodeIdTable(db),
+                                referencedColumn: $AiBackgroundTaskReferences
+                                    ._nodeIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $AiBackgroundTaskProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      AiBackgroundTask,
+      AiBackgroundTaskData,
+      $AiBackgroundTaskFilterComposer,
+      $AiBackgroundTaskOrderingComposer,
+      $AiBackgroundTaskAnnotationComposer,
+      $AiBackgroundTaskCreateCompanionBuilder,
+      $AiBackgroundTaskUpdateCompanionBuilder,
+      (AiBackgroundTaskData, $AiBackgroundTaskReferences),
+      AiBackgroundTaskData,
+      PrefetchHooks Function({bool nodeId})
     >;
 typedef $GraphEdgeCreateCompanionBuilder =
     GraphEdgeCompanion Function({
@@ -38837,6 +40071,8 @@ class $AppDatabaseManager {
       $GraphVersionTableManager(_db, _db.graphVersion);
   $GraphNodeTableManager get graphNode =>
       $GraphNodeTableManager(_db, _db.graphNode);
+  $AiBackgroundTaskTableManager get aiBackgroundTask =>
+      $AiBackgroundTaskTableManager(_db, _db.aiBackgroundTask);
   $GraphEdgeTableManager get graphEdge =>
       $GraphEdgeTableManager(_db, _db.graphEdge);
   $NodeSkillTableManager get nodeSkill =>

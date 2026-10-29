@@ -15,6 +15,7 @@ import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_res
 import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
 import 'package:noema/feature/exercises/presentation/exercise_correction_dialog.dart';
 import 'package:noema/feature/graph/data/graph_access.dart';
+import 'package:noema/feature/review/data/domain_mastery_service.dart';
 import 'package:noema/feature/review/data/fsrs_review_service.dart';
 
 class ExercicesAnswerList extends ConsumerStatefulWidget {
@@ -228,6 +229,13 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           method: draft.usedAi
               ? ReviewMethod.aiCorrection
               : ReviewMethod.manualCorrection,
+          eventOrigin: response.studySessionLogId == null
+              ? DomainEventOrigin.revision
+              : DomainEventOrigin.studySession,
+          sourceStudySessionType:
+              (snapshot['type'] as String?)?.toUpperCase() == 'FEYNMAN'
+              ? 'FEYNMAN'
+              : 'ESSAY',
           sourceResponseId: response.id,
         );
       });
@@ -303,6 +311,10 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           method: draft.usedAi
               ? ReviewMethod.aiCorrection
               : ReviewMethod.manualCorrection,
+          eventOrigin: response.studySessionLogId == null
+              ? DomainEventOrigin.revision
+              : DomainEventOrigin.studySession,
+          sourceStudySessionType: 'MULTIPLE_CHOICE',
           sourceResponseId: response.id,
         );
       });

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/page_chrome.dart';
+import 'package:noema/feature/ai/services/ai_background_task_runner.dart';
+import 'package:noema/feature/notes/presentation/notes_page.dart';
 
 enum DisplaySize { mobile, tablet, desktop }
 
@@ -22,6 +25,7 @@ const _navigationItems = <(String, String, IconData, IconData)>[
     Icons.playlist_add_check_circle,
   ),
   ('/config', 'Configuração', Icons.settings_outlined, Icons.settings_rounded),
+  ('/ai-queue', 'Fila de IA', Icons.queue_outlined, Icons.queue_rounded),
 ];
 
 List<String> buildCumulativePaths(BuildContext context) {
@@ -32,6 +36,7 @@ List<String> buildCumulativePaths(BuildContext context) {
   const topLevelRoutes = {
     'notes',
     'config',
+    'ai-queue',
     'test',
     'graphs',
     'flashcards',
@@ -106,6 +111,8 @@ String breadcrumbLabel(String path) {
       return 'Notas';
     case 'config':
       return 'Configuração';
+    case 'ai-queue':
+      return 'Fila de IA';
     case 'test':
       return 'Teste';
     case 'graphs':
@@ -149,7 +156,7 @@ String breadcrumbLabel(String path) {
   }
 }
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({
     super.key,
     required this.navigationShell,
@@ -166,7 +173,8 @@ class AppShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(aiBackgroundTaskRunnerProvider);
     final chrome = chromeForPath(currentPath);
     final width = MediaQuery.sizeOf(context).width;
     final displaySize = spacingFor(width);
@@ -186,7 +194,11 @@ class AppShell extends StatelessWidget {
               style: context.textTheme.titleMedium,
             ),
             if (displaySize != DisplaySize.mobile && paths.length > 1)
-              _Breadcrumbs(paths: paths, currentPath: currentPath),
+              _Breadcrumbs(
+                paths: paths,
+                currentPath: currentPath,
+                onNavigate: (path) => _navigate(context, path),
+              ),
           ],
         ),
         actions: chrome.actions,
@@ -194,8 +206,9 @@ class AppShell extends StatelessWidget {
       bottomNavigationBar: displaySize == DisplaySize.mobile
           ? NavigationBar(
               selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: _goBranch,
-              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              onDestinationSelected: (index) => _goBranch(context, index),
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
               destinations: [
                 for (final item in _navigationItems)
                   NavigationDestination(
@@ -213,10 +226,9 @@ class AppShell extends StatelessWidget {
               children: [
                 NavigationRail(
                   selectedIndex: navigationShell.currentIndex,
-                  onDestinationSelected: _goBranch,
+                  onDestinationSelected: (index) => _goBranch(context, index),
                   extended: displaySize == DisplaySize.desktop && width >= 1200,
-                  labelType:
-                      displaySize == DisplaySize.desktop && width >= 1200
+                  labelType: displaySize == DisplaySize.desktop && width >= 1200
                       ? NavigationRailLabelType.none
                       : NavigationRailLabelType.all,
                   destinations: [
@@ -235,19 +247,55 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  void _goBranch(int index) {
+  Future<void> _goBranch(BuildContext context, int index) async {
+    if (index != navigationShell.currentIndex &&
+        navigationShell.currentIndex == 1 &&
+        !await _saveActiveNote(context)) {
+      return;
+    }
+    if (!context.mounted) return;
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
     );
   }
+
+  Future<void> _navigate(BuildContext context, String path) async {
+    if (navigationShell.currentIndex == 1 &&
+        !path.startsWith('/notes') &&
+        !await _saveActiveNote(context)) {
+      return;
+    }
+    if (context.mounted) context.go(path);
+  }
+
+  Future<bool> _saveActiveNote(BuildContext context) async {
+    final saved = await notesPageKey.currentState?.saveActiveNote() ?? true;
+    if (!saved && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível salvar. Verifique a anotação e tente novamente.',
+            ),
+          ),
+        );
+    }
+    return saved;
+  }
 }
 
 class _Breadcrumbs extends StatelessWidget {
-  const _Breadcrumbs({required this.paths, required this.currentPath});
+  const _Breadcrumbs({
+    required this.paths,
+    required this.currentPath,
+    required this.onNavigate,
+  });
 
   final List<String> paths;
   final String currentPath;
+  final ValueChanged<String> onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +314,11 @@ class _Breadcrumbs extends StatelessWidget {
                   color: context.colors.outline,
                 ),
               ),
-            _BreadcrumbButton(path: paths[index], currentPath: currentPath),
+            _BreadcrumbButton(
+              path: paths[index],
+              currentPath: currentPath,
+              onNavigate: onNavigate,
+            ),
           ],
         ],
       ),
@@ -275,10 +327,15 @@ class _Breadcrumbs extends StatelessWidget {
 }
 
 class _BreadcrumbButton extends StatelessWidget {
-  const _BreadcrumbButton({required this.path, required this.currentPath});
+  const _BreadcrumbButton({
+    required this.path,
+    required this.currentPath,
+    required this.onNavigate,
+  });
 
   final String path;
   final String currentPath;
+  final ValueChanged<String> onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +346,7 @@ class _BreadcrumbButton extends StatelessWidget {
       selected: isCurrent,
       label: isCurrent ? 'Localização atual: $label' : 'Navegar para $label',
       child: TextButton(
-        onPressed: isCurrent ? null : () => context.go(path),
+        onPressed: isCurrent ? null : () => onNavigate(path),
         style: TextButton.styleFrom(
           minimumSize: const Size(32, 28),
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -300,7 +357,9 @@ class _BreadcrumbButton extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.labelMedium?.copyWith(
-            color: isCurrent ? context.colors.onSurface : context.colors.primary,
+            color: isCurrent
+                ? context.colors.onSurface
+                : context.colors.primary,
             fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
           ),
         ),

@@ -2,6 +2,7 @@ abstract final class RoutePaths {
   static const home = '/';
   static const notes = '/notes';
   static const config = '/config';
+  static const aiQueue = '/ai-queue';
   static const test = '/test';
   static const graphs = '/graphs';
   static const flashcards = '/flashcards';

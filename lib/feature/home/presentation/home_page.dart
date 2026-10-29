@@ -7,6 +7,7 @@ import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/auth/providers/account_state.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
+import 'package:noema/feature/review/presentation/domain_dashboard_card.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
@@ -26,6 +27,7 @@ class HomePage extends ConsumerWidget {
             title: AppLocalizations.of(context)!.helloWorld,
             subtitle: "Organize seus estudos e continue de onde parou.",
           ),
+          const DomainDashboardCard(),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(24),
