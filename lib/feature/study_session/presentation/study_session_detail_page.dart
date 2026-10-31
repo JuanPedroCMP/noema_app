@@ -5,12 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
 import 'package:noema/feature/study_session/data/study_session_dao.dart';
 import 'package:noema/feature/study_session/data/study_session_log_dao.dart';
 import 'package:noema/feature/study_session/data/study_session_question_dao.dart';
+import 'package:noema/shared/widgets/async_state_view.dart';
+import 'package:noema/shared/widgets/responsive_content.dart';
 
 class StudySessionDetailPage extends ConsumerStatefulWidget {
   const StudySessionDetailPage({super.key, required this.sessionId});
@@ -109,25 +113,15 @@ class _StudySessionDetailPageState
   Widget build(BuildContext context) {
     final session = _session;
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: AppLoadingView(label: 'Carregando sessão...'),
+      );
     }
     if (_error != null || session == null) {
       return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_error ?? 'Sessão não encontrada.'),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: _load,
-                  child: const Text('Tentar novamente'),
-                ),
-              ],
-            ),
-          ),
+        body: AppErrorView(
+          message: _error ?? 'Sessão não encontrada.',
+          onRetry: _load,
         ),
       );
     }
@@ -135,161 +129,172 @@ class _StudySessionDetailPageState
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      session.title,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    if ((session.description ?? '').trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(session.description!),
+        child: AppResponsiveContent(
+          maxWidth: AppLayoutTokens.pageContentWidth,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppLayoutTokens.cardPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.title,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      if ((session.description ?? '').trim().isNotEmpty) ...[
+                        SizedBox(height: context.spacing.sm),
+                        Text(session.description!),
+                      ],
+                      SizedBox(height: context.spacing.md - context.spacing.xxs),
+                      Wrap(
+                        spacing: context.spacing.sm,
+                        runSpacing: context.spacing.sm,
+                        children: [
+                          Chip(
+                            avatar: const Icon(Icons.timer_outlined, size: 18),
+                            label: Text('${session.targetDurationMin} min'),
+                          ),
+                          Chip(
+                            avatar: const Icon(
+                              Icons.format_list_numbered,
+                              size: 18,
+                            ),
+                            label: Text('${_questions.length} questões'),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: context.spacing.sm + context.spacing.xs),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: _questions.isEmpty
+                                  ? null
+                                  : _runSession,
+                              icon: const Icon(Icons.play_arrow_rounded),
+                              label: const Text('Começar sessão'),
+                            ),
+                          ),
+                          SizedBox(width: context.spacing.sm),
+                          IconButton(
+                            tooltip:
+                                _history.any(
+                                  (log) => log.status == 'IN_PROGRESS',
+                                )
+                                ? 'Interrompa a realização ativa para editar'
+                                : 'Editar sessão',
+                            onPressed:
+                                _history.any(
+                                  (log) => log.status == 'IN_PROGRESS',
+                                )
+                                ? null
+                                : _editSession,
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            tooltip: 'Arquivar sessão',
+                            onPressed: _archiveSession,
+                            icon: const Icon(Icons.archive_outlined),
+                          ),
+                        ],
+                      ),
+                      if (_questions.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: context.spacing.sm),
+                          child: Text(
+                            'Esta sessão ainda não tem questões. '
+                            'Você pode arquivá-la ou criar outra com questões.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      if (_sessionStatusHint(session.status).isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: context.spacing.sm),
+                          child: Text(
+                            _sessionStatusHint(session.status),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
                     ],
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        Chip(
-                          avatar: const Icon(Icons.timer_outlined, size: 18),
-                          label: Text('${session.targetDurationMin} min'),
-                        ),
-                        Chip(
-                          avatar: const Icon(
-                            Icons.format_list_numbered,
-                            size: 18,
-                          ),
-                          label: Text('${_questions.length} questões'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _questions.isEmpty ? null : _runSession,
-                            icon: const Icon(Icons.play_arrow_rounded),
-                            label: const Text('Começar sessão'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          tooltip:
-                              _history.any((log) => log.status == 'IN_PROGRESS')
-                              ? 'Interrompa a realização ativa para editar'
-                              : 'Editar sessão',
-                          onPressed:
-                              _history.any((log) => log.status == 'IN_PROGRESS')
-                              ? null
-                              : _editSession,
-                          icon: const Icon(Icons.edit_outlined),
-                        ),
-                        IconButton(
-                          tooltip: 'Arquivar sessão',
-                          onPressed: _archiveSession,
-                          icon: const Icon(Icons.archive_outlined),
-                        ),
-                      ],
-                    ),
-                    if (_questions.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          'Esta sessão ainda não tem questões. '
-                          'Você pode arquivá-la ou criar outra com questões.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                    if (_sessionStatusHint(session.status).isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          _sessionStatusHint(session.status),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Sequência de questões',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            if (_questions.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(18),
-                  child: Text('Nenhuma questão foi adicionada a esta sessão.'),
-                ),
-              )
-            else
-              for (var index = 0; index < _questions.length; index++)
-                Card(
-                  child: ListTile(
-                    leading: CircleAvatar(child: Text('${index + 1}')),
-                    title: Text(_questions[index].title),
-                    subtitle: Text(
-                      '${_questions[index].nodeTitle} · '
-                      '${_questionTypeLabel(_questions[index].type)}',
-                    ),
-                    trailing: IconButton(
-                      tooltip: 'Editar exercício',
-                      onPressed: () => _editQuestion(_questions[index]),
-                      icon: const Icon(Icons.edit_outlined),
+              SizedBox(height: context.spacing.md),
+              Text(
+                'Sequência de questões',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: context.spacing.sm),
+              if (_questions.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppLayoutTokens.cardPadding),
+                    child: Text(
+                      'Nenhuma questão foi adicionada a esta sessão.',
                     ),
                   ),
-                ),
-            const SizedBox(height: 20),
-            Text(
-              'Histórico de realizações',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            if (_history.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(18),
-                  child: Text(
-                    'As realizações concluídas ou interrompidas aparecerão aqui.',
-                  ),
-                ),
-              )
-            else
-              for (final log in _history)
-                Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Icon(
-                        log.status == 'COMPLETED'
-                            ? Icons.check_rounded
-                            : log.status == 'ABANDONED'
-                            ? Icons.pause_rounded
-                            : Icons.more_time_rounded,
+                )
+              else
+                for (var index = 0; index < _questions.length; index++)
+                  Card(
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      title: Text(_questions[index].title),
+                      subtitle: Text(
+                        '${_questions[index].nodeTitle} · '
+                        '${_questionTypeLabel(_questions[index].type)}',
+                      ),
+                      trailing: IconButton(
+                        tooltip: 'Editar exercício',
+                        onPressed: () => _editQuestion(_questions[index]),
+                        icon: const Icon(Icons.edit_outlined),
                       ),
                     ),
-                    title: Text(_logStatus(log.status)),
-                    subtitle: Text(
-                      '${_formatTimestamp(log.startedAt)} · '
-                      '${log.completedActivities}/${log.totalActivities} questões'
-                      '${log.actualDurationMin == null ? '' : ' · ${log.actualDurationMin} min'}'
-                      '${log.endedAt == null ? '' : ' · Finalizada ${_formatTimestamp(log.endedAt!)}'}',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showRunSnapshot(log),
                   ),
-                ),
-          ],
+              SizedBox(height: context.spacing.lg - context.spacing.xs),
+              Text(
+                'Histórico de realizações',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: context.spacing.sm),
+              if (_history.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppLayoutTokens.cardPadding),
+                    child: Text(
+                      'As realizações concluídas ou interrompidas aparecerão aqui.',
+                    ),
+                  ),
+                )
+              else
+                for (final log in _history)
+                  Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Icon(
+                          log.status == 'COMPLETED'
+                              ? Icons.check_rounded
+                              : log.status == 'ABANDONED'
+                              ? Icons.pause_rounded
+                              : Icons.more_time_rounded,
+                        ),
+                      ),
+                      title: Text(_logStatus(log.status)),
+                      subtitle: Text(
+                        '${_formatTimestamp(log.startedAt)} · '
+                        '${log.completedActivities}/${log.totalActivities} questões'
+                        '${log.actualDurationMin == null ? '' : ' · ${log.actualDurationMin} min'}'
+                        '${log.endedAt == null ? '' : ' · Finalizada ${_formatTimestamp(log.endedAt!)}'}',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showRunSnapshot(log),
+                    ),
+                  ),
+            ],
+          ),
         ),
       ),
     );

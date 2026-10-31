@@ -20,7 +20,7 @@ enum AiAgentTask {
   evaluateFeynman('evaluate_feynman ', 'Avaliar resposta Feynman'),
   recommendStudyResource('recommend_study_resource', 'Recomendar recursos'),
   studyManager('study_manager', 'Planejar estudos'),
-  studyAssistant('study_assistent', 'Assistente de estudos'),
+  studyAssistant('study_assistant', 'Assistente de estudos'),
   createFlashcardGroup('create_flashcard_group', 'Criar grupo de flashcards'),
   manipulateFlashcardGroup(
     'manipulate_flashcard_group',

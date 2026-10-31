@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/feature/ai/providers/ai_background_task_provider.dart';
 import 'package:noema/feature/ai/services/ai_background_task_runner.dart';
@@ -16,94 +18,33 @@ class AiQueuePage extends ConsumerWidget {
     return DefaultTabController(
       length: 4,
       child: AppResponsiveContent(
-        maxWidth: 1000,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ListenableBuilder(
-                    listenable: runner,
-                    builder: (context, _) => Row(
-                      children: [
-                        Icon(
-                          runner.isPaused
-                              ? Icons.pause_circle_outline
-                              : Icons.play_circle_outline,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 32,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                runner.isPaused
-                                    ? 'Fila pausada'
-                                    : runner.activeTasks == 0
-                                    ? 'Fila ativa'
-                                    : 'Processando ${runner.activeTasks} '
-                                          'tarefa(s)',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                runner.isPaused
-                                    ? 'As tarefas agendadas serão retomadas '
-                                          'quando você reativar a fila.'
-                                    : 'Gerações iniciadas por você continuam '
-                                          'independentes desta fila.',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: runner.isPaused
-                              ? runner.resume
-                              : runner.pause,
-                          icon: Icon(
-                            runner.isPaused ? Icons.play_arrow : Icons.pause,
-                          ),
-                          label: Text(runner.isPaused ? 'Retomar' : 'Pausar'),
-                        ),
-                      ],
-                    ),
-                  ),
+        maxWidth: AppLayoutTokens.pageContentWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: context.spacing.md,
+          children: [
+            AppPageHeader(
+              title: 'Fila de IA',
+              subtitle: 'Acompanhe tarefas automáticas, retentativas e falhas.',
+              actions: [
+                IconButton(
+                  tooltip: 'Limpar tarefas concluídas',
+                  onPressed: () => _clearFinished(context, ref),
+                  icon: const Icon(Icons.cleaning_services_outlined),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Tarefas automáticas de IA',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Limpar tarefas concluídas',
-                    onPressed: () => _clearFinished(context, ref),
-                    icon: const Icon(Icons.cleaning_services_outlined),
-                  ),
-                  IconButton(
-                    tooltip: 'Atualizar fila',
-                    onPressed: () =>
-                        ref.invalidate(aiBackgroundTaskItemsProvider),
-                    icon: const Icon(Icons.refresh),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              tasks.when(
+                IconButton(
+                  tooltip: 'Atualizar fila',
+                  onPressed: () =>
+                      ref.invalidate(aiBackgroundTaskItemsProvider),
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
+            _QueueStatusCard(runner: runner),
+            tasks.when(
                 loading: () => const Expanded(
                   child: Center(child: CircularProgressIndicator()),
-                ),
+            ),
                 error: (error, _) => Expanded(
                   child: _QueueLoadError(
                     error: error,
@@ -122,7 +63,7 @@ class AiQueuePage extends ConsumerWidget {
                           Tab(text: 'Concluídas'),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: context.spacing.sm),
                       Expanded(
                         child: TabBarView(
                           children: [
@@ -152,8 +93,7 @@ class AiQueuePage extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -227,6 +167,96 @@ class _QueueLoadError extends StatelessWidget {
             label: const Text('Tentar novamente'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QueueStatusCard extends StatelessWidget {
+  const _QueueStatusCard({required this.runner});
+
+  final AiBackgroundTaskRunner runner;
+
+  @override
+  Widget build(BuildContext context) {
+    final spacing = context.spacing;
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(spacing.md),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact =
+                constraints.maxWidth <
+                AppLayoutTokens.compactHeaderBreakpoint;
+            return ListenableBuilder(
+              listenable: runner,
+              builder: (context, _) {
+                final status = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      runner.isPaused
+                          ? 'Fila pausada'
+                          : runner.activeTasks == 0
+                          ? 'Fila ativa'
+                          : 'Processando ${runner.activeTasks} tarefa(s)',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(height: spacing.xxs),
+                    Text(
+                      runner.isPaused
+                          ? 'As tarefas agendadas serão retomadas quando você reativar a fila.'
+                          : 'Gerações iniciadas por você continuam independentes desta fila.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                );
+                final pauseButton = OutlinedButton.icon(
+                  onPressed: runner.isPaused ? runner.resume : runner.pause,
+                  icon: Icon(
+                    runner.isPaused ? Icons.play_arrow : Icons.pause,
+                  ),
+                  label: Text(runner.isPaused ? 'Retomar' : 'Pausar'),
+                );
+                final icon = Icon(
+                  runner.isPaused
+                      ? Icons.pause_circle_outline
+                      : Icons.play_circle_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                );
+
+                if (compact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          icon,
+                          SizedBox(width: spacing.sm),
+                          Expanded(child: status),
+                        ],
+                      ),
+                      SizedBox(height: spacing.md),
+                      pauseButton,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    icon,
+                    SizedBox(width: spacing.sm),
+                    Expanded(child: status),
+                    SizedBox(width: spacing.sm),
+                    pauseButton,
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -359,6 +389,7 @@ class _TaskActions extends ConsumerWidget {
                   ref.read(appDatabaseProvider),
                 ).retryNow(item.task.id);
               } catch (error) {
+                if (!context.mounted) return;
                 _showError(context, 'Não foi possível reenfileirar', error);
               }
             },
@@ -373,6 +404,7 @@ class _TaskActions extends ConsumerWidget {
                   ref.read(appDatabaseProvider),
                 ).cancel(item.task.id);
               } catch (error) {
+                if (!context.mounted) return;
                 _showError(context, 'Não foi possível cancelar', error);
               }
             },

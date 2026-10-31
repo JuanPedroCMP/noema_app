@@ -8,6 +8,7 @@ import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/graph_access.dart';
+import 'package:noema/shared/widgets/async_state_view.dart';
 
 enum _ExerciseFilter { all, due, openEnded, multipleChoice }
 
@@ -171,7 +172,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(context.spacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -232,14 +233,14 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             Text(
               statement,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: context.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.spacing.md),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -267,25 +268,10 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppLoadingView(label: 'Carregando questões...');
     }
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_outlined, size: 40),
-            const SizedBox(height: 12),
-            Text(_error!, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: carregar,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      );
+      return AppErrorView(message: _error!, onRetry: carregar);
     }
 
     final currentUri = GoRouterState.of(context).uri.path;
@@ -321,7 +307,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     });
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.spacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -332,7 +318,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Questões', style: context.textTheme.headlineSmall),
-                    const SizedBox(height: 4),
+                    SizedBox(height: context.spacing.xs),
                     Text(
                       '$total ${total == 1 ? 'questão cadastrada' : 'questões cadastradas'}',
                       style: context.textTheme.bodyMedium,
@@ -352,7 +338,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.spacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -392,7 +378,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                           ? Theme.of(context).colorScheme.tertiary
                           : Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: context.spacing.sm + context.spacing.xs),
                     Expanded(
                       child: Text(
                         dueCount > 0
@@ -411,7 +397,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
               ),
             ),
-          const SizedBox(height: 12),
+          SizedBox(height: context.spacing.sm + context.spacing.xs),
           TextField(
             onChanged: (value) => setState(() => _search = value),
             decoration: InputDecoration(

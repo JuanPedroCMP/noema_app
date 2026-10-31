@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
@@ -10,9 +12,13 @@ import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/create_graph_with_ai.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
 import 'package:noema/shared/widgets/async_state_view.dart';
+import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 class GraphList extends ConsumerStatefulWidget {
-  const GraphList({super.key});
+  const GraphList({super.key, this.initialHandoff});
+
+  final StudyAssistantHandoff? initialHandoff;
 
   @override
   ConsumerState<GraphList> createState() => _GraphListState();
@@ -22,12 +28,42 @@ class _GraphListState extends ConsumerState<GraphList> {
   AppUserData? _user;
   KnowledgeGraphDao? _dao;
   int _creationMode = 0;
+  String _initialPrompt = '';
+  bool _autoGenerate = false;
+  bool _showActionNotice = false;
   String? _deletingGraphId;
 
   @override
   void initState() {
     super.initState();
+    _applyHandoff(widget.initialHandoff);
     _loadUser();
+  }
+
+  @override
+  void didUpdateWidget(covariant GraphList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialHandoff != widget.initialHandoff) {
+      _applyHandoff(widget.initialHandoff);
+    }
+  }
+
+  void _applyHandoff(StudyAssistantHandoff? handoff) {
+    if (handoff?.type == StudyAssistantActionType.createGraph) {
+      _creationMode = 3;
+      _initialPrompt = handoff!.prompt;
+      _autoGenerate = handoff.autoGenerate;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(studyAssistantProvider.notifier).consumeHandoff();
+        }
+      });
+    } else if (handoff?.type == StudyAssistantActionType.createExercise &&
+        (handoff?.graphId == null || handoff?.nodeId == null)) {
+      _showActionNotice = true;
+    } else {
+      _showActionNotice = false;
+    }
   }
 
   Future<void> _loadUser() async {
@@ -58,7 +94,11 @@ class _GraphListState extends ConsumerState<GraphList> {
       ),
       data: (graphs) => LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < 700;
+          final compact =
+              constraints.maxWidth < AppLayoutTokens.graphGridBreakpoint;
+          final horizontalPadding = compact
+              ? AppLayoutTokens.pageHorizontalPaddingCompact
+              : AppLayoutTokens.pageHorizontalPaddingRegular;
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(knowledgeGraphsProvider),
             child: CustomScrollView(
@@ -66,10 +106,10 @@ class _GraphListState extends ConsumerState<GraphList> {
               slivers: [
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
-                    compact ? 16 : 32,
-                    24,
-                    compact ? 16 : 32,
-                    12,
+                    horizontalPadding,
+                    context.spacing.lg,
+                    horizontalPadding,
+                    context.spacing.sm + context.spacing.xs,
                   ),
                   sliver: SliverToBoxAdapter(
                     child: _Header(
@@ -79,16 +119,42 @@ class _GraphListState extends ConsumerState<GraphList> {
                     ),
                   ),
                 ),
+                if (_showActionNotice)
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.quiz_outlined),
+                          title: const Text('Escolha onde criar o exercício'),
+                          subtitle: Text(
+                            '${widget.initialHandoff?.prompt}\n'
+                            'Abra um grafo e escolha o nó que deseja praticar.',
+                          ),
+                          trailing: IconButton(
+                            tooltip: 'Dispensar',
+                            onPressed: () =>
+                                setState(() => _showActionNotice = false),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (_creationMode != 0)
                   SliverPadding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: compact ? 16 : 32,
+                      horizontal: horizontalPadding,
                     ),
                     sliver: SliverToBoxAdapter(
                       child: _CreationPanel(
                         mode: _creationMode,
                         compact: compact,
                         onSelect: _toggleCreation,
+                        initialPrompt: _initialPrompt,
+                        autoGenerate: _autoGenerate,
                       ),
                     ),
                   ),
@@ -110,29 +176,29 @@ class _GraphListState extends ConsumerState<GraphList> {
                 else if (graphs.isNotEmpty)
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(
-                      compact ? 16 : 32,
-                      8,
-                      compact ? 16 : 32,
-                      32,
+                      horizontalPadding,
+                      context.spacing.sm,
+                      horizontalPadding,
+                      context.spacing.xl,
                     ),
                     sliver: SliverGrid(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => _GraphCard(
                           graph: graphs[index],
                           deleting: _deletingGraphId == graphs[index].id,
-                          onOpen: () => context.push(
-                            RoutePaths.graph(graphs[index].id),
-                          ),
+                          onOpen: () =>
+                              context.push(RoutePaths.graph(graphs[index].id)),
                           onDelete: () => _deleteGraph(graphs[index]),
                         ),
                         childCount: graphs.length,
                       ),
-                      gridDelegate:
-                          SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: compact ? 500 : 430,
-                        mainAxisExtent: 245,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: compact
+                            ? AppLayoutTokens.graphCardCompactMaxWidth
+                            : AppLayoutTokens.graphCardMaxWidth,
+                        mainAxisExtent: AppLayoutTokens.graphCardHeight,
+                        crossAxisSpacing: AppLayoutTokens.gridGap,
+                        mainAxisSpacing: AppLayoutTokens.gridGap,
                       ),
                     ),
                   ),
@@ -208,6 +274,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -218,8 +285,11 @@ class _Header extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Meus grafos', style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 6),
+                  Text(
+                    'Meus grafos',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  SizedBox(height: spacing.xs + 2),
                   Text(
                     graphCount == 0
                         ? 'Organize seus estudos em um mapa de conhecimento.'
@@ -237,7 +307,7 @@ class _Header extends StatelessWidget {
           ],
         ),
         if (compact) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: spacing.md),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
@@ -257,18 +327,25 @@ class _CreationPanel extends StatelessWidget {
     required this.mode,
     required this.compact,
     required this.onSelect,
+    required this.initialPrompt,
+    required this.autoGenerate,
   });
 
   final int mode;
   final bool compact;
   final ValueChanged<int> onSelect;
+  final String initialPrompt;
+  final bool autoGenerate;
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: EdgeInsets.all(compact ? 16 : 24),
+        padding: EdgeInsets.all(
+          compact ? spacing.md : AppLayoutTokens.sectionPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -287,9 +364,9 @@ class _CreationPanel extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: spacing.xs),
             const Text('Escolha uma opção para criar seu próximo mapa.'),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.md),
             SegmentedButton<int>(
               segments: const [
                 ButtonSegment(
@@ -306,9 +383,14 @@ class _CreationPanel extends StatelessWidget {
               selected: {mode == 3 ? 3 : 2},
               onSelectionChanged: (value) => onSelect(value.first),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: spacing.lg - spacing.xs),
             if (mode == 2) const CreateBlankGraph(),
-            if (mode == 3) const CreateGraphWithAi(),
+            if (mode == 3)
+              CreateGraphWithAi(
+                key: ValueKey((initialPrompt, autoGenerate)),
+                initialPrompt: initialPrompt,
+                autoGenerate: autoGenerate,
+              ),
           ],
         ),
       ),
@@ -345,8 +427,10 @@ class _GraphCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    child: Icon(Icons.account_tree_outlined,
-                        color: theme.colorScheme.primary),
+                    child: Icon(
+                      Icons.account_tree_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const Spacer(),
                   PopupMenuButton<String>(

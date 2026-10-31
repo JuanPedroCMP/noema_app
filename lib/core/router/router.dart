@@ -18,6 +18,7 @@ import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/flashcards/presentation/flashcard.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
+import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
 import 'package:noema/feature/study_session/presentation/study_session_create_page.dart';
 import 'package:noema/feature/study_session/presentation/study_session_detail_page.dart';
@@ -113,8 +114,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RoutePaths.graphs,
-                builder: (_, _) =>
-                    GraphList(), // Fazer página que mostram todos os grafos em formato de grafos
+                builder: (context, state) => GraphList(
+                  initialHandoff: state.extra is StudyAssistantHandoff
+                      ? state.extra as StudyAssistantHandoff
+                      : null,
+                ),
                 routes: [
                   GoRoute(
                     path: ':graphId',
@@ -150,7 +154,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
-                              return OpenEnded(nodeId: nodeId, defaultMode: 1);
+                              final handoff = state.extra is StudyAssistantHandoff
+                                  ? state.extra as StudyAssistantHandoff
+                                  : null;
+                              return OpenEnded(
+                                nodeId: nodeId,
+                                defaultMode: 1,
+                                initialAiInstructions: handoff?.prompt,
+                                autoGenerateAi: handoff?.autoGenerate ?? false,
+                              );
                             },
                           ),
                           GoRoute(
@@ -200,9 +212,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
+                              final handoff = state.extra is StudyAssistantHandoff
+                                  ? state.extra as StudyAssistantHandoff
+                                  : null;
                               return MultipleChoise(
                                 nodeId: nodeId,
                                 defaultMode: 1,
+                                initialAiInstructions: handoff?.prompt,
+                                autoGenerateAi: handoff?.autoGenerate ?? false,
                               );
                             },
                           ),
@@ -260,7 +277,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RoutePaths.flashcards,
-                builder: (_, _) => const FlashcardPage(),
+                builder: (_, state) => FlashcardPage(
+                  initialHandoff: state.extra is StudyAssistantHandoff
+                      ? state.extra as StudyAssistantHandoff
+                      : null,
+                ),
               ),
             ],
           ),

@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:noema/core/design/tokens/durations.dart";
 import "package:noema/core/design/tokens/elevation.dart";
 import "package:noema/core/design/tokens/icon_size.dart";
+import "package:noema/core/design/tokens/layout.dart";
 import "package:noema/core/design/tokens/radius.dart";
 import "package:noema/core/design/tokens/spacing.dart";
 
@@ -84,10 +85,10 @@ class AppTheme {
       visualDensity: VisualDensity.standard,
       cardTheme: CardThemeData(
         margin: EdgeInsets.zero,
-        elevation: 1,
+        elevation: 0,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radius.md),
+          borderRadius: BorderRadius.circular(radius.card),
           side: BorderSide(color: customizedScheme.outlineVariant),
         ),
       ),
@@ -95,35 +96,67 @@ class AppTheme {
         filled: true,
         fillColor: customizedScheme.surfaceContainerHighest.withValues(alpha: .35),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius.sm),
+          borderRadius: BorderRadius.circular(radius.md),
           borderSide: BorderSide(color: customizedScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius.sm),
+          borderRadius: BorderRadius.circular(radius.md),
           borderSide: BorderSide(color: customizedScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius.sm),
+          borderRadius: BorderRadius.circular(radius.md),
           borderSide: BorderSide(color: customizedScheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppLayoutTokens.fieldHorizontalPadding,
+          vertical: AppLayoutTokens.fieldVerticalPadding,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          minimumSize: const Size(0, AppLayoutTokens.minimumControlHeight),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppLayoutTokens.buttonHorizontalPadding,
+            vertical: AppLayoutTokens.buttonVerticalPadding,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius.sm),
+            borderRadius: BorderRadius.circular(radius.button),
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius.sm),
+          minimumSize: const Size(0, AppLayoutTokens.minimumControlHeight),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppLayoutTokens.buttonHorizontalPadding,
+            vertical: AppLayoutTokens.buttonVerticalPadding,
           ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius.button),
+          ),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        centerTitle: false,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        backgroundColor: customizedScheme.surface,
+        surfaceTintColor: customizedScheme.surfaceTint,
+        iconTheme: IconThemeData(color: customizedScheme.onSurfaceVariant),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: AppLayoutTokens.navigationBarHeight,
+        elevation: 0,
+        backgroundColor: customizedScheme.surface,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.button),
+        ),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.md),
         ),
       ),
       dropdownMenuTheme: DropdownMenuThemeData(
@@ -131,7 +164,7 @@ class AppTheme {
           filled: true,
           fillColor: customizedScheme.surfaceContainerHighest.withValues(alpha: .35),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(radius.sm),
+            borderRadius: BorderRadius.circular(radius.md),
           ),
         ),
       ),

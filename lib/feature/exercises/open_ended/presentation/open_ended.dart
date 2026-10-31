@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -10,11 +11,13 @@ import 'package:noema/feature/exercises/data/exercise_correction_queue.dart';
 import 'package:noema/core/database/database.dart'
     show OpenEndedResponseLogData;
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/graph_access.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 enum OpenEndedType { essay, feynman }
 
@@ -32,6 +35,8 @@ class OpenEnded extends ConsumerStatefulWidget {
     this.studySessionLogId,
     this.onSendAnswer,
     this.onSave,
+    this.initialAiInstructions,
+    this.autoGenerateAi = false,
     required this.defaultMode,
   });
 
@@ -42,6 +47,8 @@ class OpenEnded extends ConsumerStatefulWidget {
   final String? studySessionLogId;
   final VoidCallback? onSendAnswer;
   final VoidCallback? onSave;
+  final String? initialAiInstructions;
+  final bool autoGenerateAi;
 
   @override
   ConsumerState<OpenEnded> createState() => _OpenEnded();
@@ -86,6 +93,13 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     typeController = TextEditingController();
     referenceCorrectAnswerController = TextEditingController();
     userAnswerController = TextEditingController();
+    if (widget.initialAiInstructions != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(studyAssistantProvider.notifier).consumeHandoff();
+        }
+      });
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -122,6 +136,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       statementController.text = "";
       typeController.text = _typeLabel;
       referenceCorrectAnswerController.text = "";
+      if (widget.autoGenerateAi) {
+        unawaited(_generateWithAi(skipInstructionPrompt: true));
+      }
       return;
     }
 
@@ -217,9 +234,11 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     return true;
   }
 
-  Future<void> _generateWithAi() async {
+  Future<void> _generateWithAi({bool skipInstructionPrompt = false}) async {
     if (_isGenerating || _isSaving) return;
-    final instructions = await _askAiInstructions();
+    final instructions = skipInstructionPrompt
+        ? widget.initialAiInstructions ?? ''
+        : await _askAiInstructions();
     if (instructions == null || !mounted) return;
 
     setState(() {
@@ -292,7 +311,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
   }
 
   Future<String?> _askAiInstructions() async {
-    final controller = TextEditingController();
+    final controller = TextEditingController(
+      text: widget.initialAiInstructions ?? '',
+    );
     try {
       return await showDialog<String>(
         context: context,
@@ -572,7 +593,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     return Card(
       color: colors.surfaceContainerLow,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppLayoutTokens.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -588,11 +609,11 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                 Text(subtitle, style: context.textTheme.labelLarge),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             Text(title, style: context.textTheme.headlineSmall),
-            const SizedBox(height: 12),
+            SizedBox(height: context.spacing.sm + context.spacing.xs),
             const Divider(),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             SelectableText(statement, style: context.textTheme.bodyLarge),
           ],
         ),
@@ -616,7 +637,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     return Card(
       color: Theme.of(context).colorScheme.secondaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(AppLayoutTokens.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -624,7 +645,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
               'Resposta de referência',
               style: context.textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             SelectableText(
               referenceCorrectAnswer,
               style: context.textTheme.bodyLarge,
@@ -645,9 +666,11 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     }
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 820),
+        constraints: const BoxConstraints(
+          maxWidth: AppLayoutTokens.exerciseContentWidth,
+        ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(4),
+          padding: EdgeInsets.all(context.spacing.xxs * 2),
           child: (mode == 1)
               ? Column(
                   // Edição/Criação

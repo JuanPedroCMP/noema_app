@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 
 class AppLoadingView extends StatelessWidget {
   const AppLoadingView({super.key, this.label});
@@ -6,12 +7,16 @@ class AppLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(),
-          if (label != null) ...[const SizedBox(height: 12), Text(label!)],
+          if (label != null) ...[
+            SizedBox(height: spacing.md - spacing.xs),
+            Text(label!, textAlign: TextAlign.center),
+          ],
         ],
       ),
     );
@@ -25,16 +30,17 @@ class AppErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(spacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing.md - spacing.xs),
             Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.md),
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
@@ -63,18 +69,22 @@ class AppEmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(spacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.md),
             Text(title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing.sm),
             Text(message, textAlign: TextAlign.center),
-            if (action != null) ...[const SizedBox(height: 20), action!],
+            if (action != null) ...[
+              SizedBox(height: spacing.lg - spacing.xs),
+              action!,
+            ],
           ],
         ),
       ),

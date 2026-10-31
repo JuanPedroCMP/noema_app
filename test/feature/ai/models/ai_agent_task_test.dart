@@ -9,6 +9,13 @@ void main() {
     }
   });
 
+  test('study assistant agent uses its backend task identifier', () {
+    expect(
+      AiAgentTask.fromWireName('study_assistant'),
+      AiAgentTask.studyAssistant,
+    );
+  });
+
   test('legacy backend task spellings are normalized safely', () {
     expect(
       AiAgentTask.fromWireName('evaluate_feynman'),

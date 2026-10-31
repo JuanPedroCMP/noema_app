@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 
 class AppSection extends StatelessWidget {
   const AppSection({
@@ -16,10 +18,11 @@ class AppSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.spacing;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(AppLayoutTokens.sectionPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -31,7 +34,7 @@ class AppSection extends StatelessWidget {
                     children: [
                       Text(title, style: Theme.of(context).textTheme.titleLarge),
                       if (description != null) ...[
-                        const SizedBox(height: 4),
+                        SizedBox(height: spacing.xs),
                         Text(description!),
                       ],
                     ],
@@ -40,7 +43,7 @@ class AppSection extends StatelessWidget {
                 ?trailing,
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: spacing.lg - spacing.xs),
             child,
           ],
         ),

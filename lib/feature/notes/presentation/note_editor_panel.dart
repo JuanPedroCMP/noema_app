@@ -15,7 +15,6 @@ class NoteEditorPanel extends ConsumerStatefulWidget {
   const NoteEditorPanel({
     required this.noteId,
     required this.userId,
-    required this.onChanged,
     required this.onDirtyChanged,
     required this.onBack,
     super.key,
@@ -23,7 +22,6 @@ class NoteEditorPanel extends ConsumerStatefulWidget {
 
   final String noteId;
   final String userId;
-  final VoidCallback onChanged;
   final ValueChanged<bool> onDirtyChanged;
   final VoidCallback onBack;
 
@@ -39,15 +37,18 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
   NoteData? _note;
   List<GraphNodeData> _nodes = [];
   List<GraphNodeData> _allNodes = [];
+  bool _hasLoadedNodes = false;
   Set<String> _linkedNodeIds = {};
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isAiWorking = false;
+  bool _showMoreFormatting = false;
   bool _isDirty = false;
   String? _saveError;
   Timer? _autoSaveTimer;
   Completer<void>? _saveCompleter;
   int _editRevision = 0;
+  int _loadRevision = 0;
   String? _error;
   late AppDatabase _database;
 
@@ -66,6 +67,10 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.noteId != widget.noteId ||
         oldWidget.userId != widget.userId) {
+      if (oldWidget.userId != widget.userId) {
+        _allNodes = [];
+        _hasLoadedNodes = false;
+      }
       _load();
     }
   }
@@ -128,19 +133,19 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
   }
 
   Future<void> _load() async {
+    final loadRevision = ++_loadRevision;
+    final noteId = widget.noteId;
+    final userId = widget.userId;
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      final result = await _dao.getNote(
-        noteId: widget.noteId,
-        userId: widget.userId,
-      );
+      final result = await _dao.getNote(noteId: noteId, userId: userId);
+      if (!mounted || loadRevision != _loadRevision) return;
       if (result == null) {
         throw StateError('Esta nota não existe ou não está mais disponível.');
       }
-      final nodes = await _dao.getNodesForUser(userId: widget.userId);
       final document = _parseDocument(result.note.contentQuillJson);
       final controller = QuillController(
         document: document,
@@ -153,13 +158,14 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
       _editorController = controller;
       _note = result.note;
       _nodes = result.nodes;
-      _allNodes = nodes;
       _linkedNodeIds = result.nodes.map((node) => node.id).toSet();
       _isDirty = false;
+      _autoSaveTimer?.cancel();
+      _autoSaveTimer = null;
       widget.onDirtyChanged(false);
       if (mounted) setState(() => _isLoading = false);
     } catch (error) {
-      if (mounted) {
+      if (mounted && loadRevision == _loadRevision) {
         setState(() {
           _error = 'Não foi possível abrir a nota: $error';
           _isLoading = false;
@@ -187,7 +193,15 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
       });
     }
     if (dirtyStateChanged) widget.onDirtyChanged(true);
-    _autoSaveTimer ??= Timer.periodic(const Duration(seconds: 10), (_) {
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+    if (!_isDirty) return;
+    _autoSaveTimer = Timer(const Duration(seconds: 10), () {
+      _autoSaveTimer = null;
       if (mounted && _isDirty && !_isSaving) {
         unawaited(_save(automatic: true));
       }
@@ -257,6 +271,8 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
     final revisionSnapshot = _editRevision;
     final saveCompleter = Completer<void>();
     _saveCompleter = saveCompleter;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
     setState(() => _isSaving = true);
     try {
       final updated = await _dao.save(
@@ -278,13 +294,8 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         _isSaving = false;
       });
       widget.onDirtyChanged(stillDirty);
-      widget.onChanged();
       if (stillDirty) {
-        _autoSaveTimer ??= Timer.periodic(const Duration(seconds: 10), (_) {
-          if (mounted && _isDirty && !_isSaving) {
-            unawaited(_save(automatic: true));
-          }
-        });
+        _scheduleAutoSave();
       } else {
         _autoSaveTimer?.cancel();
         _autoSaveTimer = null;
@@ -314,6 +325,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         _isSaving = false;
         _saveError = error.toString();
       });
+      _scheduleAutoSave();
       if (!automatic) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Não foi possível salvar a nota: $error')),
@@ -326,6 +338,23 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
   }
 
   Future<void> _editNodeLinks() async {
+    if (!_hasLoadedNodes) {
+      try {
+        final nodes = await _dao.getNodesForUser(userId: widget.userId);
+        if (!mounted) return;
+        _allNodes = nodes;
+        _hasLoadedNodes = true;
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Não foi possível carregar conceitos: $error'),
+            ),
+          );
+        }
+        return;
+      }
+    }
     final selected = await showDialog<Set<String>>(
       context: context,
       builder: (context) =>
@@ -419,7 +448,6 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                                 versionNumber: version.versionNumber,
                               );
                               await _load();
-                              widget.onChanged();
                             } catch (error) {
                               if (mounted) {
                                 ScaffoldMessenger.of(this.context).showSnackBar(
@@ -584,7 +612,6 @@ $noteContent
         _saveError = null;
       });
       widget.onDirtyChanged(false);
-      widget.onChanged();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Alteração da IA aplicada e salva.')),
       );
@@ -739,50 +766,90 @@ $noteContent
               ),
           ],
         ),
-        Wrap(
-          spacing: 6,
-          runSpacing: 4,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              _saveError != null
-                  ? 'Falha ao salvar · $_saveError'
-                  : _isSaving
-                  ? 'Salvando…'
-                  : _isDirty
-                  ? 'Alterações pendentes · salvamento automático em até 10 s'
-                  : 'Salvo',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: _isDirty
+        SizedBox(
+          height: 32,
+          child: Row(
+            children: [
+              Icon(
+                _saveError != null
+                    ? Icons.error_outline
+                    : _isSaving
+                    ? Icons.sync
+                    : _isDirty
+                    ? Icons.edit_outlined
+                    : Icons.cloud_done_outlined,
+                size: 16,
+                color: _saveError != null
+                    ? Theme.of(context).colorScheme.error
+                    : _isDirty || _isSaving
                     ? Theme.of(context).colorScheme.tertiary
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-            if (_note!.currentVersion > 0)
-              Text('· v${_note!.currentVersion}')
-            else
-              const Text('· Sem versões'),
-            for (final node in _nodes.take(3))
-              Chip(
-                label: Text(node.title),
-                visualDensity: VisualDensity.compact,
-                onDeleted: () {
-                  setState(() {
-                    _linkedNodeIds.remove(node.id);
-                    _nodes.removeWhere((item) => item.id == node.id);
-                  });
-                  _markDirty();
-                },
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _saveError != null
+                      ? 'Falha ao salvar: $_saveError'
+                      : _isSaving
+                      ? 'Salvando…'
+                      : _isDirty
+                      ? 'Alterações pendentes · salva após 10 s sem editar'
+                      : 'Todas as alterações estão salvas',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: _isDirty || _isSaving
+                        ? Theme.of(context).colorScheme.tertiary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-            if (_nodes.length > 3) Text('+${_nodes.length - 3} conceitos'),
-            if (_nodes.isEmpty)
-              Text(
-                'Sem conceitos relacionados',
-                style: Theme.of(context).textTheme.labelSmall,
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 92,
+                child: Text(
+                  _note!.currentVersion > 0
+                      ? 'Versão ${_note!.currentVersion}'
+                      : 'Sem versões',
+                  maxLines: 1,
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
               ),
-          ],
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 38,
+          child: _nodes.isEmpty
+              ? Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Sem conceitos relacionados',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                )
+              : ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (final node in _nodes)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: InputChip(
+                          label: Text(node.title),
+                          visualDensity: VisualDensity.compact,
+                          onDeleted: () {
+                            setState(() {
+                              _linkedNodeIds.remove(node.id);
+                              _nodes.removeWhere((item) => item.id == node.id);
+                            });
+                            _markDirty();
+                          },
+                        ),
+                      ),
+                  ],
+                ),
         ),
         const SizedBox(height: 8),
         Expanded(
@@ -790,24 +857,107 @@ $noteContent
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: QuillSimpleToolbar(
-                    controller: _editorController!,
-                    config: const QuillSimpleToolbarConfig(
-                      buttonOptions: QuillSimpleToolbarButtonOptions(
-                        fontFamily: QuillToolbarFontFamilyButtonOptions(
-                          items: {
-                            'Sem serifa': 'sans-serif',
-                            'Serifada': 'serif',
-                            'Monoespaçada': 'monospace',
-                            'Padrão': 'Clear',
-                          },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: QuillSimpleToolbar(
+                          controller: _editorController!,
+                          config: const QuillSimpleToolbarConfig(
+                            multiRowsDisplay: false,
+                            toolbarSize: 48,
+                            showDividers: false,
+                            showFontFamily: true,
+                            showFontSize: true,
+                            showBoldButton: true,
+                            showItalicButton: true,
+                            showUnderLineButton: true,
+                            showStrikeThrough: true,
+                            showColorButton: true,
+                            showClearFormat: true,
+                            showUndo: true,
+                            showRedo: true,
+                            showSmallButton: false,
+                            showLineHeightButton: false,
+                            showInlineCode: false,
+                            showBackgroundColorButton: false,
+                            showAlignmentButtons: false,
+                            showHeaderStyle: false,
+                            showListNumbers: false,
+                            showListBullets: false,
+                            showListCheck: false,
+                            showCodeBlock: false,
+                            showQuote: false,
+                            showIndent: false,
+                            showLink: false,
+                            showDirection: false,
+                            showSearchButton: false,
+                            showSubscript: false,
+                            showSuperscript: false,
+                            buttonOptions: QuillSimpleToolbarButtonOptions(
+                              fontFamily: QuillToolbarFontFamilyButtonOptions(
+                                items: {
+                                  'Sem serifa': 'sans-serif',
+                                  'Serifada': 'serif',
+                                  'Monoespaçada': 'monospace',
+                                  'Padrão': 'Clear',
+                                },
+                              ),
+                            ),
+                          ),
                         ),
+                      ),
+                      IconButton(
+                        tooltip: _showMoreFormatting
+                            ? 'Ocultar mais formatação'
+                            : 'Mais opções de formatação',
+                        onPressed: () => setState(
+                          () => _showMoreFormatting = !_showMoreFormatting,
+                        ),
+                        icon: Icon(
+                          _showMoreFormatting ? Icons.expand_less : Icons.tune,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_showMoreFormatting)
+                  SizedBox(
+                    height: 48,
+                    child: QuillSimpleToolbar(
+                      controller: _editorController!,
+                      config: const QuillSimpleToolbarConfig(
+                        multiRowsDisplay: false,
+                        toolbarSize: 48,
+                        showFontFamily: false,
+                        showFontSize: false,
+                        showBoldButton: false,
+                        showItalicButton: false,
+                        showUnderLineButton: false,
+                        showStrikeThrough: false,
+                        showColorButton: false,
+                        showClearFormat: false,
+                        showUndo: false,
+                        showRedo: false,
+                        showBackgroundColorButton: true,
+                        showAlignmentButtons: true,
+                        showHeaderStyle: true,
+                        showListNumbers: true,
+                        showListBullets: true,
+                        showListCheck: true,
+                        showCodeBlock: true,
+                        showQuote: true,
+                        showIndent: true,
+                        showLink: true,
+                        showInlineCode: true,
+                        showLineHeightButton: true,
+                        showSearchButton: true,
+                        showSubscript: true,
+                        showSuperscript: true,
                       ),
                     ),
                   ),
-                ),
                 const Divider(height: 1),
                 Expanded(
                   child: QuillEditor.basic(
@@ -823,13 +973,28 @@ $noteContent
             ),
           ),
         ),
-        if (MediaQuery.sizeOf(context).width < 500 && _isDirty)
+        if (width < 500)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _save,
-              icon: const Icon(Icons.save_outlined),
-              label: const Text('Salvar alterações'),
+            child: SizedBox(
+              height: 48,
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: !_isDirty || _isSaving ? null : _save,
+                icon: _isSaving
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save_outlined),
+                label: Text(
+                  _isSaving
+                      ? 'Salvando…'
+                      : _isDirty
+                      ? 'Salvar alterações'
+                      : 'Tudo salvo',
+                ),
+              ),
             ),
           ),
       ],

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/network/connetction_checker.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/presentation/color_theme_section.dart';
@@ -13,6 +14,7 @@ import 'package:noema/feature/config/presentation/preferences_section.dart';
 import 'package:noema/feature/config/presentation/typography_theme_section.dart';
 import 'package:noema/feature/config/providers/section_navigator_provider.dart';
 import 'package:noema/feature/config/providers/config_refresh_provider.dart';
+import 'package:noema/shared/widgets/app_card.dart';
 import 'package:noema/shared/widgets/app_section.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
 
@@ -68,52 +70,23 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
     final isConnected = ref.watch(serverConnectionChecker).value ?? false;
     return SingleChildScrollView(
       child: AppResponsiveContent(
-        maxWidth: 1200,
+        maxWidth: AppLayoutTokens.widePageContentWidth,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: context.spacing.md,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        isConnected
-                            ? 'As informações do servidor são atualizadas ao '
-                                  'abrir esta tela e a cada 5 minutos.'
-                            : 'Sem conexão com o servidor. As informações '
-                                  'serão atualizadas quando a conexão voltar.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+            _ConnectionBanner(
+              isConnected: isConnected,
+              onRefresh: () {
+                ref.read(configRefreshProvider.notifier).refresh();
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(
+                      content: Text('Atualizando informações do servidor…'),
                     ),
-                    const SizedBox(width: 12),
-                    OutlinedButton.icon(
-                      onPressed: isConnected
-                          ? () {
-                              ref
-                                  .read(configRefreshProvider.notifier)
-                                  .refresh();
-                              ScaffoldMessenger.of(context)
-                                ..hideCurrentSnackBar()
-                                ..showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Atualizando informações do servidor…',
-                                    ),
-                                  ),
-                                );
-                            }
-                          : null,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Atualizar'),
-                    ),
-                  ],
-                ),
-              ),
+                  );
+              },
             ),
             AppSection(
               title: "Perfil",
@@ -124,13 +97,15 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
 
             AppSection(
               title: "Tema de cores",
-              description: "Escolha uma paleta para personalizar o aplicativo.",
+              description:
+                  "Personalização local deste dispositivo: escolha paleta e modo claro ou escuro.",
               key: keys[ConfigSections.colorTheme],
               child: ColorThemeSection(),
             ),
             AppSection(
               title: "Tipografia",
-              description: "Defina fontes e escala para melhorar a leitura.",
+              description:
+                  "Personalização local deste dispositivo: escolha fontes e escala de leitura.",
               key: keys[ConfigSections.typographyTheme],
               child: const TypographyThemeSection(),
             ),
@@ -150,12 +125,62 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
             ),
             AppSection(
               title: "Preferências",
-              description: "Idioma e outras preferências deste dispositivo.",
+              description:
+                  "Escolha o que sincronizar com sua conta e o que manter apenas neste dispositivo.",
               key: keys[ConfigSections.preferences],
               child: const PreferencesSection(),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ConnectionBanner extends StatelessWidget {
+  const _ConnectionBanner({required this.isConnected, required this.onRefresh});
+
+  final bool isConnected;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = context.spacing;
+    final message = Text(
+      isConnected
+          ? 'As informações do servidor são atualizadas ao abrir esta tela e a cada 5 minutos.'
+          : 'Sem conexão com o servidor. As informações serão atualizadas quando a conexão voltar.',
+      style: theme.textTheme.bodyMedium,
+    );
+    final refreshButton = OutlinedButton.icon(
+      onPressed: isConnected ? onRefresh : null,
+      icon: const Icon(Icons.refresh),
+      label: const Text('Atualizar'),
+    );
+
+    return AppCard(
+      padding: EdgeInsets.all(spacing.md),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                message,
+                SizedBox(height: spacing.sm),
+                refreshButton,
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: message),
+              SizedBox(width: spacing.sm),
+              refreshButton,
+            ],
+          );
+        },
       ),
     );
   }

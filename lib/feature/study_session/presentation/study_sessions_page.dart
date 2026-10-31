@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/study_session/data/study_session_dao.dart';
+import 'package:noema/shared/widgets/async_state_view.dart';
+import 'package:noema/shared/widgets/responsive_content.dart';
 
 class StudySessionsPage extends ConsumerStatefulWidget {
   const StudySessionsPage({super.key});
@@ -40,10 +44,10 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
         _sessions = sessions;
         _isLoading = false;
       });
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Não foi possível carregar as sessões: $error';
+        _error = 'Não foi possível carregar as sessões.';
         _isLoading = false;
       });
     }
@@ -102,72 +106,80 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadSessions,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-          children: [
-            Text(
-              'Agrupe questões de múltipla escolha e dissertativas, '
-              'e acompanhe cada vez que realizar uma sessão.',
-              style: Theme.of(context).textTheme.bodyLarge,
+        child: AppResponsiveContent(
+          maxWidth: AppLayoutTokens.pageContentWidth,
+          child: ListView(
+            padding: const EdgeInsets.only(
+              bottom: AppLayoutTokens.floatingActionClearance,
             ),
-            const SizedBox(height: 20),
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_error != null)
-              _LoadError(message: _error!, onRetry: _loadSessions)
-            else if (_sessions.isEmpty)
-              const _EmptySessions()
-            else
-              for (final session in _sessions)
-                Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.playlist_add_check_rounded),
-                    ),
-                    title: Text(
-                      session.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        [
-                          _sessionStatus(session.status),
-                          '${session.targetDurationMin} min planejados',
-                          if ((session.description ?? '').trim().isNotEmpty)
-                            session.description!.trim(),
-                        ].join(' · '),
+            children: [
+              AppPageHeader(
+                title: 'Sessões de estudo',
+                subtitle:
+                    'Agrupe questões e acompanhe cada realização em uma sequência.',
+              ),
+              SizedBox(height: context.spacing.lg),
+              if (_isLoading)
+                const SizedBox(
+                  height: 180,
+                  child: AppLoadingView(label: 'Carregando sessões...'),
+                )
+              else if (_error != null)
+                AppErrorView(message: _error!, onRetry: _loadSessions)
+              else if (_sessions.isEmpty)
+                const AppEmptyView(
+                  icon: Icons.playlist_add_check_rounded,
+                  title: 'Nenhuma sessão criada',
+                  message:
+                      'Crie uma sessão e escolha questões para praticar em uma sequência.',
+                )
+              else
+                for (final session in _sessions)
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppLayoutTokens.listItemHorizontalPadding,
+                        vertical: AppLayoutTokens.listItemVerticalPadding,
+                      ),
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.playlist_add_check_rounded),
+                      ),
+                      title: Text(
+                        session.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    trailing: PopupMenuButton<String>(
-                      tooltip: 'Ações da sessão',
-                      onSelected: (action) {
-                        if (action == 'archive') _deleteSession(session);
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'archive',
-                          child: Text('Arquivar'),
+                      subtitle: Padding(
+                        padding: EdgeInsets.only(top: context.spacing.xs + 2),
+                        child: Text(
+                          [
+                            _sessionStatus(session.status),
+                            '${session.targetDurationMin} min planejados',
+                            if ((session.description ?? '').trim().isNotEmpty)
+                              session.description!.trim(),
+                          ].join(' · '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
+                      ),
+                      trailing: PopupMenuButton<String>(
+                        tooltip: 'Ações da sessão',
+                        onSelected: (action) {
+                          if (action == 'archive') _deleteSession(session);
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'archive',
+                            child: Text('Arquivar'),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _openSession(session),
                     ),
-                    onTap: () => _openSession(session),
                   ),
-                ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -180,54 +192,3 @@ String _sessionStatus(String status) => switch (status) {
   'ABANDONED' => 'Interrompida',
   _ => 'Rascunho',
 };
-
-class _EmptySessions extends StatelessWidget {
-  const _EmptySessions();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          children: [
-            const Icon(Icons.playlist_add_check_rounded, size: 44),
-            const SizedBox(height: 12),
-            Text(
-              'Nenhuma sessão criada',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Crie uma sessão com título e, se quiser, escolha questões '
-              'para praticar em uma sequência.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.error_outline),
-        title: Text(message),
-        trailing: IconButton(
-          tooltip: 'Tentar novamente',
-          onPressed: onRetry,
-          icon: const Icon(Icons.refresh),
-        ),
-      ),
-    );
-  }
-}

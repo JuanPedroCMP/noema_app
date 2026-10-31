@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/notes/data/note_dao.dart';
 import 'package:noema/feature/notes/data/note_transfer_service.dart';
@@ -30,12 +33,33 @@ class NotesPage extends ConsumerStatefulWidget {
 class NotesPageState extends ConsumerState<NotesPage> {
   String? _selectedNoteId;
   String _search = '';
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
   bool _isCreating = false;
   bool _isImporting = false;
   bool _showTrash = false;
   bool _isEditorDirty = false;
+  final Map<String, ({String source, String preview})> _previewCache = {};
   final GlobalKey<NoteEditorPanelState> _editorKey =
       GlobalKey<NoteEditorPanelState>();
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _updateSearch(String value) {
+    _searchDebounce?.cancel();
+    if (value.trim().isEmpty) {
+      setState(() => _search = '');
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) setState(() => _search = value);
+    });
+  }
 
   Future<bool> _saveBeforeLeavingEditor() async {
     if (!_isEditorDirty) return true;
@@ -59,6 +83,8 @@ class NotesPageState extends ConsumerState<NotesPage> {
   Future<void> _showTrashView(bool showTrash) async {
     if (_showTrash == showTrash) return;
     if (!await _saveBeforeLeavingEditor() || !mounted) return;
+    _searchDebounce?.cancel();
+    _searchController.clear();
     setState(() {
       _showTrash = showTrash;
       _selectedNoteId = null;
@@ -385,42 +411,46 @@ class NotesPageState extends ConsumerState<NotesPage> {
   }
 
   Widget _buildWorkspace(List<NoteData> notes, String userId) {
-    final compact = MediaQuery.sizeOf(context).width < 800;
+    final compact =
+        MediaQuery.sizeOf(context).width <
+        AppLayoutTokens.notesSplitBreakpoint;
     final activeNotes = notes.where((note) => !note.softDeleted).toList();
     final deletedNotes = notes.where((note) => note.softDeleted).toList();
     final libraryNotes = _showTrash ? deletedNotes : activeNotes;
     final query = _search.trim().toLowerCase();
-    final visibleNotes = libraryNotes.where((note) {
-      return '${note.title} ${_preview(note.contentQuillJson)}'
-          .toLowerCase()
-          .contains(query);
-    }).toList();
+    final visibleNotes = query.isEmpty
+        ? libraryNotes
+        : libraryNotes.where((note) {
+            return '${note.title} ${_preview(note)}'.toLowerCase().contains(
+              query,
+            );
+          }).toList();
     final selectedNoteId = activeNotes.any((note) => note.id == _selectedNoteId)
         ? _selectedNoteId
         : null;
 
     return AppResponsiveContent(
-      maxWidth: 1400,
+      maxWidth: AppLayoutTokens.notesContentWidth,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(context.spacing.md),
         child: compact && selectedNoteId != null
             ? _buildEditor(userId, selectedNoteId)
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(
-                    width: compact ? double.infinity : 320,
-                    child: _buildLibrary(
-                      visibleNotes,
-                      userId,
-                      activeNotes.length,
-                      deletedNotes.length,
+                    NotesLibraryPane(
+                      compact: compact,
+                      child: _buildLibrary(
+                        visibleNotes,
+                        userId,
+                        activeNotes.length,
+                        deletedNotes.length,
+                      ),
                     ),
-                  ),
                   if (!compact) ...[
-                    const SizedBox(width: 16),
+                    SizedBox(width: context.spacing.md),
                     const VerticalDivider(width: 1),
-                    const SizedBox(width: 16),
+                    SizedBox(width: context.spacing.md),
                     Expanded(
                       child: selectedNoteId == null
                           ? const _EditorWelcome()
@@ -504,7 +534,8 @@ class NotesPageState extends ConsumerState<NotesPage> {
         ),
         const SizedBox(height: 12),
         TextField(
-          onChanged: (value) => setState(() => _search = value),
+          controller: _searchController,
+          onChanged: _updateSearch,
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search),
             hintText: _showTrash ? 'Buscar na lixeira' : 'Buscar anotações',
@@ -513,7 +544,10 @@ class NotesPageState extends ConsumerState<NotesPage> {
                 ? null
                 : IconButton(
                     tooltip: 'Limpar busca',
-                    onPressed: () => setState(() => _search = ''),
+                    onPressed: () {
+                      _searchController.clear();
+                      _updateSearch('');
+                    },
                     icon: const Icon(Icons.clear),
                   ),
           ),
@@ -553,7 +587,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _preview(note.contentQuillJson),
+                              _preview(note),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -635,7 +669,6 @@ class NotesPageState extends ConsumerState<NotesPage> {
       key: _editorKey,
       noteId: noteId,
       userId: userId,
-      onChanged: () => ref.invalidate(notesProvider(userId)),
       onDirtyChanged: (dirty) {
         if (mounted && _isEditorDirty != dirty) {
           setState(() => _isEditorDirty = dirty);
@@ -645,7 +678,18 @@ class NotesPageState extends ConsumerState<NotesPage> {
     );
   }
 
-  String _preview(String content) {
+  String _preview(NoteData note) {
+    final cached = _previewCache[note.id];
+    if (cached != null && cached.source == note.contentQuillJson) {
+      return cached.preview;
+    }
+
+    final preview = _createPreview(note.contentQuillJson);
+    _previewCache[note.id] = (source: note.contentQuillJson, preview: preview);
+    return preview;
+  }
+
+  String _createPreview(String content) {
     try {
       final delta = jsonDecode(content);
       if (delta is! List) return 'Sem prévia disponível';
@@ -660,6 +704,24 @@ class NotesPageState extends ConsumerState<NotesPage> {
     } on FormatException {
       return 'Sem prévia disponível';
     }
+  }
+
+}
+
+class NotesLibraryPane extends StatelessWidget {
+  const NotesLibraryPane({
+    super.key,
+    required this.compact,
+    required this.child,
+  });
+
+  final bool compact;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (compact) return Expanded(child: child);
+    return SizedBox(width: AppLayoutTokens.notesLibraryWidth, child: child);
   }
 }
 

@@ -63,7 +63,6 @@ void main() {
               body: NoteEditorPanel(
                 noteId: note.id,
                 userId: 'user-1',
-                onChanged: () {},
                 onDirtyChanged: (_) {},
                 onBack: () {},
               ),
@@ -74,6 +73,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(QuillEditor), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byTooltip('Mais opções de formatação'));
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     } finally {
       semantics.dispose();
@@ -98,7 +100,6 @@ void main() {
             body: NoteEditorPanel(
               noteId: note.id,
               userId: 'user-1',
-              onChanged: () {},
               onDirtyChanged: (_) {},
               onBack: () {},
             ),
@@ -153,7 +154,6 @@ void main() {
             body: NoteEditorPanel(
               noteId: note.id,
               userId: 'user-1',
-              onChanged: () {},
               onDirtyChanged: (_) {},
               onBack: () {},
             ),
@@ -174,12 +174,21 @@ void main() {
     ).getNote(noteId: note.id, userId: 'user-1');
     expect(persisted?.note.contentQuillJson, note.contentQuillJson);
 
+    controller.document.insert(0, 'Mais ');
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 9));
+    persisted = await NoteDao(
+      database,
+    ).getNote(noteId: note.id, userId: 'user-1');
+    expect(persisted?.note.contentQuillJson, note.contentQuillJson);
+
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
     persisted = await NoteDao(
       database,
     ).getNote(noteId: note.id, userId: 'user-1');
     expect(persisted?.note.contentQuillJson, contains('Novo '));
+    expect(persisted?.note.contentQuillJson, contains('Mais '));
   });
 
   testWidgets('saves pending edits when the app is backgrounded', (
@@ -200,7 +209,6 @@ void main() {
             body: NoteEditorPanel(
               noteId: note.id,
               userId: 'user-1',
-              onChanged: () {},
               onDirtyChanged: (_) {},
               onBack: () {},
             ),

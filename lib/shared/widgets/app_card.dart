@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
@@ -22,7 +24,7 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Padding(
-      padding: padding ?? const EdgeInsets.all(20),
+      padding: padding ?? const EdgeInsets.all(AppLayoutTokens.cardPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,9 +41,9 @@ class AppCard extends StatelessWidget {
               ],
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 4),
+              SizedBox(height: context.spacing.xs),
               Text(subtitle!),
-              const SizedBox(height: 16),
+              SizedBox(height: context.spacing.md),
             ],
           ],
           child,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -9,6 +10,7 @@ import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
@@ -22,6 +24,7 @@ import 'package:noema/feature/review/data/fsrs_review_service.dart';
 import 'package:noema/core/database/database.dart'
     show ChoiceData, MultipleChoiceResponseLogData;
 import 'package:noema/shared/floating_card/floating_card.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 /// Parameters:
 /// Mode
@@ -36,6 +39,8 @@ class MultipleChoise extends ConsumerStatefulWidget {
     this.studySessionId,
     this.studySessionLogId,
     this.onSendAnswer,
+    this.initialAiInstructions,
+    this.autoGenerateAi = false,
     required this.defaultMode,
   });
 
@@ -45,6 +50,8 @@ class MultipleChoise extends ConsumerStatefulWidget {
   final String? studySessionId;
   final String? studySessionLogId;
   final VoidCallback? onSendAnswer;
+  final String? initialAiInstructions;
+  final bool autoGenerateAi;
 
   @override
   ConsumerState<MultipleChoise> createState() => _MultipleChoise();
@@ -82,6 +89,13 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
 
     titleController = TextEditingController();
     statementController = TextEditingController();
+    if (widget.initialAiInstructions != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(studyAssistantProvider.notifier).consumeHandoff();
+        }
+      });
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -102,6 +116,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         setState(() => _isLoading = false);
         titleController.text = "";
         statementController.text = "";
+        if (widget.autoGenerateAi) {
+          unawaited(_generateWithAi(skipInstructionPrompt: true));
+        }
       } catch (error) {
         if (!mounted) return;
         setState(() {
@@ -218,9 +235,11 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     }
   }
 
-  Future<void> _generateWithAi() async {
+  Future<void> _generateWithAi({bool skipInstructionPrompt = false}) async {
     if (_isGenerating || _isSaving) return;
-    final instructions = await _askAiInstructions();
+    final instructions = skipInstructionPrompt
+        ? widget.initialAiInstructions ?? ''
+        : await _askAiInstructions();
     if (instructions == null || !mounted) return;
 
     setState(() {
@@ -309,7 +328,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
   }
 
   Future<String?> _askAiInstructions() async {
-    final controller = TextEditingController();
+    final controller = TextEditingController(
+      text: widget.initialAiInstructions ?? '',
+    );
     try {
       return await showDialog<String>(
         context: context,
@@ -583,11 +604,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Resposta registrada.$correctionMessage',
-          ),
-        ),
+        SnackBar(content: Text('Resposta registrada.$correctionMessage')),
       );
     } catch (error) {
       if (mounted) {
@@ -1015,7 +1032,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
           ? colorScheme.primaryContainer
           : colorScheme.errorContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppLayoutTokens.cardPadding),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1094,16 +1111,16 @@ class _QuestionPrompt extends StatelessWidget {
     return Card(
       color: colors.surfaceContainerLow,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppLayoutTokens.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(subtitle, style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
+            SizedBox(height: context.spacing.sm + context.spacing.xs),
             const Divider(),
-            const SizedBox(height: 8),
+            SizedBox(height: context.spacing.sm),
             SelectableText(
               statement,
               style: Theme.of(context).textTheme.bodyLarge,

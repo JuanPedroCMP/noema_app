@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/page_chrome.dart';
+import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/ai/services/ai_background_task_runner.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
+import 'package:noema/feature/study_assistant/presentation/study_assistant_panel.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_preferences_provider.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 enum DisplaySize { mobile, tablet, desktop }
 
@@ -24,12 +29,16 @@ const _navigationItems = <(String, String, IconData, IconData)>[
     Icons.playlist_add_check_circle_outlined,
     Icons.playlist_add_check_circle,
   ),
-  ('/config', 'Configuração', Icons.settings_outlined, Icons.settings_rounded),
+  ('/config', 'Configurações', Icons.settings_outlined, Icons.settings_rounded),
   ('/ai-queue', 'Fila de IA', Icons.queue_outlined, Icons.queue_rounded),
 ];
 
 List<String> buildCumulativePaths(BuildContext context) {
-  final segments = GoRouterState.of(context).uri.pathSegments;
+  return cumulativePathsFor(GoRouterState.of(context).uri.path);
+}
+
+List<String> cumulativePathsFor(String path) {
+  final segments = Uri.parse(path).pathSegments;
   final paths = <String>['/'];
   if (segments.isEmpty) return paths;
 
@@ -92,6 +101,9 @@ List<String> buildCumulativePaths(BuildContext context) {
   }
   return paths;
 }
+
+String? parentNavigationPath(List<String> paths) =>
+    paths.length > 2 ? paths[paths.length - 2] : null;
 
 String breadcrumbLabel(String path) {
   if (path == '/') return 'Início';
@@ -167,8 +179,8 @@ class AppShell extends ConsumerWidget {
   final String currentPath;
 
   static DisplaySize spacingFor(double width) {
-    if (width >= 900) return DisplaySize.desktop;
-    if (width >= 600) return DisplaySize.tablet;
+    if (width >= AppLayoutTokens.desktopBreakpoint) return DisplaySize.desktop;
+    if (width >= AppLayoutTokens.compactBreakpoint) return DisplaySize.tablet;
     return DisplaySize.mobile;
   }
 
@@ -179,10 +191,49 @@ class AppShell extends ConsumerWidget {
     final width = MediaQuery.sizeOf(context).width;
     final displaySize = spacingFor(width);
     final paths = buildCumulativePaths(context);
+    final parentPath = parentNavigationPath(paths);
+    final assistant = ref.watch(studyAssistantProvider);
+    final assistantSettings = ref
+        .watch(studyAssistantSettingsProvider)
+        .asData
+        ?.value;
+    final showPinnedAssistant =
+        assistant.isOpen &&
+        (assistantSettings?.pinPanel ?? false) &&
+        width >= AppLayoutTokens.pinnedAssistantBreakpoint;
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: displaySize == DisplaySize.mobile ? 64 : 72,
+        toolbarHeight: displaySize == DisplaySize.mobile
+            ? AppLayoutTokens.appBarHeightCompact
+            : AppLayoutTokens.appBarHeightRegular,
+        backgroundColor: context.colors.surfaceContainerLow,
+        scrolledUnderElevation: 0,
+        leadingWidth: 64,
+        leading: parentPath != null
+            ? IconButton(
+                tooltip: 'Voltar para ${breadcrumbLabel(parentPath)}',
+                onPressed: () => _navigate(context, parentPath),
+                icon: const Icon(Icons.arrow_back_rounded),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(left: 14),
+                child: Center(
+                  child: Container(
+                    width: AppLayoutTokens.appBarBrandMarkSize,
+                    height: AppLayoutTokens.appBarBrandMarkSize,
+                    decoration: BoxDecoration(
+                      color: context.colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Icon(
+                      Icons.school_rounded,
+                      color: context.colors.onPrimaryContainer,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -191,60 +242,260 @@ class AppShell extends ConsumerWidget {
               chrome.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: context.textTheme.titleMedium,
+              style: displaySize == DisplaySize.mobile
+                  ? context.textTheme.titleMedium
+                  : context.textTheme.titleLarge,
             ),
-            if (displaySize != DisplaySize.mobile && paths.length > 1)
+            if (displaySize != DisplaySize.mobile && paths.length > 2)
               _Breadcrumbs(
                 paths: paths,
                 currentPath: currentPath,
                 onNavigate: (path) => _navigate(context, path),
+              )
+            else if (displaySize != DisplaySize.mobile &&
+                chrome.subtitle != null)
+              Text(
+                chrome.subtitle!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
               ),
           ],
         ),
-        actions: chrome.actions,
+        actions: [
+          ...chrome.actions,
+          if (displaySize == DisplaySize.desktop)
+            TextButton.icon(
+              onPressed: () => _navigate(context, RoutePaths.config),
+              icon: const Icon(Icons.settings_outlined),
+              label: const Text('Configurações'),
+            )
+          else
+            IconButton(
+              tooltip: 'Configurações',
+              onPressed: () => _navigate(context, RoutePaths.config),
+              style: currentPath.startsWith(RoutePaths.config)
+                  ? IconButton.styleFrom(
+                      foregroundColor: context.colors.primary,
+                      backgroundColor: context.colors.primaryContainer,
+                    )
+                  : null,
+              icon: const Icon(Icons.settings_outlined),
+            ),
+          if (displaySize == DisplaySize.desktop)
+            assistant.isOpen
+                ? FilledButton.tonalIcon(
+                    onPressed: () =>
+                        ref.read(studyAssistantProvider.notifier).close(),
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Assistente'),
+                  )
+                : TextButton.icon(
+                    onPressed: () =>
+                        ref.read(studyAssistantProvider.notifier).open(),
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                    label: const Text('Assistente'),
+                  )
+          else
+            IconButton(
+              tooltip: assistant.isOpen
+                  ? 'Fechar assistente de estudos'
+                  : 'Abrir assistente de estudos',
+              onPressed: () => assistant.isOpen
+                  ? ref.read(studyAssistantProvider.notifier).close()
+                  : ref.read(studyAssistantProvider.notifier).open(),
+              style: assistant.isOpen
+                  ? IconButton.styleFrom(
+                      foregroundColor: context.colors.primary,
+                      backgroundColor: context.colors.primaryContainer,
+                    )
+                  : null,
+              icon: Icon(
+                assistant.isOpen
+                    ? Icons.auto_awesome
+                    : Icons.auto_awesome_outlined,
+              ),
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       bottomNavigationBar: displaySize == DisplaySize.mobile
           ? NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: (index) => _goBranch(context, index),
-              labelBehavior:
-                  NavigationDestinationLabelBehavior.onlyShowSelected,
+              height: AppLayoutTokens.navigationBarHeight,
+              selectedIndex:
+                  navigationShell.currentIndex < _primaryNavigationItems.length
+                  ? navigationShell.currentIndex
+                  : _primaryNavigationItems.length,
+              onDestinationSelected: (index) {
+                if (index == _primaryNavigationItems.length) {
+                  _showMoreNavigation(context);
+                } else {
+                  _goBranch(context, index);
+                }
+              },
               destinations: [
-                for (final item in _navigationItems)
+                for (final item in _primaryNavigationItems)
                   NavigationDestination(
                     icon: Icon(item.$3),
                     selectedIcon: Icon(item.$4),
                     label: item.$2,
                   ),
+                NavigationDestination(
+                  icon: Icon(
+                    navigationShell.currentIndex >=
+                            _primaryNavigationItems.length
+                        ? Icons.more_horiz
+                        : Icons.more_horiz_outlined,
+                  ),
+                  selectedIcon: const Icon(Icons.more_horiz),
+                  label: 'Mais',
+                ),
               ],
             )
           : null,
-      body: displaySize == DisplaySize.mobile
-          ? navigationShell
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                NavigationRail(
-                  selectedIndex: navigationShell.currentIndex,
-                  onDestinationSelected: (index) => _goBranch(context, index),
-                  extended: displaySize == DisplaySize.desktop && width >= 1200,
-                  labelType: displaySize == DisplaySize.desktop && width >= 1200
-                      ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.all,
-                  destinations: [
-                    for (final item in _navigationItems)
-                      NavigationRailDestination(
-                        icon: Icon(item.$3),
-                        selectedIcon: Icon(item.$4),
-                        label: Text(item.$2),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final page = displaySize == DisplaySize.mobile
+                    ? navigationShell
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          NavigationRail(
+                            selectedIndex: navigationShell.currentIndex,
+                            onDestinationSelected: (index) =>
+                                _goBranch(context, index),
+                            extended:
+                                displaySize == DisplaySize.desktop &&
+                                width >=
+                                    AppLayoutTokens
+                                        .extendedNavigationRailBreakpoint,
+                            labelType:
+                                displaySize == DisplaySize.desktop &&
+                                    width >=
+                                        AppLayoutTokens
+                                            .extendedNavigationRailBreakpoint
+                                ? NavigationRailLabelType.none
+                                : NavigationRailLabelType.all,
+                            destinations: [
+                              for (final item in _navigationItems)
+                                NavigationRailDestination(
+                                  icon: Icon(item.$3),
+                                  selectedIcon: Icon(item.$4),
+                                  label: Text(item.$2),
+                                ),
+                            ],
+                          ),
+                          const VerticalDivider(width: 1),
+                          Expanded(child: navigationShell),
+                        ],
+                      );
+                final assistantWidth =
+                    (constraints.maxWidth - AppLayoutTokens.floatingPanelInset)
+                        .clamp(0, AppLayoutTokens.assistantPanelWidth)
+                        .toDouble();
+                final assistantHeight =
+                    (constraints.maxHeight - AppLayoutTokens.floatingPanelInset)
+                        .clamp(0, AppLayoutTokens.assistantPanelMaxHeight)
+                        .toDouble();
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    page,
+                    if (assistant.isOpen && !showPinnedAssistant)
+                      Positioned(
+                        right: AppLayoutTokens.floatingPanelOffset,
+                        bottom: AppLayoutTokens.floatingPanelOffset,
+                        width: assistantWidth,
+                        height: assistantHeight,
+                        child: const StudyAssistantPanel(),
                       ),
                   ],
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(child: navigationShell),
-              ],
+                );
+              },
             ),
+          ),
+          if (showPinnedAssistant)
+            const SizedBox(
+              width: AppLayoutTokens.pinnedAssistantWidth,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  0,
+                  AppLayoutTokens.assistantDockPadding,
+                  AppLayoutTokens.assistantDockPadding,
+                  AppLayoutTokens.assistantDockPadding,
+                ),
+                child: StudyAssistantPanel(),
+              ),
+            ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _showMoreNavigation(BuildContext context) async {
+    final selectedIndex = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: EdgeInsets.only(bottom: context.spacing.md),
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                context.spacing.lg,
+                0,
+                context.spacing.lg,
+                context.spacing.sm,
+              ),
+              child: Text('Mais áreas', style: context.textTheme.titleMedium),
+            ),
+            for (final group in _moreNavigationGroups) ...[
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  context.spacing.lg,
+                  context.spacing.sm,
+                  context.spacing.lg,
+                  context.spacing.xs,
+                ),
+                child: Text(
+                  group.$1,
+                  style: context.textTheme.labelLarge?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              for (final index in group.$2)
+                Semantics(
+                  selected: navigationShell.currentIndex == index,
+                  child: ListTile(
+                    leading: Icon(
+                      navigationShell.currentIndex == index
+                          ? _navigationItems[index].$4
+                          : _navigationItems[index].$3,
+                    ),
+                    title: Text(_navigationItems[index].$2),
+                    selected: navigationShell.currentIndex == index,
+                    trailing: navigationShell.currentIndex == index
+                        ? const Icon(Icons.check_circle_outline)
+                        : const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.pop(context, index),
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (selectedIndex != null && context.mounted) {
+      await _goBranch(context, selectedIndex);
+    }
   }
 
   Future<void> _goBranch(BuildContext context, int index) async {
@@ -285,6 +536,18 @@ class AppShell extends ConsumerWidget {
     return saved;
   }
 }
+
+final _primaryNavigationItems = [
+  _navigationItems[0],
+  _navigationItems[1],
+  _navigationItems[2],
+  _navigationItems[3],
+].toList(growable: false);
+
+const _moreNavigationGroups = <(String, List<int>)>[
+  ('Estudo', [4]),
+  ('Sistema', [5, 6]),
+];
 
 class _Breadcrumbs extends StatelessWidget {
   const _Breadcrumbs({

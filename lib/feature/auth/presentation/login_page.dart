@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/auth/providers/auth_state_provider.dart';
@@ -20,7 +21,7 @@ class LoginPage extends ConsumerWidget {
     final formNotifier = ref.read(loginFormProvider.notifier);
 
     return AppResponsiveContent(
-      maxWidth: 560,
+      maxWidth: AppLayoutTokens.formContentWidth,
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

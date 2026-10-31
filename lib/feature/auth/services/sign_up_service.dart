@@ -3,32 +3,31 @@ import 'package:noema/core/network/api_client.dart';
 import 'package:openapi/openapi.dart';
 
 class SignUpService {
+  const SignUpService(this.userApi);
+
   final UserApi userApi;
 
-  SignUpService(this.userApi);
-
-  Future<UserOut?> createUser({
+  Future<void> createUser({
     required String userName,
     required String email,
     required String password,
     required String displayName,
-  }) 
- 
-  async {
-
-    final userCreate = UserCreate((b) => b
-      ..password = password
-      ..primaryEmail = email
-      ..userDisplayName = displayName
-      ..userName = userName
+  }) async {
+    final response = await userApi.newUserApiV1UserCreatePost(
+      userCreate: UserCreate(
+        (builder) => builder
+          ..password = password
+          ..primaryEmail = email
+          ..userDisplayName = displayName
+          ..userName = userName,
+      ),
     );
-
-    final response = await userApi.newUserApiV1UserCreatePost(userCreate: userCreate);
-  
-    return response.data;
+    if (response.data == null) {
+      throw StateError('O servidor não confirmou a criação da conta.');
+    }
   }
 }
 
-final signUpServiceProvider = Provider((ref) {
-  return SignUpService(ref.watch(userApiProvider));
-});
+final signUpServiceProvider = Provider<SignUpService>(
+  (ref) => SignUpService(ref.watch(userApiProvider)),
+);

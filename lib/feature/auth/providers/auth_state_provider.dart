@@ -13,6 +13,7 @@ import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
+import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
 
 final authStateProvider = FutureProvider<bool>((ref) async {
@@ -139,7 +140,12 @@ Future<void> _ensureUserConfig({
               identificator: remoteId,
             )
             .timeout(const Duration(seconds: 5));
-        preferences = _preferencesJson(response.data?.preferences.entries);
+        final remotePreferences = <String, dynamic>{
+          for (final entry in response.data?.preferences.entries ??
+              const <MapEntry<String, JsonObject?>>[])
+            entry.key: entry.value?.value,
+        };
+        preferences = jsonEncode(remotePreferences);
       } catch (error, stackTrace) {
         debugPrint('Falha ao sincronizar a configuração local: $error');
         debugPrintStack(stackTrace: stackTrace);
@@ -186,7 +192,14 @@ Future<void> _ensureUserConfig({
       await configDao.updateConfig(
         id: config.id,
         userId: userId,
-        preferences: _preferencesJson(response.data?.preferences.entries),
+        preferences: mergeRemoteConfigPreferences(
+          remotePreferences: {
+            for (final entry in response.data?.preferences.entries ??
+                const <MapEntry<String, JsonObject?>>[])
+              entry.key: entry.value?.value,
+          },
+          localPreferences: config.preferences,
+        ),
         deviceFingerprint: fingerprint,
       );
     } catch (error, stackTrace) {
@@ -194,15 +207,6 @@ Future<void> _ensureUserConfig({
       debugPrintStack(stackTrace: stackTrace);
     }
   }
-}
-
-String _preferencesJson(
-  Iterable<MapEntry<String, JsonObject?>>? preferenceEntries,
-) {
-  if (preferenceEntries == null) return '{}';
-  return jsonEncode({
-    for (final entry in preferenceEntries) entry.key: entry.value?.value,
-  });
 }
 
 Future<ColorThemeData> _createDefaultColorTheme(

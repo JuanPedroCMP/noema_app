@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 
 class AppResponsiveContent extends StatelessWidget {
   const AppResponsiveContent({
     super.key,
     required this.child,
-    this.maxWidth = 1000,
+    this.maxWidth = AppLayoutTokens.pageContentWidth,
     this.padding,
   });
 
@@ -14,15 +16,21 @@ class AppResponsiveContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 600;
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < AppLayoutTokens.compactBreakpoint;
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Padding(
-          padding: padding ??
+          padding:
+              padding ??
               EdgeInsets.symmetric(
-                horizontal: compact ? 16 : 32,
-                vertical: compact ? 20 : 32,
+                horizontal: compact
+                    ? AppLayoutTokens.pageHorizontalPaddingCompact
+                    : AppLayoutTokens.pageHorizontalPaddingRegular,
+                vertical: compact
+                    ? AppLayoutTokens.pageVerticalPaddingCompact
+                    : AppLayoutTokens.pageVerticalPaddingRegular,
               ),
           child: child,
         ),
@@ -47,13 +55,14 @@ class AppPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 560;
+        final compact =
+            constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint;
         final heading = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: Theme.of(context).textTheme.headlineMedium),
             if (subtitle != null) ...[
-              const SizedBox(height: 6),
+              SizedBox(height: context.spacing.xs + 2),
               Text(subtitle!),
             ],
           ],
@@ -68,7 +77,7 @@ class AppPageHeader extends StatelessWidget {
               flex: compact ? 0 : 1,
               child: heading,
             ),
-            if (compact) const SizedBox(height: 16),
+            if (compact) SizedBox(height: context.spacing.md),
             Wrap(
               spacing: 8,
               runSpacing: 8,

@@ -4,8 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
+import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/feature/ai/models/ai_agent_task.dart';
+import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/flashcards/data/flashcard_dao.dart';
+import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
+import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 import 'package:noema/shared/widgets/app_card.dart';
 import 'package:noema/shared/widgets/async_state_view.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
@@ -47,9 +52,10 @@ final flashcardsProvider = FutureProvider.autoDispose
     });
 
 class FlashcardPage extends ConsumerStatefulWidget {
-  const FlashcardPage({super.key, this.nodeId});
+  const FlashcardPage({super.key, this.nodeId, this.initialHandoff});
 
   final String? nodeId;
+  final StudyAssistantHandoff? initialHandoff;
 
   @override
   ConsumerState<FlashcardPage> createState() => _FlashcardPageState();
@@ -65,8 +71,39 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   bool _showAnswer = false;
   bool _isReviewing = false;
   bool _sessionComplete = false;
+  bool _isGeneratingAssistantCards = false;
+  bool _assistantAutoGenerationScheduled = false;
+  bool _assistantHandoffDismissed = false;
+  String? _assistantNodeId;
+  late final TextEditingController _assistantPromptController;
   String _search = '';
   final Stopwatch _reviewTimer = Stopwatch();
+
+  @override
+  void initState() {
+    super.initState();
+    _assistantPromptController = TextEditingController(
+      text: widget.initialHandoff?.prompt ?? '',
+    );
+    _assistantNodeId = widget.initialHandoff?.nodeId ?? widget.nodeId;
+  }
+
+  @override
+  void didUpdateWidget(covariant FlashcardPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialHandoff != widget.initialHandoff) {
+      _assistantPromptController.text = widget.initialHandoff?.prompt ?? '';
+      _assistantNodeId = widget.initialHandoff?.nodeId ?? widget.nodeId;
+      _assistantAutoGenerationScheduled = false;
+      _assistantHandoffDismissed = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _assistantPromptController.dispose();
+    super.dispose();
+  }
 
   void _startDeck(
     String name,
@@ -320,10 +357,252 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     }
   }
 
+  Future<void> _generateAssistantCards(FlashcardPageData data) async {
+    if (_isGeneratingAssistantCards) return;
+    final prompt = _assistantPromptController.text.trim();
+    final nodeId = _assistantNodeId;
+    if (prompt.isEmpty || nodeId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe o tema e escolha um nó para gerar cartões.'),
+        ),
+      );
+      return;
+    }
+    final matchingNodes = data.nodes.where((item) => item.id == nodeId);
+    if (matchingNodes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escolha um nó disponível no seu grafo.')),
+      );
+      return;
+    }
+    final node = matchingNodes.first;
+    setState(() => _isGeneratingAssistantCards = true);
+    try {
+      final response = await ref
+          .read(aiContentGenerationServiceProvider)
+          .generate(
+            task: AiAgentTask.createFlashcards,
+            prompt: '''
+Crie de 3 a 8 flashcards de estudo objetivos em português brasileiro.
+Tema pedido: $prompt
+Nó de estudo: ${node.title}
+Descrição do nó: ${node.description ?? 'não informada'}
+Retorne somente JSON: {"flashcards":[{"title":"pergunta curta","statement":"resposta correta, clara e suficiente","targetSkill":"habilidade avaliada"}]}.
+Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
+''',
+          );
+      final cards = _parseSuggestedCards(response);
+      if (!mounted) return;
+      final accepted = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('${cards.length} flashcards sugeridos'),
+          content: SizedBox(
+            width: 520,
+            height: 420,
+            child: ListView.separated(
+              itemCount: cards.length,
+              separatorBuilder: (_, _) => const Divider(),
+              itemBuilder: (context, index) {
+                final card = cards[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(card.title),
+                  subtitle: Text(
+                    card.statement,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Descartar'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(context, true),
+              icon: const Icon(Icons.save_outlined),
+              label: const Text('Salvar cartões'),
+            ),
+          ],
+        ),
+      );
+      if (accepted != true || !mounted) return;
+      final user = await ref.read(userProvider.future);
+      final dao = FlashcardDao(ref.read(appDatabaseProvider));
+      await ref.read(appDatabaseProvider).transaction(() async {
+        for (final card in cards) {
+          await dao.create(
+            userId: user.id,
+            nodeId: node.id,
+            title: card.title,
+            statement: card.statement,
+            targetSkill: card.targetSkill,
+          );
+        }
+      });
+      if (!mounted) return;
+      ref.invalidate(flashcardsProvider(widget.nodeId));
+      ref.read(studyAssistantProvider.notifier).consumeHandoff();
+      setState(() => _assistantHandoffDismissed = true);
+      _assistantPromptController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${cards.length} flashcards salvos.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível gerar os flashcards: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _isGeneratingAssistantCards = false);
+    }
+  }
+
+  List<({String title, String statement, String? targetSkill})>
+  _parseSuggestedCards(Map<String, dynamic> response) {
+    final rawCards = response['flashcards'];
+    if (rawCards is! List || rawCards.isEmpty || rawCards.length > 8) {
+      throw const FormatException(
+        'A resposta deve conter de 1 a 8 flashcards.',
+      );
+    }
+    return rawCards.map((item) {
+      if (item is! Map) {
+        throw const FormatException('Um flashcard retornado é inválido.');
+      }
+      final card = Map<String, dynamic>.from(item);
+      final title = card['title'];
+      final statement = card['statement'];
+      final skill = card['targetSkill'] ?? card['target_skill'];
+      if (title is! String ||
+          title.trim().isEmpty ||
+          title.trim().length > 160 ||
+          statement is! String ||
+          statement.trim().isEmpty ||
+          statement.trim().length > 3000) {
+        throw const FormatException(
+          'Cada flashcard precisa de pergunta e resposta.',
+        );
+      }
+      return (
+        title: title.trim(),
+        statement: statement.trim(),
+        targetSkill: skill is String ? skill.trim() : null,
+      );
+    }).toList(growable: false);
+  }
+
+  Widget _buildAssistantGenerationCard(FlashcardPageData data) {
+    final handoff = widget.initialHandoff;
+    if (_assistantHandoffDismissed ||
+        handoff?.type != StudyAssistantActionType.createFlashcards) {
+      return const SizedBox.shrink();
+    }
+    final firstNodeId = data.nodes.isEmpty ? null : data.nodes.first.id;
+    if (_assistantNodeId == null ||
+        !data.nodes.any((node) => node.id == _assistantNodeId)) {
+      _assistantNodeId = firstNodeId;
+    }
+    if (handoff!.autoGenerate && !_assistantAutoGenerationScheduled) {
+      _assistantAutoGenerationScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _generateAssistantCards(data);
+      });
+    }
+    if (data.nodes.isEmpty) {
+      return const Card(
+        child: ListTile(
+          leading: Icon(Icons.info_outline),
+          title: Text('Crie um nó antes de gerar flashcards'),
+          subtitle: Text(
+            'Os cartões precisam estar vinculados a um conceito do seu grafo.',
+          ),
+        ),
+      );
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Preparar flashcards com o assistente',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Descartar sugestão',
+                  onPressed: () {
+                    ref.read(studyAssistantProvider.notifier).consumeHandoff();
+                    setState(() => _assistantHandoffDismissed = true);
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Revise o tema e escolha o nó. A geração cria uma prévia; '
+              'nada será salvo sem sua confirmação.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _assistantPromptController,
+              maxLines: 2,
+              maxLength: 1000,
+              decoration: const InputDecoration(
+                labelText: 'Tema e instruções',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            DropdownButtonFormField<String>(
+              initialValue: _assistantNodeId,
+              decoration: const InputDecoration(labelText: 'Vincular ao nó'),
+              items: [
+                for (final node in data.nodes)
+                  DropdownMenuItem(value: node.id, child: Text(node.title)),
+              ],
+              onChanged: (value) => setState(() => _assistantNodeId = value),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: _isGeneratingAssistantCards
+                    ? null
+                    : () => _generateAssistantCards(data),
+                icon: _isGeneratingAssistantCards
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome),
+                label: Text(
+                  _isGeneratingAssistantCards
+                      ? 'Gerando prévia...'
+                      : 'Gerar prévia',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppResponsiveContent(
-      maxWidth: 1100,
+      maxWidth: AppLayoutTokens.flashcardContentWidth,
       child: ref
           .watch(flashcardsProvider(widget.nodeId))
           .when(
@@ -334,7 +613,12 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
               onRetry: () => ref.invalidate(flashcardsProvider(widget.nodeId)),
             ),
             data: (data) => _activeDeckName == null
-                ? _buildDeckLibrary(context, data)
+                ? Column(
+                    children: [
+                      _buildAssistantGenerationCard(data),
+                      Expanded(child: _buildDeckLibrary(context, data)),
+                    ],
+                  )
                 : _buildStudySession(context),
           ),
     );

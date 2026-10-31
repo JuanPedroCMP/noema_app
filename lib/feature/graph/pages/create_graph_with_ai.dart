@@ -15,7 +15,14 @@ import 'package:noema/feature/graph/service/import_grap_from_json.dart';
 const _graphManipulatorAgentId = 'c85e5671-a9bb-4c68-9734-3b8f492e5aff';
 
 class CreateGraphWithAi extends ConsumerStatefulWidget {
-  const CreateGraphWithAi({super.key});
+  const CreateGraphWithAi({
+    super.key,
+    this.initialPrompt = '',
+    this.autoGenerate = false,
+  });
+
+  final String initialPrompt;
+  final bool autoGenerate;
 
   @override
   ConsumerState<CreateGraphWithAi> createState() => _CreateGraphWithAiState();
@@ -27,6 +34,17 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
   bool _isSaving = false;
   GraphResponse? _draft;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _promptController.text = widget.initialPrompt;
+    if (widget.autoGenerate && widget.initialPrompt.trim().length >= 5) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _generate();
+      });
+    }
+  }
 
   @override
   void dispose() {

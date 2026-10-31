@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
+import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 
 class AiQueueConcurrencyNotifier extends AsyncNotifier<int> {
@@ -12,6 +13,17 @@ class AiQueueConcurrencyNotifier extends AsyncNotifier<int> {
     final user = await ref.watch(userProvider.future);
     final db = ref.watch(appDatabaseProvider);
     final config = await ConfigDao(db).getConfigByUser(userId: user.id);
+    final storedValue = config == null
+        ? null
+        : readConfigPreference(
+            config.preferences,
+            'aiMaxConcurrentRequests',
+          );
+    if (storedValue is int &&
+        storedValue >= minimum &&
+        storedValue <= maximum) {
+      return storedValue;
+    }
     return config?.aiMaxConcurrentRequests ?? minimum;
   }
 
@@ -24,6 +36,11 @@ class AiQueueConcurrencyNotifier extends AsyncNotifier<int> {
       );
     }
 
+    await saveConfigPreference(
+      ref,
+      key: 'aiMaxConcurrentRequests',
+      value: concurrency,
+    );
     final user = await ref.read(userProvider.future);
     final db = ref.read(appDatabaseProvider);
     final dao = ConfigDao(db);

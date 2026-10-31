@@ -69,7 +69,7 @@ class AiContentGenerationService {
         ? normalizedPrompt
         : buildUserPrompt(prompt: normalizedPrompt, context: context);
 
-    final action = () => _generateNow(
+    Future<Map<String, dynamic>> action() => _generateNow(
       task: task,
       userPrompt: userPrompt,
       agentId: agentId,
@@ -134,7 +134,11 @@ Descrição atual (se houver): ${existingDescription?.trim().isNotEmpty == true 
     required String? agentId,
   }) async {
     if (kDebugMode) {
-      developer.log(userPrompt, name: 'noema.ai');
+      developer.log(
+        'Preparando solicitação de IA '
+        '(task=${task.wireName}, promptLength=${userPrompt.length}).',
+        name: 'noema.ai',
+      );
     }
 
     final selectedAgentId = agentId ?? await resolveAgentId(task);
