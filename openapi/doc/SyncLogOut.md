@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **idDevice** | **String** |  | 
 **idBackupFile** | **String** |  | 
+**idGoogleAccount** | **String** |  | 
+**idUser** | **String** |  | 
 **event** | **String** |  | 
 **derection** | [**SyncDirection**](SyncDirection.md) |  | 
 **result** | [**SyncResult**](SyncResult.md) |  | 

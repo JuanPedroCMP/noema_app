@@ -22,6 +22,16 @@ void main() {
       // TODO
     });
 
+    // String idGoogleAccount
+    test('to test the property `idGoogleAccount`', () async {
+      // TODO
+    });
+
+    // String idUser
+    test('to test the property `idUser`', () async {
+      // TODO
+    });
+
     // String event
     test('to test the property `event`', () async {
       // TODO

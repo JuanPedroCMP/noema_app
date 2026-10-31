@@ -20,16 +20,22 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AiUsageLogCreate.serializer)
       ..add(AiUsageLogOut.serializer)
       ..add(BackupFileCreate.serializer)
+      ..add(BackupFileFilters.serializer)
       ..add(BackupFileOut.serializer)
+      ..add(BackupMetadataCreate.serializer)
+      ..add(BackupMetadataUpdate.serializer)
+      ..add(BackupOperationState.serializer)
       ..add(ConflictStrategy.serializer)
       ..add(DeviceCreate.serializer)
       ..add(DeviceOut.serializer)
       ..add(DeviceUpdate.serializer)
       ..add(GenericLogCreate.serializer)
       ..add(GenericLogOut.serializer)
-      ..add(GoogleAccountCreate.serializer)
+      ..add(GoogleAccountLinkRequest.serializer)
       ..add(GoogleAccountOut.serializer)
-      ..add(GoogleAccountUpdate.serializer)
+      ..add(GoogleAccountStatusOut.serializer)
+      ..add(GoogleAccountStatusOutErrorEnum.serializer)
+      ..add(GoogleAccountStatusOutStateEnum.serializer)
       ..add(HTTPValidationError.serializer)
       ..add(LanguageCreate.serializer)
       ..add(LanguageOut.serializer)
@@ -41,8 +47,12 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ResponseLanguagePreferenceOrderCreate.serializer)
       ..add(ResponseLanguagePreferenceOrderOut.serializer)
       ..add(ResponseLanguagePreferenceOrderUpdate.serializer)
+      ..add(SnapshotManifest.serializer)
       ..add(SyncDirection.serializer)
       ..add(SyncLogCreate.serializer)
+      ..add(SyncLogCreateErrorDetailsEnum.serializer)
+      ..add(SyncLogCreateEventEnum.serializer)
+      ..add(SyncLogFilters.serializer)
       ..add(SyncLogOut.serializer)
       ..add(SyncResult.serializer)
       ..add(TaskType.serializer)
@@ -71,8 +81,43 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(LocationInner)]),
           () => ListBuilder<LocationInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltMap, const [const FullType(String), const FullType(int)]),
+          () => MapBuilder<String, int>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltMap, const [const FullType(String), const FullType(String)]),
+          () => MapBuilder<String, String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ValidationError)]),
           () => ListBuilder<ValidationError>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),

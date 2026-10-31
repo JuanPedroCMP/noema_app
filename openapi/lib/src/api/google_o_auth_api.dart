@@ -18,7 +18,7 @@ class GoogleOAuthApi {
 
   const GoogleOAuthApi(this._dio, this._serializers);
 
-  /// Google Oauth Callback
+  /// Retired Google Oauth Callback
   /// 
   ///
   /// Parameters:
@@ -31,7 +31,8 @@ class GoogleOAuthApi {
   ///
   /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> googleOauthCallbackApiV1AuthGoogleCallbackGet({ 
+  @Deprecated('This operation has been deprecated')
+  Future<Response<JsonObject>> retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -91,7 +92,7 @@ class GoogleOAuthApi {
     );
   }
 
-  /// Link Google Account
+  /// Retired Server Side Google Oauth
   /// 
   ///
   /// Parameters:
@@ -104,7 +105,8 @@ class GoogleOAuthApi {
   ///
   /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> linkGoogleAccountApiV1AuthGoogleLinkGet({ 
+  @Deprecated('This operation has been deprecated')
+  Future<Response<JsonObject>> retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

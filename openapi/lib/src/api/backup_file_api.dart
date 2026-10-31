@@ -9,9 +9,9 @@ import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
 import 'package:built_collection/built_collection.dart';
-import 'package:built_value/json_object.dart';
 import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/backup_file_create.dart';
+import 'package:openapi/src/model/backup_file_filters.dart';
 import 'package:openapi/src/model/backup_file_out.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 
@@ -135,9 +135,9 @@ class BackupFileApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Returns a [Future] containing a [Response] with a [BuiltMap<String, bool?>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete({ 
+  Future<Response<BuiltMap<String, bool?>>> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete({ 
     required String identificator,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -172,14 +172,14 @@ class BackupFileApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    JsonObject? _responseData;
+    BuiltMap<String, bool?>? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(JsonObject),
-      ) as JsonObject;
+        specifiedType: const FullType(BuiltMap, [FullType(String), FullType(bool)]),
+      ) as BuiltMap<String, bool?>;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -191,7 +191,7 @@ class BackupFileApi {
       );
     }
 
-    return Response<JsonObject>(
+    return Response<BuiltMap<String, bool?>>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -287,13 +287,9 @@ class BackupFileApi {
   /// 
   ///
   /// Parameters:
-  /// * [id] 
-  /// * [idGoogleAccount] 
-  /// * [driveFileId] 
-  /// * [localRef] 
-  /// * [driveVersion] 
-  /// * [contentHash] 
-  /// * [createdAt] 
+  /// * [filters] 
+  /// * [limit] 
+  /// * [offset] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -304,13 +300,9 @@ class BackupFileApi {
   /// Returns a [Future] containing a [Response] with a [BuiltList<BackupFileOut>] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<BuiltList<BackupFileOut>>> listBackupFileApiV1GoogleDriveBackupFileListGet({ 
-    String? id,
-    String? idGoogleAccount,
-    String? driveFileId,
-    String? localRef,
-    String? driveVersion,
-    String? contentHash,
-    DateTime? createdAt,
+    required BackupFileFilters filters,
+    int? limit = 100,
+    int? offset = 0,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -337,13 +329,9 @@ class BackupFileApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      if (idGoogleAccount != null) r'id_google_account': encodeQueryParameter(_serializers, idGoogleAccount, const FullType(String)),
-      if (driveFileId != null) r'drive_file_id': encodeQueryParameter(_serializers, driveFileId, const FullType(String)),
-      if (localRef != null) r'local_ref': encodeQueryParameter(_serializers, localRef, const FullType(String)),
-      if (driveVersion != null) r'drive_version': encodeQueryParameter(_serializers, driveVersion, const FullType(String)),
-      if (contentHash != null) r'content_hash': encodeQueryParameter(_serializers, contentHash, const FullType(String)),
-      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      r'filters': encodeQueryParameter(_serializers, filters, const FullType(BackupFileFilters)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
+      if (offset != null) r'offset': encodeQueryParameter(_serializers, offset, const FullType(int)),
     };
 
     final _response = await _dio.request<Object>(

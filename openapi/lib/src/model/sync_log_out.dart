@@ -19,6 +19,8 @@ part 'sync_log_out.g.dart';
 /// * [id] 
 /// * [idDevice] 
 /// * [idBackupFile] 
+/// * [idGoogleAccount] 
+/// * [idUser] 
 /// * [event] 
 /// * [derection] 
 /// * [result] 
@@ -32,13 +34,19 @@ abstract class SyncLogOut implements Built<SyncLogOut, SyncLogOutBuilder> {
   String get id;
 
   @BuiltValueField(wireName: r'id_device')
-  String get idDevice;
+  String? get idDevice;
 
   @BuiltValueField(wireName: r'id_backup_file')
-  String get idBackupFile;
+  String? get idBackupFile;
+
+  @BuiltValueField(wireName: r'id_google_account')
+  String? get idGoogleAccount;
+
+  @BuiltValueField(wireName: r'id_user')
+  String? get idUser;
 
   @BuiltValueField(wireName: r'event')
-  String get event;
+  String? get event;
 
   @BuiltValueField(wireName: r'derection')
   SyncDirection get derection;
@@ -49,11 +57,11 @@ abstract class SyncLogOut implements Built<SyncLogOut, SyncLogOutBuilder> {
   // enum resultEnum {  success,  failure,  in_conflict,  };
 
   @BuiltValueField(wireName: r'conflict_strategy')
-  ConflictStrategy get conflictStrategy;
+  ConflictStrategy? get conflictStrategy;
   // enum conflictStrategyEnum {  keep_local,  keep_remote,  merge,  duplicate,  };
 
   @BuiltValueField(wireName: r'error_details')
-  String get errorDetails;
+  String? get errorDetails;
 
   @BuiltValueField(wireName: r'metadata')
   BuiltMap<String, JsonObject?> get metadata;
@@ -90,19 +98,29 @@ class _$SyncLogOutSerializer implements PrimitiveSerializer<SyncLogOut> {
       specifiedType: const FullType(String),
     );
     yield r'id_device';
-    yield serializers.serialize(
+    yield object.idDevice == null ? null : serializers.serialize(
       object.idDevice,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'id_backup_file';
-    yield serializers.serialize(
+    yield object.idBackupFile == null ? null : serializers.serialize(
       object.idBackupFile,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'id_google_account';
+    yield object.idGoogleAccount == null ? null : serializers.serialize(
+      object.idGoogleAccount,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'id_user';
+    yield object.idUser == null ? null : serializers.serialize(
+      object.idUser,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'event';
-    yield serializers.serialize(
+    yield object.event == null ? null : serializers.serialize(
       object.event,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'derection';
     yield serializers.serialize(
@@ -115,14 +133,14 @@ class _$SyncLogOutSerializer implements PrimitiveSerializer<SyncLogOut> {
       specifiedType: const FullType(SyncResult),
     );
     yield r'conflict_strategy';
-    yield serializers.serialize(
+    yield object.conflictStrategy == null ? null : serializers.serialize(
       object.conflictStrategy,
-      specifiedType: const FullType(ConflictStrategy),
+      specifiedType: const FullType.nullable(ConflictStrategy),
     );
     yield r'error_details';
-    yield serializers.serialize(
+    yield object.errorDetails == null ? null : serializers.serialize(
       object.errorDetails,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'metadata';
     yield serializers.serialize(
@@ -167,22 +185,41 @@ class _$SyncLogOutSerializer implements PrimitiveSerializer<SyncLogOut> {
         case r'id_device':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.idDevice = valueDes;
           break;
         case r'id_backup_file':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.idBackupFile = valueDes;
+          break;
+        case r'id_google_account':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idGoogleAccount = valueDes;
+          break;
+        case r'id_user':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.idUser = valueDes;
           break;
         case r'event':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.event = valueDes;
           break;
         case r'derection':
@@ -202,15 +239,17 @@ class _$SyncLogOutSerializer implements PrimitiveSerializer<SyncLogOut> {
         case r'conflict_strategy':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(ConflictStrategy),
-          ) as ConflictStrategy;
+            specifiedType: const FullType.nullable(ConflictStrategy),
+          ) as ConflictStrategy?;
+          if (valueDes == null) continue;
           result.conflictStrategy = valueDes;
           break;
         case r'error_details':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.errorDetails = valueDes;
           break;
         case r'metadata':

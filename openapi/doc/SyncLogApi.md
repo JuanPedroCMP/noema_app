@@ -9,15 +9,15 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**createSyncLogApiV1GoogleDriveSyncLogCreatePost**](SyncLogApi.md#createsynclogapiv1googledrivesynclogcreatepost) | **POST** /api/v1/google_drive/sync_log/create | Create Sync Log
+[**createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost**](SyncLogApi.md#createsynclogendpointapiv1googledrivesynclogcreatepost) | **POST** /api/v1/google_drive/sync_log/create | Create Sync Log Endpoint
 [**getSyncLogApiV1GoogleDriveSyncLogGetIdentificatorGet**](SyncLogApi.md#getsynclogapiv1googledrivesyncloggetidentificatorget) | **GET** /api/v1/google_drive/sync_log/get/{identificator} | Get Sync Log
 [**listSyncLogApiV1GoogleDriveSyncLogListGet**](SyncLogApi.md#listsynclogapiv1googledrivesyncloglistget) | **GET** /api/v1/google_drive/sync_log/list | List Sync Log
 
 
-# **createSyncLogApiV1GoogleDriveSyncLogCreatePost**
-> SyncLogOut createSyncLogApiV1GoogleDriveSyncLogCreatePost(syncLogCreate)
+# **createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost**
+> SyncLogOut createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost(syncLogCreate)
 
-Create Sync Log
+Create Sync Log Endpoint
 
 ### Example
 ```dart
@@ -29,10 +29,10 @@ final api = Openapi().getSyncLogApi();
 final SyncLogCreate syncLogCreate = ; // SyncLogCreate | 
 
 try {
-    final response = api.createSyncLogApiV1GoogleDriveSyncLogCreatePost(syncLogCreate);
+    final response = api.createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost(syncLogCreate);
     print(response);
 } on DioException catch (e) {
-    print('Exception when calling SyncLogApi->createSyncLogApiV1GoogleDriveSyncLogCreatePost: $e\n');
+    print('Exception when calling SyncLogApi->createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost: $e\n');
 }
 ```
 
@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listSyncLogApiV1GoogleDriveSyncLogListGet**
-> BuiltList<SyncLogOut> listSyncLogApiV1GoogleDriveSyncLogListGet(id, idDevice, idBackupFile, event, derection, result, conflictStrategy, errorDetails, metadata, createdAt)
+> BuiltList<SyncLogOut> listSyncLogApiV1GoogleDriveSyncLogListGet(filters, limit, offset)
 
 List Sync Log
 
@@ -112,19 +112,12 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<OAuth>('OAuth2PasswordBearer').accessToken = 'YOUR_ACCESS_TOKEN';
 
 final api = Openapi().getSyncLogApi();
-final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String idDevice = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String idBackupFile = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String event = event_example; // String | 
-final SyncDirection derection = ; // SyncDirection | 
-final SyncResult result = ; // SyncResult | 
-final ConflictStrategy conflictStrategy = ; // ConflictStrategy | 
-final String errorDetails = errorDetails_example; // String | 
-final String metadata = metadata_example; // String | 
-final DateTime createdAt = 2013-10-20T19:20:30+01:00; // DateTime | 
+final SyncLogFilters filters = ; // SyncLogFilters | 
+final int limit = 56; // int | 
+final int offset = 56; // int | 
 
 try {
-    final response = api.listSyncLogApiV1GoogleDriveSyncLogListGet(id, idDevice, idBackupFile, event, derection, result, conflictStrategy, errorDetails, metadata, createdAt);
+    final response = api.listSyncLogApiV1GoogleDriveSyncLogListGet(filters, limit, offset);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling SyncLogApi->listSyncLogApiV1GoogleDriveSyncLogListGet: $e\n');
@@ -135,16 +128,9 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **String**|  | [optional] 
- **idDevice** | **String**|  | [optional] 
- **idBackupFile** | **String**|  | [optional] 
- **event** | **String**|  | [optional] 
- **derection** | [**SyncDirection**](.md)|  | [optional] 
- **result** | [**SyncResult**](.md)|  | [optional] 
- **conflictStrategy** | [**ConflictStrategy**](.md)|  | [optional] 
- **errorDetails** | **String**|  | [optional] 
- **metadata** | **String**|  | [optional] 
- **createdAt** | **DateTime**|  | [optional] 
+ **filters** | [**SyncLogFilters**](.md)|  | 
+ **limit** | **int**|  | [optional] [default to 100]
+ **offset** | **int**|  | [optional] [default to 0]
 
 ### Return type
 

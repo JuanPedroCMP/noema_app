@@ -14,9 +14,13 @@ class _$GoogleAccountOut extends GoogleAccountOut {
   @override
   final String? googleUserId;
   @override
-  final String emailGoogle;
+  final String? emailGoogle;
   @override
   final String? grantedScopes;
+  @override
+  final String driveAppdataStatus;
+  @override
+  final DateTime? scopeCheckedAt;
   @override
   final bool isActive;
   @override
@@ -36,8 +40,10 @@ class _$GoogleAccountOut extends GoogleAccountOut {
       {required this.id,
       required this.idUser,
       this.googleUserId,
-      required this.emailGoogle,
+      this.emailGoogle,
       this.grantedScopes,
+      required this.driveAppdataStatus,
+      this.scopeCheckedAt,
       required this.isActive,
       this.expiresAt,
       this.lastRefreshAt,
@@ -61,6 +67,8 @@ class _$GoogleAccountOut extends GoogleAccountOut {
         googleUserId == other.googleUserId &&
         emailGoogle == other.emailGoogle &&
         grantedScopes == other.grantedScopes &&
+        driveAppdataStatus == other.driveAppdataStatus &&
+        scopeCheckedAt == other.scopeCheckedAt &&
         isActive == other.isActive &&
         expiresAt == other.expiresAt &&
         lastRefreshAt == other.lastRefreshAt &&
@@ -76,6 +84,8 @@ class _$GoogleAccountOut extends GoogleAccountOut {
     _$hash = $jc(_$hash, googleUserId.hashCode);
     _$hash = $jc(_$hash, emailGoogle.hashCode);
     _$hash = $jc(_$hash, grantedScopes.hashCode);
+    _$hash = $jc(_$hash, driveAppdataStatus.hashCode);
+    _$hash = $jc(_$hash, scopeCheckedAt.hashCode);
     _$hash = $jc(_$hash, isActive.hashCode);
     _$hash = $jc(_$hash, expiresAt.hashCode);
     _$hash = $jc(_$hash, lastRefreshAt.hashCode);
@@ -93,6 +103,8 @@ class _$GoogleAccountOut extends GoogleAccountOut {
           ..add('googleUserId', googleUserId)
           ..add('emailGoogle', emailGoogle)
           ..add('grantedScopes', grantedScopes)
+          ..add('driveAppdataStatus', driveAppdataStatus)
+          ..add('scopeCheckedAt', scopeCheckedAt)
           ..add('isActive', isActive)
           ..add('expiresAt', expiresAt)
           ..add('lastRefreshAt', lastRefreshAt)
@@ -127,6 +139,16 @@ class GoogleAccountOutBuilder
   set grantedScopes(String? grantedScopes) =>
       _$this._grantedScopes = grantedScopes;
 
+  String? _driveAppdataStatus;
+  String? get driveAppdataStatus => _$this._driveAppdataStatus;
+  set driveAppdataStatus(String? driveAppdataStatus) =>
+      _$this._driveAppdataStatus = driveAppdataStatus;
+
+  DateTime? _scopeCheckedAt;
+  DateTime? get scopeCheckedAt => _$this._scopeCheckedAt;
+  set scopeCheckedAt(DateTime? scopeCheckedAt) =>
+      _$this._scopeCheckedAt = scopeCheckedAt;
+
   bool? _isActive;
   bool? get isActive => _$this._isActive;
   set isActive(bool? isActive) => _$this._isActive = isActive;
@@ -160,6 +182,8 @@ class GoogleAccountOutBuilder
       _googleUserId = $v.googleUserId;
       _emailGoogle = $v.emailGoogle;
       _grantedScopes = $v.grantedScopes;
+      _driveAppdataStatus = $v.driveAppdataStatus;
+      _scopeCheckedAt = $v.scopeCheckedAt;
       _isActive = $v.isActive;
       _expiresAt = $v.expiresAt;
       _lastRefreshAt = $v.lastRefreshAt;
@@ -191,9 +215,11 @@ class GoogleAccountOutBuilder
           idUser: BuiltValueNullFieldError.checkNotNull(
               idUser, r'GoogleAccountOut', 'idUser'),
           googleUserId: googleUserId,
-          emailGoogle: BuiltValueNullFieldError.checkNotNull(
-              emailGoogle, r'GoogleAccountOut', 'emailGoogle'),
+          emailGoogle: emailGoogle,
           grantedScopes: grantedScopes,
+          driveAppdataStatus: BuiltValueNullFieldError.checkNotNull(
+              driveAppdataStatus, r'GoogleAccountOut', 'driveAppdataStatus'),
+          scopeCheckedAt: scopeCheckedAt,
           isActive: BuiltValueNullFieldError.checkNotNull(
               isActive, r'GoogleAccountOut', 'isActive'),
           expiresAt: expiresAt,

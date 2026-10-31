@@ -119,7 +119,7 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
             AppSection(
               title: "Conta Google",
               description:
-                  "Vincule ou remova a conta Google usada pelas integrações.",
+                  "Crie, compare, restaure e mescle backups locais na área privada do Google Drive.",
               key: keys[ConfigSections.googleAccount],
               child: const GoogleAccountSection(),
             ),

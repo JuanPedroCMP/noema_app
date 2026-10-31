@@ -7,10 +7,10 @@ void main() {
   final instance = Openapi().getSyncLogApi();
 
   group(SyncLogApi, () {
-    // Create Sync Log
+    // Create Sync Log Endpoint
     //
-    //Future<SyncLogOut> createSyncLogApiV1GoogleDriveSyncLogCreatePost(SyncLogCreate syncLogCreate) async
-    test('test createSyncLogApiV1GoogleDriveSyncLogCreatePost', () async {
+    //Future<SyncLogOut> createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost(SyncLogCreate syncLogCreate) async
+    test('test createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost', () async {
       // TODO
     });
 
@@ -23,7 +23,7 @@ void main() {
 
     // List Sync Log
     //
-    //Future<BuiltList<SyncLogOut>> listSyncLogApiV1GoogleDriveSyncLogListGet({ String id, String idDevice, String idBackupFile, String event, SyncDirection derection, SyncResult result, ConflictStrategy conflictStrategy, String errorDetails, String metadata, DateTime createdAt }) async
+    //Future<BuiltList<SyncLogOut>> listSyncLogApiV1GoogleDriveSyncLogListGet(SyncLogFilters filters, { int limit, int offset }) async
     test('test listSyncLogApiV1GoogleDriveSyncLogListGet', () async {
       // TODO
     });

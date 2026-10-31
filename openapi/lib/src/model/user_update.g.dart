@@ -15,12 +15,18 @@ class _$UserUpdate extends UserUpdate {
   final String? userDisplayName;
   @override
   final String? password;
+  @override
+  final String? currentPassword;
 
   factory _$UserUpdate([void Function(UserUpdateBuilder)? updates]) =>
       (UserUpdateBuilder()..update(updates))._build();
 
   _$UserUpdate._(
-      {this.userName, this.primaryEmail, this.userDisplayName, this.password})
+      {this.userName,
+      this.primaryEmail,
+      this.userDisplayName,
+      this.password,
+      this.currentPassword})
       : super._();
   @override
   UserUpdate rebuild(void Function(UserUpdateBuilder) updates) =>
@@ -36,7 +42,8 @@ class _$UserUpdate extends UserUpdate {
         userName == other.userName &&
         primaryEmail == other.primaryEmail &&
         userDisplayName == other.userDisplayName &&
-        password == other.password;
+        password == other.password &&
+        currentPassword == other.currentPassword;
   }
 
   @override
@@ -46,6 +53,7 @@ class _$UserUpdate extends UserUpdate {
     _$hash = $jc(_$hash, primaryEmail.hashCode);
     _$hash = $jc(_$hash, userDisplayName.hashCode);
     _$hash = $jc(_$hash, password.hashCode);
+    _$hash = $jc(_$hash, currentPassword.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -56,7 +64,8 @@ class _$UserUpdate extends UserUpdate {
           ..add('userName', userName)
           ..add('primaryEmail', primaryEmail)
           ..add('userDisplayName', userDisplayName)
-          ..add('password', password))
+          ..add('password', password)
+          ..add('currentPassword', currentPassword))
         .toString();
   }
 }
@@ -81,6 +90,11 @@ class UserUpdateBuilder implements Builder<UserUpdate, UserUpdateBuilder> {
   String? get password => _$this._password;
   set password(String? password) => _$this._password = password;
 
+  String? _currentPassword;
+  String? get currentPassword => _$this._currentPassword;
+  set currentPassword(String? currentPassword) =>
+      _$this._currentPassword = currentPassword;
+
   UserUpdateBuilder() {
     UserUpdate._defaults(this);
   }
@@ -92,6 +106,7 @@ class UserUpdateBuilder implements Builder<UserUpdate, UserUpdateBuilder> {
       _primaryEmail = $v.primaryEmail;
       _userDisplayName = $v.userDisplayName;
       _password = $v.password;
+      _currentPassword = $v.currentPassword;
       _$v = null;
     }
     return this;
@@ -117,6 +132,7 @@ class UserUpdateBuilder implements Builder<UserUpdate, UserUpdateBuilder> {
           primaryEmail: primaryEmail,
           userDisplayName: userDisplayName,
           password: password,
+          currentPassword: currentPassword,
         );
     replace(_$result);
     return _$result;

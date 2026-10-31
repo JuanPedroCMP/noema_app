@@ -27,16 +27,20 @@ import 'package:openapi/src/model/ai_model_update.dart';
 import 'package:openapi/src/model/ai_usage_log_create.dart';
 import 'package:openapi/src/model/ai_usage_log_out.dart';
 import 'package:openapi/src/model/backup_file_create.dart';
+import 'package:openapi/src/model/backup_file_filters.dart';
 import 'package:openapi/src/model/backup_file_out.dart';
+import 'package:openapi/src/model/backup_metadata_create.dart';
+import 'package:openapi/src/model/backup_metadata_update.dart';
+import 'package:openapi/src/model/backup_operation_state.dart';
 import 'package:openapi/src/model/conflict_strategy.dart';
 import 'package:openapi/src/model/device_create.dart';
 import 'package:openapi/src/model/device_out.dart';
 import 'package:openapi/src/model/device_update.dart';
 import 'package:openapi/src/model/generic_log_create.dart';
 import 'package:openapi/src/model/generic_log_out.dart';
-import 'package:openapi/src/model/google_account_create.dart';
+import 'package:openapi/src/model/google_account_link_request.dart';
 import 'package:openapi/src/model/google_account_out.dart';
-import 'package:openapi/src/model/google_account_update.dart';
+import 'package:openapi/src/model/google_account_status_out.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 import 'package:openapi/src/model/language_create.dart';
 import 'package:openapi/src/model/language_out.dart';
@@ -48,8 +52,10 @@ import 'package:openapi/src/model/provider_update.dart';
 import 'package:openapi/src/model/response_language_preference_order_create.dart';
 import 'package:openapi/src/model/response_language_preference_order_out.dart';
 import 'package:openapi/src/model/response_language_preference_order_update.dart';
+import 'package:openapi/src/model/snapshot_manifest.dart';
 import 'package:openapi/src/model/sync_direction.dart';
 import 'package:openapi/src/model/sync_log_create.dart';
+import 'package:openapi/src/model/sync_log_filters.dart';
 import 'package:openapi/src/model/sync_log_out.dart';
 import 'package:openapi/src/model/sync_result.dart';
 import 'package:openapi/src/model/task_type.dart';
@@ -91,16 +97,20 @@ part 'serializers.g.dart';
   AiUsageLogCreate,
   AiUsageLogOut,
   BackupFileCreate,
+  BackupFileFilters,
   BackupFileOut,
+  BackupMetadataCreate,
+  BackupMetadataUpdate,
+  BackupOperationState,
   ConflictStrategy,
   DeviceCreate,
   DeviceOut,
   DeviceUpdate,
   GenericLogCreate,
   GenericLogOut,
-  GoogleAccountCreate,
+  GoogleAccountLinkRequest,
   GoogleAccountOut,
-  GoogleAccountUpdate,
+  GoogleAccountStatusOut,
   HTTPValidationError,
   LanguageCreate,
   LanguageOut,
@@ -112,8 +122,10 @@ part 'serializers.g.dart';
   ResponseLanguagePreferenceOrderCreate,
   ResponseLanguagePreferenceOrderOut,
   ResponseLanguagePreferenceOrderUpdate,
+  SnapshotManifest,
   SyncDirection,
   SyncLogCreate,
+  SyncLogFilters,
   SyncLogOut,
   SyncResult,
   TaskType,
@@ -201,12 +213,24 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AgentModelOut>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(int)]),
+        () => MapBuilder<String, int>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ResponseLanguagePreferenceOrderOut)]),
         () => ListBuilder<ResponseLanguagePreferenceOrderOut>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(bool)]),
+        () => MapBuilder<String, bool>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(UserTypographyThemeOut)]),
         () => ListBuilder<UserTypographyThemeOut>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(String)]),
+        () => ListBuilder<String>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(DeviceOut)]),

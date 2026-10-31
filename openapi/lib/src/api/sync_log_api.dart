@@ -10,12 +10,10 @@ import 'package:dio/dio.dart';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/api_util.dart';
-import 'package:openapi/src/model/conflict_strategy.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
-import 'package:openapi/src/model/sync_direction.dart';
 import 'package:openapi/src/model/sync_log_create.dart';
+import 'package:openapi/src/model/sync_log_filters.dart';
 import 'package:openapi/src/model/sync_log_out.dart';
-import 'package:openapi/src/model/sync_result.dart';
 
 class SyncLogApi {
 
@@ -25,7 +23,7 @@ class SyncLogApi {
 
   const SyncLogApi(this._dio, this._serializers);
 
-  /// Create Sync Log
+  /// Create Sync Log Endpoint
   /// 
   ///
   /// Parameters:
@@ -39,7 +37,7 @@ class SyncLogApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SyncLogOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SyncLogOut>> createSyncLogApiV1GoogleDriveSyncLogCreatePost({ 
+  Future<Response<SyncLogOut>> createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost({ 
     required SyncLogCreate syncLogCreate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -209,16 +207,9 @@ class SyncLogApi {
   /// 
   ///
   /// Parameters:
-  /// * [id] 
-  /// * [idDevice] 
-  /// * [idBackupFile] 
-  /// * [event] 
-  /// * [derection] 
-  /// * [result] 
-  /// * [conflictStrategy] 
-  /// * [errorDetails] 
-  /// * [metadata] 
-  /// * [createdAt] 
+  /// * [filters] 
+  /// * [limit] 
+  /// * [offset] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -229,16 +220,9 @@ class SyncLogApi {
   /// Returns a [Future] containing a [Response] with a [BuiltList<SyncLogOut>] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<BuiltList<SyncLogOut>>> listSyncLogApiV1GoogleDriveSyncLogListGet({ 
-    String? id,
-    String? idDevice,
-    String? idBackupFile,
-    String? event,
-    SyncDirection? derection,
-    SyncResult? result,
-    ConflictStrategy? conflictStrategy,
-    String? errorDetails,
-    String? metadata,
-    DateTime? createdAt,
+    required SyncLogFilters filters,
+    int? limit = 100,
+    int? offset = 0,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -265,16 +249,9 @@ class SyncLogApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (id != null) r'id': encodeQueryParameter(_serializers, id, const FullType(String)),
-      if (idDevice != null) r'id_device': encodeQueryParameter(_serializers, idDevice, const FullType(String)),
-      if (idBackupFile != null) r'id_backup_file': encodeQueryParameter(_serializers, idBackupFile, const FullType(String)),
-      if (event != null) r'event': encodeQueryParameter(_serializers, event, const FullType(String)),
-      if (derection != null) r'derection': encodeQueryParameter(_serializers, derection, const FullType(SyncDirection)),
-      if (result != null) r'result': encodeQueryParameter(_serializers, result, const FullType(SyncResult)),
-      if (conflictStrategy != null) r'conflict_strategy': encodeQueryParameter(_serializers, conflictStrategy, const FullType(ConflictStrategy)),
-      if (errorDetails != null) r'error_details': encodeQueryParameter(_serializers, errorDetails, const FullType(String)),
-      if (metadata != null) r'metadata': encodeQueryParameter(_serializers, metadata, const FullType(String)),
-      if (createdAt != null) r'created_at': encodeQueryParameter(_serializers, createdAt, const FullType(DateTime)),
+      r'filters': encodeQueryParameter(_serializers, filters, const FullType(SyncLogFilters)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
+      if (offset != null) r'offset': encodeQueryParameter(_serializers, offset, const FullType(int)),
     };
 
     final _response = await _dio.request<Object>(

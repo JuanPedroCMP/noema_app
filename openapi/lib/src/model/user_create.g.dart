@@ -14,7 +14,7 @@ class _$UserCreate extends UserCreate {
   @override
   final String? userDisplayName;
   @override
-  final String? password;
+  final String password;
 
   factory _$UserCreate([void Function(UserCreateBuilder)? updates]) =>
       (UserCreateBuilder()..update(updates))._build();
@@ -23,7 +23,7 @@ class _$UserCreate extends UserCreate {
       {this.userName,
       required this.primaryEmail,
       this.userDisplayName,
-      this.password})
+      required this.password})
       : super._();
   @override
   UserCreate rebuild(void Function(UserCreateBuilder) updates) =>
@@ -120,7 +120,8 @@ class UserCreateBuilder implements Builder<UserCreate, UserCreateBuilder> {
           primaryEmail: BuiltValueNullFieldError.checkNotNull(
               primaryEmail, r'UserCreate', 'primaryEmail'),
           userDisplayName: userDisplayName,
-          password: password,
+          password: BuiltValueNullFieldError.checkNotNull(
+              password, r'UserCreate', 'password'),
         );
     replace(_$result);
     return _$result;

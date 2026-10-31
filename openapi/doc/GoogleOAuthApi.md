@@ -9,14 +9,14 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**googleOauthCallbackApiV1AuthGoogleCallbackGet**](GoogleOAuthApi.md#googleoauthcallbackapiv1authgooglecallbackget) | **GET** /api/v1/auth/google/callback | Google Oauth Callback
-[**linkGoogleAccountApiV1AuthGoogleLinkGet**](GoogleOAuthApi.md#linkgoogleaccountapiv1authgooglelinkget) | **GET** /api/v1/auth/google/link | Link Google Account
+[**retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet**](GoogleOAuthApi.md#retiredgoogleoauthcallbackapiv1authgooglecallbackget) | **GET** /api/v1/auth/google/callback | Retired Google Oauth Callback
+[**retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet**](GoogleOAuthApi.md#retiredserversidegoogleoauthapiv1authgooglelinkget) | **GET** /api/v1/auth/google/link | Retired Server Side Google Oauth
 
 
-# **googleOauthCallbackApiV1AuthGoogleCallbackGet**
-> JsonObject googleOauthCallbackApiV1AuthGoogleCallbackGet()
+# **retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet**
+> JsonObject retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet()
 
-Google Oauth Callback
+Retired Google Oauth Callback
 
 ### Example
 ```dart
@@ -25,10 +25,10 @@ import 'package:openapi/api.dart';
 final api = Openapi().getGoogleOAuthApi();
 
 try {
-    final response = api.googleOauthCallbackApiV1AuthGoogleCallbackGet();
+    final response = api.retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet();
     print(response);
 } on DioException catch (e) {
-    print('Exception when calling GoogleOAuthApi->googleOauthCallbackApiV1AuthGoogleCallbackGet: $e\n');
+    print('Exception when calling GoogleOAuthApi->retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet: $e\n');
 }
 ```
 
@@ -50,10 +50,10 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **linkGoogleAccountApiV1AuthGoogleLinkGet**
-> JsonObject linkGoogleAccountApiV1AuthGoogleLinkGet()
+# **retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet**
+> JsonObject retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet()
 
-Link Google Account
+Retired Server Side Google Oauth
 
 ### Example
 ```dart
@@ -64,10 +64,10 @@ import 'package:openapi/api.dart';
 final api = Openapi().getGoogleOAuthApi();
 
 try {
-    final response = api.linkGoogleAccountApiV1AuthGoogleLinkGet();
+    final response = api.retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet();
     print(response);
 } on DioException catch (e) {
-    print('Exception when calling GoogleOAuthApi->linkGoogleAccountApiV1AuthGoogleLinkGet: $e\n');
+    print('Exception when calling GoogleOAuthApi->retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet: $e\n');
 }
 ```
 

@@ -7,17 +7,17 @@ void main() {
   final instance = Openapi().getGoogleOAuthApi();
 
   group(GoogleOAuthApi, () {
-    // Google Oauth Callback
+    // Retired Google Oauth Callback
     //
-    //Future<JsonObject> googleOauthCallbackApiV1AuthGoogleCallbackGet() async
-    test('test googleOauthCallbackApiV1AuthGoogleCallbackGet', () async {
+    //Future<JsonObject> retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet() async
+    test('test retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet', () async {
       // TODO
     });
 
-    // Link Google Account
+    // Retired Server Side Google Oauth
     //
-    //Future<JsonObject> linkGoogleAccountApiV1AuthGoogleLinkGet() async
-    test('test linkGoogleAccountApiV1AuthGoogleLinkGet', () async {
+    //Future<JsonObject> retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet() async
+    test('test retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet', () async {
       // TODO
     });
 

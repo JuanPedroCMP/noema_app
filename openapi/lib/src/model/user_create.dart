@@ -27,7 +27,7 @@ abstract class UserCreate implements Built<UserCreate, UserCreateBuilder> {
   String? get userDisplayName;
 
   @BuiltValueField(wireName: r'password')
-  String? get password;
+  String get password;
 
   UserCreate._();
 
@@ -35,8 +35,7 @@ abstract class UserCreate implements Built<UserCreate, UserCreateBuilder> {
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserCreateBuilder b) => b
-      ..userName = ''
-      ..password = '';
+      ..userName = '';
 
   @BuiltValueSerializer(custom: true)
   static Serializer<UserCreate> get serializer => _$UserCreateSerializer();
@@ -73,13 +72,11 @@ class _$UserCreateSerializer implements PrimitiveSerializer<UserCreate> {
         specifiedType: const FullType.nullable(String),
       );
     }
-    if (object.password != null) {
-      yield r'password';
-      yield serializers.serialize(
-        object.password,
-        specifiedType: const FullType(String),
-      );
-    }
+    yield r'password';
+    yield serializers.serialize(
+      object.password,
+      specifiedType: const FullType(String),
+    );
   }
 
   @override
@@ -129,9 +126,8 @@ class _$UserCreateSerializer implements PrimitiveSerializer<UserCreate> {
         case r'password':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
+            specifiedType: const FullType(String),
+          ) as String;
           result.password = valueDes;
           break;
         default:

@@ -114,8 +114,26 @@ Class | Method | HTTP request | Description
 [*GenericLogApi*](doc/GenericLogApi.md) | [**createGenericLogApiV1GenericLogCreatePost**](doc/GenericLogApi.md#creategenericlogapiv1genericlogcreatepost) | **POST** /api/v1/generic_log/create | Create Generic Log
 [*GenericLogApi*](doc/GenericLogApi.md) | [**getGenericLogApiV1GenericLogGetIdentificatorGet**](doc/GenericLogApi.md#getgenericlogapiv1genericloggetidentificatorget) | **GET** /api/v1/generic_log/get/{identificator} | Get Generic Log
 [*GenericLogApi*](doc/GenericLogApi.md) | [**listGenericLogApiV1GenericLogListGet**](doc/GenericLogApi.md#listgenericlogapiv1genericloglistget) | **GET** /api/v1/generic_log/list | List Generic Log
-[*GoogleOAuthApi*](doc/GoogleOAuthApi.md) | [**googleOauthCallbackApiV1AuthGoogleCallbackGet**](doc/GoogleOAuthApi.md#googleoauthcallbackapiv1authgooglecallbackget) | **GET** /api/v1/auth/google/callback | Google Oauth Callback
-[*GoogleOAuthApi*](doc/GoogleOAuthApi.md) | [**linkGoogleAccountApiV1AuthGoogleLinkGet**](doc/GoogleOAuthApi.md#linkgoogleaccountapiv1authgooglelinkget) | **GET** /api/v1/auth/google/link | Link Google Account
+[*GoogleDriveOAuthApi*](doc/GoogleDriveOAuthApi.md) | [**googleAccountLinkApiV1GoogleDriveAccountLinkPost**](doc/GoogleDriveOAuthApi.md#googleaccountlinkapiv1googledriveaccountlinkpost) | **POST** /api/v1/google_drive/account/link | Link a native Google authorization without storing its tokens
+[*GoogleDriveOAuthApi*](doc/GoogleDriveOAuthApi.md) | [**googleAccountStatusApiV1GoogleDriveAccountStatusGet**](doc/GoogleDriveOAuthApi.md#googleaccountstatusapiv1googledriveaccountstatusget) | **GET** /api/v1/google_drive/account/status | Get Google account and Drive app-data authorization state
+[*GoogleDriveOAuthApi*](doc/GoogleDriveOAuthApi.md) | [**refreshGoogleStatusApiV1GoogleDriveAccountStatusRefreshPost**](doc/GoogleDriveOAuthApi.md#refreshgooglestatusapiv1googledriveaccountstatusrefreshpost) | **POST** /api/v1/google_drive/account/status/refresh | Re-check the currently linked Google authorization
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**createBackupApiV1GoogleDriveBackupsPost**](doc/GoogleDriveSyncApi.md#createbackupapiv1googledrivebackupspost) | **POST** /api/v1/google_drive/backups | Record metadata after the app completes a direct Drive upload
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**createBackupFileApiV1GoogleDriveBackupFileCreatePost**](doc/GoogleDriveSyncApi.md#createbackupfileapiv1googledrivebackupfilecreatepost) | **POST** /api/v1/google_drive/backup_file/create | Create Backup File
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost**](doc/GoogleDriveSyncApi.md#createsynclogendpointapiv1googledrivesynclogcreatepost) | **POST** /api/v1/google_drive/sync_log/create | Create Sync Log Endpoint
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**deleteBackupApiV1GoogleDriveBackupsBackupIdDelete**](doc/GoogleDriveSyncApi.md#deletebackupapiv1googledrivebackupsbackupiddelete) | **DELETE** /api/v1/google_drive/backups/{backup_id} | Delete metadata only; the app must delete the Drive file separately
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete**](doc/GoogleDriveSyncApi.md#deletebackupfileapiv1googledrivebackupfiledeleteidentificatordelete) | **DELETE** /api/v1/google_drive/backup_file/delete/{identificator} | Delete Backup File
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**getBackupApiV1GoogleDriveBackupsBackupIdGet**](doc/GoogleDriveSyncApi.md#getbackupapiv1googledrivebackupsbackupidget) | **GET** /api/v1/google_drive/backups/{backup_id} | Get one owned backup metadata record
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**getBackupFileApiV1GoogleDriveBackupFileGetIdentificatorGet**](doc/GoogleDriveSyncApi.md#getbackupfileapiv1googledrivebackupfilegetidentificatorget) | **GET** /api/v1/google_drive/backup_file/get/{identificator} | Get Backup File
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**getSyncLogApiV1GoogleDriveSyncLogGetIdentificatorGet**](doc/GoogleDriveSyncApi.md#getsynclogapiv1googledrivesyncloggetidentificatorget) | **GET** /api/v1/google_drive/sync_log/get/{identificator} | Get Sync Log
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**googleAccountLinkApiV1GoogleDriveAccountLinkPost**](doc/GoogleDriveSyncApi.md#googleaccountlinkapiv1googledriveaccountlinkpost) | **POST** /api/v1/google_drive/account/link | Link a native Google authorization without storing its tokens
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**googleAccountStatusApiV1GoogleDriveAccountStatusGet**](doc/GoogleDriveSyncApi.md#googleaccountstatusapiv1googledriveaccountstatusget) | **GET** /api/v1/google_drive/account/status | Get Google account and Drive app-data authorization state
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**listBackupFileApiV1GoogleDriveBackupFileListGet**](doc/GoogleDriveSyncApi.md#listbackupfileapiv1googledrivebackupfilelistget) | **GET** /api/v1/google_drive/backup_file/list | List Backup File
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**listBackupsApiV1GoogleDriveBackupsGet**](doc/GoogleDriveSyncApi.md#listbackupsapiv1googledrivebackupsget) | **GET** /api/v1/google_drive/backups | List backup metadata owned by the authenticated user
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**listSyncLogApiV1GoogleDriveSyncLogListGet**](doc/GoogleDriveSyncApi.md#listsynclogapiv1googledrivesyncloglistget) | **GET** /api/v1/google_drive/sync_log/list | List Sync Log
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**refreshGoogleStatusApiV1GoogleDriveAccountStatusRefreshPost**](doc/GoogleDriveSyncApi.md#refreshgooglestatusapiv1googledriveaccountstatusrefreshpost) | **POST** /api/v1/google_drive/account/status/refresh | Re-check the currently linked Google authorization
+[*GoogleDriveSyncApi*](doc/GoogleDriveSyncApi.md) | [**updateBackupApiV1GoogleDriveBackupsBackupIdPut**](doc/GoogleDriveSyncApi.md#updatebackupapiv1googledrivebackupsbackupidput) | **PUT** /api/v1/google_drive/backups/{backup_id} | Update metadata with optimistic Drive-version and hash preconditions
+[*GoogleOAuthApi*](doc/GoogleOAuthApi.md) | [**retiredGoogleOauthCallbackApiV1AuthGoogleCallbackGet**](doc/GoogleOAuthApi.md#retiredgoogleoauthcallbackapiv1authgooglecallbackget) | **GET** /api/v1/auth/google/callback | Retired Google Oauth Callback
+[*GoogleOAuthApi*](doc/GoogleOAuthApi.md) | [**retiredServerSideGoogleOauthApiV1AuthGoogleLinkGet**](doc/GoogleOAuthApi.md#retiredserversidegoogleoauthapiv1authgooglelinkget) | **GET** /api/v1/auth/google/link | Retired Server Side Google Oauth
 [*LanguageApi*](doc/LanguageApi.md) | [**createLanguageApiV1UserConfigLanguageCreatePost**](doc/LanguageApi.md#createlanguageapiv1userconfiglanguagecreatepost) | **POST** /api/v1/user_config/language/create | Create Language
 [*LanguageApi*](doc/LanguageApi.md) | [**getLanguageApiV1UserConfigLanguageGetIdentificatorGet**](doc/LanguageApi.md#getlanguageapiv1userconfiglanguagegetidentificatorget) | **GET** /api/v1/user_config/language/get/{identificator} | Get Language
 [*LanguageApi*](doc/LanguageApi.md) | [**listLanguagesApiV1UserConfigLanguageListGet**](doc/LanguageApi.md#listlanguagesapiv1userconfiglanguagelistget) | **GET** /api/v1/user_config/language/list | List Languages
@@ -130,7 +148,7 @@ Class | Method | HTTP request | Description
 [*ResponseResponseLanguagePreferenceOrderApi*](doc/ResponseResponseLanguagePreferenceOrderApi.md) | [**listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet**](doc/ResponseResponseLanguagePreferenceOrderApi.md#listresponselanguagepreferenceordersapiv1userconfigresponseresponselanguagepreferenceorderlistget) | **GET** /api/v1/user_config/response_response_language_preference_order/list | List Response Language Preference Orders
 [*ResponseResponseLanguagePreferenceOrderApi*](doc/ResponseResponseLanguagePreferenceOrderApi.md) | [**updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderDeleteIdentificatorDelete**](doc/ResponseResponseLanguagePreferenceOrderApi.md#updateresponselanguagepreferenceorderapiv1userconfigresponseresponselanguagepreferenceorderdeleteidentificatordelete) | **DELETE** /api/v1/user_config/response_response_language_preference_order/delete/{identificator} | Update Response Language Preference Order
 [*ResponseResponseLanguagePreferenceOrderApi*](doc/ResponseResponseLanguagePreferenceOrderApi.md) | [**updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderUpdateIdentificatorPut**](doc/ResponseResponseLanguagePreferenceOrderApi.md#updateresponselanguagepreferenceorderapiv1userconfigresponseresponselanguagepreferenceorderupdateidentificatorput) | **PUT** /api/v1/user_config/response_response_language_preference_order/update/{identificator} | Update Response Language Preference Order
-[*SyncLogApi*](doc/SyncLogApi.md) | [**createSyncLogApiV1GoogleDriveSyncLogCreatePost**](doc/SyncLogApi.md#createsynclogapiv1googledrivesynclogcreatepost) | **POST** /api/v1/google_drive/sync_log/create | Create Sync Log
+[*SyncLogApi*](doc/SyncLogApi.md) | [**createSyncLogEndpointApiV1GoogleDriveSyncLogCreatePost**](doc/SyncLogApi.md#createsynclogendpointapiv1googledrivesynclogcreatepost) | **POST** /api/v1/google_drive/sync_log/create | Create Sync Log Endpoint
 [*SyncLogApi*](doc/SyncLogApi.md) | [**getSyncLogApiV1GoogleDriveSyncLogGetIdentificatorGet**](doc/SyncLogApi.md#getsynclogapiv1googledrivesyncloggetidentificatorget) | **GET** /api/v1/google_drive/sync_log/get/{identificator} | Get Sync Log
 [*SyncLogApi*](doc/SyncLogApi.md) | [**listSyncLogApiV1GoogleDriveSyncLogListGet**](doc/SyncLogApi.md#listsynclogapiv1googledrivesyncloglistget) | **GET** /api/v1/google_drive/sync_log/list | List Sync Log
 [*TypographyThemeApi*](doc/TypographyThemeApi.md) | [**createTypographyThemeApiV1UserThemeTypographyThemeCreatePost**](doc/TypographyThemeApi.md#createtypographythemeapiv1userthemetypographythemecreatepost) | **POST** /api/v1/user_theme/typography_theme/create | Create Typography Theme
@@ -175,16 +193,20 @@ Class | Method | HTTP request | Description
  - [AiUsageLogCreate](doc/AiUsageLogCreate.md)
  - [AiUsageLogOut](doc/AiUsageLogOut.md)
  - [BackupFileCreate](doc/BackupFileCreate.md)
+ - [BackupFileFilters](doc/BackupFileFilters.md)
  - [BackupFileOut](doc/BackupFileOut.md)
+ - [BackupMetadataCreate](doc/BackupMetadataCreate.md)
+ - [BackupMetadataUpdate](doc/BackupMetadataUpdate.md)
+ - [BackupOperationState](doc/BackupOperationState.md)
  - [ConflictStrategy](doc/ConflictStrategy.md)
  - [DeviceCreate](doc/DeviceCreate.md)
  - [DeviceOut](doc/DeviceOut.md)
  - [DeviceUpdate](doc/DeviceUpdate.md)
  - [GenericLogCreate](doc/GenericLogCreate.md)
  - [GenericLogOut](doc/GenericLogOut.md)
- - [GoogleAccountCreate](doc/GoogleAccountCreate.md)
+ - [GoogleAccountLinkRequest](doc/GoogleAccountLinkRequest.md)
  - [GoogleAccountOut](doc/GoogleAccountOut.md)
- - [GoogleAccountUpdate](doc/GoogleAccountUpdate.md)
+ - [GoogleAccountStatusOut](doc/GoogleAccountStatusOut.md)
  - [HTTPValidationError](doc/HTTPValidationError.md)
  - [LanguageCreate](doc/LanguageCreate.md)
  - [LanguageOut](doc/LanguageOut.md)
@@ -196,8 +218,10 @@ Class | Method | HTTP request | Description
  - [ResponseLanguagePreferenceOrderCreate](doc/ResponseLanguagePreferenceOrderCreate.md)
  - [ResponseLanguagePreferenceOrderOut](doc/ResponseLanguagePreferenceOrderOut.md)
  - [ResponseLanguagePreferenceOrderUpdate](doc/ResponseLanguagePreferenceOrderUpdate.md)
+ - [SnapshotManifest](doc/SnapshotManifest.md)
  - [SyncDirection](doc/SyncDirection.md)
  - [SyncLogCreate](doc/SyncLogCreate.md)
+ - [SyncLogFilters](doc/SyncLogFilters.md)
  - [SyncLogOut](doc/SyncLogOut.md)
  - [SyncResult](doc/SyncResult.md)
  - [TaskType](doc/TaskType.md)

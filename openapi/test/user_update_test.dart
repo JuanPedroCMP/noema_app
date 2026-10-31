@@ -27,5 +27,10 @@ void main() {
       // TODO
     });
 
+    // String currentPassword
+    test('to test the property `currentPassword`', () async {
+      // TODO
+    });
+
   });
 }

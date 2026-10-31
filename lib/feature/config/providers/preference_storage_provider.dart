@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -35,29 +36,25 @@ String mergeRemoteConfigPreferences({
 }) {
   final local = decodeConfigPreferences(localPreferences);
   final result = Map<String, dynamic>.from(remotePreferences);
-  for (final key in const [
-    _localConfigIdKey,
-    _localOverridesKey,
-  ]) {
+  for (final key in const [_localConfigIdKey, _localOverridesKey]) {
     if (local.containsKey(key)) result[key] = local[key];
   }
   return jsonEncode(result);
 }
 
-Future<String?> _getDeviceId(
-  Ref ref, {
-  required String remoteUserId,
-}) async {
+Future<String?> _getDeviceId(Ref ref, {required String remoteUserId}) async {
   final client = ref.read(apiClientProvider);
   final fingerprint = await DeviceFingerprint.get();
-  final response = await client
-      .getDeviceApi()
-      .listDeviceApiV1DeviceListGet(
-        idUser: remoteUserId,
-        deviceFingerprint: fingerprint,
-      );
+  final response = await client.getDeviceApi().listDeviceApiV1DeviceListGet(
+    idUser: remoteUserId,
+    deviceFingerprint: fingerprint,
+  );
   final existing = response.data
-      ?.where((device) => device.idUser == remoteUserId)
+      ?.where(
+        (device) =>
+            device.idUser == remoteUserId &&
+            device.deviceFingerprint == fingerprint,
+      )
       .firstOrNull;
   if (existing != null) return existing.id;
 
@@ -90,15 +87,19 @@ Future<UserLocalConfigOut> _getOrCreateLocalConfig(
   }
   final client = ref.read(apiClientProvider);
   final localApi = client.getUserLocalConfigApi();
-  final cachedId = decodeConfigPreferences(localConfig.preferences)[
-    _localConfigIdKey
-  ];
+  final cachedId = decodeConfigPreferences(
+    localConfig.preferences,
+  )[_localConfigIdKey];
   if (cachedId is String && cachedId.isNotEmpty) {
-    final response = await localApi
-        .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-          identificator: cachedId,
-        );
-    if (response.data != null) return response.data!;
+    try {
+      final response = await localApi
+          .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
+            identificator: cachedId,
+          );
+      if (response.data != null) return response.data!;
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 404) rethrow;
+    }
   }
 
   final deviceId = await _getDeviceId(ref, remoteUserId: remoteUserId);
@@ -106,11 +107,15 @@ Future<UserLocalConfigOut> _getOrCreateLocalConfig(
     throw StateError('Não foi possível identificar este dispositivo.');
   }
 
+  final preferences = decodeConfigPreferences(localConfig.preferences);
+  final cachedOverrides = preferences[_localOverridesKey];
   final listed = await localApi
       .listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(
         idUser: remoteUserId,
         idDevice: deviceId,
-        preferences: '{}',
+        preferences: jsonEncode(
+          cachedOverrides is Map ? cachedOverrides : <String, dynamic>{},
+        ),
       );
   final existing = listed.data
       ?.where(
@@ -118,11 +123,7 @@ Future<UserLocalConfigOut> _getOrCreateLocalConfig(
       )
       .firstOrNull;
   if (existing != null) {
-    await _cacheLocalConfigId(
-      ref,
-      localUserId: localUserId,
-      id: existing.id,
-    );
+    await _cacheLocalConfigId(ref, localUserId: localUserId, id: existing.id);
     return existing;
   }
 
@@ -210,9 +211,9 @@ Future<bool> isPreferenceDeviceOnly(Ref ref, String key) async {
     ref.read(appDatabaseProvider),
   ).getConfigByUser(userId: user.id);
   if (config == null) return false;
-  final overrides = decodeConfigPreferences(config.preferences)[
-    _localOverridesKey
-  ];
+  final overrides = decodeConfigPreferences(
+    config.preferences,
+  )[_localOverridesKey];
   return overrides is Map && overrides.containsKey(key);
 }
 
@@ -229,24 +230,16 @@ Future<void> setPreferenceDeviceOnly(
   final cachedPreferences = userConfig == null
       ? <String, dynamic>{}
       : decodeConfigPreferences(userConfig.preferences);
-  final cachedOverrides =
-      cachedPreferences[_localOverridesKey] is Map
-          ? Map<String, dynamic>.from(
-              cachedPreferences[_localOverridesKey] as Map,
-            )
-          : <String, dynamic>{};
+  final cachedOverrides = cachedPreferences[_localOverridesKey] is Map
+      ? Map<String, dynamic>.from(cachedPreferences[_localOverridesKey] as Map)
+      : <String, dynamic>{};
   if (!deviceOnly && !cachedOverrides.containsKey(key)) return;
   final localId = cachedPreferences[_localConfigIdKey];
   final local = localId is String && localId.isNotEmpty
-      ? (await ref
-                .read(apiClientProvider)
-                .getUserLocalConfigApi()
-                .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-                  identificator: localId,
-                ))
-            .data
+      ? await _getCachedLocalConfig(ref, localId)
       : null;
-  final localConfig = local ??
+  final localConfig =
+      local ??
       (deviceOnly
           ? await _getOrCreateLocalConfig(
               ref,
@@ -254,11 +247,23 @@ Future<void> setPreferenceDeviceOnly(
               remoteUserId: user.remoteId,
             )
           : null);
-  if (localConfig == null) {
-    throw StateError('A configuração local do dispositivo não foi encontrada.');
+  final overrides = localConfig == null
+      ? Map<String, dynamic>.from(cachedOverrides)
+      : _localOverrides(localConfig);
+  if (cachedPreferences[_localOverridesKey] is Map) {
+    for (final entry
+        in (cachedPreferences[_localOverridesKey] as Map).entries) {
+      if (entry.key is String) {
+        overrides.putIfAbsent(entry.key as String, () => entry.value);
+      }
+    }
   }
-  final overrides = _localOverrides(localConfig);
   if (deviceOnly) {
+    if (localConfig == null) {
+      throw StateError(
+        'A configuração local do dispositivo não foi encontrada.',
+      );
+    }
     overrides[key] = effectiveValue;
     if (languageId != null) {
       await ref
@@ -299,21 +304,32 @@ Future<void> setPreferenceDeviceOnly(
     for (final entry in remote.data!.preferences.entries)
       entry.key: entry.value?.value,
   };
-  final globalValue = globalPreferences[key];
+  globalPreferences[key] = effectiveValue;
+  await api
+      .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
+        identificator: user.remoteId,
+        userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
+          b.preferences = jsonEncode(globalPreferences);
+          if (key == 'locale' && languageId != null) {
+            b.idLanguage = languageId;
+          }
+        }),
+      );
+
   overrides.remove(key);
-  await _saveLocalOverrides(
-    ref,
-    localUserId: user.id,
-    localConfig: localConfig,
-    overrides: overrides,
-  );
-  if (key == 'locale' && languageId == null) return;
-  if (key == 'locale' && languageId != null) {
-    await api.updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
-      identificator: user.remoteId,
-      userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
-        b.idLanguage = languageId;
-      }),
+  if (localConfig == null) {
+    await _cacheLocalOverrides(
+      ref,
+      localUserId: user.id,
+      localConfigId: null,
+      overrides: overrides,
+    );
+  } else {
+    await _saveLocalOverrides(
+      ref,
+      localUserId: user.id,
+      localConfig: localConfig,
+      overrides: overrides,
     );
   }
   final dao = ConfigDao(ref.read(appDatabaseProvider));
@@ -326,11 +342,7 @@ Future<void> setPreferenceDeviceOnly(
         if (entry.key is String) entry.key as String: entry.value,
   }..remove(key);
   preferences[_localOverridesKey] = cached;
-  if (globalPreferences.containsKey(key)) {
-    preferences[key] = globalValue;
-  } else {
-    preferences.remove(key);
-  }
+  preferences[key] = effectiveValue;
   await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
 }
 
@@ -351,6 +363,42 @@ Future<void> _cacheLocalOverrideValues(
   await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
 }
 
+Future<UserLocalConfigOut?> _getCachedLocalConfig(Ref ref, String id) async {
+  try {
+    return (await ref
+            .read(apiClientProvider)
+            .getUserLocalConfigApi()
+            .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
+              identificator: id,
+            ))
+        .data;
+  } on DioException catch (error) {
+    if (error.response?.statusCode != 404) rethrow;
+    return null;
+  }
+}
+
+Future<void> _cacheLocalOverrides(
+  Ref ref, {
+  required String localUserId,
+  required String? localConfigId,
+  required Map<String, dynamic> overrides,
+}) async {
+  final dao = ConfigDao(ref.read(appDatabaseProvider));
+  final config = await dao.getConfigByUser(userId: localUserId);
+  if (config == null) {
+    throw StateError('Configuração local do usuário não encontrada.');
+  }
+  final preferences = decodeConfigPreferences(config.preferences);
+  if (localConfigId == null) {
+    preferences.remove(_localConfigIdKey);
+  } else {
+    preferences[_localConfigIdKey] = localConfigId;
+  }
+  preferences[_localOverridesKey] = overrides;
+  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
+}
+
 Future<void> saveConfigPreference(
   Ref ref, {
   required String key,
@@ -367,11 +415,12 @@ Future<void> saveConfigPreference(
                 localCache.preferences,
               )[_localOverridesKey]
               is Map)
-            for (final entry in (decodeConfigPreferences(
-                  localCache.preferences,
-                )[_localOverridesKey]
-                as Map)
-                .entries)
+            for (final entry
+                in (decodeConfigPreferences(
+                          localCache.preferences,
+                        )[_localOverridesKey]
+                        as Map)
+                    .entries)
               if (entry.key is String) entry.key as String: entry.value,
         };
   if (cachedOverrides.containsKey(key)) {
@@ -379,17 +428,22 @@ Future<void> saveConfigPreference(
       localCache!.preferences,
     )[_localConfigIdKey];
     if (localId is! String || localId.isEmpty) {
-      throw StateError('A configuração local do dispositivo não foi vinculada.');
+      throw StateError(
+        'A configuração local do dispositivo não foi vinculada.',
+      );
     }
-    final local = (await ref
-            .read(apiClientProvider)
-            .getUserLocalConfigApi()
-            .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-              identificator: localId,
-            ))
-        .data;
+    final local =
+        (await ref
+                .read(apiClientProvider)
+                .getUserLocalConfigApi()
+                .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
+                  identificator: localId,
+                ))
+            .data;
     if (local == null) {
-      throw StateError('A configuração local do dispositivo não foi encontrada.');
+      throw StateError(
+        'A configuração local do dispositivo não foi encontrada.',
+      );
     }
     final overrides = _localOverrides(local);
     overrides[key] = value;
@@ -431,13 +485,14 @@ Future<void> saveConfigPreference(
     for (final entry in remote.data!.preferences.entries)
       entry.key: entry.value?.value,
   }..[key] = value;
-  await api.updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
-    identificator: user.remoteId,
-    userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
-      b.preferences = jsonEncode(preferences);
-      if (languageId != null) b.idLanguage = languageId;
-    }),
-  );
+  await api
+      .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
+        identificator: user.remoteId,
+        userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
+          b.preferences = jsonEncode(preferences);
+          if (languageId != null) b.idLanguage = languageId;
+        }),
+      );
   final dao = ConfigDao(ref.read(appDatabaseProvider));
   final config = await dao.getConfigByUser(userId: user.id);
   if (config != null) {
@@ -463,8 +518,7 @@ class PreferenceStorageService {
 
   final Ref _ref;
 
-  Future<bool> isDeviceOnly(String key) =>
-      isPreferenceDeviceOnly(_ref, key);
+  Future<bool> isDeviceOnly(String key) => isPreferenceDeviceOnly(_ref, key);
 
   Future<void> setDeviceOnly({
     required String key,

@@ -12,15 +12,27 @@ class _$BackupFileOut extends BackupFileOut {
   @override
   final String idGoogleAccount;
   @override
+  final String? idDevice;
+  @override
   final String driveFileId;
   @override
-  final String localRef;
+  final String? localRef;
   @override
-  final String driveVersion;
+  final String? driveVersion;
   @override
-  final String contentHash;
+  final String? snapshotVersion;
+  @override
+  final String? contentHash;
+  @override
+  final int? sizeBytes;
+  @override
+  final BackupOperationState operationState;
+  @override
+  final BuiltMap<String, JsonObject?>? manifest;
   @override
   final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
 
   factory _$BackupFileOut([void Function(BackupFileOutBuilder)? updates]) =>
       (BackupFileOutBuilder()..update(updates))._build();
@@ -28,11 +40,17 @@ class _$BackupFileOut extends BackupFileOut {
   _$BackupFileOut._(
       {required this.id,
       required this.idGoogleAccount,
+      this.idDevice,
       required this.driveFileId,
-      required this.localRef,
-      required this.driveVersion,
-      required this.contentHash,
-      this.createdAt})
+      this.localRef,
+      this.driveVersion,
+      this.snapshotVersion,
+      this.contentHash,
+      this.sizeBytes,
+      required this.operationState,
+      this.manifest,
+      this.createdAt,
+      this.updatedAt})
       : super._();
   @override
   BackupFileOut rebuild(void Function(BackupFileOutBuilder) updates) =>
@@ -47,11 +65,17 @@ class _$BackupFileOut extends BackupFileOut {
     return other is BackupFileOut &&
         id == other.id &&
         idGoogleAccount == other.idGoogleAccount &&
+        idDevice == other.idDevice &&
         driveFileId == other.driveFileId &&
         localRef == other.localRef &&
         driveVersion == other.driveVersion &&
+        snapshotVersion == other.snapshotVersion &&
         contentHash == other.contentHash &&
-        createdAt == other.createdAt;
+        sizeBytes == other.sizeBytes &&
+        operationState == other.operationState &&
+        manifest == other.manifest &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt;
   }
 
   @override
@@ -59,11 +83,17 @@ class _$BackupFileOut extends BackupFileOut {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, idGoogleAccount.hashCode);
+    _$hash = $jc(_$hash, idDevice.hashCode);
     _$hash = $jc(_$hash, driveFileId.hashCode);
     _$hash = $jc(_$hash, localRef.hashCode);
     _$hash = $jc(_$hash, driveVersion.hashCode);
+    _$hash = $jc(_$hash, snapshotVersion.hashCode);
     _$hash = $jc(_$hash, contentHash.hashCode);
+    _$hash = $jc(_$hash, sizeBytes.hashCode);
+    _$hash = $jc(_$hash, operationState.hashCode);
+    _$hash = $jc(_$hash, manifest.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -73,11 +103,17 @@ class _$BackupFileOut extends BackupFileOut {
     return (newBuiltValueToStringHelper(r'BackupFileOut')
           ..add('id', id)
           ..add('idGoogleAccount', idGoogleAccount)
+          ..add('idDevice', idDevice)
           ..add('driveFileId', driveFileId)
           ..add('localRef', localRef)
           ..add('driveVersion', driveVersion)
+          ..add('snapshotVersion', snapshotVersion)
           ..add('contentHash', contentHash)
-          ..add('createdAt', createdAt))
+          ..add('sizeBytes', sizeBytes)
+          ..add('operationState', operationState)
+          ..add('manifest', manifest)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt))
         .toString();
   }
 }
@@ -95,6 +131,10 @@ class BackupFileOutBuilder
   set idGoogleAccount(String? idGoogleAccount) =>
       _$this._idGoogleAccount = idGoogleAccount;
 
+  String? _idDevice;
+  String? get idDevice => _$this._idDevice;
+  set idDevice(String? idDevice) => _$this._idDevice = idDevice;
+
   String? _driveFileId;
   String? get driveFileId => _$this._driveFileId;
   set driveFileId(String? driveFileId) => _$this._driveFileId = driveFileId;
@@ -107,13 +147,37 @@ class BackupFileOutBuilder
   String? get driveVersion => _$this._driveVersion;
   set driveVersion(String? driveVersion) => _$this._driveVersion = driveVersion;
 
+  String? _snapshotVersion;
+  String? get snapshotVersion => _$this._snapshotVersion;
+  set snapshotVersion(String? snapshotVersion) =>
+      _$this._snapshotVersion = snapshotVersion;
+
   String? _contentHash;
   String? get contentHash => _$this._contentHash;
   set contentHash(String? contentHash) => _$this._contentHash = contentHash;
 
+  int? _sizeBytes;
+  int? get sizeBytes => _$this._sizeBytes;
+  set sizeBytes(int? sizeBytes) => _$this._sizeBytes = sizeBytes;
+
+  BackupOperationState? _operationState;
+  BackupOperationState? get operationState => _$this._operationState;
+  set operationState(BackupOperationState? operationState) =>
+      _$this._operationState = operationState;
+
+  MapBuilder<String, JsonObject?>? _manifest;
+  MapBuilder<String, JsonObject?> get manifest =>
+      _$this._manifest ??= MapBuilder<String, JsonObject?>();
+  set manifest(MapBuilder<String, JsonObject?>? manifest) =>
+      _$this._manifest = manifest;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  DateTime? _updatedAt;
+  DateTime? get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
 
   BackupFileOutBuilder() {
     BackupFileOut._defaults(this);
@@ -124,11 +188,17 @@ class BackupFileOutBuilder
     if ($v != null) {
       _id = $v.id;
       _idGoogleAccount = $v.idGoogleAccount;
+      _idDevice = $v.idDevice;
       _driveFileId = $v.driveFileId;
       _localRef = $v.localRef;
       _driveVersion = $v.driveVersion;
+      _snapshotVersion = $v.snapshotVersion;
       _contentHash = $v.contentHash;
+      _sizeBytes = $v.sizeBytes;
+      _operationState = $v.operationState;
+      _manifest = $v.manifest?.toBuilder();
       _createdAt = $v.createdAt;
+      _updatedAt = $v.updatedAt;
       _$v = null;
     }
     return this;
@@ -148,21 +218,39 @@ class BackupFileOutBuilder
   BackupFileOut build() => _build();
 
   _$BackupFileOut _build() {
-    final _$result = _$v ??
-        _$BackupFileOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'BackupFileOut', 'id'),
-          idGoogleAccount: BuiltValueNullFieldError.checkNotNull(
-              idGoogleAccount, r'BackupFileOut', 'idGoogleAccount'),
-          driveFileId: BuiltValueNullFieldError.checkNotNull(
-              driveFileId, r'BackupFileOut', 'driveFileId'),
-          localRef: BuiltValueNullFieldError.checkNotNull(
-              localRef, r'BackupFileOut', 'localRef'),
-          driveVersion: BuiltValueNullFieldError.checkNotNull(
-              driveVersion, r'BackupFileOut', 'driveVersion'),
-          contentHash: BuiltValueNullFieldError.checkNotNull(
-              contentHash, r'BackupFileOut', 'contentHash'),
-          createdAt: createdAt,
-        );
+    _$BackupFileOut _$result;
+    try {
+      _$result = _$v ??
+          _$BackupFileOut._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'BackupFileOut', 'id'),
+            idGoogleAccount: BuiltValueNullFieldError.checkNotNull(
+                idGoogleAccount, r'BackupFileOut', 'idGoogleAccount'),
+            idDevice: idDevice,
+            driveFileId: BuiltValueNullFieldError.checkNotNull(
+                driveFileId, r'BackupFileOut', 'driveFileId'),
+            localRef: localRef,
+            driveVersion: driveVersion,
+            snapshotVersion: snapshotVersion,
+            contentHash: contentHash,
+            sizeBytes: sizeBytes,
+            operationState: BuiltValueNullFieldError.checkNotNull(
+                operationState, r'BackupFileOut', 'operationState'),
+            manifest: _manifest?.build(),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'manifest';
+        _manifest?.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'BackupFileOut', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

@@ -23,7 +23,7 @@ void main() {
 
     // Create Google Account
     //
-    //Future<GoogleAccountOut> createGoogleAccountApiV1AuthGoogleCreatePost(GoogleAccountCreate googleAccountCreate) async
+    //Future<JsonObject> createGoogleAccountApiV1AuthGoogleCreatePost() async
     test('test createGoogleAccountApiV1AuthGoogleCreatePost', () async {
       // TODO
     });
@@ -51,7 +51,7 @@ void main() {
 
     // Update Google Account
     //
-    //Future<GoogleAccountOut> updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(String identificator, GoogleAccountUpdate googleAccountUpdate) async
+    //Future<JsonObject> updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(String identificator) async
     test('test updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut', () async {
       // TODO
     });

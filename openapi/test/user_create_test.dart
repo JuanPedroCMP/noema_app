@@ -22,7 +22,7 @@ void main() {
       // TODO
     });
 
-    // String password (default value: '')
+    // String password
     test('to test the property `password`', () async {
       // TODO
     });

@@ -9,7 +9,7 @@ part of 'task_type.dart';
 const TaskType _$manipulateGraph = const TaskType._('manipulateGraph');
 const TaskType _$manipulateNode = const TaskType._('manipulateNode');
 const TaskType _$generateNodeDescription =
-  const TaskType._('generateNodeDescription');
+    const TaskType._('generateNodeDescription');
 const TaskType _$createStudySession = const TaskType._('createStudySession');
 const TaskType _$evaluateEssayQuestion =
     const TaskType._('evaluateEssayQuestion');
@@ -29,7 +29,7 @@ const TaskType _$createFlashcardGroup =
 const TaskType _$manipulateFlashcardGroup =
     const TaskType._('manipulateFlashcardGroup');
 const TaskType _$createFlashcard = const TaskType._('createFlashcard');
-const TaskType _$createFlashcardS = const TaskType._('createFlashcardS');
+const TaskType _$createFlashcards = const TaskType._('createFlashcards');
 
 TaskType _$valueOf(String name) {
   switch (name) {
@@ -65,8 +65,8 @@ TaskType _$valueOf(String name) {
       return _$manipulateFlashcardGroup;
     case 'createFlashcard':
       return _$createFlashcard;
-    case 'createFlashcardS':
-      return _$createFlashcardS;
+    case 'createFlashcards':
+      return _$createFlashcards;
     default:
       throw ArgumentError(name);
   }
@@ -89,7 +89,7 @@ final BuiltSet<TaskType> _$values = BuiltSet<TaskType>(const <TaskType>[
   _$createFlashcardGroup,
   _$manipulateFlashcardGroup,
   _$createFlashcard,
-  _$createFlashcardS,
+  _$createFlashcards,
 ]);
 
 class _$TaskTypeMeta {
@@ -111,7 +111,7 @@ class _$TaskTypeMeta {
   TaskType get createFlashcardGroup => _$createFlashcardGroup;
   TaskType get manipulateFlashcardGroup => _$manipulateFlashcardGroup;
   TaskType get createFlashcard => _$createFlashcard;
-  TaskType get createFlashcardS => _$createFlashcardS;
+  TaskType get createFlashcards => _$createFlashcards;
   TaskType valueOf(String name) => _$valueOf(name);
   BuiltSet<TaskType> get values => _$values;
 }
@@ -134,14 +134,14 @@ class _$TaskTypeSerializer implements PrimitiveSerializer<TaskType> {
     'createMultipleChoiceQuestion': 'create_multiple_choice_question',
     'evaluateMultipleChoiceQuestion': 'evaluate_multiple_choice_question',
     'createFeynman': 'create_feynman',
-    'evaluateFeynman': 'evaluate_feynman ',
+    'evaluateFeynman': 'evaluate_feynman',
     'recommendStudyResource': 'recommend_study_resource',
     'studyManager': 'study_manager',
     'studyAssistent': 'study_assistent',
     'createFlashcardGroup': 'create_flashcard_group',
     'manipulateFlashcardGroup': 'manipulate_flashcard_group',
     'createFlashcard': 'create_flashcard',
-    'createFlashcardS': 'create_flashcardS',
+    'createFlashcards': 'create_flashcards',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'manipulate_graph': 'manipulateGraph',
@@ -153,14 +153,14 @@ class _$TaskTypeSerializer implements PrimitiveSerializer<TaskType> {
     'create_multiple_choice_question': 'createMultipleChoiceQuestion',
     'evaluate_multiple_choice_question': 'evaluateMultipleChoiceQuestion',
     'create_feynman': 'createFeynman',
-    'evaluate_feynman ': 'evaluateFeynman',
+    'evaluate_feynman': 'evaluateFeynman',
     'recommend_study_resource': 'recommendStudyResource',
     'study_manager': 'studyManager',
     'study_assistent': 'studyAssistent',
     'create_flashcard_group': 'createFlashcardGroup',
     'manipulate_flashcard_group': 'manipulateFlashcardGroup',
     'create_flashcard': 'createFlashcard',
-    'create_flashcardS': 'createFlashcardS',
+    'create_flashcards': 'createFlashcards',
   };
 
   @override

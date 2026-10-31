@@ -17,6 +17,16 @@ void main() {
       // TODO
     });
 
+    // String idGoogleAccount
+    test('to test the property `idGoogleAccount`', () async {
+      // TODO
+    });
+
+    // String idempotencyKey
+    test('to test the property `idempotencyKey`', () async {
+      // TODO
+    });
+
     // String event
     test('to test the property `event`', () async {
       // TODO
@@ -42,7 +52,7 @@ void main() {
       // TODO
     });
 
-    // String metadata
+    // BuiltMap<String, JsonObject> metadata
     test('to test the property `metadata`', () async {
       // TODO
     });

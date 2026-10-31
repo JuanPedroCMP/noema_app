@@ -17,6 +17,11 @@ void main() {
       // TODO
     });
 
+    // String idDevice
+    test('to test the property `idDevice`', () async {
+      // TODO
+    });
+
     // String driveFileId
     test('to test the property `driveFileId`', () async {
       // TODO
@@ -32,13 +37,38 @@ void main() {
       // TODO
     });
 
+    // String snapshotVersion
+    test('to test the property `snapshotVersion`', () async {
+      // TODO
+    });
+
     // String contentHash
     test('to test the property `contentHash`', () async {
       // TODO
     });
 
+    // int sizeBytes
+    test('to test the property `sizeBytes`', () async {
+      // TODO
+    });
+
+    // BackupOperationState operationState
+    test('to test the property `operationState`', () async {
+      // TODO
+    });
+
+    // BuiltMap<String, JsonObject> manifest
+    test('to test the property `manifest`', () async {
+      // TODO
+    });
+
     // DateTime createdAt
     test('to test the property `createdAt`', () async {
+      // TODO
+    });
+
+    // DateTime updatedAt
+    test('to test the property `updatedAt`', () async {
       // TODO
     });
 

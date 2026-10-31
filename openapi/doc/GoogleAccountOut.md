@@ -13,6 +13,8 @@ Name | Type | Description | Notes
 **googleUserId** | **String** |  | 
 **emailGoogle** | **String** |  | 
 **grantedScopes** | **String** |  | 
+**driveAppdataStatus** | **String** |  | 
+**scopeCheckedAt** | [**DateTime**](DateTime.md) |  | 
 **isActive** | **bool** |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 
 **lastRefreshAt** | [**DateTime**](DateTime.md) |  | 

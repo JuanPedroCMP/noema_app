@@ -10,19 +10,23 @@ class _$SyncLogOut extends SyncLogOut {
   @override
   final String id;
   @override
-  final String idDevice;
+  final String? idDevice;
   @override
-  final String idBackupFile;
+  final String? idBackupFile;
   @override
-  final String event;
+  final String? idGoogleAccount;
+  @override
+  final String? idUser;
+  @override
+  final String? event;
   @override
   final SyncDirection derection;
   @override
   final SyncResult result;
   @override
-  final ConflictStrategy conflictStrategy;
+  final ConflictStrategy? conflictStrategy;
   @override
-  final String errorDetails;
+  final String? errorDetails;
   @override
   final BuiltMap<String, JsonObject?> metadata;
   @override
@@ -33,13 +37,15 @@ class _$SyncLogOut extends SyncLogOut {
 
   _$SyncLogOut._(
       {required this.id,
-      required this.idDevice,
-      required this.idBackupFile,
-      required this.event,
+      this.idDevice,
+      this.idBackupFile,
+      this.idGoogleAccount,
+      this.idUser,
+      this.event,
       required this.derection,
       required this.result,
-      required this.conflictStrategy,
-      required this.errorDetails,
+      this.conflictStrategy,
+      this.errorDetails,
       required this.metadata,
       this.createdAt})
       : super._();
@@ -57,6 +63,8 @@ class _$SyncLogOut extends SyncLogOut {
         id == other.id &&
         idDevice == other.idDevice &&
         idBackupFile == other.idBackupFile &&
+        idGoogleAccount == other.idGoogleAccount &&
+        idUser == other.idUser &&
         event == other.event &&
         derection == other.derection &&
         result == other.result &&
@@ -72,6 +80,8 @@ class _$SyncLogOut extends SyncLogOut {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, idDevice.hashCode);
     _$hash = $jc(_$hash, idBackupFile.hashCode);
+    _$hash = $jc(_$hash, idGoogleAccount.hashCode);
+    _$hash = $jc(_$hash, idUser.hashCode);
     _$hash = $jc(_$hash, event.hashCode);
     _$hash = $jc(_$hash, derection.hashCode);
     _$hash = $jc(_$hash, result.hashCode);
@@ -89,6 +99,8 @@ class _$SyncLogOut extends SyncLogOut {
           ..add('id', id)
           ..add('idDevice', idDevice)
           ..add('idBackupFile', idBackupFile)
+          ..add('idGoogleAccount', idGoogleAccount)
+          ..add('idUser', idUser)
           ..add('event', event)
           ..add('derection', derection)
           ..add('result', result)
@@ -114,6 +126,15 @@ class SyncLogOutBuilder implements Builder<SyncLogOut, SyncLogOutBuilder> {
   String? _idBackupFile;
   String? get idBackupFile => _$this._idBackupFile;
   set idBackupFile(String? idBackupFile) => _$this._idBackupFile = idBackupFile;
+
+  String? _idGoogleAccount;
+  String? get idGoogleAccount => _$this._idGoogleAccount;
+  set idGoogleAccount(String? idGoogleAccount) =>
+      _$this._idGoogleAccount = idGoogleAccount;
+
+  String? _idUser;
+  String? get idUser => _$this._idUser;
+  set idUser(String? idUser) => _$this._idUser = idUser;
 
   String? _event;
   String? get event => _$this._event;
@@ -156,6 +177,8 @@ class SyncLogOutBuilder implements Builder<SyncLogOut, SyncLogOutBuilder> {
       _id = $v.id;
       _idDevice = $v.idDevice;
       _idBackupFile = $v.idBackupFile;
+      _idGoogleAccount = $v.idGoogleAccount;
+      _idUser = $v.idUser;
       _event = $v.event;
       _derection = $v.derection;
       _result = $v.result;
@@ -187,20 +210,17 @@ class SyncLogOutBuilder implements Builder<SyncLogOut, SyncLogOutBuilder> {
       _$result = _$v ??
           _$SyncLogOut._(
             id: BuiltValueNullFieldError.checkNotNull(id, r'SyncLogOut', 'id'),
-            idDevice: BuiltValueNullFieldError.checkNotNull(
-                idDevice, r'SyncLogOut', 'idDevice'),
-            idBackupFile: BuiltValueNullFieldError.checkNotNull(
-                idBackupFile, r'SyncLogOut', 'idBackupFile'),
-            event: BuiltValueNullFieldError.checkNotNull(
-                event, r'SyncLogOut', 'event'),
+            idDevice: idDevice,
+            idBackupFile: idBackupFile,
+            idGoogleAccount: idGoogleAccount,
+            idUser: idUser,
+            event: event,
             derection: BuiltValueNullFieldError.checkNotNull(
                 derection, r'SyncLogOut', 'derection'),
             result: BuiltValueNullFieldError.checkNotNull(
                 result, r'SyncLogOut', 'result'),
-            conflictStrategy: BuiltValueNullFieldError.checkNotNull(
-                conflictStrategy, r'SyncLogOut', 'conflictStrategy'),
-            errorDetails: BuiltValueNullFieldError.checkNotNull(
-                errorDetails, r'SyncLogOut', 'errorDetails'),
+            conflictStrategy: conflictStrategy,
+            errorDetails: errorDetails,
             metadata: metadata.build(),
             createdAt: createdAt,
           );

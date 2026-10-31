@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AiRequestPriority { user, background }
 
 class AiRequestQueue {
-  final List<_QueuedAiRequest<Object?>> _backgroundRequests = [];
+  final Queue<_QueuedAiRequest<Object?>> _backgroundRequests = Queue();
   int _activeBackgroundRequests = 0;
   int _backgroundConcurrencyLimit = 1;
 
@@ -38,14 +39,11 @@ class AiRequestQueue {
   void _pumpBackgroundRequests() {
     while (_activeBackgroundRequests < _backgroundConcurrencyLimit &&
         _backgroundRequests.isNotEmpty) {
-      final request = _backgroundRequests.removeAt(0);
+      final request = _backgroundRequests.removeFirst();
       _activeBackgroundRequests++;
       request
           .run()
-          .then<void>(
-            request.complete,
-            onError: request.completeError,
-          )
+          .then<void>(request.complete, onError: request.completeError)
           .whenComplete(() {
             _activeBackgroundRequests--;
             _pumpBackgroundRequests();

@@ -23,7 +23,7 @@ abstract class AgentCreate implements Built<AgentCreate, AgentCreateBuilder> {
 
   @BuiltValueField(wireName: r'task')
   TaskType get task;
-  // enum taskEnum {  manipulate_graph,  manipulate_node,  create_study_session,  evaluate_essay_question,  create_essay_question,  create_multiple_choice_question,  evaluate_multiple_choice_question,  create_feynman,  evaluate_feynman ,  recommend_study_resource,  study_manager,  study_assistent,  create_flashcard_group,  manipulate_flashcard_group,  create_flashcard,  create_flashcardS,  };
+  // enum taskEnum {  manipulate_graph,  manipulate_node,  generate_node_description,  create_study_session,  evaluate_essay_question,  create_essay_question,  create_multiple_choice_question,  evaluate_multiple_choice_question,  create_feynman,  evaluate_feynman,  recommend_study_resource,  study_manager,  study_assistent,  create_flashcard_group,  manipulate_flashcard_group,  create_flashcard,  create_flashcards,  };
 
   @BuiltValueField(wireName: r'base_system_prompt')
   String get baseSystemPrompt;

@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local OAuth client IDs used through --dart-define-from-file
+/config/google_oauth.json
+/config/google_oauth_desktop.json

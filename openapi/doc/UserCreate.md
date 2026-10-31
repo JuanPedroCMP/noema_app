@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **userName** | **String** |  | [optional] [default to '']
 **primaryEmail** | **String** |  | 
 **userDisplayName** | **String** |  | [optional] 
-**password** | **String** |  | [optional] [default to '']
+**password** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

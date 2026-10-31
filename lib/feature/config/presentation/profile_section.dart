@@ -17,6 +17,14 @@ import 'package:noema/shared/editable_field/editable_field.dart';
 
 final _pixelbotStyle = Style.parse(pixelbot);
 
+String _sanitizeDicebearSvg(String rawSvg) {
+  if (rawSvg.trim().isEmpty) return rawSvg;
+
+  return rawSvg
+      .replaceAll(RegExp(r'<metadata[^>]*>.*?</metadata>', dotAll: true), '')
+      .replaceAll(RegExp(r'<style[^>]*>.*?</style>', dotAll: true), '');
+}
+
 class ProfileSection extends ConsumerStatefulWidget {
   const ProfileSection({super.key});
 
@@ -128,18 +136,25 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
       if (account == null || account.idUser != remoteUserId) {
         throw StateError('A conta Google retornada não pertence ao usuário.');
       }
-      final googleIdentity = account.googleUserId?.trim().isNotEmpty == true
-          ? account.googleUserId!.trim()
-          : account.emailGoogle.trim();
-      if (googleIdentity.isEmpty) return;
+      final googleIdentity = (account.googleUserId ?? '').trim();
+      final fallbackIdentity = (account.emailGoogle ?? '').trim();
+      final resolvedIdentity = googleIdentity.isNotEmpty
+          ? googleIdentity
+          : fallbackIdentity;
+      if (resolvedIdentity.isEmpty) {
+        if (mounted) setState(() => _googleAvatarUrl = null);
+        return;
+      }
+
       final avatarUri = Uri.https(
         'www.google.com',
-        '/s2/photos/profile/$googleIdentity',
+        '/s2/photos/profile/$resolvedIdentity',
         {'sz': '160'},
       );
       if (mounted) setState(() => _googleAvatarUrl = avatarUri.toString());
     } on DioException catch (error) {
-      if (error.response?.statusCode != 404) {
+      if (error.response?.statusCode != 404 &&
+          error.response?.statusCode != 503) {
         debugPrint('Não foi possível carregar o avatar Google: $error');
       }
       if (mounted) setState(() => _googleAvatarUrl = null);
@@ -465,13 +480,21 @@ class _ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = SvgPicture.string(
+    final fallbackSvg = _sanitizeDicebearSvg(
       Avatar(_pixelbotStyle, {
         'tags': ['animation'],
         'seed': seed,
       }).svg,
+    );
+    final fallback = SvgPicture.string(
+      fallbackSvg,
       fit: BoxFit.cover,
       semanticsLabel: 'Avatar ilustrado',
+      placeholderBuilder: (context) => const SizedBox.expand(
+        child: Center(
+          child: Icon(Icons.person_outline, size: 32),
+        ),
+      ),
     );
 
     return Semantics(

@@ -20,6 +20,8 @@ import 'package:openapi/src/api/color_theme_api.dart';
 import 'package:openapi/src/api/default_api.dart';
 import 'package:openapi/src/api/device_api.dart';
 import 'package:openapi/src/api/generic_log_api.dart';
+import 'package:openapi/src/api/google_drive_o_auth_api.dart';
+import 'package:openapi/src/api/google_drive_sync_api.dart';
 import 'package:openapi/src/api/google_o_auth_api.dart';
 import 'package:openapi/src/api/language_api.dart';
 import 'package:openapi/src/api/provider_api.dart';
@@ -190,6 +192,18 @@ class Openapi {
   /// by doing that all interceptors will not be executed
   GenericLogApi getGenericLogApi() {
     return GenericLogApi(dio, serializers);
+  }
+
+  /// Get GoogleDriveOAuthApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  GoogleDriveOAuthApi getGoogleDriveOAuthApi() {
+    return GoogleDriveOAuthApi(dio, serializers);
+  }
+
+  /// Get GoogleDriveSyncApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  GoogleDriveSyncApi getGoogleDriveSyncApi() {
+    return GoogleDriveSyncApi(dio, serializers);
   }
 
   /// Get GoogleOAuthApi instance, base route and serializer can be overridden by a given but be careful,

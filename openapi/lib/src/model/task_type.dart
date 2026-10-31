@@ -29,7 +29,7 @@ class TaskType extends EnumClass {
   static const TaskType evaluateMultipleChoiceQuestion = _$evaluateMultipleChoiceQuestion;
   @BuiltValueEnumConst(wireName: r'create_feynman')
   static const TaskType createFeynman = _$createFeynman;
-  @BuiltValueEnumConst(wireName: r'evaluate_feynman ')
+  @BuiltValueEnumConst(wireName: r'evaluate_feynman')
   static const TaskType evaluateFeynman = _$evaluateFeynman;
   @BuiltValueEnumConst(wireName: r'recommend_study_resource')
   static const TaskType recommendStudyResource = _$recommendStudyResource;
@@ -43,8 +43,8 @@ class TaskType extends EnumClass {
   static const TaskType manipulateFlashcardGroup = _$manipulateFlashcardGroup;
   @BuiltValueEnumConst(wireName: r'create_flashcard')
   static const TaskType createFlashcard = _$createFlashcard;
-  @BuiltValueEnumConst(wireName: r'create_flashcardS')
-  static const TaskType createFlashcardS = _$createFlashcardS;
+  @BuiltValueEnumConst(wireName: r'create_flashcards')
+  static const TaskType createFlashcards = _$createFlashcards;
 
   static Serializer<TaskType> get serializer => _$taskTypeSerializer;
 

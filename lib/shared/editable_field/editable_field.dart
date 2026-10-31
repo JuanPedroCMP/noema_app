@@ -43,71 +43,90 @@ class _EditableFieldState extends State<EditableField> {
 
   @override
   Widget build(BuildContext context) {
-    return !isEditing
-        ? Row(
-            spacing: context.spacing.sm,
+    final spacing = context.spacing.sm;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!isEditing) {
+          return Row(
+            spacing: spacing,
             children: [
-              ?widget.displayLabel,
-              widget.display,
-              OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    isEditing = true;
-                  });
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.edit),
-                    Text("Editar", style: context.textTheme.labelMedium),
-                  ],
+              if (widget.displayLabel case final label?)
+                Flexible(
+                  flex: 2,
+                  child: DefaultTextStyle.merge(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    child: label,
+                  ),
                 ),
-              ),
-            ],
-          )
-        : Row(
-            spacing: context.spacing.sm,
-            children: [
               Expanded(
-                child: TextField(
-                  onChanged: widget.onChanged,
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: widget.inputLabel,
+                flex: 3,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: DefaultTextStyle.merge(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    child: widget.display,
                   ),
                 ),
               ),
-              OutlinedButton(
-                onPressed: () async {
-                  await widget.onConfirm();
-                  setState(() {
-                    isEditing = false;
-                  });
-                },
-
-                child: Row(
-                  children: [
-                    Icon(Icons.save_rounded),
-                    Text("Salvar", style: context.textTheme.labelMedium),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: () async {
-                  await widget.onCancel();
-                  setState(() {
-                    isEditing = false;
-                  });
-                },
-
-                child: Row(
-                  children: [
-                    Icon(Icons.cancel),
-                    Text("Cancelar", style: context.textTheme.labelMedium),
-                  ],
-                ),
+              OutlinedButton.icon(
+                onPressed: () => setState(() => isEditing = true),
+                icon: const Icon(Icons.edit),
+                label: Text("Editar", style: context.textTheme.labelMedium),
               ),
             ],
           );
+        }
+
+        final field = TextField(
+          onChanged: widget.onChanged,
+          controller: _controller,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: widget.inputLabel,
+          ),
+        );
+        final actions = Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          alignment: WrapAlignment.end,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () async {
+                await widget.onConfirm();
+                if (mounted) setState(() => isEditing = false);
+              },
+              icon: const Icon(Icons.save_rounded),
+              label: Text("Salvar", style: context.textTheme.labelMedium),
+            ),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await widget.onCancel();
+                if (mounted) setState(() => isEditing = false);
+              },
+              icon: const Icon(Icons.cancel),
+              label: Text("Cancelar", style: context.textTheme.labelMedium),
+            ),
+          ],
+        );
+
+        if (constraints.maxWidth < 560) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: spacing,
+            children: [field, actions],
+          );
+        }
+
+        return Row(
+          spacing: spacing,
+          children: [
+            Expanded(child: field),
+            actions,
+          ],
+        );
+      },
+    );
   }
 }

@@ -59,7 +59,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete**
-> JsonObject deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(identificator)
+> BuiltMap<String, bool?> deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(identificator)
 
 Delete Backup File
 
@@ -70,7 +70,7 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<OAuth>('OAuth2PasswordBearer').accessToken = 'YOUR_ACCESS_TOKEN';
 
 final api = Openapi().getBackupFileApi();
-final String identificator = identificator_example; // String | 
+final String identificator = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 
 try {
     final response = api.deleteBackupFileApiV1GoogleDriveBackupFileDeleteIdentificatorDelete(identificator);
@@ -88,7 +88,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JsonObject**](JsonObject.md)
+**BuiltMap&lt;String, bool?&gt;**
 
 ### Authorization
 
@@ -145,7 +145,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listBackupFileApiV1GoogleDriveBackupFileListGet**
-> BuiltList<BackupFileOut> listBackupFileApiV1GoogleDriveBackupFileListGet(id, idGoogleAccount, driveFileId, localRef, driveVersion, contentHash, createdAt)
+> BuiltList<BackupFileOut> listBackupFileApiV1GoogleDriveBackupFileListGet(filters, limit, offset)
 
 List Backup File
 
@@ -156,16 +156,12 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<OAuth>('OAuth2PasswordBearer').accessToken = 'YOUR_ACCESS_TOKEN';
 
 final api = Openapi().getBackupFileApi();
-final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String idGoogleAccount = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String driveFileId = driveFileId_example; // String | 
-final String localRef = localRef_example; // String | 
-final String driveVersion = driveVersion_example; // String | 
-final String contentHash = contentHash_example; // String | 
-final DateTime createdAt = 2013-10-20T19:20:30+01:00; // DateTime | 
+final BackupFileFilters filters = ; // BackupFileFilters | 
+final int limit = 56; // int | 
+final int offset = 56; // int | 
 
 try {
-    final response = api.listBackupFileApiV1GoogleDriveBackupFileListGet(id, idGoogleAccount, driveFileId, localRef, driveVersion, contentHash, createdAt);
+    final response = api.listBackupFileApiV1GoogleDriveBackupFileListGet(filters, limit, offset);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling BackupFileApi->listBackupFileApiV1GoogleDriveBackupFileListGet: $e\n');
@@ -176,13 +172,9 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **String**|  | [optional] 
- **idGoogleAccount** | **String**|  | [optional] 
- **driveFileId** | **String**|  | [optional] 
- **localRef** | **String**|  | [optional] 
- **driveVersion** | **String**|  | [optional] 
- **contentHash** | **String**|  | [optional] 
- **createdAt** | **DateTime**|  | [optional] 
+ **filters** | [**BackupFileFilters**](.md)|  | 
+ **limit** | **int**|  | [optional] [default to 100]
+ **offset** | **int**|  | [optional] [default to 0]
 
 ### Return type
 

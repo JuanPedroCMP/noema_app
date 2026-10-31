@@ -115,7 +115,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **createGoogleAccountApiV1AuthGoogleCreatePost**
-> GoogleAccountOut createGoogleAccountApiV1AuthGoogleCreatePost(googleAccountCreate)
+> JsonObject createGoogleAccountApiV1AuthGoogleCreatePost()
 
 Create Google Account
 
@@ -126,10 +126,9 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<OAuth>('OAuth2PasswordBearer').accessToken = 'YOUR_ACCESS_TOKEN';
 
 final api = Openapi().getAuthenticationApi();
-final GoogleAccountCreate googleAccountCreate = ; // GoogleAccountCreate | 
 
 try {
-    final response = api.createGoogleAccountApiV1AuthGoogleCreatePost(googleAccountCreate);
+    final response = api.createGoogleAccountApiV1AuthGoogleCreatePost();
     print(response);
 } on DioException catch (e) {
     print('Exception when calling AuthenticationApi->createGoogleAccountApiV1AuthGoogleCreatePost: $e\n');
@@ -137,14 +136,11 @@ try {
 ```
 
 ### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **googleAccountCreate** | [**GoogleAccountCreate**](GoogleAccountCreate.md)|  | 
+This endpoint does not need any parameter.
 
 ### Return type
 
-[**GoogleAccountOut**](GoogleAccountOut.md)
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -152,7 +148,7 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -285,7 +281,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut**
-> GoogleAccountOut updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(identificator, googleAccountUpdate)
+> JsonObject updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(identificator)
 
 Update Google Account
 
@@ -297,10 +293,9 @@ import 'package:openapi/api.dart';
 
 final api = Openapi().getAuthenticationApi();
 final String identificator = identificator_example; // String | 
-final GoogleAccountUpdate googleAccountUpdate = ; // GoogleAccountUpdate | 
 
 try {
-    final response = api.updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(identificator, googleAccountUpdate);
+    final response = api.updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut(identificator);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling AuthenticationApi->updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut: $e\n');
@@ -312,11 +307,10 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **identificator** | **String**|  | 
- **googleAccountUpdate** | [**GoogleAccountUpdate**](GoogleAccountUpdate.md)|  | 
 
 ### Return type
 
-[**GoogleAccountOut**](GoogleAccountOut.md)
+[**JsonObject**](JsonObject.md)
 
 ### Authorization
 
@@ -324,7 +318,7 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

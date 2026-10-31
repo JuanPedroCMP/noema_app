@@ -10,9 +10,15 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **idGoogleAccount** | **String** |  | 
 **driveFileId** | **String** |  | 
-**localRef** | **String** |  | 
+**localRef** | **String** |  | [optional] 
 **driveVersion** | **String** |  | 
 **contentHash** | **String** |  | 
+**snapshotVersion** | **String** |  | [optional] [default to 'legacy']
+**idDevice** | **String** |  | [optional] 
+**sizeBytes** | **int** |  | [optional] [default to 0]
+**operationState** | [**BackupOperationState**](BackupOperationState.md) |  | [optional] [default to BackupOperationState.completed]
+**manifest** | [**SnapshotManifest**](SnapshotManifest.md) |  | [optional] 
+**idempotencyKey** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

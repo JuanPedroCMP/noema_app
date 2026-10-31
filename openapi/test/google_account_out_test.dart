@@ -32,6 +32,16 @@ void main() {
       // TODO
     });
 
+    // String driveAppdataStatus
+    test('to test the property `driveAppdataStatus`', () async {
+      // TODO
+    });
+
+    // DateTime scopeCheckedAt
+    test('to test the property `scopeCheckedAt`', () async {
+      // TODO
+    });
+
     // bool isActive
     test('to test the property `isActive`', () async {
       // TODO

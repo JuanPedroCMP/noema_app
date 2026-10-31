@@ -16,6 +16,8 @@ part 'google_account_out.g.dart';
 /// * [googleUserId] 
 /// * [emailGoogle] 
 /// * [grantedScopes] 
+/// * [driveAppdataStatus] 
+/// * [scopeCheckedAt] 
 /// * [isActive] 
 /// * [expiresAt] 
 /// * [lastRefreshAt] 
@@ -33,10 +35,16 @@ abstract class GoogleAccountOut implements Built<GoogleAccountOut, GoogleAccount
   String? get googleUserId;
 
   @BuiltValueField(wireName: r'email_google')
-  String get emailGoogle;
+  String? get emailGoogle;
 
   @BuiltValueField(wireName: r'granted_scopes')
   String? get grantedScopes;
+
+  @BuiltValueField(wireName: r'drive_appdata_status')
+  String get driveAppdataStatus;
+
+  @BuiltValueField(wireName: r'scope_checked_at')
+  DateTime? get scopeCheckedAt;
 
   @BuiltValueField(wireName: r'is_active')
   bool get isActive;
@@ -92,14 +100,24 @@ class _$GoogleAccountOutSerializer implements PrimitiveSerializer<GoogleAccountO
       specifiedType: const FullType.nullable(String),
     );
     yield r'email_google';
-    yield serializers.serialize(
+    yield object.emailGoogle == null ? null : serializers.serialize(
       object.emailGoogle,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'granted_scopes';
     yield object.grantedScopes == null ? null : serializers.serialize(
       object.grantedScopes,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'drive_appdata_status';
+    yield serializers.serialize(
+      object.driveAppdataStatus,
+      specifiedType: const FullType(String),
+    );
+    yield r'scope_checked_at';
+    yield object.scopeCheckedAt == null ? null : serializers.serialize(
+      object.scopeCheckedAt,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'is_active';
     yield serializers.serialize(
@@ -174,8 +192,9 @@ class _$GoogleAccountOutSerializer implements PrimitiveSerializer<GoogleAccountO
         case r'email_google':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.emailGoogle = valueDes;
           break;
         case r'granted_scopes':
@@ -185,6 +204,21 @@ class _$GoogleAccountOutSerializer implements PrimitiveSerializer<GoogleAccountO
           ) as String?;
           if (valueDes == null) continue;
           result.grantedScopes = valueDes;
+          break;
+        case r'drive_appdata_status':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.driveAppdataStatus = valueDes;
+          break;
+        case r'scope_checked_at':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.scopeCheckedAt = valueDes;
           break;
         case r'is_active':
           final valueDes = serializers.deserialize(

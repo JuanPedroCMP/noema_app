@@ -32,5 +32,35 @@ void main() {
       // TODO
     });
 
+    // String snapshotVersion (default value: 'legacy')
+    test('to test the property `snapshotVersion`', () async {
+      // TODO
+    });
+
+    // String idDevice
+    test('to test the property `idDevice`', () async {
+      // TODO
+    });
+
+    // int sizeBytes (default value: 0)
+    test('to test the property `sizeBytes`', () async {
+      // TODO
+    });
+
+    // BackupOperationState operationState (default value: BackupOperationState.completed)
+    test('to test the property `operationState`', () async {
+      // TODO
+    });
+
+    // SnapshotManifest manifest
+    test('to test the property `manifest`', () async {
+      // TODO
+    });
+
+    // String idempotencyKey
+    test('to test the property `idempotencyKey`', () async {
+      // TODO
+    });
+
   });
 }

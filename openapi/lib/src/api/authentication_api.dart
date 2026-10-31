@@ -10,9 +10,7 @@ import 'package:dio/dio.dart';
 
 import 'package:built_value/json_object.dart';
 import 'package:openapi/src/api_util.dart';
-import 'package:openapi/src/model/google_account_create.dart';
 import 'package:openapi/src/model/google_account_out.dart';
-import 'package:openapi/src/model/google_account_update.dart';
 import 'package:openapi/src/model/http_validation_error.dart';
 
 class AuthenticationApi {
@@ -224,7 +222,6 @@ class AuthenticationApi {
   /// 
   ///
   /// Parameters:
-  /// * [googleAccountCreate] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -232,10 +229,10 @@ class AuthenticationApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GoogleAccountOut] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GoogleAccountOut>> createGoogleAccountApiV1AuthGoogleCreatePost({ 
-    required GoogleAccountCreate googleAccountCreate,
+  @Deprecated('This operation has been deprecated')
+  Future<Response<JsonObject>> createGoogleAccountApiV1AuthGoogleCreatePost({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -258,45 +255,25 @@ class AuthenticationApi {
         ],
         ...?extra,
       },
-      contentType: 'application/json',
       validateStatus: validateStatus,
     );
 
-    dynamic _bodyData;
-
-    try {
-      const _type = FullType(GoogleAccountCreate);
-      _bodyData = _serializers.serialize(googleAccountCreate, specifiedType: _type);
-
-    } catch(error, stackTrace) {
-      throw DioException(
-         requestOptions: _options.compose(
-          _dio.options,
-          _path,
-        ),
-        type: DioExceptionType.unknown,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-
     final _response = await _dio.request<Object>(
       _path,
-      data: _bodyData,
       options: _options,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
     );
 
-    GoogleAccountOut? _responseData;
+    JsonObject? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(GoogleAccountOut),
-      ) as GoogleAccountOut;
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -308,7 +285,7 @@ class AuthenticationApi {
       );
     }
 
-    return Response<GoogleAccountOut>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -565,7 +542,6 @@ class AuthenticationApi {
   ///
   /// Parameters:
   /// * [identificator] 
-  /// * [googleAccountUpdate] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -573,11 +549,11 @@ class AuthenticationApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GoogleAccountOut] as data
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GoogleAccountOut>> updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut({ 
+  @Deprecated('This operation has been deprecated')
+  Future<Response<JsonObject>> updateGoogleAccountApiV1AuthGoogleUpdateIdentificatorPut({ 
     required String identificator,
-    required GoogleAccountUpdate googleAccountUpdate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -600,45 +576,25 @@ class AuthenticationApi {
         ],
         ...?extra,
       },
-      contentType: 'application/json',
       validateStatus: validateStatus,
     );
 
-    dynamic _bodyData;
-
-    try {
-      const _type = FullType(GoogleAccountUpdate);
-      _bodyData = _serializers.serialize(googleAccountUpdate, specifiedType: _type);
-
-    } catch(error, stackTrace) {
-      throw DioException(
-         requestOptions: _options.compose(
-          _dio.options,
-          _path,
-        ),
-        type: DioExceptionType.unknown,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-
     final _response = await _dio.request<Object>(
       _path,
-      data: _bodyData,
       options: _options,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
     );
 
-    GoogleAccountOut? _responseData;
+    JsonObject? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(GoogleAccountOut),
-      ) as GoogleAccountOut;
+        specifiedType: const FullType(JsonObject),
+      ) as JsonObject;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -650,7 +606,7 @@ class AuthenticationApi {
       );
     }
 
-    return Response<GoogleAccountOut>(
+    return Response<JsonObject>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

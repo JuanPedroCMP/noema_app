@@ -15,6 +15,7 @@ part 'user_update.g.dart';
 /// * [primaryEmail] 
 /// * [userDisplayName] 
 /// * [password] 
+/// * [currentPassword] 
 @BuiltValue()
 abstract class UserUpdate implements Built<UserUpdate, UserUpdateBuilder> {
   @BuiltValueField(wireName: r'user_name')
@@ -28,6 +29,9 @@ abstract class UserUpdate implements Built<UserUpdate, UserUpdateBuilder> {
 
   @BuiltValueField(wireName: r'password')
   String? get password;
+
+  @BuiltValueField(wireName: r'current_password')
+  String? get currentPassword;
 
   UserUpdate._();
 
@@ -77,6 +81,13 @@ class _$UserUpdateSerializer implements PrimitiveSerializer<UserUpdate> {
       yield r'password';
       yield serializers.serialize(
         object.password,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.currentPassword != null) {
+      yield r'current_password';
+      yield serializers.serialize(
+        object.currentPassword,
         specifiedType: const FullType.nullable(String),
       );
     }
@@ -134,6 +145,14 @@ class _$UserUpdateSerializer implements PrimitiveSerializer<UserUpdate> {
           ) as String?;
           if (valueDes == null) continue;
           result.password = valueDes;
+          break;
+        case r'current_password':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.currentPassword = valueDes;
           break;
         default:
           unhandled.add(key);

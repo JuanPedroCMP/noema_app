@@ -41,6 +41,22 @@ void main() {
     },
   );
 
+  test('preserves FIFO order for a large background queue', () async {
+    final queue = AiRequestQueue();
+    final requests = List.generate(
+      500,
+      (index) => queue.run<int>(
+        priority: AiRequestPriority.background,
+        backgroundConcurrencyLimit: 1,
+        action: () async => index,
+      ),
+    );
+
+    expect(await Future.wait(requests), List.generate(500, (index) => index));
+    expect(queue.pendingBackgroundRequests, 0);
+    expect(queue.activeBackgroundRequests, 0);
+  });
+
   test(
     'runs automatic requests up to the configured concurrency limit',
     () async {

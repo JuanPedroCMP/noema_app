@@ -14,7 +14,7 @@ class _$GenericLogOut extends GenericLogOut {
   @override
   final String? idUser;
   @override
-  final JsonObject? details;
+  final BuiltMap<String, JsonObject?> details;
   @override
   final DateTime? createdAt;
 
@@ -25,7 +25,7 @@ class _$GenericLogOut extends GenericLogOut {
       {required this.id,
       required this.type,
       this.idUser,
-      this.details,
+      required this.details,
       this.createdAt})
       : super._();
   @override
@@ -86,9 +86,11 @@ class GenericLogOutBuilder
   String? get idUser => _$this._idUser;
   set idUser(String? idUser) => _$this._idUser = idUser;
 
-  JsonObject? _details;
-  JsonObject? get details => _$this._details;
-  set details(JsonObject? details) => _$this._details = details;
+  MapBuilder<String, JsonObject?>? _details;
+  MapBuilder<String, JsonObject?> get details =>
+      _$this._details ??= MapBuilder<String, JsonObject?>();
+  set details(MapBuilder<String, JsonObject?>? details) =>
+      _$this._details = details;
 
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
@@ -104,7 +106,7 @@ class GenericLogOutBuilder
       _id = $v.id;
       _type = $v.type;
       _idUser = $v.idUser;
-      _details = $v.details;
+      _details = $v.details.toBuilder();
       _createdAt = $v.createdAt;
       _$v = null;
     }
@@ -125,15 +127,29 @@ class GenericLogOutBuilder
   GenericLogOut build() => _build();
 
   _$GenericLogOut _build() {
-    final _$result = _$v ??
-        _$GenericLogOut._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'GenericLogOut', 'id'),
-          type: BuiltValueNullFieldError.checkNotNull(
-              type, r'GenericLogOut', 'type'),
-          idUser: idUser,
-          details: details,
-          createdAt: createdAt,
-        );
+    _$GenericLogOut _$result;
+    try {
+      _$result = _$v ??
+          _$GenericLogOut._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'GenericLogOut', 'id'),
+            type: BuiltValueNullFieldError.checkNotNull(
+                type, r'GenericLogOut', 'type'),
+            idUser: idUser,
+            details: details.build(),
+            createdAt: createdAt,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'details';
+        details.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'GenericLogOut', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
