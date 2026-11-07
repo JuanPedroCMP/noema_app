@@ -43,6 +43,46 @@ void main() {
     expect(forgotten.scoreAfter, inInclusiveRange(0, 1));
   });
 
+  test('uses the historical accuracy of repeated assessments', () {
+    final weakHistory = DomainMasteryUpdate.calculate(
+      previousScore: 0.7,
+      previousReviewCount: 6,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.8,
+      historicalAccuracy: 0.2,
+    );
+    final strongHistory = DomainMasteryUpdate.calculate(
+      previousScore: 0.7,
+      previousReviewCount: 6,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.8,
+      historicalAccuracy: 0.9,
+    );
+
+    expect(strongHistory.scoreAfter, greaterThan(weakHistory.scoreAfter));
+  });
+
+  test('uses exposure count to weigh historical evidence', () {
+    final withExposureHistory = DomainMasteryUpdate.calculate(
+      previousScore: 0.7,
+      previousReviewCount: 1,
+      exposureCount: 8,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.8,
+      historicalAccuracy: 0.2,
+    );
+    final withLimitedExposure = DomainMasteryUpdate.calculate(
+      previousScore: 0.7,
+      previousReviewCount: 1,
+      exposureCount: 1,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.8,
+      historicalAccuracy: 0.2,
+    );
+
+    expect(withExposureHistory.scoreAfter, lessThan(withLimitedExposure.scoreAfter));
+  });
+
   test('maps mastery levels at deterministic boundaries', () {
     expect(DomainMasteryUpdate.levelForScore(0.39), 'WEAK');
     expect(DomainMasteryUpdate.levelForScore(0.4), 'PARTIAL');

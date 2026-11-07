@@ -51,6 +51,7 @@ dependencies:
   crypto: ^3.0.8
   app_links: ^7.2.2
   win32_registry: ^3.0.3
+  cryptography: ^2.9.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

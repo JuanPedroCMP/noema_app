@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/config/data/personal_ai_configuration_service.dart';
 import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
@@ -21,7 +22,7 @@ class ApiKeysSection extends ConsumerStatefulWidget {
 }
 
 class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
-  List<ProviderOut> _providers = [];
+  List<PersonalAiProvider> _providers = [];
   List<UserApiKeyOut> _keys = [];
   bool _loading = true;
   bool _saving = false;
@@ -64,20 +65,19 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
     try {
       final user = await ref.read(userProvider.future);
       final client = ref.read(apiClientProvider);
-      final providersResponse = await client
-          .getProviderApi()
-          .listProvidersApiV1AiProviderListGet(isActive: true);
+      final providers = await ref
+          .read(personalAiConfigurationServiceProvider)
+          .listProviders();
       final keysResponse = await client
           .getUserApiKeyApi()
           .listUserApiKeyApiV1AiUserApiKeyListGet(idUser: user.remoteId);
-      final providers = providersResponse.data;
       final keys = keysResponse.data;
-      if (providers == null || keys == null) {
+      if (keys == null) {
         throw StateError('A API não retornou a lista de integrações.');
       }
       if (!mounted) return;
       setState(() {
-        _providers = providers.toList();
+        _providers = providers;
         _keys = keys.where((key) => key.idUser == user.remoteId).toList();
         _loading = false;
       });
@@ -107,7 +107,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
               builder
                 ..idAiProvider = draft.providerId
                 ..name = draft.name
-                ..apiKey = draft.apiKey!
+                ..apiKey = draft.apiKey ?? ''
                 ..isActive = draft.isActive;
             }),
           );
@@ -144,8 +144,9 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
                 ..idAiProvider = draft.providerId
                 ..name = draft.name
                 ..isActive = draft.isActive;
-              if (draft.apiKey?.isNotEmpty == true) {
-                builder.apiKey = draft.apiKey;
+              if (draft.apiKey != null ||
+                  draft.providerId != key.idAiProvider) {
+                builder.apiKey = draft.apiKey ?? '';
               }
             }),
           );
@@ -202,7 +203,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
   }
 
   Future<_ApiKeyDraft?> _editDialog({
-    required List<ProviderOut> providers,
+    required List<PersonalAiProvider> providers,
     UserApiKeyOut? apiKey,
   }) {
     return showDialog<_ApiKeyDraft>(
@@ -366,7 +367,7 @@ class _ModelAccessDialog extends ConsumerStatefulWidget {
 }
 
 class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
-  List<AiModelOut> _models = [];
+  List<PersonalAiModel> _models = [];
   Map<String, String> _assignedIds = {};
   Set<String> _selectedIds = {};
   bool _loading = true;
@@ -386,31 +387,30 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
     });
     try {
       final client = ref.read(apiClientProvider);
-      final modelResponse = await client
-          .getAiModelApi()
-          .listAiModelsApiV1AiAiModelListGet(
-            idAiProvider: widget.providerId,
-            isActive: true,
-          );
+      final models = await ref
+          .read(personalAiConfigurationServiceProvider)
+          .listModels();
       final assignedResponse = await client
           .getUserApiKeyCanUseIaModelApi()
           .listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet(
             idUserApiKey: widget.apiKeyId,
           );
-      final models = modelResponse.data;
       final assignments = assignedResponse.data;
-      if (models == null || assignments == null) {
+      if (assignments == null) {
         throw StateError('A API não retornou os modelos desta chave.');
       }
+      final providerModels = models
+          .where((model) => model.providerId == widget.providerId)
+          .toList();
       final scopedAssignments = assignments
           .where((assignment) => assignment.idUserApiKey == widget.apiKeyId)
           .where(
             (assignment) =>
-                models.any((model) => model.id == assignment.idAiModel),
+                providerModels.any((model) => model.id == assignment.idAiModel),
           );
       if (!mounted) return;
       setState(() {
-        _models = models.toList();
+        _models = providerModels;
         _assignedIds = {
           for (final assignment in scopedAssignments)
             assignment.idAiModel: assignment.id,
@@ -549,7 +549,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
 class _ApiKeyDialog extends StatefulWidget {
   const _ApiKeyDialog({required this.providers, this.apiKey});
 
-  final List<ProviderOut> providers;
+  final List<PersonalAiProvider> providers;
   final UserApiKeyOut? apiKey;
 
   @override
@@ -592,6 +592,13 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
     _secretController.clear();
     Navigator.pop<_ApiKeyDraft>(context, draft);
   }
+
+  bool get _allowsEmptyKey =>
+      widget.providers
+          .where((provider) => provider.id == _providerId)
+          .firstOrNull
+          ?.protocol ==
+      'openai_compatible';
 
   @override
   Widget build(BuildContext context) {
@@ -645,15 +652,20 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
                 autocorrect: false,
                 decoration: InputDecoration(
                   labelText: editing ? 'Nova chave (opcional)' : 'Chave de API',
-                  helperText: editing
+                  helperText: _allowsEmptyKey
+                      ? 'Deixe vazio apenas se o provedor OpenAI-compatible não exigir segredo (por exemplo, um servidor local).'
+                      : editing
                       ? 'Deixe vazio para manter a chave atual.'
                       : null,
                 ),
                 validator: (value) =>
-                    !editing && (value == null || value.trim().isEmpty)
+                    !editing &&
+                        !_allowsEmptyKey &&
+                        (value == null || value.trim().isEmpty)
                     ? 'Informe a chave.'
                     : editing &&
                           _providerId != widget.apiKey!.idAiProvider &&
+                          !_allowsEmptyKey &&
                           (value == null || value.trim().isEmpty)
                     ? 'Informe uma chave para o novo provedor.'
                     : null,

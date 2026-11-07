@@ -90,8 +90,14 @@ class CreateEdge extends ConsumerWidget {
             expandedInsets: EdgeInsets.zero,
             label: const Text("Tipo de relação"),
             dropdownMenuEntries: [
-              DropdownMenuEntry(value: 'PREREQUISITE', label: 'PREREQUISITE'),
-              DropdownMenuEntry(value: 'SUBTOPIC', label: 'SUBTOPIC'),
+              DropdownMenuEntry(
+                value: 'PREREQUISITE',
+                label: 'Pré-requisito (origem → destino)',
+              ),
+              DropdownMenuEntry(
+                value: 'SUBTOPIC',
+                label: 'Subtópico (origem subtópico → destino superior)',
+              ),
             ],
           ),
 

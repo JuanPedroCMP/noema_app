@@ -20125,6 +20125,678 @@ class GenericLogCompanion extends UpdateCompanion<GenericLogData> {
   }
 }
 
+class ManualBackupHistory extends Table
+    with TableInfo<ManualBackupHistory, ManualBackupHistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ManualBackupHistory(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
+  );
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (operation IN (\'export\', \'import\'))',
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (status IN (\'succeeded\', \'failed\'))',
+  );
+  static const VerificationMeta _strategyMeta = const VerificationMeta(
+    'strategy',
+  );
+  late final GeneratedColumn<String> strategy = GeneratedColumn<String>(
+    'strategy',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _archiveSizeBytesMeta = const VerificationMeta(
+    'archiveSizeBytes',
+  );
+  late final GeneratedColumn<int> archiveSizeBytes = GeneratedColumn<int>(
+    'archive_size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (archive_size_bytes >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _snapshotSizeBytesMeta = const VerificationMeta(
+    'snapshotSizeBytes',
+  );
+  late final GeneratedColumn<int> snapshotSizeBytes = GeneratedColumn<int>(
+    'snapshot_size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (snapshot_size_bytes >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _recordCountMeta = const VerificationMeta(
+    'recordCount',
+  );
+  late final GeneratedColumn<int> recordCount = GeneratedColumn<int>(
+    'record_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (record_count >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _encryptedMeta = const VerificationMeta(
+    'encrypted',
+  );
+  late final GeneratedColumn<bool> encrypted = GeneratedColumn<bool>(
+    'encrypted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (encrypted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (duration_ms >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _detailsMeta = const VerificationMeta(
+    'details',
+  );
+  late final GeneratedColumn<String> details = GeneratedColumn<String>(
+    'details',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    operation,
+    status,
+    strategy,
+    createdAt,
+    archiveSizeBytes,
+    snapshotSizeBytes,
+    recordCount,
+    encrypted,
+    durationMs,
+    details,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'manual_backup_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ManualBackupHistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('operation')) {
+      context.handle(
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('strategy')) {
+      context.handle(
+        _strategyMeta,
+        strategy.isAcceptableOrUnknown(data['strategy']!, _strategyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_strategyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('archive_size_bytes')) {
+      context.handle(
+        _archiveSizeBytesMeta,
+        archiveSizeBytes.isAcceptableOrUnknown(
+          data['archive_size_bytes']!,
+          _archiveSizeBytesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('snapshot_size_bytes')) {
+      context.handle(
+        _snapshotSizeBytesMeta,
+        snapshotSizeBytes.isAcceptableOrUnknown(
+          data['snapshot_size_bytes']!,
+          _snapshotSizeBytesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('record_count')) {
+      context.handle(
+        _recordCountMeta,
+        recordCount.isAcceptableOrUnknown(
+          data['record_count']!,
+          _recordCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('encrypted')) {
+      context.handle(
+        _encryptedMeta,
+        encrypted.isAcceptableOrUnknown(data['encrypted']!, _encryptedMeta),
+      );
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
+    if (data.containsKey('details')) {
+      context.handle(
+        _detailsMeta,
+        details.isAcceptableOrUnknown(data['details']!, _detailsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ManualBackupHistoryData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ManualBackupHistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      strategy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}strategy'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      archiveSizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}archive_size_bytes'],
+      )!,
+      snapshotSizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}snapshot_size_bytes'],
+      )!,
+      recordCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}record_count'],
+      )!,
+      encrypted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}encrypted'],
+      )!,
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      )!,
+      details: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}details'],
+      ),
+    );
+  }
+
+  @override
+  ManualBackupHistory createAlias(String alias) {
+    return ManualBackupHistory(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ManualBackupHistoryData extends DataClass
+    implements Insertable<ManualBackupHistoryData> {
+  final String id;
+  final String operation;
+  final String status;
+  final String strategy;
+  final int createdAt;
+  final int archiveSizeBytes;
+  final int snapshotSizeBytes;
+  final int recordCount;
+  final bool encrypted;
+  final int durationMs;
+  final String? details;
+  const ManualBackupHistoryData({
+    required this.id,
+    required this.operation,
+    required this.status,
+    required this.strategy,
+    required this.createdAt,
+    required this.archiveSizeBytes,
+    required this.snapshotSizeBytes,
+    required this.recordCount,
+    required this.encrypted,
+    required this.durationMs,
+    this.details,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['operation'] = Variable<String>(operation);
+    map['status'] = Variable<String>(status);
+    map['strategy'] = Variable<String>(strategy);
+    map['created_at'] = Variable<int>(createdAt);
+    map['archive_size_bytes'] = Variable<int>(archiveSizeBytes);
+    map['snapshot_size_bytes'] = Variable<int>(snapshotSizeBytes);
+    map['record_count'] = Variable<int>(recordCount);
+    map['encrypted'] = Variable<bool>(encrypted);
+    map['duration_ms'] = Variable<int>(durationMs);
+    if (!nullToAbsent || details != null) {
+      map['details'] = Variable<String>(details);
+    }
+    return map;
+  }
+
+  ManualBackupHistoryCompanion toCompanion(bool nullToAbsent) {
+    return ManualBackupHistoryCompanion(
+      id: Value(id),
+      operation: Value(operation),
+      status: Value(status),
+      strategy: Value(strategy),
+      createdAt: Value(createdAt),
+      archiveSizeBytes: Value(archiveSizeBytes),
+      snapshotSizeBytes: Value(snapshotSizeBytes),
+      recordCount: Value(recordCount),
+      encrypted: Value(encrypted),
+      durationMs: Value(durationMs),
+      details: details == null && nullToAbsent
+          ? const Value.absent()
+          : Value(details),
+    );
+  }
+
+  factory ManualBackupHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ManualBackupHistoryData(
+      id: serializer.fromJson<String>(json['id']),
+      operation: serializer.fromJson<String>(json['operation']),
+      status: serializer.fromJson<String>(json['status']),
+      strategy: serializer.fromJson<String>(json['strategy']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+      archiveSizeBytes: serializer.fromJson<int>(json['archive_size_bytes']),
+      snapshotSizeBytes: serializer.fromJson<int>(json['snapshot_size_bytes']),
+      recordCount: serializer.fromJson<int>(json['record_count']),
+      encrypted: serializer.fromJson<bool>(json['encrypted']),
+      durationMs: serializer.fromJson<int>(json['duration_ms']),
+      details: serializer.fromJson<String?>(json['details']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'operation': serializer.toJson<String>(operation),
+      'status': serializer.toJson<String>(status),
+      'strategy': serializer.toJson<String>(strategy),
+      'created_at': serializer.toJson<int>(createdAt),
+      'archive_size_bytes': serializer.toJson<int>(archiveSizeBytes),
+      'snapshot_size_bytes': serializer.toJson<int>(snapshotSizeBytes),
+      'record_count': serializer.toJson<int>(recordCount),
+      'encrypted': serializer.toJson<bool>(encrypted),
+      'duration_ms': serializer.toJson<int>(durationMs),
+      'details': serializer.toJson<String?>(details),
+    };
+  }
+
+  ManualBackupHistoryData copyWith({
+    String? id,
+    String? operation,
+    String? status,
+    String? strategy,
+    int? createdAt,
+    int? archiveSizeBytes,
+    int? snapshotSizeBytes,
+    int? recordCount,
+    bool? encrypted,
+    int? durationMs,
+    Value<String?> details = const Value.absent(),
+  }) => ManualBackupHistoryData(
+    id: id ?? this.id,
+    operation: operation ?? this.operation,
+    status: status ?? this.status,
+    strategy: strategy ?? this.strategy,
+    createdAt: createdAt ?? this.createdAt,
+    archiveSizeBytes: archiveSizeBytes ?? this.archiveSizeBytes,
+    snapshotSizeBytes: snapshotSizeBytes ?? this.snapshotSizeBytes,
+    recordCount: recordCount ?? this.recordCount,
+    encrypted: encrypted ?? this.encrypted,
+    durationMs: durationMs ?? this.durationMs,
+    details: details.present ? details.value : this.details,
+  );
+  ManualBackupHistoryData copyWithCompanion(ManualBackupHistoryCompanion data) {
+    return ManualBackupHistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      status: data.status.present ? data.status.value : this.status,
+      strategy: data.strategy.present ? data.strategy.value : this.strategy,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      archiveSizeBytes: data.archiveSizeBytes.present
+          ? data.archiveSizeBytes.value
+          : this.archiveSizeBytes,
+      snapshotSizeBytes: data.snapshotSizeBytes.present
+          ? data.snapshotSizeBytes.value
+          : this.snapshotSizeBytes,
+      recordCount: data.recordCount.present
+          ? data.recordCount.value
+          : this.recordCount,
+      encrypted: data.encrypted.present ? data.encrypted.value : this.encrypted,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      details: data.details.present ? data.details.value : this.details,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ManualBackupHistoryData(')
+          ..write('id: $id, ')
+          ..write('operation: $operation, ')
+          ..write('status: $status, ')
+          ..write('strategy: $strategy, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('archiveSizeBytes: $archiveSizeBytes, ')
+          ..write('snapshotSizeBytes: $snapshotSizeBytes, ')
+          ..write('recordCount: $recordCount, ')
+          ..write('encrypted: $encrypted, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('details: $details')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    operation,
+    status,
+    strategy,
+    createdAt,
+    archiveSizeBytes,
+    snapshotSizeBytes,
+    recordCount,
+    encrypted,
+    durationMs,
+    details,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ManualBackupHistoryData &&
+          other.id == this.id &&
+          other.operation == this.operation &&
+          other.status == this.status &&
+          other.strategy == this.strategy &&
+          other.createdAt == this.createdAt &&
+          other.archiveSizeBytes == this.archiveSizeBytes &&
+          other.snapshotSizeBytes == this.snapshotSizeBytes &&
+          other.recordCount == this.recordCount &&
+          other.encrypted == this.encrypted &&
+          other.durationMs == this.durationMs &&
+          other.details == this.details);
+}
+
+class ManualBackupHistoryCompanion
+    extends UpdateCompanion<ManualBackupHistoryData> {
+  final Value<String> id;
+  final Value<String> operation;
+  final Value<String> status;
+  final Value<String> strategy;
+  final Value<int> createdAt;
+  final Value<int> archiveSizeBytes;
+  final Value<int> snapshotSizeBytes;
+  final Value<int> recordCount;
+  final Value<bool> encrypted;
+  final Value<int> durationMs;
+  final Value<String?> details;
+  final Value<int> rowid;
+  const ManualBackupHistoryCompanion({
+    this.id = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.strategy = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.archiveSizeBytes = const Value.absent(),
+    this.snapshotSizeBytes = const Value.absent(),
+    this.recordCount = const Value.absent(),
+    this.encrypted = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.details = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ManualBackupHistoryCompanion.insert({
+    required String id,
+    required String operation,
+    required String status,
+    required String strategy,
+    required int createdAt,
+    this.archiveSizeBytes = const Value.absent(),
+    this.snapshotSizeBytes = const Value.absent(),
+    this.recordCount = const Value.absent(),
+    this.encrypted = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.details = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       operation = Value(operation),
+       status = Value(status),
+       strategy = Value(strategy),
+       createdAt = Value(createdAt);
+  static Insertable<ManualBackupHistoryData> custom({
+    Expression<String>? id,
+    Expression<String>? operation,
+    Expression<String>? status,
+    Expression<String>? strategy,
+    Expression<int>? createdAt,
+    Expression<int>? archiveSizeBytes,
+    Expression<int>? snapshotSizeBytes,
+    Expression<int>? recordCount,
+    Expression<bool>? encrypted,
+    Expression<int>? durationMs,
+    Expression<String>? details,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (operation != null) 'operation': operation,
+      if (status != null) 'status': status,
+      if (strategy != null) 'strategy': strategy,
+      if (createdAt != null) 'created_at': createdAt,
+      if (archiveSizeBytes != null) 'archive_size_bytes': archiveSizeBytes,
+      if (snapshotSizeBytes != null) 'snapshot_size_bytes': snapshotSizeBytes,
+      if (recordCount != null) 'record_count': recordCount,
+      if (encrypted != null) 'encrypted': encrypted,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (details != null) 'details': details,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ManualBackupHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<String>? operation,
+    Value<String>? status,
+    Value<String>? strategy,
+    Value<int>? createdAt,
+    Value<int>? archiveSizeBytes,
+    Value<int>? snapshotSizeBytes,
+    Value<int>? recordCount,
+    Value<bool>? encrypted,
+    Value<int>? durationMs,
+    Value<String?>? details,
+    Value<int>? rowid,
+  }) {
+    return ManualBackupHistoryCompanion(
+      id: id ?? this.id,
+      operation: operation ?? this.operation,
+      status: status ?? this.status,
+      strategy: strategy ?? this.strategy,
+      createdAt: createdAt ?? this.createdAt,
+      archiveSizeBytes: archiveSizeBytes ?? this.archiveSizeBytes,
+      snapshotSizeBytes: snapshotSizeBytes ?? this.snapshotSizeBytes,
+      recordCount: recordCount ?? this.recordCount,
+      encrypted: encrypted ?? this.encrypted,
+      durationMs: durationMs ?? this.durationMs,
+      details: details ?? this.details,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (strategy.present) {
+      map['strategy'] = Variable<String>(strategy.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (archiveSizeBytes.present) {
+      map['archive_size_bytes'] = Variable<int>(archiveSizeBytes.value);
+    }
+    if (snapshotSizeBytes.present) {
+      map['snapshot_size_bytes'] = Variable<int>(snapshotSizeBytes.value);
+    }
+    if (recordCount.present) {
+      map['record_count'] = Variable<int>(recordCount.value);
+    }
+    if (encrypted.present) {
+      map['encrypted'] = Variable<bool>(encrypted.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (details.present) {
+      map['details'] = Variable<String>(details.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ManualBackupHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('operation: $operation, ')
+          ..write('status: $status, ')
+          ..write('strategy: $strategy, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('archiveSizeBytes: $archiveSizeBytes, ')
+          ..write('snapshotSizeBytes: $snapshotSizeBytes, ')
+          ..write('recordCount: $recordCount, ')
+          ..write('encrypted: $encrypted, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('details: $details, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -20187,6 +20859,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final FsrsReviewLog fsrsReviewLog = FsrsReviewLog(this);
   late final DomainLog domainLog = DomainLog(this);
   late final GenericLog genericLog = GenericLog(this);
+  late final ManualBackupHistory manualBackupHistory = ManualBackupHistory(
+    this,
+  );
   late final Index idxColorThemeUserId = Index(
     'idx_color_theme_user_id',
     'CREATE INDEX idx_color_theme_user_id ON color_theme (user_id)',
@@ -20422,6 +21097,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fsrsReviewLog,
     domainLog,
     genericLog,
+    manualBackupHistory,
     idxColorThemeUserId,
     idxTypographyThemeUserId,
     idxConfigColorThemeId,
@@ -40055,6 +40731,336 @@ typedef $GenericLogProcessedTableManager =
       GenericLogData,
       PrefetchHooks Function({bool userId})
     >;
+typedef $ManualBackupHistoryCreateCompanionBuilder =
+    ManualBackupHistoryCompanion Function({
+      required String id,
+      required String operation,
+      required String status,
+      required String strategy,
+      required int createdAt,
+      Value<int> archiveSizeBytes,
+      Value<int> snapshotSizeBytes,
+      Value<int> recordCount,
+      Value<bool> encrypted,
+      Value<int> durationMs,
+      Value<String?> details,
+      Value<int> rowid,
+    });
+typedef $ManualBackupHistoryUpdateCompanionBuilder =
+    ManualBackupHistoryCompanion Function({
+      Value<String> id,
+      Value<String> operation,
+      Value<String> status,
+      Value<String> strategy,
+      Value<int> createdAt,
+      Value<int> archiveSizeBytes,
+      Value<int> snapshotSizeBytes,
+      Value<int> recordCount,
+      Value<bool> encrypted,
+      Value<int> durationMs,
+      Value<String?> details,
+      Value<int> rowid,
+    });
+
+class $ManualBackupHistoryFilterComposer
+    extends Composer<_$AppDatabase, ManualBackupHistory> {
+  $ManualBackupHistoryFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get strategy => $composableBuilder(
+    column: $table.strategy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get archiveSizeBytes => $composableBuilder(
+    column: $table.archiveSizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get snapshotSizeBytes => $composableBuilder(
+    column: $table.snapshotSizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get encrypted => $composableBuilder(
+    column: $table.encrypted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get details => $composableBuilder(
+    column: $table.details,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $ManualBackupHistoryOrderingComposer
+    extends Composer<_$AppDatabase, ManualBackupHistory> {
+  $ManualBackupHistoryOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get strategy => $composableBuilder(
+    column: $table.strategy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get archiveSizeBytes => $composableBuilder(
+    column: $table.archiveSizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get snapshotSizeBytes => $composableBuilder(
+    column: $table.snapshotSizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get encrypted => $composableBuilder(
+    column: $table.encrypted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get details => $composableBuilder(
+    column: $table.details,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $ManualBackupHistoryAnnotationComposer
+    extends Composer<_$AppDatabase, ManualBackupHistory> {
+  $ManualBackupHistoryAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get strategy =>
+      $composableBuilder(column: $table.strategy, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get archiveSizeBytes => $composableBuilder(
+    column: $table.archiveSizeBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get snapshotSizeBytes => $composableBuilder(
+    column: $table.snapshotSizeBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get encrypted =>
+      $composableBuilder(column: $table.encrypted, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get details =>
+      $composableBuilder(column: $table.details, builder: (column) => column);
+}
+
+class $ManualBackupHistoryTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          ManualBackupHistory,
+          ManualBackupHistoryData,
+          $ManualBackupHistoryFilterComposer,
+          $ManualBackupHistoryOrderingComposer,
+          $ManualBackupHistoryAnnotationComposer,
+          $ManualBackupHistoryCreateCompanionBuilder,
+          $ManualBackupHistoryUpdateCompanionBuilder,
+          (
+            ManualBackupHistoryData,
+            BaseReferences<
+              _$AppDatabase,
+              ManualBackupHistory,
+              ManualBackupHistoryData
+            >,
+          ),
+          ManualBackupHistoryData,
+          PrefetchHooks Function()
+        > {
+  $ManualBackupHistoryTableManager(_$AppDatabase db, ManualBackupHistory table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ManualBackupHistoryFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ManualBackupHistoryOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ManualBackupHistoryAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> operation = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> strategy = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> archiveSizeBytes = const Value.absent(),
+                Value<int> snapshotSizeBytes = const Value.absent(),
+                Value<int> recordCount = const Value.absent(),
+                Value<bool> encrypted = const Value.absent(),
+                Value<int> durationMs = const Value.absent(),
+                Value<String?> details = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ManualBackupHistoryCompanion(
+                id: id,
+                operation: operation,
+                status: status,
+                strategy: strategy,
+                createdAt: createdAt,
+                archiveSizeBytes: archiveSizeBytes,
+                snapshotSizeBytes: snapshotSizeBytes,
+                recordCount: recordCount,
+                encrypted: encrypted,
+                durationMs: durationMs,
+                details: details,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String operation,
+                required String status,
+                required String strategy,
+                required int createdAt,
+                Value<int> archiveSizeBytes = const Value.absent(),
+                Value<int> snapshotSizeBytes = const Value.absent(),
+                Value<int> recordCount = const Value.absent(),
+                Value<bool> encrypted = const Value.absent(),
+                Value<int> durationMs = const Value.absent(),
+                Value<String?> details = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ManualBackupHistoryCompanion.insert(
+                id: id,
+                operation: operation,
+                status: status,
+                strategy: strategy,
+                createdAt: createdAt,
+                archiveSizeBytes: archiveSizeBytes,
+                snapshotSizeBytes: snapshotSizeBytes,
+                recordCount: recordCount,
+                encrypted: encrypted,
+                durationMs: durationMs,
+                details: details,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $ManualBackupHistoryProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      ManualBackupHistory,
+      ManualBackupHistoryData,
+      $ManualBackupHistoryFilterComposer,
+      $ManualBackupHistoryOrderingComposer,
+      $ManualBackupHistoryAnnotationComposer,
+      $ManualBackupHistoryCreateCompanionBuilder,
+      $ManualBackupHistoryUpdateCompanionBuilder,
+      (
+        ManualBackupHistoryData,
+        BaseReferences<
+          _$AppDatabase,
+          ManualBackupHistory,
+          ManualBackupHistoryData
+        >,
+      ),
+      ManualBackupHistoryData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -40130,4 +41136,6 @@ class $AppDatabaseManager {
       $DomainLogTableManager(_db, _db.domainLog);
   $GenericLogTableManager get genericLog =>
       $GenericLogTableManager(_db, _db.genericLog);
+  $ManualBackupHistoryTableManager get manualBackupHistory =>
+      $ManualBackupHistoryTableManager(_db, _db.manualBackupHistory);
 }

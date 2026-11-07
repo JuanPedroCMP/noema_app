@@ -83,7 +83,9 @@ class GraphResponse {
     for (final edge in edges) {
       final type = edge.type.toUpperCase();
       if (type == 'SUBTOPIC' || type == 'PREREQUISITE') {
-        hierarchy[edge.sourceNode]!.add(edge.targetNode);
+        final source = type == 'SUBTOPIC' ? edge.targetNode : edge.sourceNode;
+        final target = type == 'SUBTOPIC' ? edge.sourceNode : edge.targetNode;
+        hierarchy[source]!.add(target);
       }
     }
 

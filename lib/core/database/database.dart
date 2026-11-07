@@ -15,7 +15,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -213,11 +213,36 @@ class AppDatabase extends _$AppDatabase {
           WHERE subject_id IS NOT NULL
         ''');
       }
+      if (from < 9 && to >= 9) {
+        await _ensureManualBackupHistory();
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+      await _ensureManualBackupHistory();
     },
   );
+
+  Future<void> _ensureManualBackupHistory() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS manual_backup_history (
+        id TEXT NOT NULL PRIMARY KEY,
+        operation TEXT NOT NULL CHECK (operation IN ('export', 'import')),
+        status TEXT NOT NULL CHECK (status IN ('succeeded', 'failed')),
+        strategy TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        archive_size_bytes INTEGER NOT NULL DEFAULT 0
+          CHECK (archive_size_bytes >= 0),
+        snapshot_size_bytes INTEGER NOT NULL DEFAULT 0
+          CHECK (snapshot_size_bytes >= 0),
+        record_count INTEGER NOT NULL DEFAULT 0
+          CHECK (record_count >= 0),
+        encrypted BOOLEAN NOT NULL DEFAULT 0 CHECK (encrypted IN (0, 1)),
+        duration_ms INTEGER NOT NULL DEFAULT 0 CHECK (duration_ms >= 0),
+        details TEXT
+      )
+    ''');
+  }
 
   Future<void> _migrateStudySessionsToVersion3() async {
     await customStatement(

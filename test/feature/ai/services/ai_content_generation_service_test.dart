@@ -1,4 +1,4 @@
-import 'dart:async';
+   import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,6 +13,10 @@ import 'package:noema/feature/ai/services/ai_request_queue.dart';
 import 'package:noema/feature/graph/data/converter_ai_response.dart';
 
 void main() {
+  test('matches the backend task name for the study assistant', () {
+    expect(AiAgentTask.studyAssistant.wireName, 'study_assistent');
+  });
+
   test(
     'posts the selected agent and prompt, then waits for the response',
     () async {
@@ -42,6 +46,7 @@ void main() {
       await postStarted.future;
       expect(generationFinished, isFalse);
       expect(adapter.requestPaths, [
+        '/api/v1/ai/me/agents',
         '/api/v1/ai/agent/list',
         '/api/v1/ai_router/use_ai',
       ]);
@@ -143,42 +148,46 @@ void main() {
     },
   );
 
-  test('generates node descriptions through the background request queue', () async {
-    final adapter = _NodeDescriptionAdapter();
-    final container = ProviderContainer(
-      overrides: [
-        aiQueueConcurrencyProvider.overrideWith(
-          _TestConcurrencyNotifier.new,
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+  test(
+    'generates node descriptions through the background request queue',
+    () async {
+      final adapter = _NodeDescriptionAdapter();
+      final container = ProviderContainer(
+        overrides: [
+          aiQueueConcurrencyProvider.overrideWith(_TestConcurrencyNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final client = container.read(apiClientProvider);
-    client.dio.httpClientAdapter = adapter;
-    setApiAccessToken(client, 'test-access-token');
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
 
-    final description = await container
-        .read(aiContentGenerationServiceProvider)
-        .generateNodeDescription(
-          nodeId: 'node-id',
-          title: 'Fotossíntese',
-          type: 'CONCEPT',
-          existingDescription: null,
-          agentId: 'description-agent-id',
-        );
+      final description = await container
+          .read(aiContentGenerationServiceProvider)
+          .generateNodeDescription(
+            nodeId: 'node-id',
+            title: 'Fotossíntese',
+            type: 'CONCEPT',
+            existingDescription: null,
+            agentId: 'description-agent-id',
+          );
 
-    expect(description, 'Processo pelo qual plantas convertem luz em energia.');
-    expect(adapter.requestPath, '/api/v1/ai_router/use_ai');
-    expect(adapter.method, 'POST');
-    expect(adapter.queryParameters['agent_id'], 'description-agent-id');
-    expect(
-      adapter.queryParameters['user_prompt'],
-      contains('Fotossíntese'),
-    );
-    expect(adapter.authorization, ['Bearer', 'test-access-token'].join(' '));
-    expect(container.read(aiRequestQueueProvider).activeBackgroundRequests, 0);
-  });
+      expect(
+        description,
+        'Processo pelo qual plantas convertem luz em energia.',
+      );
+      expect(adapter.requestPath, '/api/v1/ai_router/use_ai');
+      expect(adapter.method, 'POST');
+      expect(adapter.queryParameters['agent_id'], 'description-agent-id');
+      expect(adapter.queryParameters['user_prompt'], contains('Fotossíntese'));
+      expect(adapter.authorization, ['Bearer', 'test-access-token'].join(' '));
+      expect(
+        container.read(aiRequestQueueProvider).activeBackgroundRequests,
+        0,
+      );
+    },
+  );
 }
 
 class _AiApiAdapter implements HttpClientAdapter {
@@ -202,6 +211,7 @@ class _AiApiAdapter implements HttpClientAdapter {
   Map<String, dynamic>? postQueryParameters;
   String? postAuthorization;
   String? agentListAuthorization;
+  String? globalAgentListAuthorization;
 
   @override
   Future<ResponseBody> fetch(
@@ -210,7 +220,7 @@ class _AiApiAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requestPaths.add(options.path);
-    if (options.path == '/api/v1/ai/agent/list') {
+    if (options.path == '/api/v1/ai/me/agents') {
       agentListAuthorization = options.headers['Authorization'] as String?;
       if (rejectAgentList) {
         throw StateError('The graph flow must not fetch the agent list.');
@@ -222,6 +232,22 @@ class _AiApiAdapter implements HttpClientAdapter {
           'task': 'create_flashcard',
         },
         {'id': agentId, 'alias': 'graph-agent', 'task': 'manipulate_graph'},
+      ]);
+    }
+    if (options.path == '/api/v1/ai/agent/list') {
+      globalAgentListAuthorization =
+          options.headers['Authorization'] as String?;
+      return _jsonResponse([
+        {
+          'id': 'another-task-agent',
+          'alias': 'global-flashcard-agent',
+          'task': 'create_flashcard',
+        },
+        {
+          'id': 'global-graph-agent',
+          'alias': 'global-graph-agent',
+          'task': 'manipulate_graph',
+        },
       ]);
     }
 

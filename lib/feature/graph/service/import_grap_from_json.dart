@@ -50,9 +50,14 @@ Future<String> importGraphFromJson({
     final type = edge.type.toUpperCase();
     return type == 'SUBTOPIC' || type == 'PREREQUISITE';
   }).toList();
+  final layoutEdges = hierarchicalEdges.map((edge) {
+    return edge.type.toUpperCase() == 'SUBTOPIC'
+        ? (source: edge.targetNode, target: edge.sourceNode)
+        : (source: edge.sourceNode, target: edge.targetNode);
+  }).toList();
 
-  for (final edge in hierarchicalEdges) {
-    incomingCount[edge.targetNode] = (incomingCount[edge.targetNode] ?? 0) + 1;
+  for (final edge in layoutEdges) {
+    incomingCount[edge.target] = (incomingCount[edge.target] ?? 0) + 1;
   }
 
   final roots = graph.nodes
@@ -72,15 +77,13 @@ Future<String> importGraphFromJson({
     final current = queue.removeAt(0);
     final currentLevel = levelByNodeId[current] ?? 0;
 
-    for (final edge in hierarchicalEdges.where(
-      (e) => e.sourceNode == current,
-    )) {
+    for (final edge in layoutEdges.where((edge) => edge.source == current)) {
       final nextLevel = currentLevel + 1;
-      final previousLevel = levelByNodeId[edge.targetNode];
+      final previousLevel = levelByNodeId[edge.target];
 
       if (previousLevel == null || nextLevel > previousLevel) {
-        levelByNodeId[edge.targetNode] = nextLevel;
-        queue.add(edge.targetNode);
+        levelByNodeId[edge.target] = nextLevel;
+        queue.add(edge.target);
       }
     }
   }

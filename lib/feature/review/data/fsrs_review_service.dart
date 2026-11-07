@@ -44,10 +44,19 @@ class FsrsReviewService {
 
   final AppDatabase _database;
 
-  static final fsrs.Scheduler _scheduler = fsrs.Scheduler(
+  static final fsrs.Scheduler _flashcardScheduler = fsrs.Scheduler(
     desiredRetention: 0.9,
     enableFuzzing: false,
   );
+  static final fsrs.Scheduler _exerciseScheduler = fsrs.Scheduler(
+    desiredRetention: 0.8,
+    enableFuzzing: false,
+  );
+
+  fsrs.Scheduler _schedulerFor(ReviewItemType itemType) =>
+      itemType == ReviewItemType.flashcard
+      ? _flashcardScheduler
+      : _exerciseScheduler;
 
   Future<bool> isDue({
     required ReviewItemType itemType,
@@ -110,13 +119,14 @@ class FsrsReviewService {
       final card = existing == null
           ? fsrs.Card(cardId: _stableCardId(itemType, itemId), due: reviewTime)
           : _decodeCard(existing.cardStateJson);
+      final scheduler = _schedulerFor(itemType);
       final beforeRetrievability = card.lastReview == null
           ? null
-          : _scheduler.getCardRetrievability(
+          : scheduler.getCardRetrievability(
               card,
               currentDateTime: reviewTime,
             );
-      final scheduled = _scheduler.reviewCard(
+      final scheduled = scheduler.reviewCard(
         card,
         rating,
         reviewDateTime: reviewTime,
@@ -153,21 +163,6 @@ class FsrsReviewService {
             );
       }
 
-      await _database.into(logTable).insert(
-        ReviewItemLogCompanion.insert(
-          id: const Uuid().v4(),
-          reviewItemStateId: existing?.id ?? stateId,
-          rating: rating.value,
-          durationSeconds: Value(durationSeconds),
-          score: Value(score),
-          reviewMethod: method.databaseValue,
-          sourceResponseId: Value(sourceResponseId),
-          retrievability: Value(beforeRetrievability),
-          scheduledDays: Value(scheduledDays),
-          reviewedAt: Value(nowSeconds),
-        ),
-      );
-
       await DomainMasteryService(_database).recordReview(
         nodeId: nodeId,
         rating: rating,
@@ -182,6 +177,21 @@ class FsrsReviewService {
               ReviewItemType.openEnded => 'ESSAY',
               ReviewItemType.multipleChoice => 'MULTIPLE_CHOICE',
             },
+      );
+
+      await _database.into(logTable).insert(
+        ReviewItemLogCompanion.insert(
+          id: const Uuid().v4(),
+          reviewItemStateId: existing?.id ?? stateId,
+          rating: rating.value,
+          durationSeconds: Value(durationSeconds),
+          score: Value(score),
+          reviewMethod: method.databaseValue,
+          sourceResponseId: Value(sourceResponseId),
+          retrievability: Value(beforeRetrievability),
+          scheduledDays: Value(scheduledDays),
+          reviewedAt: Value(nowSeconds),
+        ),
       );
 
       result = FsrsReviewResult(

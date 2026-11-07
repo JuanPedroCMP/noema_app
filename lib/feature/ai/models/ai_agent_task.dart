@@ -20,7 +20,7 @@ enum AiAgentTask {
   evaluateFeynman('evaluate_feynman ', 'Avaliar resposta Feynman'),
   recommendStudyResource('recommend_study_resource', 'Recomendar recursos'),
   studyManager('study_manager', 'Planejar estudos'),
-  studyAssistant('study_assistant', 'Assistente de estudos'),
+  studyAssistant('study_assistent', 'Assistente de estudos'),
   createFlashcardGroup('create_flashcard_group', 'Criar grupo de flashcards'),
   manipulateFlashcardGroup(
     'manipulate_flashcard_group',
@@ -50,21 +50,31 @@ class AiAgent {
     required this.id,
     required this.alias,
     required this.taskName,
+    this.isPersonal = false,
   });
 
   final String id;
   final String alias;
   final String taskName;
+  final bool isPersonal;
 
   AiAgentTask? get task => AiAgentTask.fromWireName(taskName);
 
-  factory AiAgent.fromJson(Map<String, dynamic> json) {
+  factory AiAgent.fromJson(
+    Map<String, dynamic> json, {
+    bool isPersonal = false,
+  }) {
     final id = json['id'];
     final alias = json['alias'];
     final task = json['task'];
     if (id is! String || alias is! String || task is! String) {
       throw const FormatException('O agente retornado tem campos inválidos.');
     }
-    return AiAgent(id: id, alias: alias, taskName: task);
+    return AiAgent(
+      id: id,
+      alias: alias,
+      taskName: task,
+      isPersonal: isPersonal,
+    );
   }
 }

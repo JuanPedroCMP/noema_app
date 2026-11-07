@@ -14,11 +14,20 @@ import 'package:noema/core/database/database.dart';
 
   final double nodeHeigth = 80;
 
+  GraphNodeData? visualSource(GraphEdgeData edge) =>
+      nodesById[edge.type == 'SUBTOPIC'
+          ? edge.targetNodeId
+          : edge.sourceNodeId];
+  GraphNodeData? visualTarget(GraphEdgeData edge) =>
+      nodesById[edge.type == 'SUBTOPIC'
+          ? edge.sourceNodeId
+          : edge.targetNodeId];
+
   if (option == 1) {
     //// Direto
     for (final edge in edges) {
-      final source = nodesById[edge.sourceNodeId];
-      final target = nodesById[edge.targetNodeId];
+      final source = visualSource(edge);
+      final target = visualTarget(edge);
 
       if (source == null || target == null) {
         continue;
@@ -36,8 +45,8 @@ import 'package:noema/core/database/database.dart';
   } else if (option == 2) {
     //// Ângulo Reto
     for (final edge in edges) {
-      final source = nodesById[edge.sourceNodeId];
-      final target = nodesById[edge.targetNodeId];
+      final source = visualSource(edge);
+      final target = visualTarget(edge);
 
       if (source == null || target == null) {
         continue;
@@ -58,8 +67,8 @@ import 'package:noema/core/database/database.dart';
   } else if (option == 3) {
     //// Um vértice
     for (final edge in edges) {
-      final source = nodesById[edge.sourceNodeId];
-      final target = nodesById[edge.targetNodeId];
+      final source = visualSource(edge);
+      final target = visualTarget(edge);
 
       if (source == null || target == null) {
         continue;
@@ -78,8 +87,8 @@ import 'package:noema/core/database/database.dart';
   } else {
     //// Curvado
     for (final edge in edges) {
-      final source = nodesById[edge.sourceNodeId];
-      final target = nodesById[edge.targetNodeId];
+      final source = visualSource(edge);
+      final target = visualTarget(edge);
 
       if (source == null || target == null) {
         continue;

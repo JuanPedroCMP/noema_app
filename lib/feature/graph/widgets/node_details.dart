@@ -9,17 +9,28 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
+import 'package:noema/feature/graph/service/learning_path.dart';
 import 'package:noema/feature/review/data/domain_mastery_service.dart';
 
 class NodeDetails extends ConsumerStatefulWidget {
   const NodeDetails({
     super.key,
     required this.node,
+    required this.progress,
+    required this.progressByNodeId,
+    this.prerequisiteNodes = const [],
+    this.subtopics = const [],
+    this.onSelectRelatedNode,
     this.onClose,
     this.scrollController,
   });
 
   final GraphNodeData node;
+  final LearningNodeProgress progress;
+  final Map<String, LearningNodeProgress> progressByNodeId;
+  final List<GraphNodeData> prerequisiteNodes;
+  final List<GraphNodeData> subtopics;
+  final ValueChanged<GraphNodeData>? onSelectRelatedNode;
   final VoidCallback? onClose;
   final ScrollController? scrollController;
 
@@ -165,6 +176,14 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
             ),
             const SizedBox(height: 12),
             _MasteryDetails(score: node.masteryScore),
+            const SizedBox(height: 10),
+            _LearningGuidance(
+              progress: widget.progress,
+              progressByNodeId: widget.progressByNodeId,
+              prerequisiteNodes: widget.prerequisiteNodes,
+              subtopics: widget.subtopics,
+              onSelectRelatedNode: widget.onSelectRelatedNode,
+            ),
             StreamBuilder<List<DomainLogData>>(
               stream: _domainLogsStream,
               builder: (context, snapshot) {
@@ -427,6 +446,180 @@ class _MasteryDetails extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LearningGuidance extends StatelessWidget {
+  const _LearningGuidance({
+    required this.progress,
+    required this.progressByNodeId,
+    required this.prerequisiteNodes,
+    required this.subtopics,
+    required this.onSelectRelatedNode,
+  });
+
+  final LearningNodeProgress progress;
+  final Map<String, LearningNodeProgress> progressByNodeId;
+  final List<GraphNodeData> prerequisiteNodes;
+  final List<GraphNodeData> subtopics;
+  final ValueChanged<GraphNodeData>? onSelectRelatedNode;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = context.textTheme;
+    final unmetIds = progress.unmetPrerequisiteIds.toSet();
+    final unmetNodes = prerequisiteNodes
+        .where((prerequisite) => unmetIds.contains(prerequisite.id))
+        .toList();
+    final isMastered = progress.status == LearningProgressStatus.mastered;
+    final isBlocked = progress.status == LearningProgressStatus.blocked;
+    final title = isBlocked
+        ? 'Antes de avançar'
+        : isMastered
+        ? subtopics.isEmpty
+              ? 'Tópico dominado'
+              : 'Próximo passo: subtópicos'
+        : 'Pronto para aprender';
+    final description = isBlocked
+        ? 'Domine os pré-requisitos para liberar este tópico.'
+        : isMastered
+        ? subtopics.isEmpty
+              ? 'Este tópico já está dominado.'
+              : 'Muito bem! Agora explore os subtópicos deste tópico. '
+                    'Os que ainda estiverem bloqueados mostram o que falta.'
+        : 'Os pré-requisitos estão em dia. Estude este tópico e alcance '
+              '80% de domínio para avançar.';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isBlocked
+            ? colors.tertiaryContainer
+            : colors.primaryContainer.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isBlocked ? colors.tertiary : colors.primary.withOpacity(0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                isBlocked
+                    ? Icons.lock_outline_rounded
+                    : isMastered
+                    ? Icons.verified_rounded
+                    : Icons.play_circle_outline_rounded,
+                color: isBlocked ? colors.onTertiaryContainer : colors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.titleSmall?.copyWith(
+                        color: isBlocked
+                            ? colors.onTertiaryContainer
+                            : colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      description,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isBlocked
+                            ? colors.onTertiaryContainer
+                            : colors.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (isBlocked && unmetNodes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            for (final prerequisite in unmetNodes)
+              _RelatedTopicTile(
+                node: prerequisite,
+                label:
+                    '${progress.parentTopicIds.contains(prerequisite.id) ? 'Tópico superior' : 'Pré-requisito'} pendente · '
+                    '${_masteryLabel(prerequisite.masteryScore)}',
+                onTap: onSelectRelatedNode == null
+                    ? null
+                    : () => onSelectRelatedNode!(prerequisite),
+              ),
+          ],
+          if (isMastered && subtopics.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            for (final subtopic in subtopics)
+              _RelatedTopicTile(
+                node: subtopic,
+                label:
+                    progressByNodeId[subtopic.id]?.status ==
+                        LearningProgressStatus.ready
+                    ? 'Subtópico liberado · pronto para aprender'
+                    : 'Subtópico · domine os pré-requisitos primeiro',
+                onTap: onSelectRelatedNode == null
+                    ? null
+                    : () => onSelectRelatedNode!(subtopic),
+              ),
+          ],
+          if (isBlocked && unmetNodes.isEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Revise as relações do grafo: não há um próximo tópico '
+              'liberado neste percurso.',
+              style: textTheme.bodySmall?.copyWith(
+                color: colors.onTertiaryContainer,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _masteryLabel(double? score) {
+    if (score == null) return 'ainda não avaliado';
+    final percentage = (score * 100).round();
+    return score >= LearningPath.masteryThreshold
+        ? 'domínio $percentage%'
+        : 'domínio $percentage% · falta alcançar 80%';
+  }
+}
+
+class _RelatedTopicTile extends StatelessWidget {
+  const _RelatedTopicTile({
+    required this.node,
+    required this.label,
+    required this.onTap,
+  });
+
+  final GraphNodeData node;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.arrow_forward_rounded, size: 18),
+      title: Text(node.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(label),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: onTap,
     );
   }
 }

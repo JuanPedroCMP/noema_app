@@ -18,6 +18,8 @@ import 'package:noema/feature/graph/pages/graph_page.dart';
 import 'package:noema/feature/home/presentation/home_page.dart';
 import 'package:noema/feature/flashcards/presentation/flashcard.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
+import 'package:noema/feature/review/presentation/domain_dashboard_page.dart';
+import 'package:noema/feature/review/presentation/exercise_review_queue_page.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
 import 'package:noema/feature/splash/presentation/splash_page.dart';
 import 'package:noema/feature/study_session/presentation/study_session_create_page.dart';
@@ -97,6 +99,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RoutePaths.home,
                 builder: (_, _) => const HomePage(),
+                routes: [
+                  GoRoute(
+                    path: 'dashboard',
+                    builder: (_, _) => const DomainDashboardPage(),
+                  ),
+                  GoRoute(
+                    path: 'exercise-review',
+                    builder: (_, _) => const ExerciseReviewQueuePage(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -154,7 +166,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
-                              final handoff = state.extra is StudyAssistantHandoff
+                              final handoff =
+                                  state.extra is StudyAssistantHandoff
                                   ? state.extra as StudyAssistantHandoff
                                   : null;
                               return OpenEnded(
@@ -212,7 +225,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             builder: (context, state) {
                               final String nodeId =
                                   state.pathParameters['nodeId']!;
-                              final handoff = state.extra is StudyAssistantHandoff
+                              final handoff =
+                                  state.extra is StudyAssistantHandoff
                                   ? state.extra as StudyAssistantHandoff
                                   : null;
                               return MultipleChoise(

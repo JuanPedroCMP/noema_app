@@ -39,8 +39,8 @@ void main() {
           {'node_id': 2, 'title': 'Biologia básica', 'type': 'TOPIC'},
         ],
         'edges': [
-          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
-          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
+          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
         ],
       }),
       isAiGenerated: true,
@@ -56,6 +56,14 @@ void main() {
       isNot(savedEdges.single.targetNodeId),
     );
     expect(savedEdges.single.type, 'SUBTOPIC');
+    final nodes = await (database.select(
+      database.graphNode,
+    )..where((node) => node.graphId.equals(graphId))).get();
+    final parent = nodes.singleWhere((node) => node.title == 'Biologia');
+    final child = nodes.singleWhere((node) => node.title == 'Biologia básica');
+    expect(savedEdges.single.sourceNodeId, child.id);
+    expect(savedEdges.single.targetNodeId, parent.id);
+    expect(parent.positionY, lessThan(child.positionY));
   });
 
   test('queues only missing descriptions with the graph import', () async {
@@ -74,7 +82,7 @@ void main() {
           },
         ],
         'edges': [
-          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
         ],
       }),
       isAiGenerated: true,

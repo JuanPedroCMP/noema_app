@@ -15,32 +15,49 @@ class AiContentGenerationService {
   final Ref _ref;
 
   Future<List<AiAgent>> listAgents({AiAgentTask? task}) async {
-    final response = await _ref
-        .read(apiClientProvider)
-        .dio
-        .get<dynamic>(
-          '/api/v1/ai/agent/list',
-          options: Options(
-            extra: {
-              'secure': [
-                {'type': 'oauth2', 'name': 'OAuth2PasswordBearer'},
-              ],
-            },
-          ),
-        );
-    final body = response.data;
-    if (body is! List) {
+    final dio = _ref.read(apiClientProvider).dio;
+    final responses = await Future.wait([
+      dio.get<dynamic>(
+        '/api/v1/ai/me/agents',
+        options: Options(
+          extra: {
+            'secure': [
+              {'type': 'oauth2', 'name': 'OAuth2PasswordBearer'},
+            ],
+          },
+        ),
+      ),
+      dio.get<dynamic>('/api/v1/ai/agent/list'),
+    ]);
+    final personalBody = responses[0].data;
+    final globalBody = responses[1].data;
+    if (personalBody is! List || globalBody is! List) {
       throw const FormatException(
         'A API retornou uma lista de agentes inválida.',
       );
     }
 
-    final agents = body
+    final globalAgents = globalBody
         .map((item) {
           if (item is! Map) {
             throw const FormatException('A API retornou um agente inválido.');
           }
           return AiAgent.fromJson(Map<String, dynamic>.from(item));
+        })
+        .toList(growable: false);
+    final globalIds = globalAgents.map((agent) => agent.id).toSet();
+    final agents = personalBody
+        .map((item) {
+          if (item is! Map) {
+            throw const FormatException('A API retornou um agente inválido.');
+          }
+          final agent = AiAgent.fromJson(Map<String, dynamic>.from(item));
+          return AiAgent(
+            id: agent.id,
+            alias: agent.alias,
+            taskName: agent.taskName,
+            isPersonal: !globalIds.contains(agent.id),
+          );
         })
         .toList(growable: false);
 
@@ -94,7 +111,11 @@ class AiContentGenerationService {
         'Nenhum agente está configurado para a tarefa "${task.label}".',
       );
     }
-    return matchingAgents.first.id;
+    return matchingAgents
+            .where((agent) => agent.isPersonal)
+            .firstOrNull
+            ?.id ??
+        matchingAgents.first.id;
   }
 
   Future<String> generateNodeDescription({

@@ -9,6 +9,8 @@ import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/presentation/color_theme_section.dart';
 import 'package:noema/feature/config/presentation/api_keys_section.dart';
 import 'package:noema/feature/config/presentation/google_account_section.dart';
+import 'package:noema/feature/config/presentation/manual_backup_section.dart';
+import 'package:noema/feature/config/presentation/personal_ai_configuration_section.dart';
 import 'package:noema/feature/config/presentation/profile_section.dart';
 import 'package:noema/feature/config/presentation/preferences_section.dart';
 import 'package:noema/feature/config/presentation/typography_theme_section.dart';
@@ -110,6 +112,13 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
               child: const TypographyThemeSection(),
             ),
             AppSection(
+              title: "Provedores e agentes de IA",
+              description:
+                  "Configure seus provedores, modelos e agentes pessoais.",
+              key: keys[ConfigSections.aiConfiguration],
+              child: const PersonalAiConfigurationSection(),
+            ),
+            AppSection(
               title: "Chaves de API",
               description:
                   "Gerencie chaves dos provedores de inteligência artificial.",
@@ -122,6 +131,13 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
                   "Crie, compare, restaure e mescle backups locais na área privada do Google Drive.",
               key: keys[ConfigSections.googleAccount],
               child: const GoogleAccountSection(),
+            ),
+            AppSection(
+              title: "Backup manual",
+              description:
+                  "Exporte e importe um arquivo compactado, com criptografia opcional.",
+              key: keys[ConfigSections.manualBackup],
+              child: const ManualBackupSection(),
             ),
             AppSection(
               title: "Preferências",

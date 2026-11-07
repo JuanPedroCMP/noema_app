@@ -14,6 +14,7 @@ import 'package:noema/feature/graph/provider/selected_provider.dart';
 import 'package:noema/feature/graph/provider/transformation_controller_provider.dart';
 import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/gesture_actions.dart';
+import 'package:noema/feature/graph/service/learning_path.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
 import 'package:noema/feature/graph/widgets/graph.dart';
 import 'package:noema/feature/graph/widgets/graph_utils_layer.dart';
@@ -115,8 +116,30 @@ class _GraphPageState extends ConsumerState<GraphPage> {
   }) {
     final nodesById = {for (final node in nodes) node.id: node};
     final edgesById = {for (final edge in edges) edge.id: edge};
+    final learningPath = LearningPath.analyze(
+      nodes: [
+        for (final node in nodes)
+          LearningPathNode(
+            id: node.id,
+            title: node.title,
+            masteryScore: node.masteryScore,
+          ),
+      ],
+      relations: [
+        for (final edge in edges)
+          LearningPathRelation(
+            sourceId: edge.sourceNodeId,
+            targetId: edge.targetNodeId,
+            type: edge.type,
+          ),
+      ],
+    );
     final selectedNode = nodesById[selected];
     final selectedEdge = edgesById[selected];
+    final recommendedNodeId = learningPath.recommendedNodeIds.firstOrNull;
+    final recommendedNode = recommendedNodeId == null
+        ? null
+        : nodesById[recommendedNodeId];
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -158,7 +181,12 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     tooltip: 'Buscar conceito',
                     onPressed: nodes.isEmpty
                         ? null
-                        : () => _showNodeSearch(context, nodes),
+                        : () => _showNodeSearch(
+                            context,
+                            nodes,
+                            edges,
+                            learningPath,
+                          ),
                     icon: const Icon(Icons.search_rounded),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -210,6 +238,33 @@ class _GraphPageState extends ConsumerState<GraphPage> {
               ),
             ),
           ),
+          if (nodes.isNotEmpty && !isCreatingEdge) ...[
+            const SizedBox(height: 8),
+            _LearningPathBanner(
+              recommendedNode: recommendedNode,
+              masteredCount: learningPath.masteredCount,
+              totalCount: nodes.length,
+              hasUnresolvedNodes: learningPath.hasUnresolvedNodes,
+              onOpenRecommended: recommendedNode == null
+                  ? null
+                  : () {
+                      final viewport = _lastViewport;
+                      final origin = _currentOrigin(nodes);
+                      _selectNode(
+                        context,
+                        recommendedNode,
+                        origin,
+                        viewport,
+                        controllerNotifier,
+                        selectedNotifier,
+                        showSheet: MediaQuery.sizeOf(context).width < 900,
+                        nodes: nodes,
+                        edges: edges,
+                        learningPath: learningPath,
+                      );
+                    },
+            ),
+          ],
           if (selectedEdge != null) ...[
             const SizedBox(height: 4),
             _EdgeInfoCard(
@@ -347,6 +402,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                                       controllerNotifier,
                                       selectedNotifier,
                                       showSheet: constraints.maxWidth < 900,
+                                      nodes: nodes,
+                                      edges: edges,
+                                      learningPath: learningPath,
                                     );
                                   }
                                 } else {
@@ -361,6 +419,10 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                                   selected: selected,
                                   option: edgeType,
                                   origin: origin,
+                                  progressByNodeId:
+                                      learningPath.progressByNodeId,
+                                  recommendedNodeIds:
+                                      learningPath.recommendedNodeIds,
                                 ),
                               ),
                             ),
@@ -396,6 +458,48 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                           key: ValueKey(selectedNode.id),
                           node: selectedNode,
                           onClose: selectedNotifier.clear,
+                          progress:
+                              learningPath.progressByNodeId[selectedNode.id]!,
+                          progressByNodeId: learningPath.progressByNodeId,
+                          prerequisiteNodes: [
+                            for (final edge in edges.where(
+                              (edge) =>
+                                  (edge.type == 'PREREQUISITE' &&
+                                      edge.targetNodeId == selectedNode.id) ||
+                                  (edge.type == 'SUBTOPIC' &&
+                                      edge.sourceNodeId == selectedNode.id),
+                            ))
+                              if (nodesById[
+                                      edge.type == 'SUBTOPIC'
+                                          ? edge.targetNodeId
+                                          : edge.sourceNodeId
+                                    ] !=
+                                  null)
+                                nodesById[
+                                  edge.type == 'SUBTOPIC'
+                                      ? edge.targetNodeId
+                                      : edge.sourceNodeId
+                                ]!,
+                          ],
+                          subtopics: [
+                            for (final id
+                                in learningPath
+                                    .progressByNodeId[selectedNode.id]!
+                                    .subtopicIds)
+                              if (nodesById[id] != null) nodesById[id]!,
+                          ],
+                          onSelectRelatedNode: (relatedNode) => _selectNode(
+                            context,
+                            relatedNode,
+                            origin,
+                            viewport,
+                            controllerNotifier,
+                            selectedNotifier,
+                            showSheet: false,
+                            nodes: nodes,
+                            edges: edges,
+                            learningPath: learningPath,
+                          ),
                         ),
                       ),
                     ],
@@ -849,15 +953,27 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     items: const [
                       DropdownMenuItem(
                         value: 'PREREQUISITE',
-                        child: Text('Pré-requisito'),
+                        child: Text('Pré-requisito (origem → destino)'),
                       ),
                       DropdownMenuItem(
                         value: 'SUBTOPIC',
-                        child: Text('Subtópico'),
+                        child: Text(
+                          'Subtópico (origem subtópico → destino superior)',
+                        ),
                       ),
                     ],
                     onChanged: (value) =>
                         setDialogState(() => relationType = value),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    relationType == 'SUBTOPIC'
+                        ? 'Conecte o subtópico na origem ao tópico superior no destino.'
+                        : 'A origem é o pré-requisito; domine-a antes de avançar '
+                              'para o destino.',
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -982,6 +1098,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
     TransformationControllerNotifier controllerNotifier,
     SelectedNotifier selectedNotifier, {
     required bool showSheet,
+    required List<GraphNodeData> nodes,
+    required List<GraphEdgeData> edges,
+    required LearningPath learningPath,
   }) {
     selectedNotifier.selectedChanged(node.id);
     controllerNotifier.goToPoint(
@@ -989,12 +1108,23 @@ class _GraphPageState extends ConsumerState<GraphPage> {
       1,
       viewport,
     );
-    if (showSheet) _showNodeSheet(context, node);
+    if (showSheet) {
+      _showNodeSheet(
+        context,
+        node,
+        nodes: nodes,
+        edges: edges,
+        learningPath: learningPath,
+        controllerNotifier: controllerNotifier,
+      );
+    }
   }
 
   Future<void> _showNodeSearch(
     BuildContext context,
     List<GraphNodeData> nodes,
+    List<GraphEdgeData> edges,
+    LearningPath learningPath,
   ) async {
     final controller = TextEditingController();
     try {
@@ -1094,13 +1224,25 @@ class _GraphPageState extends ConsumerState<GraphPage> {
         controllerNotifier,
         ref.read(selectedProvider.notifier),
         showSheet: !isWideLayout,
+        nodes: nodes,
+        edges: edges,
+        learningPath: learningPath,
       );
     } finally {
       controller.dispose();
     }
   }
 
-  void _showNodeSheet(BuildContext context, GraphNodeData node) {
+  void _showNodeSheet(
+    BuildContext context,
+    GraphNodeData node, {
+    required List<GraphNodeData> nodes,
+    required List<GraphEdgeData> edges,
+    required LearningPath learningPath,
+    required TransformationControllerNotifier controllerNotifier,
+  }) {
+    final nodesById = {for (final item in nodes) item.id: item};
+    final progress = learningPath.progressByNodeId[node.id]!;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1123,9 +1265,55 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             key: ValueKey(node.id),
             node: node,
             scrollController: scrollController,
+            progress: progress,
+            progressByNodeId: learningPath.progressByNodeId,
+            prerequisiteNodes: [
+              for (final edge in edges.where(
+                (edge) =>
+                    (edge.type == 'PREREQUISITE' &&
+                        edge.targetNodeId == node.id) ||
+                    (edge.type == 'SUBTOPIC' && edge.sourceNodeId == node.id),
+              ))
+                if (nodesById[
+                        edge.type == 'SUBTOPIC'
+                            ? edge.targetNodeId
+                            : edge.sourceNodeId
+                      ] !=
+                    null)
+                  nodesById[
+                    edge.type == 'SUBTOPIC'
+                        ? edge.targetNodeId
+                        : edge.sourceNodeId
+                  ]!,
+            ],
+            subtopics: [
+              for (final id in progress.subtopicIds)
+                if (nodesById[id] != null) nodesById[id]!,
+            ],
             onClose: () {
               ref.read(selectedProvider.notifier).clear();
               Navigator.of(sheetContext).pop();
+            },
+            onSelectRelatedNode: (relatedNode) {
+              Navigator.of(sheetContext).pop();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted || !context.mounted) return;
+                final viewport = _lastViewport.width > 0
+                    ? _lastViewport
+                    : MediaQuery.sizeOf(context);
+                _selectNode(
+                  context,
+                  relatedNode,
+                  _currentOrigin(nodes),
+                  viewport,
+                  controllerNotifier,
+                  ref.read(selectedProvider.notifier),
+                  showSheet: true,
+                  nodes: nodes,
+                  edges: edges,
+                  learningPath: learningPath,
+                );
+              });
             },
           ),
         ),
@@ -1251,6 +1439,188 @@ class _EdgeDialogResult {
       targetNodeId: targetId,
       type: type,
       weight: weight,
+    );
+  }
+}
+
+class _LearningPathBanner extends StatelessWidget {
+  const _LearningPathBanner({
+    required this.recommendedNode,
+    required this.masteredCount,
+    required this.totalCount,
+    required this.hasUnresolvedNodes,
+    required this.onOpenRecommended,
+  });
+
+  final GraphNodeData? recommendedNode;
+  final int masteredCount;
+  final int totalCount;
+  final bool hasUnresolvedNodes;
+  final VoidCallback? onOpenRecommended;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = context.textTheme;
+    final node = recommendedNode;
+    final title = node != null
+        ? 'Próximo passo recomendado'
+        : hasUnresolvedNodes
+        ? 'Seu percurso está bloqueado'
+        : 'Todos os tópicos estão dominados';
+    final message = node != null
+        ? node.title
+        : hasUnresolvedNodes
+        ? 'Não há um tópico liberado. Revise as relações: pode haver um ciclo '
+              'de pré-requisitos impedindo o avanço.'
+        : 'Parabéns! Continue revisando para manter seu domínio.';
+
+    return Card(
+      color: colors.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  node != null
+                      ? Icons.route_rounded
+                      : hasUnresolvedNodes
+                      ? Icons.warning_amber_rounded
+                      : Icons.emoji_events_outlined,
+                  color: colors.onPrimaryContainer,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colors.onPrimaryContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (message.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          message,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: totalCount == 0
+                    ? 0
+                    : (masteredCount / totalCount).clamp(0.0, 1.0),
+                minHeight: 5,
+                backgroundColor: colors.onPrimaryContainer.withOpacity(0.14),
+                color: colors.tertiary,
+                semanticsLabel: 'Tópicos dominados de $totalCount',
+                semanticsValue: totalCount == 0
+                    ? '0'
+                    : '${(masteredCount / totalCount * 100).round()}',
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$masteredCount de $totalCount tópicos dominados · '
+                    'domínio a partir de 80%',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+                if (node != null)
+                  FilledButton.tonalIcon(
+                    onPressed: onOpenRecommended,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: const Text('Estudar agora'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                _GraphLegendItem(color: colors.tertiary, label: 'Dominado'),
+                _GraphLegendItem(
+                  color: colors.primary,
+                  label: 'Liberado / próximo',
+                ),
+                _GraphLegendItem(
+                  color: colors.outlineVariant,
+                  label: 'Aguardando pré-requisitos',
+                ),
+                _GraphLegendItem(
+                  color: colors.primary,
+                  label: 'Pré-requisito',
+                  isLine: true,
+                ),
+                _GraphLegendItem(
+                  color: colors.tertiary,
+                  label: 'Subtópico',
+                  isLine: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GraphLegendItem extends StatelessWidget {
+  const _GraphLegendItem({
+    required this.color,
+    required this.label,
+    this.isLine = false,
+  });
+
+  final Color color;
+  final String label;
+  final bool isLine;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: isLine ? 13 : 8,
+            height: isLine ? 2 : 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: isLine ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isLine ? BorderRadius.circular(2) : null,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(label, style: context.textTheme.labelSmall),
+        ],
+      ),
     );
   }
 }
@@ -1422,22 +1792,50 @@ class _EdgeInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final source = nodesById[edge.sourceNodeId];
     final target = nodesById[edge.targetNodeId];
+    final title = edge.type == 'SUBTOPIC'
+        ? '${source?.title ?? "Subtópico"} → ${target?.title ?? "Tópico"}'
+        : '${source?.title ?? "Pré-requisito"} → '
+              '${target?.title ?? "Tópico"}';
+    final description = edge.type == 'SUBTOPIC'
+        ? 'A origem é o subtópico; domine o tópico superior (destino) para liberá-lo.'
+        : 'Pré-requisito: domine a origem antes de avançar para o destino.';
     return Card(
       child: Padding(
         padding: const EdgeInsets.only(left: 14, top: 4, bottom: 4, right: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.arrow_downward_rounded, size: 18),
+            Icon(
+              edge.type == 'SUBTOPIC'
+                  ? Icons.account_tree_outlined
+                  : Icons.lock_outline_rounded,
+              size: 18,
+              color: edge.type == 'SUBTOPIC'
+                  ? context.colors.tertiary
+                  : context.colors.primary,
+            ),
             const SizedBox(width: 8),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 280),
-              child: Text(
-                '${source?.title ?? "Conceito"} → ${target?.title ?? "Conceito"}'
-                '\n${_edgeTypeLabel(edge.type)}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: context.textTheme.labelMedium,
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.labelLarge,
+                  ),
+                  Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             IconButton(
@@ -1449,17 +1847,6 @@ class _EdgeInfoCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _edgeTypeLabel(String type) {
-    switch (type.toUpperCase()) {
-      case 'PREREQUISITE':
-        return 'Pré-requisito';
-      case 'SUBTOPIC':
-        return 'Subtópico';
-      default:
-        return type;
-    }
   }
 }
 

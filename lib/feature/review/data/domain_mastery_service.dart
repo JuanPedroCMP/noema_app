@@ -30,11 +30,16 @@ class DomainMasteryUpdate {
     required double? previousScore,
     required int previousReviewCount,
     required fsrs.Rating rating,
+    int? exposureCount,
     double? assessmentScore,
     double? retrievability,
+    double? historicalAccuracy,
   }) {
     if (previousReviewCount < 0) {
       throw ArgumentError.value(previousReviewCount, 'previousReviewCount');
+    }
+    if (exposureCount != null && exposureCount < 0) {
+      throw ArgumentError.value(exposureCount, 'exposureCount');
     }
     if (previousScore != null &&
         (!previousScore.isFinite || previousScore < 0 || previousScore > 1)) {
@@ -52,13 +57,25 @@ class DomainMasteryUpdate {
             retrievability > 1)) {
       throw ArgumentError.value(retrievability, 'retrievability');
     }
+    if (historicalAccuracy != null &&
+        (!historicalAccuracy.isFinite ||
+            historicalAccuracy < 0 ||
+            historicalAccuracy > 1)) {
+      throw ArgumentError.value(historicalAccuracy, 'historicalAccuracy');
+    }
 
     final scoreBefore = previousScore ?? 0.5;
     final ratingEvidence = _ratingEvidence(rating);
-    final evidence = assessmentScore == null
+    final currentEvidence = assessmentScore == null
         ? ratingEvidence
         : (assessmentScore * 0.8) + (ratingEvidence * 0.2);
-    final reviewWeight = 1 / (previousReviewCount.clamp(0, 4) + 1);
+    final observedExposureCount = exposureCount ?? previousReviewCount;
+    final confidence = observedExposureCount / (observedExposureCount + 2.0);
+    final evidence = historicalAccuracy == null
+        ? currentEvidence
+        : (historicalAccuracy * confidence) +
+              (currentEvidence * (1 - confidence));
+    final reviewWeight = 1 / (observedExposureCount.clamp(0, 4) + 1);
     final retainedMastery = previousScore == null
         ? evidence
         : scoreBefore * (retrievability ?? 1) +
@@ -115,18 +132,35 @@ class DomainMasteryService {
       throw StateError('Não foi possível atualizar o domínio de um nó ausente.');
     }
 
-    final previousReviewCount = await (_database.selectOnly(
-      _database.domainLog,
-    )..addColumns([_database.domainLog.id.count()])
-          ..where(_database.domainLog.nodeId.equals(nodeId)))
-        .map((row) => row.read(_database.domainLog.id.count()) ?? 0)
-        .getSingle();
+    final state = _database.reviewItemState;
+    final reviewLog = _database.reviewItemLog;
+    final reviewRows =
+        await (_database.select(reviewLog).join([
+              innerJoin(
+                state,
+                state.id.equalsExp(reviewLog.reviewItemStateId),
+              ),
+            ])..where(state.nodeId.equals(nodeId)))
+            .get();
+    final previousReviewCount = reviewRows.length;
+    final scoredReviews = reviewRows
+        .map((row) => row.readTable(reviewLog).score)
+        .whereType<double>()
+        .where((score) => score.isFinite)
+        .toList();
+    final historicalAccuracy = scoredReviews.isEmpty
+        ? null
+        : scoredReviews.reduce((sum, score) => sum + score) /
+              scoredReviews.length;
+    final exposureCount = await _countExposureEvents(nodeId);
     final update = DomainMasteryUpdate.calculate(
       previousScore: node.masteryScore,
       previousReviewCount: previousReviewCount,
       rating: rating,
+      exposureCount: exposureCount,
       assessmentScore: assessmentScore,
       retrievability: retrievability,
+      historicalAccuracy: historicalAccuracy,
     );
     final nowSeconds = reviewedAt.toUtc().millisecondsSinceEpoch ~/ 1000;
 
@@ -153,5 +187,50 @@ class DomainMasteryService {
       ),
     );
     return update;
+  }
+
+  Future<int> _countExposureEvents(String nodeId) async {
+    final flashcardLog = _database.flashcardResponseLog;
+    final flashcard = _database.flashcard;
+    final flashcardCountQuery = _database.selectOnly(flashcardLog).join([
+      innerJoin(flashcard, flashcard.id.equalsExp(flashcardLog.flashcardId)),
+    ])
+      ..addColumns([flashcardLog.id.count()])
+      ..where(flashcard.nodeId.equals(nodeId));
+    final flashcardCount = await flashcardCountQuery
+        .map((row) => row.read(flashcardLog.id.count()) ?? 0)
+        .getSingle();
+
+    final multipleChoiceLog = _database.multipleChoiceResponseLog;
+    final multipleChoice = _database.multipleChoice;
+    final multipleChoiceCountQuery = _database
+        .selectOnly(multipleChoiceLog)
+        .join([
+          innerJoin(
+            multipleChoice,
+            multipleChoice.id.equalsExp(multipleChoiceLog.multipleChoiceId),
+          ),
+        ])
+      ..addColumns([multipleChoiceLog.id.count()])
+      ..where(multipleChoice.nodeId.equals(nodeId));
+    final multipleChoiceCount = await multipleChoiceCountQuery
+        .map((row) => row.read(multipleChoiceLog.id.count()) ?? 0)
+        .getSingle();
+
+    final openEndedLog = _database.openEndedResponseLog;
+    final openEnded = _database.openEnded;
+    final openEndedCountQuery = _database.selectOnly(openEndedLog).join([
+      innerJoin(
+        openEnded,
+        openEnded.id.equalsExp(openEndedLog.openEndedId),
+      ),
+    ])
+      ..addColumns([openEndedLog.id.count()])
+      ..where(openEnded.nodeId.equals(nodeId));
+    final openEndedCount = await openEndedCountQuery
+        .map((row) => row.read(openEndedLog.id.count()) ?? 0)
+        .getSingle();
+
+    return flashcardCount + multipleChoiceCount + openEndedCount;
   }
 }
