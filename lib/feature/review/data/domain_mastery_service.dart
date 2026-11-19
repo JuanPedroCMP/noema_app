@@ -70,12 +70,17 @@ class DomainMasteryUpdate {
         ? ratingEvidence
         : (assessmentScore * 0.8) + (ratingEvidence * 0.2);
     final observedExposureCount = exposureCount ?? previousReviewCount;
-    final confidence = observedExposureCount / (observedExposureCount + 2.0);
+    final hasReachedFullMastery = previousScore == 1;
+    final historicalAccuracyWeight = hasReachedFullMastery
+        ? 0.5
+        : observedExposureCount / (observedExposureCount + 2.0);
     final evidence = historicalAccuracy == null
         ? currentEvidence
-        : (historicalAccuracy * confidence) +
-              (currentEvidence * (1 - confidence));
-    final reviewWeight = 1 / (observedExposureCount.clamp(0, 4) + 1);
+        : (historicalAccuracy * historicalAccuracyWeight) +
+              (currentEvidence * (1 - historicalAccuracyWeight));
+    final reviewWeight = hasReachedFullMastery
+        ? 0.2
+        : 1 / (observedExposureCount.clamp(0, 4) + 1);
     final retainedMastery = previousScore == null
         ? evidence
         : scoreBefore * (retrievability ?? 1) +

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
+import 'package:noema/feature/graph/service/calculate_paths.dart';
 import 'package:noema/feature/graph/service/learning_path.dart';
 
 class GraphNode {
@@ -80,107 +81,19 @@ class GraphPainter extends CustomPainter {
       ..strokeWidth = 2.5
       ..isAntiAlias = true;
 
-    final nodesById = {for (final node in nodes) node.id: node};
-
     const nodeWidth = 200.0;
     const nodeHeight = 80.0;
-
-    GraphNodeData? visualSource(GraphEdgeData edge) =>
-        nodesById[edge.type == 'SUBTOPIC'
-            ? edge.targetNodeId
-            : edge.sourceNodeId];
-    GraphNodeData? visualTarget(GraphEdgeData edge) =>
-        nodesById[edge.type == 'SUBTOPIC'
-            ? edge.sourceNodeId
-            : edge.targetNodeId];
 
     Paint paintForEdge(GraphEdgeData edge) {
       if (edge.id == selected) return edgePaintSelected;
       return edge.type == 'SUBTOPIC' ? subtopicPaint : prerequisitePaint;
     }
 
-    if (option == 1) {
-      //// Direto
-      for (final edge in edges) {
-        final source = visualSource(edge);
-        final target = visualTarget(edge);
-
-        if (source == null || target == null) {
-          continue;
-        }
-
-        final path = Path();
-
-        path.moveTo(source.positionX, source.positionY + nodeHeight / 2);
-
-        path.lineTo(target.positionX, target.positionY - nodeHeight / 2);
-
-        _drawEdge(canvas, path, paintForEdge(edge));
-      }
-    } else if (option == 2) {
-      //// Ângulo Reto
-      for (final edge in edges) {
-        final source = visualSource(edge);
-        final target = visualTarget(edge);
-
-        if (source == null || target == null) {
-          continue;
-        }
-
-        final path = Path();
-
-        path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY + nodeHeight / 2),
-          Offset(source.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY - nodeHeight / 2),
-        ], false);
-
-        _drawEdge(canvas, path, paintForEdge(edge));
-      }
-    } else if (option == 3) {
-      //// Um vértice
-      for (final edge in edges) {
-        final source = visualSource(edge);
-        final target = visualTarget(edge);
-
-        if (source == null || target == null) {
-          continue;
-        }
-
-        final path = Path();
-
-        path.addPolygon(<Offset>[
-          Offset(source.positionX, source.positionY + nodeHeight / 2),
-          Offset(target.positionX, (target.positionY + source.positionY) / 2),
-          Offset(target.positionX, target.positionY - nodeHeight / 2),
-        ], false);
-
-        _drawEdge(canvas, path, paintForEdge(edge));
-      }
-    } else {
-      //// Curvado
-      for (final edge in edges) {
-        final source = visualSource(edge);
-        final target = visualTarget(edge);
-
-        if (source == null || target == null) {
-          continue;
-        }
-
-        final path = Path();
-
-        path.moveTo(source.positionX, source.positionY + nodeHeight / 2);
-
-        path.quadraticBezierTo(
-          source.positionX,
-          (source.positionY + target.positionY) / 2,
-          target.positionX,
-          target.positionY - nodeHeight / 2,
-        );
-
-        _drawEdge(canvas, path, paintForEdge(edge));
-      }
+    final (paths, edgeIds) = calculatePaths(nodes, edges, option);
+    final edgesById = {for (final edge in edges) edge.id: edge};
+    for (var index = 0; index < paths.length; index++) {
+      final edge = edgesById[edgeIds[index]]!;
+      _drawEdge(canvas, paths[index], paintForEdge(edge));
     }
 
     // Nodes
@@ -301,7 +214,7 @@ class GraphPainter extends CustomPainter {
     if (!metrics.moveNext()) return;
     final metric = metrics.current;
     if (metric.length < 10) return;
-    final tangent = metric.getTangentForOffset(metric.length - 2);
+    final tangent = metric.getTangentForOffset(metric.length);
     if (tangent == null) return;
 
     const arrowLength = 8.0;

@@ -1,36 +1,71 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/design/theme/color_theme_provider.dart'
+    show brightnessProvider, colorProvider;
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/page_chrome.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/ai/services/ai_background_task_runner.dart';
+import 'package:noema/feature/auth/providers/profile_avatar_provider.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/notes/presentation/notes_page.dart';
+import 'package:noema/feature/search/presentation/global_search_anchor.dart';
 import 'package:noema/feature/study_assistant/presentation/study_assistant_panel.dart';
 import 'package:noema/feature/study_assistant/providers/study_assistant_preferences_provider.dart';
 import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 enum DisplaySize { mobile, tablet, desktop }
 
-const _navigationItems = <(String, String, IconData, IconData)>[
-  ('/', 'Início', Icons.home_outlined, Icons.home_rounded),
-  ('/notes', 'Notas', Icons.notes_outlined, Icons.notes_rounded),
-  (
-    '/graphs',
+class _NavigationItem {
+  const _NavigationItem(this.label, this.icon, this.selectedIcon);
+
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+}
+
+class _NavigationGroup {
+  const _NavigationGroup(this.label, this.items);
+
+  final String label;
+  final List<_NavigationItem> items;
+}
+
+const _primaryNavigationItems = <_NavigationItem>[
+  _NavigationItem('Início', Icons.home_outlined, Icons.home_rounded),
+  _NavigationItem('Notas', Icons.notes_outlined, Icons.notes_rounded),
+  _NavigationItem(
     'Grafos',
     Icons.account_tree_outlined,
     Icons.account_tree_rounded,
   ),
-  ('/flashcards', 'Flashcards', Icons.style_outlined, Icons.style_rounded),
-  (
-    '/study-sessions',
-    'Sessões',
-    Icons.playlist_add_check_circle_outlined,
-    Icons.playlist_add_check_circle,
-  ),
-  ('/config', 'Configurações', Icons.settings_outlined, Icons.settings_rounded),
-  ('/ai-queue', 'Fila de IA', Icons.queue_outlined, Icons.queue_rounded),
+  _NavigationItem('Flashcards', Icons.style_outlined, Icons.style_rounded),
+];
+
+const _moreNavigationGroups = <_NavigationGroup>[
+  _NavigationGroup('Estudo', [
+    _NavigationItem(
+      'Sessões',
+      Icons.playlist_add_check_circle_outlined,
+      Icons.playlist_add_check_circle,
+    ),
+  ]),
+  _NavigationGroup('Sistema', [
+    _NavigationItem(
+      'Configurações',
+      Icons.settings_outlined,
+      Icons.settings_rounded,
+    ),
+    _NavigationItem('Fila de IA', Icons.queue_outlined, Icons.queue_rounded),
+  ]),
+];
+
+final _navigationItems = [
+  ..._primaryNavigationItems,
+  for (final group in _moreNavigationGroups) ...group.items,
 ];
 
 List<String> buildCumulativePaths(BuildContext context) {
@@ -201,6 +236,10 @@ class AppShell extends ConsumerWidget {
         assistant.isOpen &&
         (assistantSettings?.pinPanel ?? false) &&
         width >= AppLayoutTokens.pinnedAssistantBreakpoint;
+    final extendedNavigation =
+        displaySize == DisplaySize.desktop &&
+        width >= AppLayoutTokens.extendedNavigationRailBreakpoint &&
+        !showPinnedAssistant;
 
     return Scaffold(
       appBar: AppBar(
@@ -266,46 +305,41 @@ class AppShell extends ConsumerWidget {
         ),
         actions: [
           ...chrome.actions,
+          GlobalSearchAnchor(
+            isDesktop: displaySize == DisplaySize.desktop,
+            onNavigate: (path) => _navigate(context, path),
+          ),
+          if (displaySize == DisplaySize.mobile)
+            _ProfileMenuButton(onNavigate: (path) => _navigate(context, path)),
           if (displaySize == DisplaySize.desktop)
-            TextButton.icon(
-              onPressed: () => _navigate(context, RoutePaths.config),
-              icon: const Icon(Icons.settings_outlined),
-              label: const Text('Configurações'),
-            )
-          else
-            IconButton(
-              tooltip: 'Configurações',
-              onPressed: () => _navigate(context, RoutePaths.config),
-              style: currentPath.startsWith(RoutePaths.config)
-                  ? IconButton.styleFrom(
-                      foregroundColor: context.colors.primary,
-                      backgroundColor: context.colors.primaryContainer,
+            Tooltip(
+              message: assistant.isOpen
+                  ? 'Fechar o painel do assistente de estudos'
+                  : 'Tire dúvidas sobre seu conteúdo e gere atividades',
+              child: assistant.isOpen
+                  ? FilledButton.tonalIcon(
+                      onPressed: () =>
+                          ref.read(studyAssistantProvider.notifier).close(),
+                      icon: const Icon(Icons.close_rounded),
+                      label: const Text('Fechar assistente'),
                     )
-                  : null,
-              icon: const Icon(Icons.settings_outlined),
-            ),
-          if (displaySize == DisplaySize.desktop)
-            assistant.isOpen
-                ? FilledButton.tonalIcon(
-                    onPressed: () =>
-                        ref.read(studyAssistantProvider.notifier).close(),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Assistente'),
-                  )
-                : TextButton.icon(
-                    onPressed: () =>
-                        ref.read(studyAssistantProvider.notifier).open(),
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Assistente'),
-                  )
+                  : OutlinedButton.icon(
+                      onPressed: () =>
+                          ref.read(studyAssistantProvider.notifier).open(),
+                      icon: const Icon(Icons.auto_awesome_rounded),
+                      label: const Text('Assistente'),
+                    ),
+            )
           else
             IconButton(
               tooltip: assistant.isOpen
                   ? 'Fechar assistente de estudos'
-                  : 'Abrir assistente de estudos',
+                  : 'Abrir assistente: tire dúvidas e crie atividades',
               onPressed: () => assistant.isOpen
                   ? ref.read(studyAssistantProvider.notifier).close()
                   : ref.read(studyAssistantProvider.notifier).open(),
+              isSelected: assistant.isOpen,
+              selectedIcon: const Icon(Icons.close_rounded),
               style: assistant.isOpen
                   ? IconButton.styleFrom(
                       foregroundColor: context.colors.primary,
@@ -324,6 +358,7 @@ class AppShell extends ConsumerWidget {
       bottomNavigationBar: displaySize == DisplaySize.mobile
           ? NavigationBar(
               height: AppLayoutTokens.navigationBarHeight,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               selectedIndex:
                   navigationShell.currentIndex < _primaryNavigationItems.length
                   ? navigationShell.currentIndex
@@ -338,9 +373,9 @@ class AppShell extends ConsumerWidget {
               destinations: [
                 for (final item in _primaryNavigationItems)
                   NavigationDestination(
-                    icon: Icon(item.$3),
-                    selectedIcon: Icon(item.$4),
-                    label: item.$2,
+                    icon: Icon(item.icon),
+                    selectedIcon: Icon(item.selectedIcon),
+                    label: item.label,
                   ),
                 NavigationDestination(
                   icon: Icon(
@@ -367,27 +402,30 @@ class AppShell extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           NavigationRail(
+                            trailingAtBottom: true,
+                            trailing: _ProfileMenuButton(
+                              extended: extendedNavigation,
+                              onNavigate: (path) => _navigate(context, path),
+                            ),
                             selectedIndex: navigationShell.currentIndex,
                             onDestinationSelected: (index) =>
                                 _goBranch(context, index),
-                            extended:
-                                displaySize == DisplaySize.desktop &&
-                                width >=
-                                    AppLayoutTokens
-                                        .extendedNavigationRailBreakpoint,
-                            labelType:
-                                displaySize == DisplaySize.desktop &&
-                                    width >=
-                                        AppLayoutTokens
-                                            .extendedNavigationRailBreakpoint
+                            extended: extendedNavigation,
+                            labelType: extendedNavigation
                                 ? NavigationRailLabelType.none
-                                : NavigationRailLabelType.all,
+                                : NavigationRailLabelType.selected,
                             destinations: [
                               for (final item in _navigationItems)
                                 NavigationRailDestination(
-                                  icon: Icon(item.$3),
-                                  selectedIcon: Icon(item.$4),
-                                  label: Text(item.$2),
+                                  icon: Tooltip(
+                                    message: item.label,
+                                    child: Icon(item.icon),
+                                  ),
+                                  selectedIcon: Tooltip(
+                                    message: item.label,
+                                    child: Icon(item.selectedIcon),
+                                  ),
+                                  label: Text(item.label),
                                 ),
                             ],
                           ),
@@ -439,6 +477,27 @@ class AppShell extends ConsumerWidget {
   }
 
   Future<void> _showMoreNavigation(BuildContext context) async {
+    Widget buildMoreNavigationItem(
+      BuildContext context,
+      _NavigationItem item,
+    ) {
+      final index = _navigationItems.indexOf(item);
+      final isSelected = navigationShell.currentIndex == index;
+      return Semantics(
+        selected: isSelected,
+        child: ListTile(
+          leading: Icon(isSelected ? item.selectedIcon : item.icon),
+          title: Text(item.label),
+          selected: isSelected,
+          trailing: isSelected
+              ? const Icon(Icons.check_circle_outline)
+              : null,
+          minTileHeight: AppLayoutTokens.minimumControlHeight,
+          onTap: () => Navigator.pop(context, index),
+        ),
+      );
+    }
+
     final selectedIndex = await showModalBottomSheet<int>(
       context: context,
       showDragHandle: true,
@@ -465,29 +524,14 @@ class AppShell extends ConsumerWidget {
                   context.spacing.xs,
                 ),
                 child: Text(
-                  group.$1,
+                  group.label,
                   style: context.textTheme.labelLarge?.copyWith(
                     color: context.colors.onSurfaceVariant,
                   ),
                 ),
               ),
-              for (final index in group.$2)
-                Semantics(
-                  selected: navigationShell.currentIndex == index,
-                  child: ListTile(
-                    leading: Icon(
-                      navigationShell.currentIndex == index
-                          ? _navigationItems[index].$4
-                          : _navigationItems[index].$3,
-                    ),
-                    title: Text(_navigationItems[index].$2),
-                    selected: navigationShell.currentIndex == index,
-                    trailing: navigationShell.currentIndex == index
-                        ? const Icon(Icons.check_circle_outline)
-                        : const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.pop(context, index),
-                  ),
-                ),
+              for (final item in group.items)
+                buildMoreNavigationItem(context, item),
             ],
           ],
         ),
@@ -537,17 +581,205 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-final _primaryNavigationItems = [
-  _navigationItems[0],
-  _navigationItems[1],
-  _navigationItems[2],
-  _navigationItems[3],
-].toList(growable: false);
+enum _ProfileMenuAction { settings, toggleBrightness }
 
-const _moreNavigationGroups = <(String, List<int>)>[
-  ('Estudo', [4]),
-  ('Sistema', [5, 6]),
-];
+class _ProfileMenuButton extends ConsumerWidget {
+  const _ProfileMenuButton({required this.onNavigate, this.extended = false});
+
+  final ValueChanged<String> onNavigate;
+  final bool extended;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(userProvider).asData?.value;
+    final avatarUrl = ref.watch(profileAvatarUrlProvider).asData?.value;
+    final brightness = ref.watch(brightnessProvider);
+    final displayName = profile == null
+        ? 'Minha conta'
+        : profile.displayName.trim().isEmpty
+        ? profile.userName
+        : profile.displayName;
+    final email = profile?.primaryEmail ?? '';
+
+    return PopupMenuButton<_ProfileMenuAction>(
+      tooltip: 'Perfil, configurações e tema',
+      onSelected: (action) async {
+        if (action == _ProfileMenuAction.settings) {
+          onNavigate(RoutePaths.config);
+        } else {
+          await _toggleBrightness(context, ref, brightness);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<_ProfileMenuAction>(
+          enabled: false,
+          height: 72,
+          child: Row(
+            children: [
+              _buildProfileAvatar(
+                context,
+                imageUrl: avatarUrl,
+                name: displayName,
+                radius: 21,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.titleSmall,
+                    ),
+                    if (email.isNotEmpty)
+                      Text(
+                        email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: _ProfileMenuAction.settings,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.settings_outlined),
+            title: Text('Configurações'),
+            dense: true,
+          ),
+        ),
+        PopupMenuItem(
+          value: _ProfileMenuAction.toggleBrightness,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              brightness == Brightness.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+            ),
+            title: Text(
+              brightness == Brightness.dark
+                  ? 'Usar tema claro'
+                  : 'Usar tema escuro',
+            ),
+            dense: true,
+          ),
+        ),
+      ],
+      child: Semantics(
+        button: true,
+        label: 'Abrir menu do perfil',
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: extended
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildProfileAvatar(
+                      context,
+                      imageUrl: avatarUrl,
+                      name: displayName,
+                      radius: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.labelLarge,
+                      ),
+                    ),
+                  ],
+                )
+              : _buildProfileAvatar(
+                  context,
+                  imageUrl: avatarUrl,
+                  name: displayName,
+                  radius: 20,
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleBrightness(
+    BuildContext context,
+    WidgetRef ref,
+    Brightness currentBrightness,
+  ) async {
+    try {
+      await ref
+          .read(colorProvider.notifier)
+          .setBrightness(
+            brightness: currentBrightness == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
+          );
+    } catch (error, stackTrace) {
+      debugPrint('Não foi possível alternar o tema: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível alterar o tema. Tente novamente.'),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProfileAvatar(
+    BuildContext context, {
+    required String? imageUrl,
+    required String name,
+    required double radius,
+  }) {
+    final initial = name.trim().isEmpty
+        ? 'N'
+        : name.trim().substring(0, 1).toUpperCase();
+    Widget fallback() => Center(
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: context.colors.onPrimaryContainer,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: context.colors.primaryContainer,
+      child: ClipOval(
+        child: SizedBox(
+          width: radius * 2,
+          height: radius * 2,
+          child: imageUrl == null
+              ? fallback()
+              : Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null ? child : fallback(),
+                  errorBuilder: (context, error, stackTrace) => fallback(),
+                ),
+        ),
+      ),
+    );
+  }
+}
 
 class _Breadcrumbs extends StatelessWidget {
   const _Breadcrumbs({

@@ -36,6 +36,7 @@ enum AiAgentTask {
 
   static AiAgentTask? fromWireName(String value) {
     final normalized = normalize(value);
+    if (normalized == 'study_assistant') return studyAssistant;
     for (final task in values) {
       if (normalize(task.wireName) == normalized) return task;
     }

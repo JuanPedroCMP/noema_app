@@ -5,6 +5,8 @@ import 'package:built_value/json_object.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_api.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_oauth.dart';
 import 'package:noema/feature/config/data/google_drive/google_drive_sync_service.dart';
 import 'package:noema/feature/config/data/google_drive/local_snapshot.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
@@ -325,7 +327,9 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           );
           return;
         }
-      } else {
+      } else if (preview.automaticResolution != null) {
+        resolution = preview.automaticResolution;
+      } else if (preview.requiresDecision) {
         resolution = await _chooseResolution(preview);
       }
 
@@ -377,9 +381,10 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
             content: const Text(
               'O app vai preparar um snapshot dos seus grafos, anotações, '
               'flashcards, exercícios, histórico de estudo e temas locais. '
-              'O snapshot será enviado ao servidor Noema, que o armazena na '
-              'área privada do Google Drive. Tokens Google não ficam neste '
-              'dispositivo. Preferências e dados já sincronizados com o servidor '
+              'O snapshot será enviado diretamente do dispositivo para a área '
+              'privada do Google Drive; o servidor Noema recebe somente os '
+              'metadados do backup. Tokens Google ficam no armazenamento seguro '
+              'deste dispositivo. Preferências e dados já sincronizados com o servidor '
               'ficam fora do snapshot.',
             ),
             actions: [
@@ -501,9 +506,10 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'O servidor Noema transfere os snapshots entre o dispositivo e a '
-          'pasta privada do Google Drive. Os tokens Google ficam cifrados no '
-          'servidor e não são armazenados neste dispositivo.',
+          'O app transfere snapshots diretamente entre este dispositivo e a '
+          'pasta privada do Google Drive. O servidor Noema recebe somente '
+          'metadados e histórico; os tokens Google ficam no armazenamento '
+          'seguro deste dispositivo.',
           style: theme.textTheme.bodyMedium,
         ),
         SizedBox(height: spacing.md),
@@ -549,8 +555,8 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
             padding: EdgeInsets.only(top: spacing.sm),
             child: Text(
               'Tente renovar a autorização. Se o Google continuar sem '
-              'confirmar a conta, a configuração OAuth do servidor precisa '
-              'incluir o cliente desta plataforma.',
+              'confirmar a conta, a API precisa incluir o ID do cliente OAuth '
+              'Android, Web e Desktop em GOOGLE_OAUTH_CLIENT_IDS.',
               style: theme.textTheme.bodySmall,
             ),
           ),
@@ -573,11 +579,13 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                 icon: const Icon(Icons.link),
                 label: const Text('Conectar Google'),
               ),
-            if (!connected && linked)
+            if (linked)
               FilledButton.tonalIcon(
                 onPressed: _working ? null : _repairAuthorization,
-                icon: const Icon(Icons.build_outlined),
-                label: const Text('Corrigir autorização'),
+                icon: Icon(connected ? Icons.refresh : Icons.build_outlined),
+                label: Text(
+                  connected ? 'Renovar autorização' : 'Corrigir autorização',
+                ),
               ),
             if (connected)
               FilledButton.icon(
@@ -776,8 +784,8 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
     return switch (status.error?.name) {
       'googleAuthorizationUnverified' =>
         'A conta está vinculada, mas o servidor não conseguiu validar a '
-            'autorização Google. Renove a autorização; se persistir, verifique '
-            'o callback e as credenciais OAuth do servidor.',
+            'autorização Google. Renove a autorização; se persistir, confira '
+            'os IDs permitidos em GOOGLE_OAUTH_CLIENT_IDS na API.',
       'googleAuthorizationRevoked' =>
         'A autorização Google foi revogada. Renove o acesso para sincronizar.',
       'driveAppdataScopeMissing' =>
@@ -794,7 +802,6 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       },
     };
   }
-
 }
 
 const _backupFrequencies = <String, String>{
@@ -980,16 +987,17 @@ String googleDriveOperationErrorMessage(Object error) {
           'Esta conta Noema já está associada a outra conta Google e mantém backups vinculados. Para trocar de conta, é necessário migrar ou remover esses backups primeiro.',
         'google_account_unavailable' =>
           'Esta conta Google não pode ser vinculada a este perfil Noema.',
-        'google_oauth_not_configured' =>
-          _oauthConfigurationError(detail),
+        'google_oauth_not_configured' => _oauthConfigurationError(detail),
         'google_account_operations_pending' =>
           'A conta não pode ser desvinculada enquanto houver uma sincronização em andamento. Aguarde a operação terminar e tente novamente.',
-        'server_oauth_required' =>
-          'Atualize o Noema para usar a autorização Google processada pelo servidor.',
+        'client_side_drive_sync_required' =>
+          'Atualize o Noema para sincronizar arquivos diretamente com o Google Drive.',
         'google_oauth_unavailable' =>
           'A verificação do Google está temporariamente indisponível. Tente novamente em instantes.',
         'google_scope_not_allowed' =>
           'O servidor recusou as permissões solicitadas. O app precisa solicitar somente o acesso privado do Noema.',
+        'google_authorization_revoked' =>
+          'A autorização Google expirou ou foi revogada. Conecte a conta novamente.',
         _ => 'O servidor recusou a operação Google (código: $code).',
       };
     }
@@ -1008,6 +1016,9 @@ String googleDriveOperationErrorMessage(Object error) {
     }
     return 'A sincronização falhou (HTTP $status). Nenhuma restauração parcial foi aplicada.';
   }
+  if (error is GoogleDriveOAuthException || error is GoogleDriveApiException) {
+    return error.toString();
+  }
   if (error is FormatException) return error.message;
   return 'Não foi possível concluir a sincronização. Nenhuma falha foi ocultada; tente novamente.';
 }
@@ -1022,13 +1033,12 @@ String _oauthConfigurationError(Map<dynamic, dynamic> detail) {
             .toList()
       : <String>[];
   if (names.isNotEmpty) {
-    return 'A renovação foi bloqueada pela configuração do servidor. '
-        'Falta configurar: ${names.join(', ')}. Isso precisa ser corrigido '
-        'na API e depois os usuários podem tentar novamente.';
+    return 'A validação da conta foi bloqueada pela configuração da API. '
+        'Falta configurar: ${names.join(', ')}.';
   }
-  return 'A renovação foi bloqueada porque a configuração OAuth da API está '
-      'incompleta. Verifique client ID, client secret, callback HTTPS e chave '
-      'de criptografia no servidor.';
+  return 'A API não está configurada para validar o cliente OAuth desktop. '
+      'Inclua os IDs OAuth do Android, Web e Desktop em '
+      'GOOGLE_OAUTH_CLIENT_IDS no servidor.';
 }
 
 class _CategoryDifference extends StatelessWidget {

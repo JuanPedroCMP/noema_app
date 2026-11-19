@@ -4,6 +4,7 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/ai/providers/ai_queue_concurrency_provider.dart';
 import 'package:noema/feature/config/providers/app_locale_provider.dart';
 import 'package:noema/feature/config/providers/exercise_correction_mode_provider.dart';
+import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/presentation/preference_device_scope_control.dart';
 import 'package:noema/feature/config/presentation/response_language_preferences_section.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_state.dart';
@@ -15,6 +16,8 @@ class PreferencesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(appLocaleProvider);
+    final automaticSync = ref.watch(automaticConfigSyncProvider);
+    final pendingSync = ref.watch(pendingConfigPreferenceCountProvider);
     final selected = locale.when(
       data: (value) => value?.languageCode ?? 'system',
       error: (_, _) => 'system',
@@ -25,13 +28,70 @@ class PreferencesSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          child: ListTile(
-            dense: true,
-            leading: const Icon(Icons.cloud_sync_outlined),
-            title: const Text('Preferências sincronizadas com a conta'),
-            subtitle: const Text(
-              'Use o ícone discreto ao lado de uma configuração para mantê-la somente neste dispositivo.',
-            ),
+          child: Column(
+            children: [
+              automaticSync.when(
+                loading: () => const ListTile(
+                  leading: Icon(Icons.cloud_sync_outlined),
+                  title: Text('Sincronização de preferências'),
+                  subtitle: Text('Carregando configuração local…'),
+                ),
+                error: (error, _) => ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Sincronização de preferências'),
+                  subtitle: Text('Não foi possível carregar: $error'),
+                  trailing: IconButton(
+                    tooltip: 'Tentar novamente',
+                    onPressed: () =>
+                        ref.invalidate(automaticConfigSyncProvider),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ),
+                data: (enabled) => SwitchListTile(
+                  secondary: const Icon(Icons.cloud_sync_outlined),
+                  title: const Text('Sincronizar automaticamente'),
+                  subtitle: const Text(
+                    'As alterações são salvas primeiro neste dispositivo. Desative para sincronizar somente quando você pedir.',
+                  ),
+                  value: enabled,
+                  onChanged: (value) => _setAutomaticSync(
+                    context,
+                    () => ref
+                        .read(automaticConfigSyncProvider.notifier)
+                        .setEnabled(value),
+                  ),
+                ),
+              ),
+              pendingSync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (error, _) => ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Alterações aguardando sincronização'),
+                  subtitle: Text('Não foi possível verificar: $error'),
+                ),
+                data: (count) => count == 0
+                    ? const SizedBox.shrink()
+                    : ListTile(
+                        leading: const Icon(Icons.cloud_upload_outlined),
+                        title: Text(
+                          '$count ${count == 1 ? 'alteração pendente' : 'alterações pendentes'}',
+                        ),
+                        subtitle: const Text(
+                          'O conteúdo local está salvo e será enviado quando a conexão estiver disponível.',
+                        ),
+                        trailing: FilledButton.tonalIcon(
+                          onPressed: () => _syncNow(
+                            context,
+                            () => ref
+                                .read(configPreferenceSyncServiceProvider)
+                                .syncPending(force: true),
+                          ),
+                          icon: const Icon(Icons.sync),
+                          label: const Text('Sincronizar'),
+                        ),
+                      ),
+              ),
+            ],
           ),
         ),
         SizedBox(height: context.spacing.md),
@@ -257,6 +317,37 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+Future<void> _setAutomaticSync(
+  BuildContext context,
+  Future<void> Function() save,
+) async {
+  try {
+    await save();
+  } catch (error) {
+    if (!context.mounted) return;
+    _showSaveError(context, 'Não foi possível salvar a preferência: $error');
+  }
+}
+
+Future<void> _syncNow(
+  BuildContext context,
+  Future<void> Function() sync,
+) async {
+  try {
+    await sync();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Preferências sincronizadas com sucesso.')),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    _showSaveError(
+      context,
+      'As alterações continuam salvas localmente. Não foi possível sincronizar: $error',
     );
   }
 }

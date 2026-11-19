@@ -104,6 +104,44 @@ class AiContentGenerationService {
     );
   }
 
+  Future<T> generateWithRetry<T>({
+    required AiAgentTask task,
+    required String prompt,
+    required T Function(Map<String, dynamic> payload) parse,
+    String? agentId,
+    Map<String, dynamic>? context,
+    AiRequestPriority priority = AiRequestPriority.user,
+    int maxAttempts = 2,
+  }) async {
+    if (maxAttempts < 1) {
+      throw ArgumentError.value(maxAttempts, 'maxAttempts', 'must be >= 1');
+    }
+    FormatException? lastFormatError;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final payload = await generate(
+          task: task,
+          prompt: prompt,
+          agentId: agentId,
+          context: context,
+          priority: priority,
+        );
+        return parse(payload);
+      } on FormatException catch (error) {
+        lastFormatError = error;
+        if (kDebugMode) {
+          developer.log(
+            'Resposta de IA inválida na tentativa $attempt/$maxAttempts '
+            '(task=${task.wireName}): ${error.message}',
+            name: 'noema.ai',
+          );
+        }
+        if (attempt == maxAttempts) rethrow;
+      }
+    }
+    throw lastFormatError!;
+  }
+
   Future<String> resolveAgentId(AiAgentTask task) async {
     final matchingAgents = await listAgents(task: task);
     if (matchingAgents.isEmpty) {
@@ -204,9 +242,36 @@ Descrição atual (se houver): ${existingDescription?.trim().isNotEmpty == true 
 
   dynamic _decodeJsonString(dynamic value) {
     if (value is! String) return value;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return value;
+
     try {
-      return jsonDecode(value);
+      return jsonDecode(trimmed);
     } on FormatException {
+      // Strip markdown code fences (e.g. ```json ... ```) if present.
+      final fenceMatch = RegExp(
+        r'^```(?:json)?\s*([\s\S]*?)\s*```$',
+        caseSensitive: false,
+      ).firstMatch(trimmed);
+      if (fenceMatch != null) {
+        final inner = fenceMatch.group(1)!.trim();
+        try {
+          return jsonDecode(inner);
+        } on FormatException {
+          // Fall through to brace extraction.
+        }
+      }
+
+      // Extract outermost JSON object if wrapped in prose.
+      final start = trimmed.indexOf('{');
+      final end = trimmed.lastIndexOf('}');
+      if (start != -1 && end > start) {
+        try {
+          return jsonDecode(trimmed.substring(start, end + 1));
+        } on FormatException {
+          return value;
+        }
+      }
       return value;
     }
   }

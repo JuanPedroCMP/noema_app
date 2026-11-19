@@ -101,4 +101,42 @@ void main() {
     );
     expect(tasks.single.status, 'PENDING');
   });
+
+  test(
+    'repairs and imports an AI-generated graph with cycles and invalid edges',
+    () async {
+      final graphId = await importGraphFromJson(
+        db: database,
+        userId: 'user-id',
+        jsonString: jsonEncode({
+          'graph_title': 'Biologia do ENEM',
+          'nodes': [
+            {'node_id': 1, 'title': 'Biologia', 'type': 'AREA'},
+            {'node_id': 2, 'title': 'Genética', 'type': 'TOPIC'},
+            {'node_id': 3, 'title': 'Mendel', 'type': 'CONCEPT'},
+          ],
+          'edges': [
+            {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
+            {'source_node': 3, 'target_node': 2, 'type': 'SUBTOPIC'},
+            // Cycle: 1 is SUBTOPIC of 3
+            {'source_node': 1, 'target_node': 3, 'type': 'SUBTOPIC'},
+            // Self loop
+            {'source_node': 2, 'target_node': 2, 'type': 'SUBTOPIC'},
+          ],
+        }),
+        isAiGenerated: true,
+      );
+
+      final savedEdges = await (database.select(
+        database.graphEdge,
+      )..where((edge) => edge.graphId.equals(graphId))).get();
+
+      // Cycle and self loop should be broken/removed, leaving 2 valid edges
+      expect(savedEdges, hasLength(2));
+      final nodes = await (database.select(
+        database.graphNode,
+      )..where((node) => node.graphId.equals(graphId))).get();
+      expect(nodes, hasLength(3));
+    },
+  );
 }

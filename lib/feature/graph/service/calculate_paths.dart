@@ -9,105 +9,81 @@ import 'package:noema/core/database/database.dart';
 ) {
   final nodesById = {for (final node in nodes) node.id: node};
 
-  List<Path> paths = [];
-  List<String> ids = [];
+  final paths = <Path>[];
+  final ids = <String>[];
 
-  final double nodeHeigth = 80;
+  const nodeHeight = 80.0;
 
-  GraphNodeData? visualSource(GraphEdgeData edge) =>
-      nodesById[edge.type == 'SUBTOPIC'
-          ? edge.targetNodeId
-          : edge.sourceNodeId];
-  GraphNodeData? visualTarget(GraphEdgeData edge) =>
-      nodesById[edge.type == 'SUBTOPIC'
-          ? edge.sourceNodeId
-          : edge.targetNodeId];
+  int? hierarchyLevel(String type) => switch (type.toUpperCase()) {
+    'AREA' => 0,
+    'TOPIC' => 1,
+    'CONCEPT' => 2,
+    'SUBCONCEPT' => 3,
+    _ => null,
+  };
 
-  if (option == 1) {
-    //// Direto
-    for (final edge in edges) {
-      final source = visualSource(edge);
-      final target = visualTarget(edge);
+  for (final edge in edges) {
+    final source = nodesById[edge.sourceNodeId];
+    final target = nodesById[edge.targetNodeId];
 
-      if (source == null || target == null) {
-        continue;
-      }
-
-      final path = Path();
-
-      path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
-
-      path.lineTo(target.positionX, target.positionY - nodeHeigth / 2);
-
-      paths.add(path);
-      ids.add(edge.id);
+    if (source == null || target == null) {
+      continue;
     }
-  } else if (option == 2) {
-    //// Ângulo Reto
-    for (final edge in edges) {
-      final source = visualSource(edge);
-      final target = visualTarget(edge);
 
-      if (source == null || target == null) {
-        continue;
+    var parent = source;
+    var child = target;
+    if (edge.type.toUpperCase() == 'SUBTOPIC') {
+      final sourceLevel = hierarchyLevel(source.type);
+      final targetLevel = hierarchyLevel(target.type);
+      if (sourceLevel != null &&
+          targetLevel != null &&
+          sourceLevel != targetLevel) {
+        parent = sourceLevel < targetLevel ? source : target;
+        child = sourceLevel < targetLevel ? target : source;
+      } else {
+        parent = target;
+        child = source;
       }
+    }
 
-      final path = Path();
+    final parentBottom = Offset(
+      parent.positionX,
+      parent.positionY + nodeHeight / 2,
+    );
+    final childTop = Offset(child.positionX, child.positionY - nodeHeight / 2);
+    final path = Path();
 
+    if (option == 1) {
+      path
+        ..moveTo(parentBottom.dx, parentBottom.dy)
+        ..lineTo(childTop.dx, childTop.dy);
+    } else if (option == 2) {
+      final middleY = (child.positionY + parent.positionY) / 2;
       path.addPolygon(<Offset>[
-        Offset(source.positionX, source.positionY + nodeHeigth / 2),
-        Offset(source.positionX, (target.positionY + source.positionY) / 2),
-        Offset(target.positionX, (target.positionY + source.positionY) / 2),
-        Offset(target.positionX, target.positionY - nodeHeigth / 2),
+        parentBottom,
+        Offset(parent.positionX, middleY),
+        Offset(child.positionX, middleY),
+        childTop,
       ], false);
-
-      paths.add(path);
-      ids.add(edge.id);
-    }
-  } else if (option == 3) {
-    //// Um vértice
-    for (final edge in edges) {
-      final source = visualSource(edge);
-      final target = visualTarget(edge);
-
-      if (source == null || target == null) {
-        continue;
-      }
-
-      final path = Path();
-
+    } else if (option == 3) {
       path.addPolygon(<Offset>[
-        Offset(source.positionX, source.positionY + nodeHeigth / 2),
-        Offset(target.positionX, (target.positionY + source.positionY) / 2),
-        Offset(target.positionX, target.positionY - nodeHeigth / 2),
+        parentBottom,
+        Offset(child.positionX, (child.positionY + parent.positionY) / 2),
+        childTop,
       ], false);
-      paths.add(path);
-      ids.add(edge.id);
+    } else {
+      path
+        ..moveTo(parentBottom.dx, parentBottom.dy)
+        ..quadraticBezierTo(
+          parent.positionX,
+          (parent.positionY + child.positionY) / 2,
+          childTop.dx,
+          childTop.dy,
+        );
     }
-  } else {
-    //// Curvado
-    for (final edge in edges) {
-      final source = visualSource(edge);
-      final target = visualTarget(edge);
 
-      if (source == null || target == null) {
-        continue;
-      }
-
-      final path = Path();
-
-      path.moveTo(source.positionX, source.positionY + nodeHeigth / 2);
-
-      path.quadraticBezierTo(
-        source.positionX,
-        (source.positionY + target.positionY) / 2,
-        target.positionX,
-        target.positionY - nodeHeigth / 2,
-      );
-
-      paths.add(path);
-      ids.add(edge.id);
-    }
+    paths.add(path);
+    ids.add(edge.id);
   }
 
   return (paths, ids);

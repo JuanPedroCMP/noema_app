@@ -1,0 +1,283 @@
+# Noema - Internal Context for lib/
+
+Generated: 2026-11-17
+Scope: /home/jpcmp/Desktop/projects/tcc/dev/noema_app/lib only
+Purpose: Architecture and implementation context for future assistant responses.
+
+## Overview
+
+- Flutter application named "noema".
+- Dart code: 226 files in lib/ (175 feature, 35 core, 10 shared, 3 l10n, 3 at the root).
+- Architecture: feature-based layers consisting of presentation/pages/widgets -> providers -> services/DAOs -> Drift + OpenAPI.
+- Primary state management: flutter_riverpod.
+- Navigation: go_router, with StatefulShellRoute for the main navigation branches.
+- Local database: Drift/SQLite, database name noema_db.sqlite, schema version 9.
+- Remote backend: generated OpenAPI client in ../openapi, current base at https://api.tccnoema.me.
+- Internationalization: pt-BR and en through AppLocalizations; Flutter Quill is also localized.
+- Generated files exist throughout the features (*.g.dart, *.freezed.dart, app_localizations*.dart).
+- Run build_runner after changing Freezed models, JSON models, or Drift definitions.
+
+## Entry Points and Composition
+
+- lib/main.dart
+  - Initializes WidgetsFlutterBinding.
+  - Runs App inside ProviderScope.
+- lib/app.dart
+  - Creates MaterialApp.router.
+  - Watches color theme, brightness, typography, and locale.
+  - Configures Material, Flutter Quill, and localization delegates.
+- lib/teste_page.dart
+  - Material 3 showcase, accessible through the /test route.
+- lib/core/router/router.dart
+  - Provides goRouterProvider.
+  - Handles authentication, splash, safe return paths, and post-login redirection.
+  - Contains branches for home, notes, graphs, flashcards, study sessions, configuration, and the AI queue.
+- lib/core/router/route_paths.dart
+  - Centralizes route constants and route builders.
+  - Use these helpers instead of repeated route strings.
+- lib/core/router/app_shell.dart
+  - Responsive AppShell for mobile, tablet, and desktop.
+  - Contains the sidebar, breadcrumbs, hierarchical navigation, and study assistant panel.
+  - Watches the AI background task runner to keep jobs active.
+- lib/core/router/page_chrome.dart
+  - Defines page chrome and visual configuration for routes.
+
+## Core
+
+### Database
+- lib/core/database/database.dart
+  - AppDatabase, using DriftDatabase with schema.drift.
+  - schemaVersion is 9.
+  - Contains incremental migrations from 3 through 9.
+  - Enables PRAGMA foreign_keys.
+  - Ensures manual_backup_history exists before opening.
+  - Uses a Drift native connection with noema_db.
+  - Contains deleteDatabase(), marked with a TODO to remove before release.
+- lib/core/database/schema.drift
+  - Primary source for tables and indexes.
+  - Main domains: users, themes, configuration, graphs, AI tasks, notes,
+    study sessions, flashcards, questions, responses, FSRS reviews,
+    domain/generic logs, and manual backup history.
+- lib/core/database/database_provider.dart
+  - Provides the AppDatabase singleton for ProviderScope.
+- Feature DAOs manage reads and writes for the schema; do not place arbitrary SQL in UI code.
+
+### Network
+- lib/core/network/api_client.dart
+  - Openapi provider targeting https://api.tccnoema.me.
+  - Receive timeout is two minutes.
+  - Interceptor propagates Authorization for OAuth operations.
+  - Includes setApiAccessToken and clearApiAccessToken helpers.
+  - Comments document inactive V2 and local server alternatives.
+- lib/core/network/connetction_checker.dart
+  - Checks connectivity.
+- lib/core/network/decode_jwt.dart
+  - JWT decoding utility.
+- lib/core/device_fingerprint.dart
+  - Device fingerprint used in configuration and database records.
+
+### Design
+- lib/core/design/theme/
+  - app_theme.dart builds the theme; providers control color, brightness, and typography.
+  - Theme DAOs persist theme data in Drift.
+- lib/core/design/tokens/
+  - Layout, spacing, radius, elevation, duration, and icon-size tokens.
+  - Several tokens use Freezed and have generated *.freezed.dart files.
+
+## Features
+
+### Authentication
+- lib/feature/auth/
+  - Login, registration, password reset, and account state.
+  - auth_state_provider determines authentication for router redirects.
+  - LoginService uses secure storage for the token.
+  - Forms use NotifierProvider and Freezed states.
+  - sign_up_provider.dart contains a TODO for code review and learning.
+
+### Configuration
+- lib/feature/config/
+  - ConfigPage is divided into profile, preferences, color theme, typography,
+    language, AI API keys, Google account, and manual backup sections.
+  - ConfigRefreshLifecycle and configRefreshProvider coordinate reload behavior.
+  - preference_storage_provider controls local-versus-device preference storage.
+  - personal_ai_configuration_service manages personal AI providers.
+  - The system supports up to eight concurrent AI requests, as defined by the schema and provider.
+
+### Knowledge Graphs
+- lib/feature/graph/
+  - Main knowledge domain: KnowledgeGraph, GraphVersion, GraphNode, GraphEdge,
+    NodeSkill, and LearningResource.
+  - Pages: graph list, blank graph creation, AI graph creation, and graph details.
+  - Riverpod providers cover graph state, selection, forms, paths, transforms, and temporary JSON.
+  - Widgets create and edit nodes and edges and display node details.
+  - Services calculate paths and Sugiyama layouts, handle gestures and learning,
+    convert AI responses, and import JSON.
+- import_grap_from_json.dart
+  - Contains a TODO for removing temporary test-only code.
+
+### Exercises
+- lib/feature/exercises/
+  - Exercise listing and response history.
+- multiple_choice/
+  - Create, edit, answer, and view multiple-choice questions.
+  - Choice DAOs and mode providers control behavior.
+- open_ended/
+  - Create, edit, answer, and view open-ended questions.
+  - Captures response snapshots, duration, and study session linkage.
+- exercise_correction_queue.dart and queued_exercise_correction_service.dart
+  - Queue exercise corrections and integrate with AI background jobs.
+
+### Flashcards
+- lib/feature/flashcards/
+  - Flashcard DAO and node-based flashcard UI.
+  - Integrated with /graphs/:graphId/flashcards/:nodeId routes.
+  - Integrated with the FSRS and review system.
+
+### Study Sessions
+- lib/feature/study_session/
+  - CRUD, detail, execution, and history for study sessions.
+  - Sessions can be associated with one or more knowledge graphs.
+  - session_node and study_session_question associate ordered questions
+    of both multiple-choice and open-ended types.
+  - Schema migration 3 created title/description, snapshots, and status fields.
+
+### Reviews
+- lib/feature/review/
+  - Domain dashboard, mastery, and review queue.
+  - DomainDashboardService, DomainMasteryService, ExerciseReviewQueueService,
+    and FsrsReviewService.
+  - review_item_state/log, fsrs_state/fsrs_review_log, and domain_log are stored in the database.
+  - Ratings range from 1 through 4 and use AI, manual, automatic, and self-rating methods.
+
+### Notes
+- lib/feature/notes/
+  - CRUD for notes, note versions, and note-node relationships.
+  - NoteTransferService supports transferring notes between contexts.
+  - NotesPage uses an automatically disposed stream provider.
+
+### AI
+- lib/feature/ai/
+  - ai_content_generation_service generates content through the API.
+  - ai_request_queue serializes and limits requests.
+  - ai_background_task_runner executes persisted jobs.
+  - Task types: node description and exercise correction.
+  - Status values: PENDING, RUNNING, RETRY_WAIT, FAILED, COMPLETED, CANCELED.
+  - Retry metadata, next_attempt_at, attempt_count, and last_error are persisted.
+  - AiQueuePage displays the queue; the runner is observed by AppShell.
+
+### Study Assistant
+- lib/feature/study_assistant/
+  - Panel with handoff support for graph, flashcard, and exercise creation.
+  - Models: study_assistant_action and study_assistant_state.
+  - Context service builds context from the current application state.
+  - Preferences provider controls assistant settings and pinned-panel behavior.
+
+### Home and Shell
+- lib/feature/home/presentation/home_page.dart
+  - Initial dashboard and knowledge graph recommendations.
+- lib/feature/shell/presentation/shell_page.dart
+  - Contains a TODO to replace the legacy base page.
+
+## Shared
+- lib/shared/widgets/
+  - AppCard, AppSection, AsyncActionButton, AppLoadingView, AppErrorView,
+    AppEmptyView, and ResponsiveContent.
+- lib/shared/editable_field/, editable_popup_filed/
+  - Reusable editable fields and editable popups.
+- lib/shared/chrome_navigation_tile/, floating_card/, pop_up/
+  - Navigation/chrome components, overlays, and cards.
+
+## Localization
+- lib/l10n/app_localizations.dart
+  - Generated delegates and localization interface.
+- app_localizations_pt.dart / app_localizations_en.dart
+  - Generated localized implementations.
+- ARB and localization sources are outside lib; do not edit generated implementations manually
+  when the configured localization generation flow is available.
+
+## Database and Additional Domains
+
+Important tables in the schema:
+- app_user
+- color_theme, typography_theme, config
+- knowledge_graph, graph_version, graph_node, graph_edge
+- node_skill, learning_resource
+- ai_background_task
+- note, note_version, note_node
+- study_session, study_session_log, study_session_use_knowledge_graph
+- session_node, study_session_question
+- flashcard, flashcard_group, flashcard_belongs_group
+- flashcard_response_log
+- multiple_choice, choice, multiple_choice_response_log
+- open_ended, open_ended_response_log
+- review_item_state, review_item_log
+- fsrs_state, fsrs_review_log
+- domain_log, generic_log
+- manual_backup_history
+
+Indexes primarily cover foreign keys, review times, study sessions, and AI job lookup.
+
+## Main Routes
+
+- / -> home
+- /notes -> notes
+- /graphs -> graph list
+- /graphs/:graphId -> graph
+- /graphs/:graphId/flashcards/:nodeId -> flashcards
+- /graphs/:graphId/exercises/:nodeId -> exercises
+- Responses and create/edit/answer/view routes for open-ended and multiple-choice questions
+- /flashcards -> flashcards
+- /study-sessions, /create, /:sessionId, /edit, /run
+- /config -> configuration
+- /ai-queue -> AI task queue
+- /login, /sign-up, /splash
+- /test -> Material 3 showcase
+
+## TODOs, Pending Work, and Known Cautions
+
+- lib/core/database/database.dart: deleteDatabase() and TODO before release.
+- lib/feature/auth/providers/sign_up_provider.dart: TODO for code review and learning.
+- lib/feature/graph/service/import_grap_from_json.dart: TODO to remove temporary test code.
+- lib/feature/shell/presentation/shell_page.dart: TODO to replace the legacy base page.
+- Root TODO: "Use FlexColorScheme".
+- import_grap_from_json.dart and teste_page.dart are test/showcase areas; do not assume they are final UI.
+- AppShell contains a pinnable study assistant; mobile, tablet, and desktop dimensions must remain supported.
+- The API base points to production in the current code; comments identify inactive V2 and local alternatives.
+- Do not run or expose deleteDatabase() in normal flows without explicitly removing the TODO and confirming behavior.
+
+## Diagnostics and Errors
+
+- "flutter analyze lib" could not run because the Flutter executable is not in PATH.
+- No Dart or Flutter SDK was found in /opt/flutter or common home-directory locations.
+- Before finishing Flutter changes, run the SDK through the configured environment:
+  flutter analyze lib
+  flutter test test/feature test/core test/shared
+- After changing models, run build_runner:
+  dart run build_runner build --delete-conflicting-outputs
+
+## Observed Conventions
+
+- Preserve generated files and regenerate them instead of editing manually:
+  *.g.dart, *.freezed.dart, and app_localizations*.dart.
+- Prefer small providers with a single responsibility.
+- Prefer DAOs and services for persistence and remote calls.
+- UI should consume AsyncValue/StreamProvider with AppLoadingView/AppErrorView/AppEmptyView.
+- Navigation should use RoutePaths helpers.
+- Drift migrations must be incremental and stay synchronized with schema.drift.
+- Soft-delete fields exist across many records; preserve is_archived/is_active/soft_deleted behavior.
+- Many timestamps are stored as Unix seconds; verify conversion in DAOs and services.
+- The primary UI language is Portuguese, but user-facing text should use AppLocalizations when appropriate.
+
+## Generated Files
+- 226 Dart files total, including Drift/JSON *.g.dart and *.freezed.dart files.
+- When changing @freezed, JSON serializable, or Drift definitions, run build_runner.
+- database.g.dart corresponds to database.dart and schema.drift.
+
+## Recommended Order for Investigating Changes
+
+1. Locate the route in core/router/router.dart and RoutePaths.
+2. Open the page or widget in presentation/pages/widgets.
+3. Follow the providers and services used by the UI.
+4. Check DAOs, models, schema.drift, and migrations.
+5. Check API calls in core/network/api_client.dart and openapi/.
+6. Run related tests in test/feature or test/core and regenerate code if necessary.

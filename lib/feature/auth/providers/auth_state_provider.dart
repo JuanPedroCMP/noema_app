@@ -7,6 +7,7 @@ import 'package:noema/core/database/database.dart'
     show ColorThemeData, TypographyThemeData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
+import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/core/design/theme/typography_theme_dao.dart';
 import 'package:noema/core/device_fingerprint.dart';
 import 'package:noema/core/network/api_client.dart';
@@ -216,7 +217,7 @@ Future<ColorThemeData> _createDefaultColorTheme(
   final id = await dao.insertColorTheme(
     userId: userId,
     name: 'Default',
-    seedColor: 0xFF0000FF,
+    seedColor: AppThemeDefaults.seedColor,
   );
   final theme = await dao.getColorTheme(id: id);
   if (theme == null) {

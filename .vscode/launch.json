@@ -2,6 +2,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Noema (Google OAuth Android)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define-from-file=config/google_oauth_android.json"
+      ]
+    },
+    {
       "name": "Noema (Google OAuth desktop)",
       "request": "launch",
       "type": "dart",

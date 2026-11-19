@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/network/connetction_checker.dart';
-import 'package:noema/feature/config/providers/config_refresh_provider.dart';
+import 'package:noema/feature/config/data/enums.dart';
 import 'package:noema/feature/config/data/personal_ai_configuration_service.dart';
+import 'package:noema/feature/config/providers/config_refresh_provider.dart';
+import 'package:noema/feature/config/providers/section_navigator_provider.dart';
 import 'package:openapi/openapi.dart';
 
 class PersonalAiConfigurationSection extends ConsumerStatefulWidget {
@@ -222,18 +225,21 @@ class _PersonalAiConfigurationSectionState
           label: 'Janela de contexto (tokens)',
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Capacidade total de contexto informada pelo provedor.',
         ),
         _EditorField(
           key: 'input_token_limit',
           label: 'Limite de tokens de entrada',
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Máximo de tokens que o modelo aceita como entrada.',
         ),
         _EditorField(
           key: 'output_token_limit',
           label: 'Limite de tokens de saída',
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Máximo de tokens que o modelo gera como resposta.',
         ),
         _EditorField(
           key: 'supports_vision',
@@ -291,6 +297,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.contextWindow?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Capacidade total de contexto informada pelo provedor.',
         ),
         _EditorField(
           key: 'input_token_limit',
@@ -298,6 +305,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.inputTokenLimit?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Máximo de tokens que o modelo aceita como entrada.',
         ),
         _EditorField(
           key: 'output_token_limit',
@@ -305,6 +313,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.outputTokenLimit?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
+          helperText: 'Máximo de tokens que o modelo gera como resposta.',
         ),
         _EditorField(
           key: 'supports_vision',
@@ -348,6 +357,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.choice,
           choices: _taskChoices,
           required: true,
+          helperText: 'Define o tipo de trabalho que este agente executa.',
         ),
         _EditorField(
           key: 'base_system_prompt',
@@ -392,6 +402,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.choice,
           choices: _taskChoices,
           required: true,
+          helperText: 'Define o tipo de trabalho que este agente executa.',
         ),
         _EditorField(
           key: 'base_system_prompt',
@@ -427,7 +438,16 @@ class _PersonalAiConfigurationSectionState
 
   Future<void> _createAgentModel(PersonalAiAgent agent) async {
     final config = _configuration!;
-    final models = config.models;
+    final models = config.models
+        .where(
+          (model) =>
+              model.isActive &&
+              config.providers.any(
+                (provider) =>
+                    provider.id == model.providerId && provider.isActive,
+              ),
+        )
+        .toList();
     if (models.isEmpty) {
       _message('Cadastre ou ative um modelo antes de vinculá-lo ao agente.');
       return;
@@ -480,7 +500,22 @@ class _PersonalAiConfigurationSectionState
 
   Future<void> _editAgentModel(PersonalAiAgentModel link) async {
     final config = _configuration!;
-    final models = config.models;
+    final models = config.models
+        .where(
+          (model) =>
+              model.isActive &&
+              config.providers.any(
+                (provider) =>
+                    provider.id == model.providerId && provider.isActive,
+              ),
+        )
+        .toList();
+    if (!models.any((model) => model.id == link.modelId)) {
+      final linkedModel = config.models
+          .where((model) => model.id == link.modelId)
+          .firstOrNull;
+      if (linkedModel != null) models.insert(0, linkedModel);
+    }
     final values = await _showEditor(
       title: 'Editar modelo do agente',
       fields: [
@@ -770,6 +805,12 @@ class _PersonalAiConfigurationSectionState
           ?.displayName ??
       'Provedor';
 
+  String _providerProtocolLabel(String protocol) => switch (protocol) {
+    'openai_compatible' => 'OpenAI-compatible',
+    'native' => 'Nativo',
+    _ => protocol,
+  };
+
   String _modelName(String modelId) =>
       _configuration!.models
           .where((model) => model.id == modelId)
@@ -814,14 +855,10 @@ class _PersonalAiConfigurationSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Configure provedores compatíveis com a API OpenAI, cadastre os modelos '
-          'disponíveis e escolha quais modelos cada agente pode usar. Os recursos '
-          'globais aparecem para consulta; somente os seus podem ser editados. '
-          'Para autenticação, cadastre uma chave em “Chaves de API” e permita '
-          'que ela use os modelos desejados. Deixe a chave vazia apenas quando '
-          'o provedor OpenAI-compatible não exigir segredo.',
-          style: Theme.of(context).textTheme.bodyMedium,
+        _AiSetupGuide(
+          onConfigureKeys: () => ref
+              .read(sectionNavigatorProvider.notifier)
+              .changeCurrentSection(ConfigSections.apiKeys),
         ),
         if (_error != null) ...[
           const SizedBox(height: 12),
@@ -829,179 +866,191 @@ class _PersonalAiConfigurationSectionState
         ],
         if (_saving) const LinearProgressIndicator(),
         const SizedBox(height: 16),
-        _SectionHeading(
+        _CollapsibleAiGroup(
+          icon: Icons.hub_outlined,
           title: 'Provedores',
           subtitle: 'Servidores de IA e endpoints OpenAI-compatible.',
-          action: FilledButton.icon(
-            onPressed: _saving ? null : _createProvider,
-            icon: const Icon(Icons.add),
-            label: const Text('Adicionar provedor'),
-          ),
+          initiallyExpanded: true,
+          actionLabel: 'Adicionar',
+          onAdd: _saving ? null : _createProvider,
+          child: config.providers.isEmpty
+              ? const _EmptyHint('Nenhum provedor de IA está disponível.')
+              : Column(
+                  children: [
+                    for (final provider in config.providers)
+                      _EntityCard(
+                        title: provider.displayName,
+                        subtitle:
+                            '${provider.isOwned ? 'Pessoal' : 'Global'} · ${_providerProtocolLabel(provider.protocol)} · ${provider.baseUrl ?? 'URL não informada'}',
+                        active: provider.isActive,
+                        actions: provider.isOwned
+                            ? [
+                                _MenuAction(
+                                  label: 'Editar',
+                                  icon: Icons.edit_outlined,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _editProvider(provider),
+                                ),
+                                _MenuAction(
+                                  label: 'Desativar',
+                                  icon: Icons.delete_outline,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _deactivate(
+                                          title: 'Desativar provedor?',
+                                          description:
+                                              '“${provider.displayName}” e seus modelos deixarão de aparecer como opções. O histórico será preservado.',
+                                          action: () => ref
+                                              .read(
+                                                personalAiConfigurationServiceProvider,
+                                              )
+                                              .deleteProvider(provider.id),
+                                          successMessage:
+                                              'Provedor desativado.',
+                                        ),
+                                ),
+                              ]
+                            : const [],
+                      ),
+                  ],
+                ),
         ),
-        if (config.providers.isEmpty)
-          const _EmptyHint('Nenhum provedor de IA está disponível.')
-        else
-          for (final provider in config.providers)
-            _EntityCard(
-              title: provider.displayName,
-              subtitle:
-                  '${provider.isOwned ? 'Pessoal' : 'Global'} · ${provider.protocol} · ${provider.baseUrl ?? 'URL não informada'}',
-              active: provider.isActive,
-              actions: provider.isOwned
-                  ? [
-                      _MenuAction(
-                        label: 'Editar',
-                        icon: Icons.edit_outlined,
-                        onPressed: _saving
-                            ? null
-                            : () => _editProvider(provider),
-                      ),
-                      _MenuAction(
-                        label: 'Desativar',
-                        icon: Icons.delete_outline,
-                        onPressed: _saving
-                            ? null
-                            : () => _deactivate(
-                                title: 'Desativar provedor?',
-                                description:
-                                    '“${provider.displayName}” e seus modelos deixarão de aparecer como opções. O histórico será preservado.',
-                                action: () => ref
-                                    .read(
-                                      personalAiConfigurationServiceProvider,
-                                    )
-                                    .deleteProvider(provider.id),
-                                successMessage: 'Provedor desativado.',
-                              ),
-                      ),
-                    ]
-                  : const [],
-            ),
-        const SizedBox(height: 20),
-        _SectionHeading(
+        _CollapsibleAiGroup(
+          icon: Icons.smart_toy_outlined,
           title: 'Modelos',
           subtitle: 'Defina IDs e limites de contexto para cada provedor.',
-          action: FilledButton.icon(
-            onPressed: _saving ? null : _createModel,
-            icon: const Icon(Icons.add),
-            label: const Text('Adicionar modelo'),
-          ),
+          actionLabel: 'Adicionar',
+          onAdd: _saving ? null : _createModel,
+          child: config.models.isEmpty
+              ? const _EmptyHint('Nenhum modelo ativo está disponível.')
+              : Column(
+                  children: [
+                    for (final model in config.models)
+                      _EntityCard(
+                        title: model.displayName,
+                        subtitle:
+                            '${_providerName(model.providerId)} · ID ${model.slug}',
+                        details:
+                            'Contexto ${model.contextWindow ?? '—'} tokens · entrada ${model.inputTokenLimit ?? '—'} tokens · saída ${model.outputTokenLimit ?? '—'} tokens'
+                            '${model.supportsVision ? ' · suporta visão' : ''}',
+                        active: model.isActive,
+                        actions: model.isOwned
+                            ? [
+                                _MenuAction(
+                                  label: 'Editar',
+                                  icon: Icons.edit_outlined,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _editModel(model),
+                                ),
+                                _MenuAction(
+                                  label: 'Desativar',
+                                  icon: Icons.delete_outline,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _deactivate(
+                                          title: 'Desativar modelo?',
+                                          description:
+                                              '“${model.displayName}” deixará de ser oferecido aos agentes. O histórico será preservado.',
+                                          action: () => ref
+                                              .read(
+                                                personalAiConfigurationServiceProvider,
+                                              )
+                                              .deleteModel(model.id),
+                                          successMessage: 'Modelo desativado.',
+                                        ),
+                                ),
+                              ]
+                            : const [],
+                      ),
+                  ],
+                ),
         ),
-        if (config.models.isEmpty)
-          const _EmptyHint('Nenhum modelo ativo está disponível.')
-        else
-          for (final model in config.models)
-            _EntityCard(
-              title: model.displayName,
-              subtitle:
-                  '${_providerName(model.providerId)} · ID ${model.slug} · contexto ${model.contextWindow ?? '—'} tokens · entrada ${model.inputTokenLimit ?? '—'} · saída ${model.outputTokenLimit ?? '—'}'
-                  '${model.supportsVision ? ' · visão' : ''}',
-              active: model.isActive,
-              actions: model.isOwned
-                  ? [
-                      _MenuAction(
-                        label: 'Editar',
-                        icon: Icons.edit_outlined,
-                        onPressed: _saving ? null : () => _editModel(model),
-                      ),
-                      _MenuAction(
-                        label: 'Desativar',
-                        icon: Icons.delete_outline,
-                        onPressed: _saving
-                            ? null
-                            : () => _deactivate(
-                                title: 'Desativar modelo?',
-                                description:
-                                    '“${model.displayName}” deixará de ser oferecido aos agentes. O histórico será preservado.',
-                                action: () => ref
-                                    .read(
-                                      personalAiConfigurationServiceProvider,
-                                    )
-                                    .deleteModel(model.id),
-                                successMessage: 'Modelo desativado.',
-                              ),
-                      ),
-                    ]
-                  : const [],
-            ),
-        const SizedBox(height: 20),
-        _SectionHeading(
+        _CollapsibleAiGroup(
+          icon: Icons.psychology_outlined,
           title: 'Agentes',
           subtitle: 'Instruções e tarefa que orientam cada agente de IA.',
-          action: FilledButton.icon(
-            onPressed: _saving ? null : _createAgent,
-            icon: const Icon(Icons.add),
-            label: const Text('Adicionar agente'),
-          ),
+          actionLabel: 'Adicionar',
+          onAdd: _saving ? null : _createAgent,
+          child: config.agents.isEmpty
+              ? const _EmptyHint('Nenhum agente está disponível.')
+              : Column(
+                  children: [
+                    for (final agent in config.agents)
+                      _EntityCard(
+                        title: agent.alias,
+                        subtitle:
+                            '${agent.isOwned ? 'Pessoal' : 'Global'} · ${_taskLabel(agent.task)}'
+                            '${agent.temperature == null ? '' : ' · temperatura ${agent.temperature}'}',
+                        active: agent.isActive,
+                        actions: agent.isOwned
+                            ? [
+                                _MenuAction(
+                                  label: 'Editar',
+                                  icon: Icons.edit_outlined,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _editAgent(agent),
+                                ),
+                                _MenuAction(
+                                  label: 'Desativar',
+                                  icon: Icons.delete_outline,
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _deactivate(
+                                          title: 'Desativar agente?',
+                                          description:
+                                              '“${agent.alias}” e seus vínculos de modelo deixarão de ser usados. O histórico será preservado.',
+                                          action: () => ref
+                                              .read(
+                                                personalAiConfigurationServiceProvider,
+                                              )
+                                              .deleteAgent(agent.id),
+                                          successMessage: 'Agente desativado.',
+                                        ),
+                                ),
+                              ]
+                            : const [],
+                        details: agent.baseSystemPrompt,
+                      ),
+                  ],
+                ),
         ),
-        if (config.agents.isEmpty)
-          const _EmptyHint('Nenhum agente está disponível.')
-        else
-          for (final agent in config.agents)
-            _EntityCard(
-              title: agent.alias,
-              subtitle:
-                  '${agent.isOwned ? 'Pessoal' : 'Global'} · ${_taskLabel(agent.task)}'
-                  '${agent.temperature == null ? '' : ' · temperatura ${agent.temperature}'}',
-              active: agent.isActive,
-              actions: agent.isOwned
-                  ? [
-                      _MenuAction(
-                        label: 'Editar',
-                        icon: Icons.edit_outlined,
-                        onPressed: _saving ? null : () => _editAgent(agent),
-                      ),
-                      _MenuAction(
-                        label: 'Desativar',
-                        icon: Icons.delete_outline,
-                        onPressed: _saving
-                            ? null
-                            : () => _deactivate(
-                                title: 'Desativar agente?',
-                                description:
-                                    '“${agent.alias}” e seus vínculos de modelo deixarão de ser usados. O histórico será preservado.',
-                                action: () => ref
-                                    .read(
-                                      personalAiConfigurationServiceProvider,
-                                    )
-                                    .deleteAgent(agent.id),
-                                successMessage: 'Agente desativado.',
-                              ),
-                      ),
-                    ]
-                  : const [],
-              details: agent.baseSystemPrompt,
-            ),
-        const SizedBox(height: 20),
-        _SectionHeading(
+        _CollapsibleAiGroup(
+          icon: Icons.link_outlined,
           title: 'Modelos por agente',
           subtitle:
               'Vincule cada agente pessoal a um ou mais modelos disponíveis.',
+          child: ownedAgents.isEmpty
+              ? const _EmptyHint(
+                  'Crie um agente pessoal para configurar vínculos de modelos.',
+                )
+              : Column(
+                  children: [
+                    for (final agent in ownedAgents)
+                      _AgentModelsCard(
+                        agent: agent,
+                        links: config.agentModels
+                            .where((link) => link.agentId == agent.id)
+                            .toList(),
+                        modelName: _modelName,
+                        saving: _saving,
+                        onAdd: () => _createAgentModel(agent),
+                        onEdit: _editAgentModel,
+                        onDeactivate: (link) => _deactivate(
+                          title: 'Desativar vínculo?',
+                          description:
+                              'O modelo “${_modelName(link.modelId)}” deixará de ser usado pelo agente “${agent.alias}”.',
+                          action: () => ref
+                              .read(personalAiConfigurationServiceProvider)
+                              .deleteAgentModel(link.id),
+                          successMessage: 'Vínculo desativado.',
+                        ),
+                      ),
+                  ],
+                ),
         ),
-        if (ownedAgents.isEmpty)
-          const _EmptyHint(
-            'Crie um agente pessoal para configurar vínculos de modelos.',
-          )
-        else
-          for (final agent in ownedAgents)
-            _AgentModelsCard(
-              agent: agent,
-              links: config.agentModels
-                  .where((link) => link.agentId == agent.id)
-                  .toList(),
-              modelName: _modelName,
-              saving: _saving,
-              onAdd: () => _createAgentModel(agent),
-              onEdit: _editAgentModel,
-              onDeactivate: (link) => _deactivate(
-                title: 'Desativar vínculo?',
-                description:
-                    'O modelo “${_modelName(link.modelId)}” deixará de ser usado pelo agente “${agent.alias}”.',
-                action: () => ref
-                    .read(personalAiConfigurationServiceProvider)
-                    .deleteAgentModel(link.id),
-                successMessage: 'Vínculo desativado.',
-              ),
-            ),
       ],
     );
   }
@@ -1084,6 +1133,138 @@ class _AgentModelsCard extends StatelessWidget {
   );
 }
 
+class _AiSetupGuide extends StatelessWidget {
+  const _AiSetupGuide({required this.onConfigureKeys});
+
+  final VoidCallback onConfigureKeys;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = context.spacing;
+
+    return Card(
+      color: theme.colorScheme.secondaryContainer,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.all(spacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Configuração recomendada',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: spacing.xs),
+            Text(
+              '1. Cadastre um provedor  ·  2. Cadastre os modelos  ·  '
+              '3. Adicione uma chave de API  ·  4. Vincule modelos aos agentes',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+            SizedBox(height: spacing.xs),
+            Text(
+              'Ao criar a chave, os modelos ativos existentes do provedor são '
+              'liberados. Recursos globais são somente para consulta; os '
+              'pessoais podem ser editados.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onConfigureKeys,
+                icon: const Icon(Icons.key_outlined, size: 18),
+                label: const Text('Configurar chave de API'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CollapsibleAiGroup extends StatelessWidget {
+  const _CollapsibleAiGroup({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.initiallyExpanded = false,
+    this.actionLabel,
+    this.onAdd,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
+  final bool initiallyExpanded;
+  final String? actionLabel;
+  final VoidCallback? onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = context.spacing;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        leading: Icon(icon, color: theme.colorScheme.primary),
+        title: Text(title, style: theme.textTheme.titleMedium),
+        subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+        initiallyExpanded: initiallyExpanded,
+        tilePadding: EdgeInsets.symmetric(horizontal: spacing.md),
+        childrenPadding: EdgeInsets.fromLTRB(
+          spacing.md,
+          0,
+          spacing.md,
+          spacing.md,
+        ),
+        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: ListView(
+              shrinkWrap: true,
+              primary: false,
+              physics: const ClampingScrollPhysics(),
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (actionLabel != null) ...[
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FilledButton.tonalIcon(
+                          onPressed: onAdd,
+                          icon: const Icon(Icons.add, size: 18),
+                          label: Text(actionLabel!),
+                        ),
+                      ),
+                      SizedBox(height: spacing.sm),
+                    ],
+                    child,
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EntityCard extends StatelessWidget {
   const _EntityCard({
     required this.title,
@@ -1101,16 +1282,20 @@ class _EntityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 8),
     child: ListTile(
+      dense: true,
+      minVerticalPadding: 8,
+      visualDensity: VisualDensity.compact,
       leading: Icon(
         active ? Icons.hub_outlined : Icons.pause_circle_outline,
         color: active ? null : Theme.of(context).colorScheme.outline,
       ),
-      title: Text(title),
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(subtitle),
+          Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
           if (details != null) ...[
             const SizedBox(height: 6),
             Text(details!, maxLines: 3, overflow: TextOverflow.ellipsis),
@@ -1153,39 +1338,6 @@ class _MenuAction {
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
-}
-
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({
-    required this.title,
-    required this.subtitle,
-    this.action,
-  });
-
-  final String title;
-  final String subtitle;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      runSpacing: 8,
-      spacing: 12,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-        ?action,
-      ],
-    ),
-  );
 }
 
 class _EmptyHint extends StatelessWidget {

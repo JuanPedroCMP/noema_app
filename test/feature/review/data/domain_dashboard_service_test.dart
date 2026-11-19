@@ -89,6 +89,33 @@ void main() {
           ),
         );
     await database
+        .into(database.reviewItemState)
+        .insert(
+          ReviewItemStateCompanion.insert(
+            id: 'review-state',
+            nodeId: 'strong',
+            itemType: 'FLASHCARD',
+            itemId: 'flashcard',
+            cardStateJson: '{}',
+            nextReviewAt: day + Duration.secondsPerDay,
+          ),
+        );
+    await database
+        .into(database.reviewItemLog)
+        .insert(
+          ReviewItemLogCompanion.insert(
+            id: 'review-log',
+            reviewItemStateId: 'review-state',
+            rating: 3,
+            durationSeconds: const Value(120),
+            score: const Value(0.75),
+            reviewMethod: 'AUTO_SCORE',
+            retrievability: const Value(0.8),
+            scheduledDays: const Value(4),
+            reviewedAt: Value(day),
+          ),
+        );
+    await database
         .into(database.domainLog)
         .insert(
           DomainLogCompanion.insert(
@@ -139,5 +166,29 @@ void main() {
       summary.recentProgress.every((point) => point.averageScore == null),
       isTrue,
     );
+  });
+
+  test('filters dashboard metrics by node and selected period', () async {
+    final summary = await service.load(
+      userId: 'user-id',
+      now: DateTime.utc(2025, 1, 11),
+      query: DomainDashboardQuery(
+        graphId: 'graph-id',
+        nodeId: 'strong',
+        startAt: DateTime.utc(2025, 1, 10),
+        endBefore: DateTime.utc(2025, 1, 11),
+      ),
+    );
+
+    expect(summary.nodePerformance, hasLength(1));
+    expect(summary.nodePerformance.single.nodeId, 'strong');
+    expect(summary.reviewCount, 1);
+    expect(summary.averageAccuracy, 0.75);
+    expect(summary.averageRetrievability, 0.8);
+    expect(summary.averageScheduledDays, 4);
+    expect(summary.ratingCounts[3], 1);
+    expect(summary.activeReviewDays, 1);
+    expect(summary.recentProgress, hasLength(1));
+    expect(summary.recentProgress.single.averageScore, 0.8);
   });
 }

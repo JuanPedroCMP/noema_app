@@ -3,11 +3,13 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/app_theme.dart' show AppTheme;
+import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/core/design/theme/color_theme_provider.dart'
     show activeColorThemeProvider, brightnessProvider, colorProvider;
 import 'package:noema/core/design/theme/typography_theme_provider.dart';
 import 'package:noema/core/router/router.dart';
 import 'package:noema/feature/config/providers/app_locale_provider.dart';
+import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
 
 class App extends ConsumerWidget {
@@ -15,6 +17,7 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(configPreferenceSyncLifecycleProvider);
     final colorAsync = ref.watch(colorProvider);
     final activeTheme = ref.watch(activeColorThemeProvider);
     final activeTypography = ref.watch(activeTypographyThemeProvider);
@@ -27,7 +30,7 @@ class App extends ConsumerWidget {
           orElse: () => null,
         ) ??
         colorAsync.maybeWhen(data: (color) => color, orElse: () => null) ??
-        0x22FF;
+        AppThemeDefaults.seedColor;
     final width = MediaQuery.sizeOf(context).width;
 
     return MaterialApp.router(

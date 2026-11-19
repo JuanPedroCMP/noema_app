@@ -34,7 +34,7 @@ class AppCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title!,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 ?trailing,
@@ -42,7 +42,12 @@ class AppCard extends StatelessWidget {
             ),
             if (subtitle != null) ...[
               SizedBox(height: context.spacing.xs),
-              Text(subtitle!),
+              Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
               SizedBox(height: context.spacing.md),
             ],
           ],

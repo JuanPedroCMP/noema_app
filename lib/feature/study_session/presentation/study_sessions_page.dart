@@ -135,47 +135,50 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
                 )
               else
                 for (final session in _sessions)
-                  Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppLayoutTokens.listItemHorizontalPadding,
-                        vertical: AppLayoutTokens.listItemVerticalPadding,
-                      ),
-                      leading: const CircleAvatar(
-                        child: Icon(Icons.playlist_add_check_rounded),
-                      ),
-                      title: Text(
-                        session.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Padding(
-                        padding: EdgeInsets.only(top: context.spacing.xs + 2),
-                        child: Text(
-                          [
-                            _sessionStatus(session.status),
-                            '${session.targetDurationMin} min planejados',
-                            if ((session.description ?? '').trim().isNotEmpty)
-                              session.description!.trim(),
-                          ].join(' · '),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: context.spacing.sm),
+                    child: Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppLayoutTokens.listItemHorizontalPadding,
+                          vertical: AppLayoutTokens.listItemVerticalPadding,
+                        ),
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.playlist_add_check_rounded),
+                        ),
+                        title: Text(
+                          session.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        tooltip: 'Ações da sessão',
-                        onSelected: (action) {
-                          if (action == 'archive') _deleteSession(session);
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: 'archive',
-                            child: Text('Arquivar'),
+                        subtitle: Padding(
+                          padding: EdgeInsets.only(top: context.spacing.xs),
+                          child: Text(
+                            [
+                              _sessionStatus(session.status),
+                              '${session.targetDurationMin} min planejados',
+                              if ((session.description ?? '').trim().isNotEmpty)
+                                session.description!.trim(),
+                            ].join(' · '),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          tooltip: 'Ações da sessão',
+                          onSelected: (action) {
+                            if (action == 'archive') _deleteSession(session);
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: 'archive',
+                              child: Text('Arquivar'),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _openSession(session),
                       ),
-                      onTap: () => _openSession(session),
                     ),
                   ),
             ],

@@ -8,6 +8,8 @@ import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
 import 'package:noema/core/design/theme/color_theme_provider.dart';
+import 'package:noema/core/design/theme/app_semantic_colors.dart';
+import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 
 const _colorKeys = <String>[
@@ -354,7 +356,7 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
     super.initState();
     final values = _decode(widget.theme?.overridesJson);
     _name = TextEditingController(text: widget.theme?.name ?? '');
-    _seedColor = widget.theme?.seedColor ?? 0xFF3F51B5;
+    _seedColor = widget.theme?.seedColor ?? AppThemeDefaults.seedColor;
     _brightness =
         widget.initialBrightness ??
         (values['__brightness'] == 'dark' ? Brightness.dark : Brightness.light);
@@ -460,7 +462,8 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
                     onRestore: _overrides.containsKey(key)
                         ? () => setState(() => _overrides.remove(key))
                         : null,
-                    onChanged: (color) => setState(() => _setOverride(key, color)),
+                    onChanged: (color) =>
+                        setState(() => _setOverride(key, color)),
                   ),
               ],
             ],
@@ -507,10 +510,11 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
       'scrim': scheme.scrim,
     };
     final fallback = switch (key) {
-      'customSuccess' => const Color(0xFF2E7D32),
-      'customWarning' => const Color(0xFFF9A825),
-      'customInfo' => const Color(0xFF0277BD),
-      'customHighlight' => const Color(0xFFFFC107),
+      'customAccent' => scheme.tertiary,
+      'customSuccess' => AppSemanticColors.successDefault,
+      'customWarning' => AppSemanticColors.warningDefault,
+      'customInfo' => AppSemanticColors.infoDefault,
+      'customHighlight' => AppSemanticColors.highlightDefault,
       _ => generated[key] ?? scheme.primary,
     };
     return Color(_overrides[key] ?? fallback.toARGB32());
@@ -692,8 +696,17 @@ class _ColorFieldState extends State<_ColorField> {
   }
 }
 
-String _label(String key) =>
-    key.replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}');
+String _label(String key) => switch (key) {
+  'customAccent' => 'Acento',
+  'customSuccess' => 'Sucesso',
+  'customWarning' => 'Atenção',
+  'customInfo' => 'Informação',
+  'customHighlight' => 'Destaque',
+  _ => key.replaceAllMapped(
+    RegExp(r'([A-Z])'),
+    (match) => ' ${match.group(1)}',
+  ),
+};
 
 String _hex(int color) => color.toRadixString(16).padLeft(8, '0').toUpperCase();
 

@@ -4,6 +4,7 @@ class AppLayoutTokens {
   static const compactBreakpoint = 600.0;
   static const desktopBreakpoint = 900.0;
   static const extendedNavigationRailBreakpoint = 1200.0;
+  static const extendedNavigationRailWidth = 224.0;
   static const pinnedAssistantBreakpoint = 1100.0;
   static const compactHeaderBreakpoint = 560.0;
   static const compactCardBreakpoint = 420.0;
@@ -23,16 +24,16 @@ class AppLayoutTokens {
 
   static const pageHorizontalPaddingCompact = 16.0;
   static const pageHorizontalPaddingRegular = 32.0;
-  static const pageVerticalPaddingCompact = 20.0;
+  static const pageVerticalPaddingCompact = 16.0;
   static const pageVerticalPaddingRegular = 32.0;
   static const floatingActionClearance = 96.0;
-  static const sectionPadding = 24.0;
+  static const sectionPadding = 20.0;
   static const cardPadding = 20.0;
-  static const listItemHorizontalPadding = 18.0;
-  static const listItemVerticalPadding = 10.0;
+  static const listItemHorizontalPadding = 16.0;
+  static const listItemVerticalPadding = 8.0;
   static const fieldHorizontalPadding = 16.0;
-  static const fieldVerticalPadding = 14.0;
-  static const buttonHorizontalPadding = 18.0;
+  static const fieldVerticalPadding = 12.0;
+  static const buttonHorizontalPadding = 16.0;
   static const buttonVerticalPadding = 12.0;
 
   static const appBarHeightCompact = 64.0;

@@ -1,5 +1,6 @@
 import "dart:convert";
 import "package:flutter/material.dart";
+import "package:noema/core/design/theme/app_semantic_colors.dart";
 import "package:noema/core/design/tokens/durations.dart";
 import "package:noema/core/design/tokens/elevation.dart";
 import "package:noema/core/design/tokens/icon_size.dart";
@@ -84,12 +85,16 @@ class AppTheme {
       scaffoldBackgroundColor: customizedScheme.surface,
       visualDensity: VisualDensity.standard,
       cardTheme: CardThemeData(
+        color: customizedScheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         elevation: 0,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius.card),
-          side: BorderSide(color: customizedScheme.outlineVariant),
+          side: BorderSide(
+            color: customizedScheme.outlineVariant.withValues(alpha: .55),
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -136,27 +141,153 @@ class AppTheme {
           ),
         ),
       ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(0, AppLayoutTokens.minimumControlHeight),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppLayoutTokens.buttonHorizontalPadding,
+            vertical: AppLayoutTokens.buttonVerticalPadding,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius.button),
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size.square(AppLayoutTokens.minimumControlHeight),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius.button),
+          ),
+        ),
+      ),
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 1,
         backgroundColor: customizedScheme.surface,
-        surfaceTintColor: customizedScheme.surfaceTint,
+        surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: customizedScheme.onSurfaceVariant),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: customizedScheme.surface,
+        minExtendedWidth: AppLayoutTokens.extendedNavigationRailWidth,
+        indicatorColor: customizedScheme.primaryContainer,
+        selectedIconTheme: IconThemeData(
+          color: customizedScheme.onPrimaryContainer,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: customizedScheme.onSurfaceVariant,
+        ),
+        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
+          color: customizedScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: textTheme.labelSmall?.copyWith(
+          color: customizedScheme.onSurfaceVariant,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: AppLayoutTokens.navigationBarHeight,
         elevation: 0,
-        backgroundColor: customizedScheme.surface,
+        backgroundColor: customizedScheme.surfaceContainerLow,
+        indicatorColor: customizedScheme.primaryContainer,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius.button),
         ),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600);
+          }
+          return textTheme.labelSmall;
+        }),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        horizontalTitleGap: 12,
+        minLeadingWidth: 40,
+        minVerticalPadding: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.md),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: customizedScheme.surfaceContainerHigh,
+        selectedColor: customizedScheme.primaryContainer,
+        checkmarkColor: customizedScheme.onPrimaryContainer,
+        labelStyle: textTheme.labelLarge,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        side: BorderSide(
+          color: customizedScheme.outlineVariant.withValues(alpha: .55),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.chip),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: customizedScheme.surfaceContainerHigh,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.dialog),
+        ),
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: customizedScheme.onSurface,
+        ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: customizedScheme.onSurfaceVariant,
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: customizedScheme.surfaceContainerLow,
+        modalBackgroundColor: customizedScheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(radius.sheet),
+          ),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: customizedScheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.md),
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: customizedScheme.inverseSurface,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: customizedScheme.onInverseSurface,
+        ),
+        actionTextColor: customizedScheme.inversePrimary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius.md),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: customizedScheme.outlineVariant.withValues(alpha: .55),
+        thickness: 1,
+        space: 1,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: customizedScheme.primary,
+        linearTrackColor: customizedScheme.surfaceContainerHighest,
+        circularTrackColor: customizedScheme.surfaceContainerHighest,
+        linearMinHeight: 4,
+        refreshBackgroundColor: customizedScheme.surfaceContainerLow,
+      ),
+      tooltipTheme: TooltipThemeData(
+        waitDuration: const Duration(milliseconds: 500),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: customizedScheme.inverseSurface,
+          borderRadius: BorderRadius.circular(radius.xs),
+        ),
+        textStyle: textTheme.bodySmall?.copyWith(
+          color: customizedScheme.onInverseSurface,
         ),
       ),
       dropdownMenuTheme: DropdownMenuThemeData(
@@ -195,6 +326,19 @@ class AppTheme {
         AppElevationTheme(elevation: AppElevation.material),
 
         AppIconSizeTheme(iconSize: AppIconSize.material),
+        AppSemanticColors(
+          accent: _color(overrides, 'customAccent') ?? customizedScheme.tertiary,
+          success:
+              _color(overrides, 'customSuccess') ??
+              AppSemanticColors.successDefault,
+          warning:
+              _color(overrides, 'customWarning') ??
+              AppSemanticColors.warningDefault,
+          info: _color(overrides, 'customInfo') ?? AppSemanticColors.infoDefault,
+          highlight:
+              _color(overrides, 'customHighlight') ??
+              AppSemanticColors.highlightDefault,
+        ),
       ],
     );
   }

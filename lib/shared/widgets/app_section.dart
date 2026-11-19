@@ -32,10 +32,17 @@ class AppSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       if (description != null) ...[
                         SizedBox(height: spacing.xs),
-                        Text(description!),
+                        Text(
+                          description!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: context.colors.onSurfaceVariant),
+                        ),
                       ],
                     ],
                   ),
@@ -43,7 +50,7 @@ class AppSection extends StatelessWidget {
                 ?trailing,
               ],
             ),
-            SizedBox(height: spacing.lg - spacing.xs),
+            SizedBox(height: spacing.md),
             child,
           ],
         ),

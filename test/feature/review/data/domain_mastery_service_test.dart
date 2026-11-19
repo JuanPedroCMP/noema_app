@@ -80,8 +80,60 @@ void main() {
       historicalAccuracy: 0.2,
     );
 
-    expect(withExposureHistory.scoreAfter, lessThan(withLimitedExposure.scoreAfter));
+    expect(
+      withExposureHistory.scoreAfter,
+      lessThan(withLimitedExposure.scoreAfter),
+    );
   });
+
+  test('pauses review-frequency weighting at full mastery', () {
+    final withFewReviews = DomainMasteryUpdate.calculate(
+      previousScore: 1,
+      previousReviewCount: 0,
+      exposureCount: 0,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.9,
+      retrievability: 0.9,
+      historicalAccuracy: 0.8,
+    );
+    final withManyReviews = DomainMasteryUpdate.calculate(
+      previousScore: 1,
+      previousReviewCount: 100,
+      exposureCount: 100,
+      rating: fsrs.Rating.good,
+      assessmentScore: 0.9,
+      retrievability: 0.9,
+      historicalAccuracy: 0.8,
+    );
+
+    expect(withManyReviews.scoreAfter, withFewReviews.scoreAfter);
+  });
+
+  test(
+    'keeps FSRS and current performance evidence active at full mastery',
+    () {
+      final successfulReview = DomainMasteryUpdate.calculate(
+        previousScore: 1,
+        previousReviewCount: 0,
+        exposureCount: 0,
+        rating: fsrs.Rating.easy,
+        assessmentScore: 1,
+        retrievability: 0.95,
+        historicalAccuracy: 1,
+      );
+      final failedReview = DomainMasteryUpdate.calculate(
+        previousScore: 1,
+        previousReviewCount: 0,
+        exposureCount: 0,
+        rating: fsrs.Rating.again,
+        assessmentScore: 0,
+        retrievability: 0.4,
+        historicalAccuracy: 1,
+      );
+
+      expect(successfulReview.scoreAfter, greaterThan(failedReview.scoreAfter));
+    },
+  );
 
   test('maps mastery levels at deterministic boundaries', () {
     expect(DomainMasteryUpdate.levelForScore(0.39), 'WEAK');

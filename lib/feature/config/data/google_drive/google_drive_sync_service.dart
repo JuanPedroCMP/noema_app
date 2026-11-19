@@ -11,14 +11,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/device_fingerprint.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_api.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_oauth.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_oauth_factory.dart';
 import 'package:noema/feature/config/data/google_drive/local_snapshot.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 const _backupLocalRef = 'primary-snapshot';
-const _driveSnapshotName = 'noema-local-snapshot.json';
 
 void _logGoogleDrive(String message, {StackTrace? stackTrace}) {
   developer.log(message, name: 'GoogleDriveSync', stackTrace: stackTrace);
@@ -44,6 +45,7 @@ class DriveSyncPreview {
     required this.driveFile,
     required this.backup,
     required this.diff,
+    this.automaticResolution,
   });
 
   final String accountId;
@@ -55,9 +57,13 @@ class DriveSyncPreview {
   final DriveFileInfo? driveFile;
   final BackupFileOut? backup;
   final SnapshotDiff? diff;
+  final DriveSyncResolution? automaticResolution;
 
   bool get requiresDecision =>
-      remoteSnapshot != null && diff != null && !diff!.isEmpty;
+      remoteSnapshot != null &&
+      diff != null &&
+      !diff!.isEmpty &&
+      automaticResolution == null;
 
   bool get metadataNeedsRepair {
     final file = driveFile;
@@ -68,6 +74,40 @@ class DriveSyncPreview {
         (metadata == null ||
             metadata.driveVersion != file.version ||
             metadata.contentHash != remote.contentHash);
+  }
+
+  @visibleForTesting
+  static DriveSyncResolution? inferAutomaticResolution({
+    required String? lastSyncedDataHash,
+    required DateTime? lastDeviceSyncAt,
+    required DateTime? remoteUpdatedAt,
+    required String localDataHash,
+    required String remoteDataHash,
+    required String? localInstallationId,
+    required String? remoteInstallationId,
+  }) {
+    if (lastSyncedDataHash == null || lastSyncedDataHash.isEmpty) {
+      // This install created the remote snapshot, so only its local state has
+      // diverged since that snapshot.
+      if (localInstallationId != null &&
+          localInstallationId.isNotEmpty &&
+          localInstallationId == remoteInstallationId) {
+        return DriveSyncResolution.keepLocal;
+      }
+      if (lastDeviceSyncAt != null &&
+          remoteUpdatedAt != null &&
+          remoteUpdatedAt.isBefore(lastDeviceSyncAt)) {
+        return DriveSyncResolution.keepLocal;
+      }
+      return null;
+    }
+
+    final localChanged = localDataHash != lastSyncedDataHash;
+    final remoteChanged = remoteDataHash != lastSyncedDataHash;
+    if (localChanged == remoteChanged) return null;
+    return localChanged
+        ? DriveSyncResolution.keepLocal
+        : DriveSyncResolution.keepRemote;
   }
 }
 
@@ -89,9 +129,16 @@ class DriveSyncException implements Exception {
 }
 
 class GoogleDriveSyncService {
-  GoogleDriveSyncService(this._ref);
+  GoogleDriveSyncService(
+    this._ref, {
+    GoogleDriveOAuthClient? oauthClient,
+    GoogleDriveApi? driveApi,
+  }) : _oauthClient = oauthClient ?? createGoogleDriveOAuthClient(),
+       _driveApi = driveApi ?? GoogleDriveApi();
 
   final Ref _ref;
+  final GoogleDriveOAuthClient _oauthClient;
+  final GoogleDriveApi _driveApi;
 
   Future<GoogleAccountStatusOut> getAccountStatus() async {
     final response = await _ref
@@ -115,102 +162,47 @@ class GoogleDriveSyncService {
     },
   );
 
-  Future<GoogleAccountStatusOut> _runServerOAuth() async {
+  Future<GoogleAccountStatusOut> _connectGoogleAccount({
+    required bool forceInteractive,
+  }) async {
+    final session = await _oauthClient.authorize(
+      interactive: true,
+      forceInteractive: forceInteractive,
+    );
+    final idToken = session.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      throw const DriveSyncException(
+        'O Google não confirmou a identidade da conta. Autorize novamente.',
+        code: 'google_identity_missing',
+      );
+    }
+
     final api = _ref.read(apiClientProvider);
-    final callbackUri = Uri.parse(
-      api.dio.options.baseUrl,
-    ).resolve('/api/v1/google_drive/oauth/callback');
-    final start = await api.dio.post<Object>(
-      '/api/v1/google_drive/oauth/start',
-      data: {'redirect_uri': callbackUri.toString()},
+    final response = await api.dio.post<Object>(
+      '/api/v1/google_drive/account/link',
+      data: {
+        'google_id_token': idToken,
+        'google_access_token': session.accessToken,
+      },
       options: _authenticatedApiOptions,
     );
-    final body = start.data;
-    if (body is! Map ||
-        body['authorization_url'] is! String ||
-        body['state'] is! String) {
+    final raw = response.data;
+    if (raw == null) {
       throw const DriveSyncException(
-        'O servidor não retornou os dados necessários para iniciar o OAuth.',
-        code: 'google_oauth_start_invalid',
+        'O servidor não confirmou a conta Google.',
+        code: 'google_account_link_unconfirmed',
       );
     }
-
-    final authorizationUri = Uri.tryParse(body['authorization_url'] as String);
-    if (authorizationUri == null ||
-        authorizationUri.scheme != 'https' ||
-        authorizationUri.host != 'accounts.google.com') {
-      throw const DriveSyncException(
-        'O servidor retornou uma URL OAuth inválida.',
-        code: 'google_oauth_url_invalid',
-      );
+    final status =
+        api.serializers.deserialize(
+              raw,
+              specifiedType: const FullType(GoogleAccountStatusOut),
+            )
+            as GoogleAccountStatusOut;
+    if (!status.syncAvailable || status.accountId == null) {
+      throw _statusException(status);
     }
-    if (!await launchUrl(
-      authorizationUri,
-      mode: LaunchMode.externalApplication,
-    )) {
-      throw const DriveSyncException(
-        'Não foi possível abrir a página de autorização do Google.',
-        code: 'google_oauth_browser_unavailable',
-      );
-    }
-
-    final state = body['state'] as String;
-    final stopwatch = Stopwatch()..start();
-    while (stopwatch.elapsed < const Duration(minutes: 4)) {
-      await Future<void>.delayed(const Duration(seconds: 2));
-      try {
-        final response = await api.dio.post<Object>(
-          '/api/v1/google_drive/account/complete',
-          data: {'state': state},
-          options: _authenticatedApiOptions,
-        );
-        final raw = response.data;
-        if (raw == null) {
-          throw const DriveSyncException(
-            'O servidor não retornou o resultado da autorização Google.',
-            code: 'google_oauth_completion_empty',
-          );
-        }
-        final status =
-            api.serializers.deserialize(
-                  raw,
-                  specifiedType: const FullType(GoogleAccountStatusOut),
-                )
-                as GoogleAccountStatusOut;
-        if (!status.syncAvailable || status.accountId == null) {
-          throw _statusException(status);
-        }
-        return status;
-      } on DioException catch (error) {
-        final code = _apiErrorCode(error.response?.data);
-        if (code == 'oauth_completion_pending') continue;
-        if (code == 'oauth_authorization_cancelled') {
-          throw const DriveSyncException(
-            'A autorização Google foi cancelada. Nenhuma alteração foi feita.',
-            code: 'google_sign_in_canceled',
-          );
-        }
-        if (code != null) {
-          throw DriveSyncException(
-            'O Google não concluiu a autorização ($code).',
-            code: code,
-          );
-        }
-        rethrow;
-      }
-    }
-    throw const DriveSyncException(
-      'A autorização ainda não foi concluída. Volte à janela do Google e tente novamente.',
-      code: 'google_oauth_timeout',
-    );
-  }
-
-  String? _apiErrorCode(Object? data) {
-    if (data is Map && data['detail'] is Map) {
-      final code = (data['detail'] as Map)['code'];
-      return code is String ? code : null;
-    }
-    return null;
+    return status;
   }
 
   Future<List<BackupFileOut>> listBackups(String accountId) async {
@@ -230,17 +222,34 @@ class GoogleDriveSyncService {
         'O servidor não retornou a lista de arquivos de backup.',
       );
     }
+    return sortedBackups(backups);
+  }
+
+  @visibleForTesting
+  static List<BackupFileOut> sortedBackups(Iterable<BackupFileOut>? backups) {
+    if (backups == null) {
+      throw const DriveSyncException(
+        'O servidor não confirmou a lista de backups. Nenhum backup novo foi criado.',
+        code: 'backup_list_unconfirmed',
+      );
+    }
     return backups.toList()
       ..sort((a, b) => _backupDate(b).compareTo(_backupDate(a)));
   }
 
-  Future<List<SyncLogOut>> listSyncHistory(String accountId) async {
+  Future<List<SyncLogOut>> listSyncHistory(
+    String accountId, {
+    String? deviceId,
+  }) async {
     final response = await _ref
         .read(apiClientProvider)
         .getGoogleDriveSyncApi()
         .listSyncLogApiV1GoogleDriveSyncLogListGet(
           filters: SyncLogFilters(
-            (builder) => builder..idGoogleAccount = accountId,
+            (builder) {
+              builder.idGoogleAccount = accountId;
+              if (deviceId != null) builder.idDevice = deviceId;
+            },
           ),
           limit: 100,
           offset: 0,
@@ -257,14 +266,29 @@ class GoogleDriveSyncService {
     );
   }
 
+  Future<SyncLogOut?> _lastSuccessfulDeviceSync({
+    required String accountId,
+    required String deviceId,
+  }) async {
+    final history = await listSyncHistory(accountId, deviceId: deviceId);
+    final latestSync = history.where(
+      (entry) =>
+          entry.idDevice == deviceId &&
+          entry.result == SyncResult.success &&
+          const {'backup_created', 'backup_updated', 'sync_completed'}
+              .contains(entry.event),
+    );
+    return latestSync.firstOrNull;
+  }
+
   Future<GoogleAccountStatusOut> connectGoogleAccount() async {
-    _logGoogleDrive('Starting backend-owned Google OAuth.');
-    return _runServerOAuth();
+    _logGoogleDrive('Starting Google desktop authorization.');
+    return _connectGoogleAccount(forceInteractive: true);
   }
 
   Future<GoogleAccountStatusOut> repairGoogleAuthorization() async {
-    _logGoogleDrive('Starting backend-owned Google OAuth reauthorization.');
-    return _runServerOAuth();
+    _logGoogleDrive('Reauthorizing the Google desktop account.');
+    return _connectGoogleAccount(forceInteractive: true);
   }
 
   Future<bool> unlinkGoogleAccount(String accountId) async {
@@ -287,7 +311,13 @@ class GoogleDriveSyncService {
         code: 'google_unlink_unconfirmed',
       );
     }
-    return body['google_grant_revoked'] == true;
+    final serverGrantRevoked = body['google_grant_revoked'] == true;
+    try {
+      final desktopGrantRevoked = await _oauthClient.revokeAndClear();
+      return desktopGrantRevoked || serverGrantRevoked;
+    } on GoogleDriveOAuthException {
+      return serverGrantRevoked;
+    }
   }
 
   Future<DriveSyncPreview> prepareSync({
@@ -298,6 +328,9 @@ class GoogleDriveSyncService {
     if (!status.syncAvailable || status.accountId == null) {
       throw _statusException(status);
     }
+    final accessToken = await _driveAccessToken(
+      expectedGoogleEmail: status.googleEmail,
+    );
 
     final user = await _ref.read(userProvider.future);
     final database = _ref.read(appDatabaseProvider);
@@ -323,48 +356,113 @@ class GoogleDriveSyncService {
         limit: 100,
         offset: 0,
       );
-      final backups = listed.data?.toList() ?? const <BackupFileOut>[];
-      backups.sort((a, b) => _backupDate(b).compareTo(_backupDate(a)));
+      final backups = sortedBackups(listed.data);
+      if (backups.length > 1) {
+        throw const DriveSyncException(
+          'Há mais de um registro de backup principal no servidor. '
+          'Nenhum foi escolhido automaticamente.',
+          code: 'drive_duplicate_snapshots',
+        );
+      }
       final backup = backups.firstOrNull;
-
-      DriveFileInfo? driveFile;
-      if (backup != null) {
-        final version = backup.driveVersion;
-        if (version == null || version.isEmpty) {
-          throw const DriveSyncException(
-            'O servidor não tem uma versão segura para este backup.',
-            code: 'drive_revision_conflict',
-          );
-        }
-        driveFile = DriveFileInfo(
-          id: backup.driveFileId,
-          version: version,
-          etag: null,
-          sizeBytes: backup.sizeBytes,
-          modifiedAt: _backupDate(backup),
+      final remoteCandidates = await _driveApi.listFiles(
+        accessToken: accessToken,
+        localRef: _backupLocalRef,
+      );
+      if (remoteCandidates.length > 1) {
+        throw const DriveSyncException(
+          'Há mais de um backup Noema no Google Drive. '
+          'Nenhum arquivo foi escolhido automaticamente.',
+          code: 'drive_duplicate_snapshots',
         );
       }
 
+      GoogleDriveFile? remoteFile;
+      if (backup != null) {
+        final matchingFiles = remoteCandidates
+            .where((file) => file.id == backup.driveFileId)
+            .toList();
+        if (matchingFiles.length != 1) {
+          throw const DriveSyncException(
+            'O backup registrado não foi encontrado no espaço privado do Google Drive.',
+            code: 'drive_file_missing',
+          );
+        }
+        remoteFile = matchingFiles.single;
+      } else {
+        remoteFile = remoteCandidates.firstOrNull;
+      }
+
+      DriveFileInfo? driveFile;
       LocalSnapshot? remote;
-      if (backup != null && driveFile != null) {
+      if (remoteFile != null) {
+        final metadata = await _driveApi.getFile(
+          accessToken: accessToken,
+          fileId: remoteFile.id,
+        );
+        _validateRemoteFile(metadata);
+        driveFile = _toDriveFileInfo(metadata);
         onProgress?.call(
           const DriveSyncProgress('Baixando e verificando o backup…', null),
         );
-        final remoteFile = await _downloadServerBackup(
-          accountId: status.accountId!,
-          backup: backup,
+        final remoteSnapshotFile = await _downloadDriveBackup(
+          accessToken: accessToken,
+          driveFile: driveFile,
           onProgress: onProgress,
         );
         try {
+          final expectedHash = driveFile.contentHash ?? backup?.contentHash;
+          if (expectedHash == null || expectedHash.isEmpty) {
+            throw const DriveSyncException(
+              'O backup remoto não tem um hash verificável. Nenhum dado foi restaurado.',
+              code: 'snapshot_hash_missing',
+            );
+          }
           remote = await LocalSnapshot.fromFile(
-            file: remoteFile,
+            file: remoteSnapshotFile,
             expectedRemoteUserId: user.remoteId,
-            expectedContentHash: backup.contentHash,
+            expectedContentHash: expectedHash,
           );
         } finally {
-          await _deleteTemporaryFile(remoteFile);
+          await _deleteTemporaryFile(remoteSnapshotFile);
         }
+      } else if (backup != null) {
+        throw const DriveSyncException(
+          'O backup registrado não foi encontrado no espaço privado do Google Drive.',
+          code: 'drive_file_missing',
+        );
       }
+
+      final diff = remote == null
+          ? null
+          : compareSnapshots(
+              local.document['data'] as Map<String, dynamic>,
+              remote.document['data'] as Map<String, dynamic>,
+            );
+      final lastDeviceSync = diff != null && !diff.isEmpty
+          ? await _lastSuccessfulDeviceSync(
+              accountId: status.accountId!,
+              deviceId: deviceId,
+            )
+          : null;
+      final rawDataHash = lastDeviceSync?.metadata['data_hash']?.value;
+      final lastSyncedDataHash = rawDataHash is String ? rawDataHash : null;
+      final automaticResolution = remote == null || diff == null || diff.isEmpty
+          ? null
+          : DriveSyncPreview.inferAutomaticResolution(
+              lastSyncedDataHash: lastSyncedDataHash,
+              lastDeviceSyncAt: lastDeviceSync?.createdAt,
+              remoteUpdatedAt: _latestDate([
+                driveFile?.modifiedAt,
+                backup?.updatedAt,
+              ]),
+              localDataHash: local.dataHash,
+              remoteDataHash: remote.dataHash,
+              localInstallationId:
+                  local.manifest['installation_id'] as String?,
+              remoteInstallationId:
+                  remote.manifest['installation_id'] as String?,
+            );
 
       final preview = DriveSyncPreview(
         accountId: status.accountId!,
@@ -375,15 +473,17 @@ class GoogleDriveSyncService {
         remoteSnapshot: remote,
         driveFile: driveFile,
         backup: backup,
-        diff: remote == null
-            ? null
-            : compareSnapshots(
-                local.document['data'] as Map<String, dynamic>,
-                remote.document['data'] as Map<String, dynamic>,
-              ),
+        diff: diff,
+        automaticResolution: automaticResolution,
       );
       previewReady = true;
       return preview;
+    } on GoogleDriveApiException catch (error, stackTrace) {
+      _logGoogleDrive(
+        'Google Drive sync preview failed (code=${error.code}).',
+        stackTrace: stackTrace,
+      );
+      throw DriveSyncException(error.message, code: error.code);
     } on DioException catch (error) {
       _logGoogleDrive(
         'Google Drive sync preview failed '
@@ -415,6 +515,9 @@ class GoogleDriveSyncService {
     if (status.accountId != preview.accountId || !status.syncAvailable) {
       throw _statusException(status);
     }
+    final accessToken = await _driveAccessToken(
+      expectedGoogleEmail: status.googleEmail,
+    );
 
     final currentLocal = await LocalSnapshot.create(
       database: _ref.read(appDatabaseProvider),
@@ -543,11 +646,17 @@ class GoogleDriveSyncService {
       }
 
       onProgress?.call(
-        const DriveSyncProgress('Enviando backup pelo servidor seguro…', null),
+        const DriveSyncProgress(
+          'Enviando backup diretamente ao Google Drive…',
+          null,
+        ),
       );
-      final backup = await _uploadServerSnapshot(
+      final backup = await _uploadDriveSnapshot(
+        accessToken: accessToken,
         accountId: preview.accountId,
+        deviceId: preview.deviceId,
         backup: preview.backup,
+        expectedDriveFile: preview.driveFile,
         snapshot: uploadSnapshot,
         onProgress: onProgress,
       );
@@ -564,7 +673,7 @@ class GoogleDriveSyncService {
       return DriveSyncResult(
         message: resolution == DriveSyncResolution.merge
             ? 'Os dados foram mesclados e o backup atualizado.'
-            : 'Backup local enviado e confirmado pelo servidor.',
+            : 'Backup local enviado diretamente ao Google Drive e confirmado.',
         warning: warning,
       );
     } catch (error, stackTrace) {
@@ -587,6 +696,9 @@ class GoogleDriveSyncService {
           await uploadSnapshot.file.exists()) {
         await uploadSnapshot.file.delete();
       }
+      if (error is GoogleDriveApiException) {
+        throw DriveSyncException(error.message, code: error.code);
+      }
       rethrow;
     } finally {
       if (uploadSnapshot != null &&
@@ -607,73 +719,67 @@ class GoogleDriveSyncService {
     }
   }
 
-  Future<File> _downloadServerBackup({
-    required String accountId,
-    required BackupFileOut backup,
-    void Function(DriveSyncProgress progress)? onProgress,
+  Future<String> _driveAccessToken({
+    required String? expectedGoogleEmail,
   }) async {
-    final api = _ref.read(apiClientProvider);
-    final directory = await Directory.systemTemp.createTemp('noema-backup-');
-    final file = File(
-      '${directory.path}${Platform.pathSeparator}$_driveSnapshotName',
-    );
     try {
-      final response = await api.dio.get<ResponseBody>(
-        '/api/v1/google_drive/sync/download/${Uri.encodeComponent(backup.id)}',
-        queryParameters: {'id_google_account': accountId},
-        options: Options(
-          responseType: ResponseType.stream,
-          extra: _authenticatedApiOptions.extra,
-        ),
-        onReceiveProgress: (received, total) {
-          onProgress?.call(
-            DriveSyncProgress(
-              'Baixando backup do servidor…',
-              total > 0 ? received / total : null,
-            ),
-          );
-        },
-      );
-      final body = response.data;
-      if (body == null) {
+      final session = await _oauthClient.authorize(interactive: false);
+      if (session.email == null ||
+          (expectedGoogleEmail != null &&
+              session.email!.toLowerCase() !=
+                  expectedGoogleEmail.toLowerCase())) {
         throw const DriveSyncException(
-          'O servidor retornou um backup vazio.',
-          code: 'drive_download_failed',
+          'A conta Google autorizada neste dispositivo não corresponde à conta vinculada ao Noema. Conecte a conta novamente.',
+          code: 'google_identity_mismatch',
         );
       }
-      final sink = file.openWrite();
-      var downloadedBytes = 0;
-      try {
-        await for (final chunk in body.stream) {
-          downloadedBytes += chunk.length;
-          if (downloadedBytes > maxLocalSnapshotBytes) {
-            throw const DriveSyncException(
-              'O backup excede o limite seguro de 256 MiB do app.',
-              code: 'drive_snapshot_too_large',
-            );
-          }
-          sink.add(chunk);
-        }
-        await sink.flush();
-      } finally {
-        await sink.close();
-      }
-      if (downloadedBytes == 0) {
-        throw const DriveSyncException(
-          'O servidor retornou um backup vazio.',
-          code: 'drive_download_failed',
-        );
-      }
-      return file;
-    } catch (_) {
-      await _deleteTemporaryFile(file);
-      rethrow;
+      return session.accessToken;
+    } on GoogleDriveOAuthException catch (error) {
+      throw DriveSyncException(error.message, code: error.code);
     }
   }
 
-  Future<BackupFileOut> _uploadServerSnapshot({
+  void _validateRemoteFile(GoogleDriveFile file) {
+    if (file.appProperties['noema_local_ref'] != _backupLocalRef) {
+      throw const DriveSyncException(
+        'O arquivo remoto não tem a identificação esperada para o backup do Noema.',
+        code: 'drive_revision_conflict',
+      );
+    }
+  }
+
+  DriveFileInfo _toDriveFileInfo(GoogleDriveFile file) => DriveFileInfo(
+    id: file.id,
+    version: file.version,
+    etag: file.etag,
+    sizeBytes: file.sizeBytes,
+    modifiedAt: file.modifiedAt,
+    contentHash: file.appProperties['noema_content_hash'],
+  );
+
+  Future<File> _downloadDriveBackup({
+    required String accessToken,
+    required DriveFileInfo driveFile,
+    void Function(DriveSyncProgress progress)? onProgress,
+  }) async {
+    onProgress?.call(
+      const DriveSyncProgress(
+        'Baixando backup diretamente do Google Drive…',
+        null,
+      ),
+    );
+    return _driveApi.downloadSnapshot(
+      accessToken: accessToken,
+      fileId: driveFile.id,
+    );
+  }
+
+  Future<BackupFileOut> _uploadDriveSnapshot({
+    required String accessToken,
     required String accountId,
+    required String deviceId,
     required BackupFileOut? backup,
+    required DriveFileInfo? expectedDriveFile,
     required LocalSnapshot snapshot,
     void Function(DriveSyncProgress progress)? onProgress,
   }) async {
@@ -681,81 +787,87 @@ class GoogleDriveSyncService {
         (backup.driveVersion == null ||
             backup.driveVersion!.isEmpty ||
             backup.contentHash == null ||
-            backup.contentHash!.isEmpty)) {
+            backup.contentHash!.isEmpty ||
+            expectedDriveFile == null)) {
       throw const DriveSyncException(
         'O backup remoto não tem uma revisão segura para atualização. Gere uma nova prévia.',
         code: 'drive_revision_conflict',
       );
     }
-    final api = _ref.read(apiClientProvider);
-    final form = FormData.fromMap({
-      'id_google_account': accountId,
-      'local_ref': _backupLocalRef,
-      'snapshot_version': snapshot.snapshotVersion,
-      'content_hash': snapshot.contentHash,
-      'manifest': jsonEncode(snapshot.manifest),
-      'idempotency_key': _idempotencyKey(
-        '$accountId:$_backupLocalRef:${backup?.id ?? "new"}:'
-        '${backup?.driveVersion ?? "new"}:${backup?.contentHash ?? "new"}:'
-        '${snapshot.snapshotVersion}:${snapshot.contentHash}',
-      ),
-      if (backup != null) 'backup_id': backup.id,
-      if (backup?.driveVersion != null)
-        'expected_drive_version': backup!.driveVersion,
-      if (backup?.contentHash != null)
-        'expected_content_hash': backup!.contentHash,
-      'upload': await MultipartFile.fromFile(
-        snapshot.file.path,
-        filename: _driveSnapshotName,
-      ),
-    });
-    try {
-      final response = await api.dio.post<Object>(
-        '/api/v1/google_drive/sync/upload',
-        data: form,
-        options: Options(extra: _authenticatedApiOptions.extra),
-        onSendProgress: (sent, total) {
-          onProgress?.call(
-            DriveSyncProgress(
-              'Enviando backup ao servidor…',
-              total > 0 ? sent / total : null,
-            ),
-          );
-        },
+    GoogleDriveFile? currentFile;
+    if (expectedDriveFile != null) {
+      currentFile = await _driveApi.getFile(
+        accessToken: accessToken,
+        fileId: expectedDriveFile.id,
       );
-      final raw = response.data;
-      if (raw == null) {
-        throw const DriveSyncException(
-          'O servidor não confirmou o backup enviado.',
-          code: 'drive_upload_unconfirmed',
-        );
-      }
-      return api.serializers.deserialize(
-            raw,
-            specifiedType: const FullType(BackupFileOut),
-          )
-          as BackupFileOut;
-    } on DioException catch (error) {
-      final code = _apiErrorCode(error.response?.data);
-      if (code == 'drive_revision_conflict' ||
-          code == 'drive_revision_unavailable' ||
-          code == 'drive_file_missing' ||
-          code == 'backup_revision_required' ||
-          code == 'backup_revision_fields_required') {
+      _validateRemoteFile(currentFile);
+      if (currentFile.version != expectedDriveFile.version ||
+          (expectedDriveFile.etag != null &&
+              currentFile.etag != expectedDriveFile.etag)) {
         throw const DriveSyncException(
           'O backup remoto mudou desde a prévia. Gere uma nova prévia antes de sincronizar.',
           code: 'drive_revision_conflict',
         );
       }
-      if (code == 'snapshot_hash_mismatch' ||
-          code == 'snapshot_validation_failed') {
+    } else {
+      final remoteCandidates = await _driveApi.listFiles(
+        accessToken: accessToken,
+        localRef: _backupLocalRef,
+      );
+      if (remoteCandidates.isNotEmpty) {
         throw const DriveSyncException(
-          'A validação do snapshot falhou no servidor; nenhum backup foi confirmado.',
-          code: 'snapshot_validation_failed',
+          'Um backup foi criado no Google Drive depois da prévia. '
+          'Atualize a comparação antes de sincronizar.',
+          code: 'drive_revision_conflict',
         );
       }
-      rethrow;
     }
+
+    final operationId = _idempotencyKey(
+      '$accountId:$_backupLocalRef:${expectedDriveFile?.id ?? "new"}:'
+      '${snapshot.snapshotVersion}:${snapshot.contentHash}',
+    );
+    final uploadedFile = await _driveApi.uploadSnapshot(
+      accessToken: accessToken,
+      snapshot: snapshot.file,
+      localRef: _backupLocalRef,
+      snapshotVersion: snapshot.snapshotVersion,
+      contentHash: snapshot.contentHash,
+      operationId: operationId,
+      existingFile: currentFile,
+      onProgress: (sent, total) {
+        onProgress?.call(
+          DriveSyncProgress(
+            'Enviando backup diretamente ao Google Drive…',
+            total > 0 ? sent / total : null,
+          ),
+        );
+      },
+    );
+    _validateRemoteFile(uploadedFile);
+    if (uploadedFile.appProperties['noema_content_hash'] !=
+            snapshot.contentHash ||
+        uploadedFile.appProperties['noema_snapshot_version'] !=
+            snapshot.snapshotVersion) {
+      throw const DriveSyncException(
+        'O Google Drive não confirmou o conteúdo enviado.',
+        code: 'drive_upload_unconfirmed',
+      );
+    }
+    final driveFile = _toDriveFileInfo(uploadedFile);
+    if (backup == null) {
+      return _createBackupMetadata(
+        snapshot: snapshot,
+        accountId: accountId,
+        deviceId: deviceId,
+        driveFile: driveFile,
+      );
+    }
+    return _updateBackupMetadata(
+      snapshot: snapshot,
+      backup: backup,
+      driveFile: driveFile,
+    );
   }
 
   DriveSyncException _statusException(GoogleAccountStatusOut status) {
@@ -826,6 +938,23 @@ class GoogleDriveSyncService {
     required String deviceId,
     required DriveFileInfo driveFile,
   }) async {
+    final idempotencyKey = metadataIdempotencyKey(
+      operation: 'backup.create',
+      backupId: null,
+      request: {
+        'id_google_account': accountId,
+        'id_device': deviceId,
+        'drive_file_id': driveFile.id,
+        'local_ref': _backupLocalRef,
+        'drive_version': driveFile.version,
+        'drive_etag': null,
+        'snapshot_version': snapshot.snapshotVersion,
+        'content_hash': snapshot.contentHash,
+        'size_bytes': snapshot.sizeBytes,
+        'operation_state': 'completed',
+        'manifest': snapshot.manifest,
+      },
+    );
     final response = await _ref
         .read(apiClientProvider)
         .getGoogleDriveSyncApi()
@@ -841,9 +970,7 @@ class GoogleDriveSyncService {
               ..contentHash = snapshot.contentHash
               ..sizeBytes = snapshot.sizeBytes
               ..operationState = BackupOperationState.completed
-              ..idempotencyKey = _idempotencyKey(
-                '$accountId:${driveFile.id}:${snapshot.contentHash}',
-              );
+              ..idempotencyKey = idempotencyKey;
             builder.manifest.replace(_toApiManifest(snapshot.manifest));
           }),
         );
@@ -869,6 +996,21 @@ class GoogleDriveSyncService {
         code: 'drive_revision_conflict',
       );
     }
+    final idempotencyKey = metadataIdempotencyKey(
+      operation: 'backup.update',
+      backupId: backup.id,
+      request: {
+        'expected_drive_version': expectedDriveVersion,
+        'expected_content_hash': expectedContentHash,
+        'drive_version': driveFile.version,
+        'drive_etag': null,
+        'snapshot_version': snapshot.snapshotVersion,
+        'content_hash': snapshot.contentHash,
+        'size_bytes': snapshot.sizeBytes,
+        'operation_state': 'completed',
+        'manifest': snapshot.manifest,
+      },
+    );
     final response = await _ref
         .read(apiClientProvider)
         .getGoogleDriveSyncApi()
@@ -878,9 +1020,7 @@ class GoogleDriveSyncService {
             builder
               ..expectedDriveVersion = expectedDriveVersion
               ..expectedContentHash = expectedContentHash
-              ..idempotencyKey = _idempotencyKey(
-                '${backup.id}:${snapshot.contentHash}',
-              )
+              ..idempotencyKey = idempotencyKey
               ..driveVersion = driveFile.version
               ..snapshotVersion = snapshot.snapshotVersion
               ..contentHash = snapshot.contentHash
@@ -949,6 +1089,7 @@ class GoogleDriveSyncService {
               builder.metadata.replace({
                 'snapshot_version': JsonObject(snapshot.snapshotVersion),
                 'content_hash': JsonObject(snapshot.contentHash),
+                'data_hash': JsonObject(snapshot.dataHash),
                 'file_size_bytes': JsonObject(snapshot.sizeBytes),
                 'installation_id': JsonObject(
                   snapshot.manifest['installation_id'] as String,
@@ -974,13 +1115,52 @@ class GoogleDriveSyncService {
         backup.contentHash != remote.contentHash;
   }
 
-  DateTime _backupDate(BackupFileOut backup) =>
+  static DateTime _backupDate(BackupFileOut backup) =>
       backup.updatedAt ??
       backup.createdAt ??
       DateTime.fromMillisecondsSinceEpoch(0);
 
+  static DateTime? _latestDate(Iterable<DateTime?> dates) {
+    DateTime? latest;
+    for (final date in dates) {
+      if (date != null && (latest == null || date.isAfter(latest))) {
+        latest = date;
+      }
+    }
+    return latest;
+  }
+
+  @visibleForTesting
+  static String metadataIdempotencyKey({
+    required String operation,
+    required String? backupId,
+    required Map<String, Object?> request,
+  }) {
+    final identity = _canonicalizeMetadataValue({
+      'operation': operation,
+      'backup_id': backupId,
+      'request': request,
+    });
+    return const Uuid().v5(Namespace.url.value, jsonEncode(identity));
+  }
+
   String _idempotencyKey(String value) =>
       const Uuid().v5(Namespace.url.value, value);
+}
+
+Object? _canonicalizeMetadataValue(Object? value) {
+  if (value is Map) {
+    final entries = value.entries.toList()
+      ..sort((a, b) => '${a.key}'.compareTo('${b.key}'));
+    return <String, Object?>{
+      for (final entry in entries)
+        '${entry.key}': _canonicalizeMetadataValue(entry.value),
+    };
+  }
+  if (value is Iterable) {
+    return value.map(_canonicalizeMetadataValue).toList();
+  }
+  return value;
 }
 
 class DriveFileInfo {
@@ -990,6 +1170,7 @@ class DriveFileInfo {
     required this.etag,
     required this.sizeBytes,
     required this.modifiedAt,
+    this.contentHash,
   });
 
   final String id;
@@ -997,6 +1178,7 @@ class DriveFileInfo {
   final String? etag;
   final int? sizeBytes;
   final DateTime? modifiedAt;
+  final String? contentHash;
 }
 
 Future<void> _deleteTemporaryFile(File file) async {

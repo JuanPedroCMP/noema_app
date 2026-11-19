@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart' show ColorThemeData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
+import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/core/design/theme/typography_theme_dao.dart';
 import 'package:noema/core/device_fingerprint.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
@@ -27,7 +28,7 @@ class SwitchColor extends AsyncNotifier<int> {
       final colorThemeId = await colorThemeDao.insertColorTheme(
         userId: user.id,
         name: "Default",
-        seedColor: 0xFF3F51B5,
+        seedColor: AppThemeDefaults.seedColor,
       );
 
       final typographThemeId = await typographyThemeDao.insertTypographyTheme(
@@ -49,7 +50,7 @@ class SwitchColor extends AsyncNotifier<int> {
       )..where((theme) => theme.id.equals(colorThemeId))).getSingleOrNull();
 
       if (theme == null) {
-        return 0x22FF;
+        return AppThemeDefaults.seedColor;
       }
 
       _setBrightnessFromTheme(theme.overridesJson);
@@ -61,8 +62,22 @@ class SwitchColor extends AsyncNotifier<int> {
               ..where((theme) => theme.id.equals(config.colorThemeId)))
             .getSingleOrNull();
 
-    if (theme != null) _setBrightnessFromTheme(theme.overridesJson);
-    return theme?.seedColor ?? 0xFF3F51B5;
+    if (theme == null) return AppThemeDefaults.seedColor;
+
+    final seedColor =
+        AppThemeDefaults.isUntouchedLegacyDefault(
+          name: theme.name,
+          seedColor: theme.seedColor,
+          overridesJson: theme.overridesJson,
+        )
+        ? AppThemeDefaults.seedColor
+        : theme.seedColor;
+    if (seedColor != theme.seedColor) {
+      await colorThemeDao.updateColorTheme(id: theme.id, seedColor: seedColor);
+    }
+
+    _setBrightnessFromTheme(theme.overridesJson);
+    return seedColor;
   }
 
   void _setBrightnessFromTheme(String? json) {
@@ -111,6 +126,31 @@ class SwitchColor extends AsyncNotifier<int> {
     await colorThemeDao.updateColorTheme(id: theme.id, seedColor: color);
 
     state = AsyncData(color);
+    ref.invalidate(activeColorThemeProvider);
+  }
+
+  Future<void> setBrightness({required Brightness brightness}) async {
+    final user = await ref.read(userProvider.notifier).getUser();
+    final db = ref.read(appDatabaseProvider);
+    final config = await ConfigDao(db).getConfigByUser(userId: user.id);
+    if (config == null) {
+      throw StateError('Configuração de tema do usuário não encontrada.');
+    }
+
+    final dao = ColorThemeDao(db);
+    final theme = await dao.getColorTheme(id: config.colorThemeId);
+    if (theme == null || theme.userId != user.id) {
+      throw StateError('Tema de cores ativo não encontrado.');
+    }
+
+    final overrides = _readThemeOverrides(theme.overridesJson)
+      ..['__brightness'] = brightness == Brightness.dark ? 'dark' : 'light';
+    await dao.updateColorTheme(
+      id: theme.id,
+      overridesJson: jsonEncode(overrides),
+    );
+    ref.read(brightnessProvider.notifier).change(brightness: brightness);
+    state = AsyncData(theme.seedColor);
     ref.invalidate(activeColorThemeProvider);
   }
 
@@ -220,3 +260,12 @@ class SwithBrightness extends Notifier<Brightness> {
 final brightnessProvider = NotifierProvider<SwithBrightness, Brightness>(
   SwithBrightness.new,
 );
+
+Map<String, dynamic> _readThemeOverrides(String? json) {
+  if (json == null || json.trim().isEmpty) return {};
+  final decoded = jsonDecode(json);
+  if (decoded is! Map<String, dynamic>) {
+    throw const FormatException('As personalizações do tema estão inválidas.');
+  }
+  return Map<String, dynamic>.from(decoded);
+}

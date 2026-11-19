@@ -16,25 +16,31 @@ class AppResponsiveContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final compact = width < AppLayoutTokens.compactBreakpoint;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding:
-              padding ??
-              EdgeInsets.symmetric(
-                horizontal: compact
-                    ? AppLayoutTokens.pageHorizontalPaddingCompact
-                    : AppLayoutTokens.pageHorizontalPaddingRegular,
-                vertical: compact
-                    ? AppLayoutTokens.pageVerticalPaddingCompact
-                    : AppLayoutTokens.pageVerticalPaddingRegular,
-              ),
-          child: child,
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final compact = width < AppLayoutTokens.compactBreakpoint;
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Padding(
+              padding:
+                  padding ??
+                  EdgeInsets.symmetric(
+                    horizontal: compact
+                        ? AppLayoutTokens.pageHorizontalPaddingCompact
+                        : AppLayoutTokens.pageHorizontalPaddingRegular,
+                    vertical: compact
+                        ? AppLayoutTokens.pageVerticalPaddingCompact
+                        : AppLayoutTokens.pageVerticalPaddingRegular,
+                  ),
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -57,33 +63,52 @@ class AppPageHeader extends StatelessWidget {
       builder: (context, constraints) {
         final compact =
             constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint;
+        final textTheme = Theme.of(context).textTheme;
         final heading = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              title,
+              style: compact ? textTheme.headlineSmall : textTheme.headlineMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             if (subtitle != null) ...[
-              SizedBox(height: context.spacing.xs + 2),
-              Text(subtitle!),
+              SizedBox(height: context.spacing.xs),
+              Text(
+                subtitle!,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ],
         );
         if (actions.isEmpty) return heading;
-        return Flex(
-          direction: compact ? Axis.vertical : Axis.horizontal,
-          crossAxisAlignment:
-              compact ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
+        final actionWrap = Wrap(
+          spacing: context.spacing.sm,
+          runSpacing: context.spacing.sm,
+          alignment: compact ? WrapAlignment.start : WrapAlignment.end,
+          children: actions,
+        );
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              heading,
+              SizedBox(height: context.spacing.md),
+              actionWrap,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
-              flex: compact ? 0 : 1,
-              child: heading,
-            ),
-            if (compact) SizedBox(height: context.spacing.md),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: compact ? WrapAlignment.start : WrapAlignment.end,
-              children: actions,
-            ),
+            Expanded(child: heading),
+            SizedBox(width: context.spacing.lg),
+            Flexible(child: actionWrap),
           ],
         );
       },

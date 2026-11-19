@@ -14,8 +14,14 @@ class AppLoadingView extends StatelessWidget {
         children: [
           const CircularProgressIndicator(),
           if (label != null) ...[
-            SizedBox(height: spacing.md - spacing.xs),
-            Text(label!, textAlign: TextAlign.center),
+            SizedBox(height: spacing.md),
+            Text(
+              label!,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
           ],
         ],
       ),
@@ -32,21 +38,42 @@ class AppErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final spacing = context.spacing;
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(spacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-            SizedBox(height: spacing.md - spacing.xs),
-            Text(message, textAlign: TextAlign.center),
-            SizedBox(height: spacing.md),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: EdgeInsets.all(spacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colors.errorContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 32,
+                    color: context.colors.onErrorContainer,
+                  ),
+                ),
+              ),
+              SizedBox(height: spacing.md),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: spacing.md),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar novamente'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -71,21 +98,45 @@ class AppEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     final spacing = context.spacing;
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(spacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary),
-            SizedBox(height: spacing.md),
-            Text(title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-            SizedBox(height: spacing.sm),
-            Text(message, textAlign: TextAlign.center),
-            if (action != null) ...[
-              SizedBox(height: spacing.lg - spacing.xs),
-              action!,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: EdgeInsets.all(spacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colors.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Icon(
+                    icon,
+                    size: 32,
+                    color: context.colors.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              SizedBox(height: spacing.md),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: spacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+              if (action != null) ...[SizedBox(height: spacing.md), action!],
             ],
-          ],
+          ),
         ),
       ),
     );

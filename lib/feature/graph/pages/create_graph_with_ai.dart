@@ -71,29 +71,33 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
 
     try {
       final ai = ref.read(aiContentGenerationServiceProvider);
-      final response = await ai.generate(
+      final draft = await ai.generateWithRetry<GraphResponse>(
         task: AiAgentTask.manipulateGraph,
         prompt: prompt,
         agentId: _graphManipulatorAgentId,
+        maxAttempts: 2,
+        parse: (response) {
+          response.putIfAbsent('graph_description', () => prompt);
+          final generatedGraph = GraphResponse.fromJson(response).repair();
+          final candidate = GraphResponse(
+            graphTitle: generatedGraph.graphTitle,
+            graphDescription: generatedGraph.graphDescription,
+            nodes: generatedGraph.nodes
+                .map(
+                  (node) => GraphNode(
+                    nodeId: node.nodeId,
+                    title: node.title,
+                    description: '',
+                    type: node.type,
+                  ),
+                )
+                .toList(growable: false),
+            edges: generatedGraph.edges,
+          );
+          candidate.validate();
+          return candidate;
+        },
       );
-      response.putIfAbsent('graph_description', () => prompt);
-      final generatedGraph = GraphResponse.fromJson(response);
-      final draft = GraphResponse(
-        graphTitle: generatedGraph.graphTitle,
-        graphDescription: generatedGraph.graphDescription,
-        nodes: generatedGraph.nodes
-            .map(
-              (node) => GraphNode(
-                nodeId: node.nodeId,
-                title: node.title,
-                description: '',
-                type: node.type,
-              ),
-            )
-            .toList(growable: false),
-        edges: generatedGraph.edges,
-      );
-      draft.validate();
       if (!mounted) return;
       setState(() => _draft = draft);
     } on DioException catch (error) {

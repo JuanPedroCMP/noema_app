@@ -188,6 +188,69 @@ void main() {
       );
     },
   );
+
+  test(
+    'repairs hierarchical cycles, self-loops, and invalid edges in GraphResponse',
+    () {
+      final response = GraphResponse.fromJson({
+        'graph_title': '',
+        'graph_description': 'Biologia para o ENEM',
+        'nodes': [
+          {'node_id': '1', 'title': 'Biologia', 'type': 'AREA'},
+          {'node_id': 2, 'title': 'Citologia', 'type': 'TOPIC'},
+          {'node_id': 2, 'title': 'Duplicado', 'type': 'TOPIC'},
+        ],
+        'edges': [
+          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
+          // Cycle: 1 is also SUBTOPIC of 2
+          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+          // Self-loop and dangling edge
+          {'source_node': 1, 'target_node': 1, 'type': 'PREREQUISITE'},
+          {'source_node': 1, 'target_node': 99, 'type': 'SUBTOPIC'},
+        ],
+      });
+
+      final repaired = response.repair();
+      repaired.validate();
+
+      expect(repaired.graphTitle, 'Biologia para o ENEM');
+      expect(repaired.nodes, hasLength(2));
+      expect(repaired.edges, hasLength(1));
+      expect(repaired.edges.single.sourceNode, 2);
+      expect(repaired.edges.single.targetNode, 1);
+    },
+  );
+
+  test(
+    'extracts JSON from markdown fences and retries on invalid response',
+    () async {
+      final adapter = _RetryAdapter();
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      final graph = await container
+          .read(aiContentGenerationServiceProvider)
+          .generateWithRetry<GraphResponse>(
+            task: AiAgentTask.manipulateGraph,
+            prompt: 'Biologia',
+            agentId: 'graph-agent',
+            maxAttempts: 2,
+            parse: (payload) {
+              final g = GraphResponse.fromJson(payload).repair();
+              g.validate();
+              return g;
+            },
+          );
+
+      expect(adapter.attempts, 2);
+      expect(graph.graphTitle, 'Biologia');
+      expect(graph.nodes, hasLength(1));
+    },
+  );
 }
 
 class _AiApiAdapter implements HttpClientAdapter {
@@ -287,6 +350,31 @@ class _NodeDescriptionAdapter implements HttpClientAdapter {
     authorization = options.headers['Authorization'] as String?;
     return _jsonResponse({
       'description': 'Processo pelo qual plantas convertem luz em energia.',
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _RetryAdapter implements HttpClientAdapter {
+  int attempts = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    attempts++;
+    if (attempts == 1) {
+      // First attempt returns empty nodes (unrepairable).
+      return _jsonResponse({'graph_title': 'Vazio', 'nodes': [], 'edges': []});
+    }
+    // Second attempt returns markdown-fenced JSON.
+    return _jsonResponse({
+      'response':
+          '```json\n{"graph_title":"Biologia","nodes":[{"node_id":1,"title":"Célula","type":"CONCEPT"}],"edges":[]}\n```',
     });
   }
 

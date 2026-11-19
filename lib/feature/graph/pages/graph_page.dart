@@ -469,17 +469,13 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                                   (edge.type == 'SUBTOPIC' &&
                                       edge.sourceNodeId == selectedNode.id),
                             ))
-                              if (nodesById[
-                                      edge.type == 'SUBTOPIC'
-                                          ? edge.targetNodeId
-                                          : edge.sourceNodeId
-                                    ] !=
-                                  null)
-                                nodesById[
-                                  edge.type == 'SUBTOPIC'
+                              if (nodesById[edge.type == 'SUBTOPIC'
                                       ? edge.targetNodeId
-                                      : edge.sourceNodeId
-                                ]!,
+                                      : edge.sourceNodeId] !=
+                                  null)
+                                nodesById[edge.type == 'SUBTOPIC'
+                                    ? edge.targetNodeId
+                                    : edge.sourceNodeId]!,
                           ],
                           subtopics: [
                             for (final id
@@ -1274,17 +1270,13 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         edge.targetNodeId == node.id) ||
                     (edge.type == 'SUBTOPIC' && edge.sourceNodeId == node.id),
               ))
-                if (nodesById[
-                        edge.type == 'SUBTOPIC'
-                            ? edge.targetNodeId
-                            : edge.sourceNodeId
-                      ] !=
-                    null)
-                  nodesById[
-                    edge.type == 'SUBTOPIC'
+                if (nodesById[edge.type == 'SUBTOPIC'
                         ? edge.targetNodeId
-                        : edge.sourceNodeId
-                  ]!,
+                        : edge.sourceNodeId] !=
+                    null)
+                  nodesById[edge.type == 'SUBTOPIC'
+                      ? edge.targetNodeId
+                      : edge.sourceNodeId]!,
             ],
             subtopics: [
               for (final id in progress.subtopicIds)
@@ -1443,7 +1435,7 @@ class _EdgeDialogResult {
   }
 }
 
-class _LearningPathBanner extends StatelessWidget {
+class _LearningPathBanner extends StatefulWidget {
   const _LearningPathBanner({
     required this.recommendedNode,
     required this.masteredCount,
@@ -1459,132 +1451,163 @@ class _LearningPathBanner extends StatelessWidget {
   final VoidCallback? onOpenRecommended;
 
   @override
+  State<_LearningPathBanner> createState() => _LearningPathBannerState();
+}
+
+class _LearningPathBannerState extends State<_LearningPathBanner> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textTheme = context.textTheme;
-    final node = recommendedNode;
+    final node = widget.recommendedNode;
     final title = node != null
         ? 'Próximo passo recomendado'
-        : hasUnresolvedNodes
+        : widget.hasUnresolvedNodes
         ? 'Seu percurso está bloqueado'
         : 'Todos os tópicos estão dominados';
     final message = node != null
         ? node.title
-        : hasUnresolvedNodes
+        : widget.hasUnresolvedNodes
         ? 'Não há um tópico liberado. Revise as relações: pode haver um ciclo '
               'de pré-requisitos impedindo o avanço.'
         : 'Parabéns! Continue revisando para manter seu domínio.';
 
     return Card(
-      color: colors.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      color: colors.surfaceContainerLow,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            child: Row(
               children: [
                 Icon(
                   node != null
                       ? Icons.route_rounded
-                      : hasUnresolvedNodes
+                      : widget.hasUnresolvedNodes
                       ? Icons.warning_amber_rounded
                       : Icons.emoji_events_outlined,
-                  color: colors.onPrimaryContainer,
+                  color: colors.primary,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: textTheme.titleSmall?.copyWith(
-                          color: colors.onPrimaryContainer,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colors.onSurface,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (message.isNotEmpty) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          message,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colors.onPrimaryContainer,
-                          ),
+                      Text(
+                        message,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
                         ),
-                      ],
+                      ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: totalCount == 0
-                    ? 0
-                    : (masteredCount / totalCount).clamp(0.0, 1.0),
-                minHeight: 5,
-                backgroundColor: colors.onPrimaryContainer.withOpacity(0.14),
-                color: colors.tertiary,
-                semanticsLabel: 'Tópicos dominados de $totalCount',
-                semanticsValue: totalCount == 0
-                    ? '0'
-                    : '${(masteredCount / totalCount * 100).round()}',
-              ),
-            ),
-            const SizedBox(height: 5),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '$masteredCount de $totalCount tópicos dominados · '
-                    'domínio a partir de 80%',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colors.onPrimaryContainer,
-                    ),
                   ),
                 ),
                 if (node != null)
                   FilledButton.tonalIcon(
-                    onPressed: onOpenRecommended,
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Estudar agora'),
+                    onPressed: widget.onOpenRecommended,
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: const Text('Estudar'),
                   ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 4,
-              children: [
-                _GraphLegendItem(color: colors.tertiary, label: 'Dominado'),
-                _GraphLegendItem(
-                  color: colors.primary,
-                  label: 'Liberado / próximo',
-                ),
-                _GraphLegendItem(
-                  color: colors.outlineVariant,
-                  label: 'Aguardando pré-requisitos',
-                ),
-                _GraphLegendItem(
-                  color: colors.primary,
-                  label: 'Pré-requisito',
-                  isLine: true,
-                ),
-                _GraphLegendItem(
-                  color: colors.tertiary,
-                  label: 'Subtópico',
-                  isLine: true,
+                IconButton(
+                  tooltip: _isExpanded
+                      ? 'Ocultar detalhes'
+                      : 'Mostrar detalhes',
+                  onPressed: () => setState(() {
+                    _isExpanded = !_isExpanded;
+                  }),
+                  icon: Icon(
+                    _isExpanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeInOut,
+            child: _isExpanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: widget.totalCount == 0
+                                ? 0
+                                : (widget.masteredCount / widget.totalCount)
+                                      .clamp(0.0, 1.0),
+                            minHeight: 5,
+                            backgroundColor: colors.outlineVariant.withOpacity(
+                              0.35,
+                            ),
+                            color: colors.tertiary,
+                            semanticsLabel:
+                                'Tópicos dominados de ${widget.totalCount}',
+                            semanticsValue: widget.totalCount == 0
+                                ? '0'
+                                : '${(widget.masteredCount / widget.totalCount * 100).round()}',
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${widget.masteredCount} de ${widget.totalCount} '
+                          'tópicos dominados · domínio a partir de 80%',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 4,
+                          children: [
+                            _GraphLegendItem(
+                              color: colors.tertiary,
+                              label: 'Dominado',
+                            ),
+                            _GraphLegendItem(
+                              color: colors.primary,
+                              label: 'Liberado / próximo',
+                            ),
+                            _GraphLegendItem(
+                              color: colors.outlineVariant,
+                              label: 'Aguardando pré-requisitos',
+                            ),
+                            _GraphLegendItem(
+                              color: colors.primary,
+                              label: 'Pré-requisito',
+                              isLine: true,
+                            ),
+                            _GraphLegendItem(
+                              color: colors.tertiary,
+                              label: 'Subtópico',
+                              isLine: true,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

@@ -4,16 +4,21 @@ A new Flutter project.
 
 ## Google Drive OAuth
 
-Follow [the Google Drive OAuth setup guide](docs/google-drive-oauth-setup.md)
-before creating OAuth clients. The guide covers Android, iOS, Linux, and
-Windows, lists the exact values needed from Google Cloud, and explains which
-values are safe to share.
+Follow [the current Google Drive OAuth setup guide](docs/google-drive-oauth-setup.md)
+to configure the Android and desktop clients and the backend audience allowlist.
+Android uses native Google Sign-In; Linux and Windows use the system browser
+with PKCE and a client-derived custom URI scheme.
 
-Google Drive sign-in is configured for Android/iOS with `google_sign_in` and
-Linux/Windows with a desktop OAuth flow using the system browser, a
-client-derived custom URI scheme, and PKCE. Follow the setup guide for the
-required OAuth client IDs and backend audience allowlist. Run the
-`Noema (Google OAuth desktop)` VS Code launch configuration to load the
-gitignored desktop ID and secret from
-`config/google_oauth_desktop.json`. Android/iOS builds use
-`config/google_oauth.json` and do not include the desktop client secret.
+For Android, copy
+`config/google_oauth_android.example.json` to the gitignored
+`config/google_oauth_android.json` and set `GOOGLE_OAUTH_SERVER_CLIENT_ID` to
+the Web OAuth client ID. Run the `Noema (Google OAuth Android)` launch
+configuration to pass it to Flutter.
+
+For Linux/Windows, copy
+`config/google_oauth_desktop.example.json` to the gitignored
+`config/google_oauth_desktop.json` and set
+`GOOGLE_OAUTH_DESKTOP_CLIENT_ID` and
+`GOOGLE_OAUTH_DESKTOP_CLIENT_SECRET`. Run the matching desktop launch
+configuration. A desktop client secret is a public-client value embedded in
+the app; it is not a backend secret.

@@ -36,11 +36,11 @@ abstract class AppSpacing with _$AppSpacing {
     xs: 4,
     sm: 8,
     md: 16,
-    lg: 28,
-    xl: 40,
-    xxl: 56,
-    xxxl: 72,
-    huge: 104,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+    xxxl: 64,
+    huge: 96,
   );
 
   /// Desktop
@@ -49,11 +49,11 @@ abstract class AppSpacing with _$AppSpacing {
     xs: 4,
     sm: 8,
     md: 16,
-    lg: 32,
-    xl: 48,
-    xxl: 64,
-    xxxl: 96,
-    huge: 128,
+    lg: 24,
+    xl: 40,
+    xxl: 56,
+    xxxl: 72,
+    huge: 96,
   );
 }
 

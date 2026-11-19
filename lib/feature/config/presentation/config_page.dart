@@ -2,20 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/network/connetction_checker.dart';
-import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
+import 'package:noema/core/design/tokens/layout.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/enums.dart';
-import 'package:noema/feature/config/presentation/color_theme_section.dart';
 import 'package:noema/feature/config/presentation/api_keys_section.dart';
+import 'package:noema/feature/config/presentation/color_theme_section.dart';
+import 'package:noema/feature/config/presentation/config_section_catalog.dart';
 import 'package:noema/feature/config/presentation/google_account_section.dart';
 import 'package:noema/feature/config/presentation/manual_backup_section.dart';
 import 'package:noema/feature/config/presentation/personal_ai_configuration_section.dart';
-import 'package:noema/feature/config/presentation/profile_section.dart';
 import 'package:noema/feature/config/presentation/preferences_section.dart';
+import 'package:noema/feature/config/presentation/profile_section.dart';
 import 'package:noema/feature/config/presentation/typography_theme_section.dart';
-import 'package:noema/feature/config/providers/section_navigator_provider.dart';
+import 'package:noema/feature/config/presentation/widgets/config_connection_banner.dart';
+import 'package:noema/feature/config/presentation/widgets/config_navigation_sidebar.dart';
 import 'package:noema/feature/config/providers/config_refresh_provider.dart';
+import 'package:noema/feature/config/providers/section_navigator_provider.dart';
 import 'package:noema/shared/widgets/app_card.dart';
 import 'package:noema/shared/widgets/app_section.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
@@ -24,26 +27,67 @@ class ConfigPage extends ConsumerStatefulWidget {
   const ConfigPage({super.key});
 
   @override
-  ConsumerState<ConfigPage> createState() => _ConfigPage();
+  ConsumerState<ConfigPage> createState() => _ConfigPageState();
 }
 
-class _ConfigPage extends ConsumerState<ConfigPage> {
+class _ConfigPageState extends ConsumerState<ConfigPage> {
   static const _refreshInterval = Duration(minutes: 5);
 
-  final keys = {
-    for (final section in ConfigSections.values) section: GlobalKey(),
-  };
+  final _searchController = TextEditingController();
+  final _contentScrollController = ScrollController();
   Timer? _refreshTimer;
+  ConfigSections _activeSection = ConfigSections.profile;
+  String _searchQuery = '';
 
-  void scrollTo(ConfigSections section) {
-    final context = keys[section]?.currentContext;
+  void _scrollTo(ConfigSections section) {
+    setState(() => _activeSection = section);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_contentScrollController.hasClients) {
+        _contentScrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+  void _updateSearch(String query) {
+    setState(() {
+      _searchQuery = query;
+      final matches = configSectionCatalog
+          .where((item) => item.matchesQuery(query))
+          .toList();
+      if (matches.isNotEmpty &&
+          !matches.any((item) => item.section == _activeSection)) {
+        _activeSection = matches.first.section;
+      }
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _searchQuery = '');
+  }
+
+  Widget _buildSectionContent(ConfigSections section) {
+    switch (section) {
+      case ConfigSections.profile:
+        return const ProfileSection();
+      case ConfigSections.colorTheme:
+        return const ColorThemeSection();
+      case ConfigSections.typographyTheme:
+        return const TypographyThemeSection();
+      case ConfigSections.aiConfiguration:
+        return const PersonalAiConfigurationSection();
+      case ConfigSections.apiKeys:
+        return const ApiKeysSection();
+      case ConfigSections.googleAccount:
+        return const GoogleAccountSection();
+      case ConfigSections.manualBackup:
+        return const ManualBackupSection();
+      case ConfigSections.preferences:
+        return const PreferencesSection();
     }
   }
 
@@ -51,9 +95,9 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
   void initState() {
     super.initState();
 
-    ref.listenManual(sectionNavigatorProvider, ((previous, next) {
-      scrollTo(next.currentSection);
-    }));
+    ref.listenManual(sectionNavigatorProvider, (previous, next) {
+      _scrollTo(next.currentSection);
+    });
     _refreshTimer = Timer.periodic(_refreshInterval, (_) {
       if (ref.read(serverConnectionChecker).value == true) {
         ref.read(configRefreshProvider.notifier).refresh();
@@ -64,88 +108,247 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _searchController.dispose();
+    _contentScrollController.dispose();
     super.dispose();
+  }
+
+  void _handleRefresh() {
+    ref.read(configRefreshProvider.notifier).refresh();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Atualizando informações do servidor…')),
+      );
+  }
+
+  Widget _buildSelectedSection(
+    List<ConfigSectionMetadata> sections,
+    ThemeData theme,
+  ) {
+    final metadata = sections
+        .where((item) => item.section == _activeSection)
+        .firstOrNull;
+    if (metadata == null) {
+      return const SizedBox.shrink();
+    }
+    return AppSection(
+      key: ValueKey(metadata.section),
+      title: metadata.title,
+      description: metadata.description,
+      trailing: Icon(metadata.icon, color: theme.colorScheme.onSurfaceVariant),
+      child: _buildSectionContent(metadata.section),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isConnected = ref.watch(serverConnectionChecker).value ?? false;
-    return SingleChildScrollView(
-      child: AppResponsiveContent(
-        maxWidth: AppLayoutTokens.widePageContentWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: context.spacing.md,
-          children: [
-            _ConnectionBanner(
-              isConnected: isConnected,
-              onRefresh: () {
-                ref.read(configRefreshProvider.notifier).refresh();
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(
-                      content: Text('Atualizando informações do servidor…'),
-                    ),
-                  );
-              },
-            ),
-            AppSection(
-              title: "Perfil",
-              description: "Gerencie seus dados e preferências de conta.",
-              key: keys[ConfigSections.profile],
-              child: ProfileSection(),
-            ),
+    final theme = Theme.of(context);
+    final spacing = context.spacing;
 
-            AppSection(
-              title: "Tema de cores",
-              description:
-                  "Personalização local deste dispositivo: escolha paleta e modo claro ou escuro.",
-              key: keys[ConfigSections.colorTheme],
-              child: ColorThemeSection(),
+    final filteredSections = configSectionCatalog
+        .where((item) => item.matchesQuery(_searchQuery))
+        .toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showSidebar =
+            constraints.maxWidth >= AppLayoutTokens.compactBreakpoint;
+
+        final header = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: spacing.md,
+          children: [
+            _ConfigHeader(
+              searchController: _searchController,
+              searchQuery: _searchQuery,
+              sections: filteredSections,
+              onSelectSection: _scrollTo,
+              onSearchChanged: _updateSearch,
+              onClearSearch: _clearSearch,
             ),
-            AppSection(
-              title: "Tipografia",
-              description:
-                  "Personalização local deste dispositivo: escolha fontes e escala de leitura.",
-              key: keys[ConfigSections.typographyTheme],
-              child: const TypographyThemeSection(),
+            ConfigConnectionBanner(
+              isConnected: isConnected,
+              onRefresh: _handleRefresh,
             ),
-            AppSection(
-              title: "Provedores e agentes de IA",
-              description:
-                  "Configure seus provedores, modelos e agentes pessoais.",
-              key: keys[ConfigSections.aiConfiguration],
-              child: const PersonalAiConfigurationSection(),
+          ],
+        );
+
+        final sectionsList = filteredSections.isEmpty
+            ? _EmptySearchState(query: _searchQuery, onClear: _clearSearch)
+            : _buildSelectedSection(filteredSections, theme);
+
+        if (showSidebar && filteredSections.isNotEmpty) {
+          return SizedBox(
+            height: constraints.maxHeight,
+            child: AppResponsiveContent(
+              maxWidth: AppLayoutTokens.widePageContentWidth,
+              padding: const EdgeInsets.only(
+                left: 4,
+                right: AppLayoutTokens.pageHorizontalPaddingCompact,
+                top: AppLayoutTokens.pageVerticalPaddingRegular,
+                bottom: AppLayoutTokens.pageVerticalPaddingRegular,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    width: 240,
+                    child: SingleChildScrollView(
+                      child: ConfigNavigationSidebar(
+                        sections: filteredSections,
+                        activeSection: _activeSection,
+                        onSelectSection: _scrollTo,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: spacing.md),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _contentScrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: spacing.md,
+                        children: [header, sectionsList],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            AppSection(
-              title: "Chaves de API",
-              description:
-                  "Gerencie chaves dos provedores de inteligência artificial.",
-              key: keys[ConfigSections.apiKeys],
-              child: const ApiKeysSection(),
+          );
+        }
+
+        return SingleChildScrollView(
+          controller: _contentScrollController,
+          child: AppResponsiveContent(
+            maxWidth: AppLayoutTokens.widePageContentWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: spacing.md,
+              children: [header, sectionsList],
             ),
-            AppSection(
-              title: "Conta Google",
-              description:
-                  "Crie, compare, restaure e mescle backups locais na área privada do Google Drive.",
-              key: keys[ConfigSections.googleAccount],
-              child: const GoogleAccountSection(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ConfigHeader extends StatelessWidget {
+  const _ConfigHeader({
+    required this.searchController,
+    required this.searchQuery,
+    required this.sections,
+    required this.onSelectSection,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+  });
+
+  final TextEditingController searchController;
+  final String searchQuery;
+  final List<ConfigSectionMetadata> sections;
+  final ValueChanged<ConfigSections> onSelectSection;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = context.spacing;
+
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Configurações', style: theme.textTheme.headlineSmall),
+        SizedBox(height: spacing.xs / 2),
+        Text(
+          'Gerencie sua conta, aparência, provedores de IA, backups e preferências.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+
+    final searchField = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: TextField(
+        controller: searchController,
+        onChanged: onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Filtrar configurações…',
+          prefixIcon: const Icon(Icons.search, size: 20),
+          suffixIcon: searchQuery.isNotEmpty
+              ? IconButton(
+                  tooltip: 'Limpar filtro',
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: onClearSearch,
+                )
+              : null,
+          isDense: true,
+        ),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: titleBlock),
+                  IconButton(
+                    tooltip: 'Abrir seções',
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => _showMobileSectionMenu(context),
+                  ),
+                ],
+              ),
+              SizedBox(height: spacing.md),
+              searchField,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: titleBlock),
+            SizedBox(width: spacing.md),
+            searchField,
+          ],
+        );
+      },
+    );
+  }
+
+  void _showMobileSectionMenu(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
+              child: Text(
+                'Seções de configuração',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-            AppSection(
-              title: "Backup manual",
-              description:
-                  "Exporte e importe um arquivo compactado, com criptografia opcional.",
-              key: keys[ConfigSections.manualBackup],
-              child: const ManualBackupSection(),
-            ),
-            AppSection(
-              title: "Preferências",
-              description:
-                  "Escolha o que sincronizar com sua conta e o que manter apenas neste dispositivo.",
-              key: keys[ConfigSections.preferences],
-              child: const PreferencesSection(),
-            ),
+            for (final section in sections)
+              ListTile(
+                leading: Icon(section.icon),
+                title: Text(section.title),
+                onTap: () {
+                  Navigator.pop(context);
+                  onSelectSection(section.section);
+                },
+              ),
           ],
         ),
       ),
@@ -153,50 +356,48 @@ class _ConfigPage extends ConsumerState<ConfigPage> {
   }
 }
 
-class _ConnectionBanner extends StatelessWidget {
-  const _ConnectionBanner({required this.isConnected, required this.onRefresh});
+class _EmptySearchState extends StatelessWidget {
+  const _EmptySearchState({required this.query, required this.onClear});
 
-  final bool isConnected;
-  final VoidCallback onRefresh;
+  final String query;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final spacing = context.spacing;
-    final message = Text(
-      isConnected
-          ? 'As informações do servidor são atualizadas ao abrir esta tela e a cada 5 minutos.'
-          : 'Sem conexão com o servidor. As informações serão atualizadas quando a conexão voltar.',
-      style: theme.textTheme.bodyMedium,
-    );
-    final refreshButton = OutlinedButton.icon(
-      onPressed: isConnected ? onRefresh : null,
-      icon: const Icon(Icons.refresh),
-      label: const Text('Atualizar'),
-    );
 
     return AppCard(
-      padding: EdgeInsets.all(spacing.md),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                message,
-                SizedBox(height: spacing.sm),
-                refreshButton,
-              ],
-            );
-          }
-          return Row(
-            children: [
-              Expanded(child: message),
-              SizedBox(width: spacing.sm),
-              refreshButton,
-            ],
-          );
-        },
+      padding: EdgeInsets.all(spacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.search_off_outlined,
+            size: 40,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          SizedBox(height: spacing.sm),
+          Text(
+            'Nenhuma seção encontrada para "$query"',
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: spacing.xs),
+          Text(
+            'Tente outro termo ou limpe o filtro para ver todas as configurações.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: spacing.md),
+          OutlinedButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.clear_all),
+            label: const Text('Limpar filtro'),
+          ),
+        ],
       ),
     );
   }

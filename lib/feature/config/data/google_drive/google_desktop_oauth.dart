@@ -9,8 +9,12 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:noema/feature/config/data/google_drive/google_drive_oauth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:win32_registry/win32_registry.dart';
+
+typedef GoogleDesktopOAuthException = GoogleDriveOAuthException;
+typedef GoogleDesktopOAuthSession = GoogleDriveOAuthSession;
 
 const _googleAuthorizationEndpoint =
     'https://accounts.google.com/o/oauth2/v2/auth';
@@ -20,6 +24,7 @@ const _driveAppDataScope = 'https://www.googleapis.com/auth/drive.appdata';
 const _desktopOAuthRedirectPath = '/oauth2redirect';
 const _desktopRefreshTokenKey = 'google_drive_desktop_refresh_token';
 const _desktopAccessTokenKey = 'google_drive_desktop_access_token';
+const _desktopEmailKey = 'google_drive_desktop_email';
 
 void _logGoogleDesktopOAuth(
   String message, {
@@ -65,31 +70,7 @@ Future<String> resolveGoogleOAuthLinuxHandlerExecutable(
   return resolvedPath;
 }
 
-class GoogleDesktopOAuthException implements Exception {
-  const GoogleDesktopOAuthException(this.message, {this.code});
-
-  final String message;
-  final String? code;
-
-  @override
-  String toString() => message;
-}
-
-class GoogleDesktopOAuthSession {
-  const GoogleDesktopOAuthSession({
-    required this.email,
-    required this.idToken,
-    required this.accessToken,
-    required this.expiresAt,
-  });
-
-  final String email;
-  final String idToken;
-  final String accessToken;
-  final DateTime expiresAt;
-}
-
-class GoogleDesktopOAuthClient {
+class GoogleDesktopOAuthClient implements GoogleDriveOAuthClient {
   GoogleDesktopOAuthClient({
     required this.clientId,
     required this.clientSecret,
@@ -104,6 +85,7 @@ class GoogleDesktopOAuthClient {
   final Dio _dio;
   GoogleDesktopOAuthSession? _session;
 
+  @override
   Future<GoogleDesktopOAuthSession> authorize({
     required bool interactive,
     bool forceInteractive = false,
@@ -113,15 +95,16 @@ class GoogleDesktopOAuthClient {
       'forceInteractive=$forceInteractive, clientIdConfigured=${clientId.isNotEmpty}, '
       'clientSecretConfigured=${clientSecret.isNotEmpty}).',
     );
-    if (clientSecret.isEmpty) {
+    if (clientId.isEmpty || clientSecret.isEmpty) {
       _logGoogleDesktopOAuth(
-        'Authorization stopped: client secret is missing.',
+        'Authorization stopped: desktop OAuth client configuration is incomplete.',
       );
       throw const GoogleDesktopOAuthException(
-        'Este build não tem o client_secret do cliente OAuth desktop. '
-        'Configure GOOGLE_OAUTH_DESKTOP_CLIENT_SECRET em '
+        'Este build não tem o ID e o secret do cliente OAuth desktop. '
+        'Configure GOOGLE_OAUTH_DESKTOP_CLIENT_ID e '
+        'GOOGLE_OAUTH_DESKTOP_CLIENT_SECRET em '
         'config/google_oauth_desktop.json e reinicie o app.',
-        code: 'google_oauth_desktop_client_secret_missing',
+        code: 'google_oauth_desktop_configuration_missing',
       );
     }
 
@@ -174,10 +157,12 @@ class GoogleDesktopOAuthClient {
     return _authorizeInBrowser();
   }
 
-  Future<void> revokeAndClear() async {
+  @override
+  Future<bool> revokeAndClear() async {
     final token =
         await _storage.read(key: _desktopRefreshTokenKey) ??
         await _storage.read(key: _desktopAccessTokenKey);
+    var revoked = false;
     try {
       if (token != null && token.isNotEmpty) {
         await _dio.post<void>(
@@ -188,6 +173,7 @@ class GoogleDesktopOAuthClient {
             responseType: ResponseType.plain,
           ),
         );
+        revoked = true;
       }
     } on DioException {
       throw const GoogleDesktopOAuthException(
@@ -200,8 +186,10 @@ class GoogleDesktopOAuthClient {
       await Future.wait([
         _storage.delete(key: _desktopRefreshTokenKey),
         _storage.delete(key: _desktopAccessTokenKey),
+        _storage.delete(key: _desktopEmailKey),
       ]);
     }
+    return revoked;
   }
 
   Future<GoogleDesktopOAuthSession> _authorizeInBrowser() async {
@@ -345,6 +333,10 @@ class GoogleDesktopOAuthClient {
         key: _desktopAccessTokenKey,
         value: session.accessToken,
       );
+      final email = session.email;
+      if (email != null) {
+        await _storage.write(key: _desktopEmailKey, value: email);
+      }
       final refreshToken = data['refresh_token'];
       if (refreshToken is String && refreshToken.isNotEmpty) {
         await _storage.write(key: _desktopRefreshTokenKey, value: refreshToken);
@@ -458,6 +450,26 @@ class GoogleDesktopOAuthClient {
       'MimeType=x-scheme-handler/$_redirectScheme;\n',
       flush: true,
     );
+    late final ProcessResult databaseResult;
+    try {
+      databaseResult = await Process.run('update-desktop-database', [
+        applications.path,
+      ]);
+    } on ProcessException {
+      throw const GoogleDesktopOAuthException(
+        'O Linux não encontrou update-desktop-database. Instale '
+        'desktop-file-utils e tente novamente.',
+        code: 'desktop_protocol_registration_failed',
+      );
+    }
+    if (databaseResult.exitCode != 0) {
+      throw const GoogleDesktopOAuthException(
+        'O Linux não conseguiu atualizar o catálogo de aplicativos para o '
+        'retorno OAuth. Instale/ative desktop-file-utils e tente novamente.',
+        code: 'desktop_protocol_registration_failed',
+      );
+    }
+
     late final ProcessResult result;
     try {
       result = await Process.run('xdg-mime', [
@@ -530,9 +542,16 @@ class GoogleDesktopOAuthClient {
         );
       }
       final session = _parseTokenResponse(data);
+      final email = session.email ?? await _storage.read(key: _desktopEmailKey);
+      final refreshedSession = GoogleDesktopOAuthSession(
+        email: email,
+        idToken: session.idToken,
+        accessToken: session.accessToken,
+        expiresAt: session.expiresAt,
+      );
       await _storage.write(
         key: _desktopAccessTokenKey,
-        value: session.accessToken,
+        value: refreshedSession.accessToken,
       );
       final rotatedRefreshToken = data['refresh_token'];
       if (rotatedRefreshToken is String && rotatedRefreshToken.isNotEmpty) {
@@ -541,13 +560,13 @@ class GoogleDesktopOAuthClient {
           value: rotatedRefreshToken,
         );
       }
-      _session = session;
+      _session = refreshedSession;
       _logGoogleDesktopOAuth(
         'Google refresh-token request succeeded '
-        '(expiresAt=${session.expiresAt.toIso8601String()}, '
+        '(expiresAt=${refreshedSession.expiresAt.toIso8601String()}, '
         'refreshTokenRotated=${rotatedRefreshToken is String && rotatedRefreshToken.isNotEmpty}).',
       );
-      return session;
+      return refreshedSession;
     } on DioException catch (error) {
       final responseData = error.response?.data;
       final responseCode = _googleErrorCode(responseData);
@@ -562,6 +581,7 @@ class GoogleDesktopOAuthClient {
         await Future.wait([
           _storage.delete(key: _desktopRefreshTokenKey),
           _storage.delete(key: _desktopAccessTokenKey),
+          _storage.delete(key: _desktopEmailKey),
         ]);
         throw const GoogleDesktopOAuthException(
           'A autorização Google desktop expirou ou foi revogada.',
@@ -589,16 +609,24 @@ class GoogleDesktopOAuthClient {
         code: 'desktop_access_token_missing',
       );
     }
-    if (idToken is! String || idToken.isEmpty) {
+    if (expiresIn is! num || !expiresIn.isFinite || expiresIn <= 0) {
+      throw const GoogleDesktopOAuthException(
+        'O Google retornou um prazo inválido para o token de acesso.',
+        code: 'desktop_token_expiry_invalid',
+      );
+    }
+    if ((idToken is! String || idToken.isEmpty) && expectedNonce != null) {
       throw const GoogleDesktopOAuthException(
         'O Google não retornou um ID token válido. Reautorize a conta.',
         code: 'id_token_missing',
       );
     }
-    if (expiresIn is! num || expiresIn <= 0) {
-      throw const GoogleDesktopOAuthException(
-        'O Google retornou um prazo inválido para o token de acesso.',
-        code: 'desktop_token_expiry_invalid',
+    if (idToken is! String || idToken.isEmpty) {
+      return GoogleDesktopOAuthSession(
+        email: null,
+        idToken: null,
+        accessToken: accessToken,
+        expiresAt: DateTime.now().add(Duration(seconds: expiresIn.toInt())),
       );
     }
     final claims = decodeGoogleOAuthIdTokenClaims(idToken);

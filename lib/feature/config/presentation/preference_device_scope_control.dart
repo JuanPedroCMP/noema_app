@@ -7,13 +7,11 @@ class PreferenceDeviceScopeControl extends ConsumerWidget {
     super.key,
     required this.preferenceKey,
     required this.effectiveValue,
-    this.languageId,
     this.onScopeChanged,
   });
 
   final String preferenceKey;
   final Object effectiveValue;
-  final String? languageId;
   final VoidCallback? onScopeChanged;
 
   @override
@@ -54,7 +52,6 @@ class PreferenceDeviceScopeControl extends ConsumerWidget {
                   key: preferenceKey,
                   effectiveValue: effectiveValue,
                   deviceOnly: nextDeviceOnly,
-                  languageId: languageId,
                 );
             ref.invalidate(preferenceDeviceOnlyProvider(preferenceKey));
             onScopeChanged?.call();

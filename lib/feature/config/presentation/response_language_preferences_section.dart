@@ -1,12 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/presentation/preference_device_scope_control.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
+
+const _cachedResponseLanguagesKey = '__cachedResponseLanguages';
+const _cachedRemoteResponseLanguageOrderKey =
+    '__cachedRemoteResponseLanguageOrder';
+
+class _ResponseLanguageOption {
+  const _ResponseLanguageOption({required this.id, required this.name});
+
+  final String id;
+  final String name;
+}
 
 class ResponseLanguagePreferencesSection extends ConsumerStatefulWidget {
   const ResponseLanguagePreferencesSection({super.key});
@@ -18,11 +32,12 @@ class ResponseLanguagePreferencesSection extends ConsumerStatefulWidget {
 
 class _ResponseLanguagePreferencesSectionState
     extends ConsumerState<ResponseLanguagePreferencesSection> {
-  List<LanguageOut> _languages = [];
-  List<LanguageOut> _selected = [];
+  List<_ResponseLanguageOption> _languages = [];
+  List<_ResponseLanguageOption> _selected = [];
   bool _deviceOnly = false;
   bool _loading = true;
   bool _saving = false;
+  bool _usingCachedLanguages = false;
   Object? _error;
 
   @override
@@ -38,42 +53,69 @@ class _ResponseLanguagePreferencesSectionState
     });
     try {
       final user = await ref.read(userProvider.future);
-      final api = ref.read(apiClientProvider);
-      final languagesResponse = await api
-          .getLanguageApi()
-          .listLanguagesApiV1UserConfigLanguageListGet();
-      final languages = languagesResponse.data?.toList() ?? <LanguageOut>[];
-      final config = await ConfigDao(
-        ref.read(appDatabaseProvider),
-      ).getConfigByUser(userId: user.id);
+      final dao = ConfigDao(ref.read(appDatabaseProvider));
+      final config = await dao.getConfigByUser(userId: user.id);
       final deviceOnly = await ref
           .read(preferenceStorageServiceProvider)
-          .isDeviceOnly('responseLanguagePreferenceOrder');
+          .isDeviceOnly(responseLanguagePreferenceOrderKey);
       final localOrder = config == null
           ? null
           : readConfigPreference(
               config.preferences,
-              'responseLanguagePreferenceOrder',
+              responseLanguagePreferenceOrderKey,
             );
-      final selectedIds = deviceOnly && localOrder is List
+      final cachedRemoteOrder = config == null
+          ? null
+          : readConfigPreference(
+              config.preferences,
+              _cachedRemoteResponseLanguageOrderKey,
+            );
+      final cachedLanguages = _decodeCachedLanguages(
+        config == null
+            ? null
+            : readConfigPreference(
+                config.preferences,
+                _cachedResponseLanguagesKey,
+              ),
+      );
+
+      var languages = cachedLanguages.isNotEmpty
+          ? cachedLanguages
+          : const [
+              _ResponseLanguageOption(
+                id: fallbackPortugueseLanguageId,
+                name: 'Português',
+              ),
+              _ResponseLanguageOption(
+                id: fallbackEnglishLanguageId,
+                name: 'English',
+              ),
+            ];
+      final selectedIds = localOrder is List
           ? localOrder.whereType<String>().toList(growable: false)
-          : await _loadAccountOrder(
-              user.remoteId,
-              api.getResponseResponseLanguagePreferenceOrderApi(),
-              api.getUserGlobalConfigApi(),
-              languages,
-            );
+          : cachedRemoteOrder is List
+          ? cachedRemoteOrder.whereType<String>().toList(growable: false)
+          : const <String>[];
+
       final languagesById = {for (final item in languages) item.id: item};
       if (!mounted) return;
       setState(() {
         _deviceOnly = deviceOnly;
         _languages = languages;
-        _selected = selectedIds
-            .map((id) => languagesById[id])
-            .whereType<LanguageOut>()
-            .toList();
+        _selected = [
+          for (final id in selectedIds)
+            _selectedLanguage(id, languagesById[id]),
+        ];
+        _usingCachedLanguages = true;
         _loading = false;
       });
+      unawaited(
+        _refreshRemoteLanguageData(
+          user.remoteId,
+          hasLocalOrder: localOrder is List || cachedRemoteOrder is List,
+          deviceOnly: deviceOnly,
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -83,60 +125,138 @@ class _ResponseLanguagePreferencesSectionState
     }
   }
 
+  Future<void> _refreshRemoteLanguageData(
+    String remoteUserId, {
+    required bool hasLocalOrder,
+    required bool deviceOnly,
+  }) async {
+    final connection = ref.read(serverConnectionChecker);
+    final isConnected =
+        connection.value == true ||
+        (connection.value == null &&
+            (await ref.read(serverConnectionChecker.future)) == true);
+    if (!isConnected) return;
+    final api = ref.read(apiClientProvider);
+    final storage = ref.read(preferenceStorageServiceProvider);
+    try {
+      final response = await api
+          .getLanguageApi()
+          .listLanguagesApiV1UserConfigLanguageListGet();
+      final available =
+          response.data
+              ?.map(
+                (language) => _ResponseLanguageOption(
+                  id: language.id,
+                  name: language.name,
+                ),
+              )
+              .toList(growable: false) ??
+          const <_ResponseLanguageOption>[];
+      if (available.isNotEmpty) {
+        await storage.saveLocally(
+          key: _cachedResponseLanguagesKey,
+          value: [
+            for (final language in available)
+              {'id': language.id, 'name': language.name},
+          ],
+        );
+        if (mounted) {
+          final selectedIds = _selected.map((item) => item.id).toList();
+          final languagesById = {
+            for (final language in available) language.id: language,
+          };
+          setState(() {
+            _languages = available;
+            _selected = [
+              for (final id in selectedIds)
+                _selectedLanguage(id, languagesById[id]),
+            ];
+            _usingCachedLanguages = false;
+          });
+        }
+      }
+    } catch (error) {
+      debugPrint('Não foi possível atualizar a lista de idiomas: $error');
+      return;
+    }
+
+    if (hasLocalOrder || deviceOnly) return;
+    try {
+      final ids = await _loadAccountOrder(
+        remoteUserId,
+        api.getResponseResponseLanguagePreferenceOrderApi(),
+      );
+      if (ids.isEmpty) return;
+      await storage.saveLocally(
+        key: _cachedRemoteResponseLanguageOrderKey,
+        value: ids,
+      );
+      if (!mounted) return;
+      final languagesById = {for (final item in _languages) item.id: item};
+      setState(() {
+        _selected = [
+          for (final id in ids) _selectedLanguage(id, languagesById[id]),
+        ];
+      });
+    } catch (error) {
+      debugPrint('Não foi possível carregar a ordem dos idiomas: $error');
+    }
+  }
+
+  List<_ResponseLanguageOption> _decodeCachedLanguages(Object? value) {
+    if (value is! List) return const [];
+    return [
+      for (final item in value)
+        if (item is Map && item['id'] is String && item['name'] is String)
+          _ResponseLanguageOption(
+            id: item['id'] as String,
+            name: item['name'] as String,
+          ),
+    ];
+  }
+
+  _ResponseLanguageOption _selectedLanguage(
+    String id,
+    _ResponseLanguageOption? knownLanguage,
+  ) {
+    if (knownLanguage != null) return knownLanguage;
+    if (id == fallbackPortugueseLanguageId) {
+      return const _ResponseLanguageOption(
+        id: fallbackPortugueseLanguageId,
+        name: 'Português',
+      );
+    }
+    if (id == fallbackEnglishLanguageId) {
+      return const _ResponseLanguageOption(
+        id: fallbackEnglishLanguageId,
+        name: 'English',
+      );
+    }
+    final visibleId = id.substring(0, id.length < 8 ? id.length : 8);
+    return _ResponseLanguageOption(id: id, name: 'Idioma salvo ($visibleId)');
+  }
+
   Future<List<String>> _loadAccountOrder(
     String remoteUserId,
-    ResponseResponseLanguagePreferenceOrderApi orderApi,
-    UserGlobalConfigApi globalConfigApi,
-    List<LanguageOut> languages,
+    ResponseResponseLanguagePreferenceOrderApi api,
   ) async {
-    final response = await orderApi
+    final response = await api
         .listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet();
     final userRows =
         response.data?.where((item) => item.idUser == remoteUserId).toList() ??
         <ResponseLanguagePreferenceOrderOut>[];
     userRows.sort((a, b) => a.preferenceOrder.compareTo(b.preferenceOrder));
-    if (userRows.isNotEmpty) {
-      return userRows.map((item) => item.idLanguage).toList();
-    }
-
-    final global = await globalConfigApi
-        .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-          identificator: remoteUserId,
-        );
-    final legacyOrder =
-        global.data?.preferences['responseLanguagePreferenceOrder']?.value;
-    if (legacyOrder is! List) return const [];
-    final validIds = legacyOrder
-        .whereType<String>()
-        .where((id) => languages.any((language) => language.id == id))
-        .toList(growable: false);
-    for (var index = 0; index < validIds.length; index++) {
-      await orderApi
-          .createResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderCreatePost(
-            responseLanguagePreferenceOrderCreate:
-                ResponseLanguagePreferenceOrderCreate((b) {
-                  b
-                    ..preferenceOrder = index + 1
-                    ..idUser = remoteUserId
-                    ..idLanguage = validIds[index];
-                }),
-          );
-    }
-    return validIds;
+    return userRows.map((item) => item.idLanguage).toList(growable: false);
   }
 
-  Future<void> _saveOrder(List<LanguageOut> next) async {
+  Future<void> _saveOrder(List<_ResponseLanguageOption> next) async {
     if (_saving) return;
     setState(() => _saving = true);
     try {
       final ids = next.map((language) => language.id).toList();
-      if (_deviceOnly) {
-        await ref
-            .read(preferenceStorageServiceProvider)
-            .save(key: 'responseLanguagePreferenceOrder', value: ids);
-      } else {
-        await _saveAccountOrder(ids);
-      }
+      await ref
+          .read(preferenceStorageServiceProvider)
+          .save(key: responseLanguagePreferenceOrderKey, value: ids);
       if (!mounted) return;
       setState(() {
         _selected = next;
@@ -151,54 +271,6 @@ class _ResponseLanguagePreferencesSectionState
     }
   }
 
-  Future<void> _saveAccountOrder(List<String> ids) async {
-    final user = await ref.read(userProvider.future);
-    final api = ref
-        .read(apiClientProvider)
-        .getResponseResponseLanguagePreferenceOrderApi();
-    final response = await api
-        .listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet();
-    final existing =
-        response.data?.where((item) => item.idUser == user.remoteId).toList() ??
-        <ResponseLanguagePreferenceOrderOut>[];
-    final existingByLanguage = {
-      for (final item in existing) item.idLanguage: item,
-    };
-
-    for (final item in existing) {
-      if (!ids.contains(item.idLanguage)) {
-        await api
-            .updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderDeleteIdentificatorDelete(
-              identificator: item.id,
-            );
-      }
-    }
-    for (var index = 0; index < ids.length; index++) {
-      final existingItem = existingByLanguage[ids[index]];
-      if (existingItem == null) {
-        await api
-            .createResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderCreatePost(
-              responseLanguagePreferenceOrderCreate:
-                  ResponseLanguagePreferenceOrderCreate((b) {
-                    b
-                      ..preferenceOrder = index + 1
-                      ..idUser = user.remoteId
-                      ..idLanguage = ids[index];
-                  }),
-            );
-      } else {
-        await api
-            .updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderUpdateIdentificatorPut(
-              identificator: existingItem.id,
-              responseLanguagePreferenceOrderUpdate:
-                  ResponseLanguagePreferenceOrderUpdate((b) {
-                    b.preferenceOrder = index + 1;
-                  }),
-            );
-      }
-    }
-  }
-
   Future<void> _addLanguage(String? id) async {
     if (id == null || _selected.any((language) => language.id == id)) return;
     final language = _languages.where((item) => item.id == id).firstOrNull;
@@ -206,7 +278,7 @@ class _ResponseLanguagePreferencesSectionState
     await _saveOrder([..._selected, language]);
   }
 
-  Future<void> _removeLanguage(LanguageOut language) async {
+  Future<void> _removeLanguage(_ResponseLanguageOption language) async {
     await _saveOrder(
       _selected.where((item) => item.id != language.id).toList(),
     );
@@ -219,14 +291,14 @@ class _ResponseLanguagePreferencesSectionState
         contentPadding: EdgeInsets.zero,
         leading: Icon(Icons.translate),
         title: Text('Idiomas de resposta'),
-        subtitle: Text('Carregando idiomas disponíveis…'),
+        subtitle: Text('Carregando preferências locais…'),
       );
     }
     if (_error != null) {
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
-        title: const Text('Não foi possível carregar os idiomas'),
+        title: const Text('Não foi possível carregar as preferências'),
         subtitle: Text('$_error'),
         trailing: IconButton(
           tooltip: 'Tentar novamente',
@@ -237,7 +309,16 @@ class _ResponseLanguagePreferencesSectionState
     }
 
     final available = _languages
-        .where((language) => !_selected.any((item) => item.id == language.id))
+        .where(
+          (language) => !_selected.any(
+            (item) =>
+                item.id == language.id ||
+                (item.id == fallbackPortugueseLanguageId &&
+                    _matchesLanguageName(language.name, 'pt')) ||
+                (item.id == fallbackEnglishLanguageId &&
+                    _matchesLanguageName(language.name, 'en')),
+          ),
+        )
         .toList();
     final selectedIds = _selected.map((item) => item.id).toList();
     return Column(
@@ -255,8 +336,8 @@ class _ResponseLanguagePreferencesSectionState
                   ),
                   Text(
                     _deviceOnly
-                        ? 'Somente neste dispositivo. O primeiro idioma tem prioridade.'
-                        : 'Sincronizado com sua conta. O primeiro idioma tem prioridade.',
+                        ? 'Salvo somente neste dispositivo. O primeiro idioma tem prioridade.'
+                        : 'Salvo localmente primeiro; será sincronizado com a conta. O primeiro idioma tem prioridade.',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -264,12 +345,19 @@ class _ResponseLanguagePreferencesSectionState
             ),
             const SizedBox(width: 8),
             PreferenceDeviceScopeControl(
-              preferenceKey: 'responseLanguagePreferenceOrder',
+              preferenceKey: responseLanguagePreferenceOrderKey,
               effectiveValue: selectedIds,
               onScopeChanged: _load,
             ),
           ],
         ),
+        if (_usingCachedLanguages)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Usando a lista local. Alterações serão sincronizadas quando a conexão voltar.',
+            ),
+          ),
         if (_selected.isNotEmpty)
           ReorderableListView.builder(
             shrinkWrap: true,
@@ -309,7 +397,9 @@ class _ResponseLanguagePreferencesSectionState
             },
           ),
         if (_languages.isEmpty)
-          const Text('Nenhum idioma está disponível no servidor.')
+          const Text(
+            'Conecte-se uma vez para carregar idiomas; as preferências salvas continuam disponíveis offline.',
+          )
         else
           DropdownButtonFormField<String>(
             key: ValueKey(available.map((item) => item.id).join(',')),
@@ -332,4 +422,13 @@ class _ResponseLanguagePreferencesSectionState
       ],
     );
   }
+}
+
+bool _matchesLanguageName(String name, String code) {
+  final normalized = name.toLowerCase();
+  return code == 'pt'
+      ? normalized.contains('portugu') || normalized.startsWith('pt')
+      : normalized.contains('english') ||
+            normalized.contains('inglês') ||
+            normalized.startsWith('en');
 }

@@ -32,7 +32,8 @@ Future<String> importGraphFromJson({
   bool isAiGenerated = false,
   bool queueMissingAiDescriptions = false,
 }) async {
-  final graph = ai.GraphResponse.fromJsonString(jsonString);
+  final rawGraph = ai.GraphResponse.fromJsonString(jsonString);
+  final graph = isAiGenerated ? rawGraph.repair() : rawGraph;
   graph.validate();
   final graphId = const Uuid().v4();
 

@@ -4,7 +4,6 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
-import 'package:noema/core/network/api_client.dart';
 
 class AppLocaleNotifier extends AsyncNotifier<Locale?> {
   @override
@@ -30,35 +29,10 @@ class AppLocaleNotifier extends AsyncNotifier<Locale?> {
     if (languageCode != null && !const {'en', 'pt'}.contains(languageCode)) {
       throw ArgumentError.value(languageCode, 'locale', 'is not supported');
     }
-    String? languageId;
-    if (languageCode != null) {
-      final languages = await ref
-          .read(apiClientProvider)
-          .getLanguageApi()
-          .listLanguagesApiV1UserConfigLanguageListGet();
-      final matchingLanguage = languages.data
-          ?.where((language) {
-            final normalized = language.name.toLowerCase();
-            return languageCode == 'pt'
-                ? normalized.contains('portugu') || normalized.startsWith('pt')
-                : normalized.contains('english') ||
-                      normalized.contains('inglês') ||
-                      normalized.startsWith('en');
-          })
-          .firstOrNull;
-      if (matchingLanguage == null) {
-        throw StateError(
-          'O idioma escolhido não está disponível na configuração da conta.',
-        );
-      }
-      languageId = matchingLanguage.id;
-    }
-
     await saveConfigPreference(
       ref,
       key: 'locale',
       value: languageCode ?? 'system',
-      languageId: languageId,
     );
     state = AsyncData(locale);
   }

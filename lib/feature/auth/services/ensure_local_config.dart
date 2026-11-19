@@ -1,5 +1,6 @@
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
+import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/core/design/theme/typography_theme_dao.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 
@@ -17,7 +18,7 @@ Future<void> ensureLocalConfig({
   final colorThemeId = await colorThemeDao.insertColorTheme(
     userId: user.id,
     name: 'Default',
-    seedColor: 0xFF0000FF,
+    seedColor: AppThemeDefaults.seedColor,
   );
 
   final typographyThemeId = await typographyThemeDao.insertTypographyTheme(

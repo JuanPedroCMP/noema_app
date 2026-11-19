@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:noema/core/design/tokens/durations.dart';
 import 'package:noema/core/network/connetction_checker.dart';
-import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
+import 'package:noema/feature/auth/providers/profile_avatar_provider.dart';
 import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_form_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
@@ -39,7 +39,6 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
   bool _passwordConfirmationVisible = false;
   final _passwordFormKey = GlobalKey<FormState>();
   String? _syncError;
-  String? _googleAvatarUrl;
 
   String _passwordUpdateError(Object error) {
     if (error is DioException) {
@@ -113,54 +112,13 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
     });
     try {
       await ref.read(userProvider.notifier).refreshFromServer();
-      final user = await ref.read(userProvider.future);
-      await _loadGoogleAvatar(user.remoteId);
+      ref.invalidate(profileAvatarUrlProvider);
     } catch (error) {
       if (mounted) {
         setState(() => _syncError = 'Não foi possível atualizar o perfil.');
       }
     } finally {
       if (mounted) setState(() => _syncing = false);
-    }
-  }
-
-  Future<void> _loadGoogleAvatar(String remoteUserId) async {
-    try {
-      final response = await ref
-          .read(apiClientProvider)
-          .getAuthenticationApi()
-          .getGoogleAccountApiV1AuthGoogleGetIdentificatorGet(
-            identificator: remoteUserId,
-          );
-      final account = response.data;
-      if (account == null || account.idUser != remoteUserId) {
-        throw StateError('A conta Google retornada não pertence ao usuário.');
-      }
-      final googleIdentity = (account.googleUserId ?? '').trim();
-      final fallbackIdentity = (account.emailGoogle ?? '').trim();
-      final resolvedIdentity = googleIdentity.isNotEmpty
-          ? googleIdentity
-          : fallbackIdentity;
-      if (resolvedIdentity.isEmpty) {
-        if (mounted) setState(() => _googleAvatarUrl = null);
-        return;
-      }
-
-      final avatarUri = Uri.https(
-        'www.google.com',
-        '/s2/photos/profile/$resolvedIdentity',
-        {'sz': '160'},
-      );
-      if (mounted) setState(() => _googleAvatarUrl = avatarUri.toString());
-    } on DioException catch (error) {
-      if (error.response?.statusCode != 404 &&
-          error.response?.statusCode != 503) {
-        debugPrint('Não foi possível carregar o avatar Google: $error');
-      }
-      if (mounted) setState(() => _googleAvatarUrl = null);
-    } catch (error) {
-      debugPrint('Não foi possível carregar o avatar Google: $error');
-      if (mounted) setState(() => _googleAvatarUrl = null);
     }
   }
 
@@ -171,6 +129,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
     final form = ref.watch(userFormProvider);
     final formNotifier = ref.watch(userFormProvider.notifier);
     final userNotifier = ref.watch(userProvider.notifier);
+    final avatarUrl = ref.watch(profileAvatarUrlProvider).asData?.value;
     final durations = Theme.of(
       context,
     ).extension<AppDurationsTheme>()!.durations;
@@ -195,7 +154,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
               child: Row(
                 children: [
                   _ProfileAvatar(
-                    imageUrl: _googleAvatarUrl,
+                    imageUrl: avatarUrl,
                     seed: profile.remoteId,
                   ),
                   const SizedBox(width: 16),

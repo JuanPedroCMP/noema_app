@@ -1,17 +1,22 @@
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database_provider.dart';
-import 'package:noema/core/device_fingerprint.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
 
 const _localConfigIdKey = '__userLocalConfigId';
 const _localOverridesKey = '__localPreferenceOverrides';
+const _localOnlyPreferencesKey = '__localOnlyPreferences';
+const _pendingPreferenceSyncKey = '__pendingPreferenceSync';
+const responseLanguagePreferenceOrderKey = 'responseLanguagePreferenceOrder';
+const fallbackPortugueseLanguageId = '__localLanguage_pt';
+const fallbackEnglishLanguageId = '__localLanguage_en';
 
 Map<String, dynamic> decodeConfigPreferences(String raw) {
   final decoded = jsonDecode(raw);
@@ -27,6 +32,10 @@ Object? readConfigPreference(String raw, String key) {
   if (overrides is Map && overrides.containsKey(key)) {
     return overrides[key];
   }
+  final localOnlyPreferences = preferences[_localOnlyPreferencesKey];
+  if (localOnlyPreferences is Map && localOnlyPreferences.containsKey(key)) {
+    return localOnlyPreferences[key];
+  }
   return preferences[key];
 }
 
@@ -35,174 +44,89 @@ String mergeRemoteConfigPreferences({
   required String localPreferences,
 }) {
   final local = decodeConfigPreferences(localPreferences);
-  final result = Map<String, dynamic>.from(remotePreferences);
-  for (final key in const [_localConfigIdKey, _localOverridesKey]) {
+  final pending = _stringMap(local[_pendingPreferenceSyncKey]);
+  final result = Map<String, dynamic>.from(remotePreferences)..addAll(pending);
+  for (final key in const [
+    _localConfigIdKey,
+    _localOverridesKey,
+    _localOnlyPreferencesKey,
+    _pendingPreferenceSyncKey,
+  ]) {
     if (local.containsKey(key)) result[key] = local[key];
   }
   return jsonEncode(result);
 }
 
-Future<String?> _getDeviceId(Ref ref, {required String remoteUserId}) async {
-  final client = ref.read(apiClientProvider);
-  final fingerprint = await DeviceFingerprint.get();
-  final response = await client.getDeviceApi().listDeviceApiV1DeviceListGet(
-    idUser: remoteUserId,
-    deviceFingerprint: fingerprint,
-  );
-  final existing = response.data
-      ?.where(
-        (device) =>
-            device.idUser == remoteUserId &&
-            device.deviceFingerprint == fingerprint,
-      )
-      .firstOrNull;
-  if (existing != null) return existing.id;
+String updateConfigPreferenceLocally({
+  required String currentPreferences,
+  required String key,
+  required Object value,
+  required bool deviceOnly,
+}) {
+  final preferences = decodeConfigPreferences(currentPreferences);
+  final overrides = _stringMap(preferences[_localOverridesKey]);
+  final pending = _stringMap(preferences[_pendingPreferenceSyncKey]);
 
-  final created = await client.getDeviceApi().createDeviceApiV1DeviceCreatePost(
-    deviceCreate: DeviceCreate((b) {
-      b
-        ..idUser = remoteUserId
-        ..deviceName = 'Noema (${defaultTargetPlatform.name})'
-        ..deviceFingerprint = fingerprint
-        ..platform = defaultTargetPlatform.name;
-    }),
-  );
-  final deviceId = created.data?.id;
-  if (deviceId == null || deviceId.isEmpty) {
-    throw StateError('O servidor não retornou o identificador do dispositivo.');
+  if (deviceOnly) {
+    overrides[key] = value;
+    pending.remove(key);
+  } else {
+    overrides.remove(key);
+    preferences[key] = value;
+    pending[key] = value;
   }
-  return deviceId;
+
+  preferences[_localOverridesKey] = overrides;
+  preferences[_pendingPreferenceSyncKey] = pending;
+  return jsonEncode(preferences);
 }
 
-Future<UserLocalConfigOut> _getOrCreateLocalConfig(
-  Ref ref, {
-  required String localUserId,
-  required String remoteUserId,
-}) async {
-  final db = ref.read(appDatabaseProvider);
-  final configDao = ConfigDao(db);
-  var localConfig = await configDao.getConfigByUser(userId: localUserId);
-  if (localConfig == null) {
-    throw StateError('Configuração local do usuário não encontrada.');
-  }
-  final client = ref.read(apiClientProvider);
-  final localApi = client.getUserLocalConfigApi();
-  final cachedId = decodeConfigPreferences(
-    localConfig.preferences,
-  )[_localConfigIdKey];
-  if (cachedId is String && cachedId.isNotEmpty) {
-    try {
-      final response = await localApi
-          .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-            identificator: cachedId,
-          );
-      if (response.data != null) return response.data!;
-    } on DioException catch (error) {
-      if (error.response?.statusCode != 404) rethrow;
-    }
-  }
-
-  final deviceId = await _getDeviceId(ref, remoteUserId: remoteUserId);
-  if (deviceId == null) {
-    throw StateError('Não foi possível identificar este dispositivo.');
-  }
-
-  final preferences = decodeConfigPreferences(localConfig.preferences);
-  final cachedOverrides = preferences[_localOverridesKey];
-  final listed = await localApi
-      .listUserLocalConfigsApiV1UserConfigUserLocalConfigListGet(
-        idUser: remoteUserId,
-        idDevice: deviceId,
-        preferences: jsonEncode(
-          cachedOverrides is Map ? cachedOverrides : <String, dynamic>{},
-        ),
-      );
-  final existing = listed.data
-      ?.where(
-        (item) => item.idUser == remoteUserId && item.idDevice == deviceId,
-      )
-      .firstOrNull;
-  if (existing != null) {
-    await _cacheLocalConfigId(ref, localUserId: localUserId, id: existing.id);
-    return existing;
-  }
-
-  final globalResponse = await client
-      .getUserGlobalConfigApi()
-      .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-        identificator: remoteUserId,
-      );
-  final global = globalResponse.data;
-  if (global == null) {
-    throw StateError('A configuração global da conta não foi encontrada.');
-  }
-  final created = await localApi
-      .createUserLocalConfigApiV1UserConfigUserLocalConfigCreatePost(
-        userLocalConfigCreate: UserLocalConfigCreate((b) {
-          b
-            ..idUser = remoteUserId
-            ..idDevice = deviceId
-            ..idLanguage = global.idLanguage
-            ..idUserColorTheme = global.idUserColorTheme
-            ..idUserTypographyTheme = global.idUserTypographyTheme
-            ..preferences = '{}';
-        }),
-      );
-  final data = created.data;
-  if (data == null) {
-    throw StateError('O servidor não retornou a configuração local criada.');
-  }
-  await _cacheLocalConfigId(ref, localUserId: localUserId, id: data.id);
-  return data;
+String updateLocalOnlyConfigPreference({
+  required String currentPreferences,
+  required String key,
+  required Object value,
+}) {
+  final preferences = decodeConfigPreferences(currentPreferences);
+  final localOnly = _stringMap(preferences[_localOnlyPreferencesKey]);
+  final pending = _stringMap(preferences[_pendingPreferenceSyncKey]);
+  localOnly[key] = value;
+  pending.remove(key);
+  preferences[_localOnlyPreferencesKey] = localOnly;
+  preferences[_pendingPreferenceSyncKey] = pending;
+  return jsonEncode(preferences);
 }
 
-Future<void> _cacheLocalConfigId(
+int pendingConfigPreferenceCount(String preferencesJson) => _stringMap(
+  decodeConfigPreferences(preferencesJson)[_pendingPreferenceSyncKey],
+).length;
+
+Map<String, dynamic> _stringMap(Object? value) {
+  if (value is! Map) return <String, dynamic>{};
+  return {
+    for (final entry in value.entries)
+      if (entry.key is String) entry.key as String: entry.value,
+  };
+}
+
+Future<void> saveLocalConfigPreference(
   Ref ref, {
-  required String localUserId,
-  required String id,
+  required String key,
+  required Object value,
 }) async {
+  final user = await ref.read(userProvider.future);
   final dao = ConfigDao(ref.read(appDatabaseProvider));
-  final config = await dao.getConfigByUser(userId: localUserId);
+  final config = await dao.getConfigByUser(userId: user.id);
   if (config == null) {
     throw StateError('Configuração local do usuário não encontrada.');
   }
-  final preferences = decodeConfigPreferences(config.preferences)
-    ..[_localConfigIdKey] = id;
-  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
-}
-
-Map<String, dynamic> _localOverrides(UserLocalConfigOut config) {
-  final decoded = jsonDecode(jsonEncode(config.preferences));
-  if (decoded is Map<String, dynamic>) return decoded;
-  throw const FormatException(
-    'As substituições locais do servidor estão em formato inválido.',
+  await dao.updateConfig(
+    id: config.id,
+    preferences: updateLocalOnlyConfigPreference(
+      currentPreferences: config.preferences,
+      key: key,
+      value: value,
+    ),
   );
-}
-
-Future<void> _saveLocalOverrides(
-  Ref ref, {
-  required String localUserId,
-  required UserLocalConfigOut localConfig,
-  required Map<String, dynamic> overrides,
-}) async {
-  await ref
-      .read(apiClientProvider)
-      .getUserLocalConfigApi()
-      .updateUserLocalConfigApiV1UserConfigUserLocalConfigUpdateIdentificatorPut(
-        identificator: localConfig.id,
-        userLocalConfigUpdate: UserLocalConfigUpdate((b) {
-          b.preferences = jsonEncode(overrides);
-        }),
-      );
-  final dao = ConfigDao(ref.read(appDatabaseProvider));
-  final config = await dao.getConfigByUser(userId: localUserId);
-  if (config == null) {
-    throw StateError('Configuração local do usuário não encontrada.');
-  }
-  final preferences = decodeConfigPreferences(config.preferences)
-    ..[_localConfigIdKey] = localConfig.id
-    ..[_localOverridesKey] = overrides;
-  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
 }
 
 Future<bool> isPreferenceDeviceOnly(Ref ref, String key) async {
@@ -222,296 +146,56 @@ Future<void> setPreferenceDeviceOnly(
   required String key,
   required Object effectiveValue,
   required bool deviceOnly,
-  String? languageId,
 }) async {
   final user = await ref.read(userProvider.future);
-  final cacheDao = ConfigDao(ref.read(appDatabaseProvider));
-  final userConfig = await cacheDao.getConfigByUser(userId: user.id);
-  final cachedPreferences = userConfig == null
-      ? <String, dynamic>{}
-      : decodeConfigPreferences(userConfig.preferences);
-  final cachedOverrides = cachedPreferences[_localOverridesKey] is Map
-      ? Map<String, dynamic>.from(cachedPreferences[_localOverridesKey] as Map)
-      : <String, dynamic>{};
-  if (!deviceOnly && !cachedOverrides.containsKey(key)) return;
-  final localId = cachedPreferences[_localConfigIdKey];
-  final local = localId is String && localId.isNotEmpty
-      ? await _getCachedLocalConfig(ref, localId)
-      : null;
-  final localConfig =
-      local ??
-      (deviceOnly
-          ? await _getOrCreateLocalConfig(
-              ref,
-              localUserId: user.id,
-              remoteUserId: user.remoteId,
-            )
-          : null);
-  final overrides = localConfig == null
-      ? Map<String, dynamic>.from(cachedOverrides)
-      : _localOverrides(localConfig);
-  if (cachedPreferences[_localOverridesKey] is Map) {
-    for (final entry
-        in (cachedPreferences[_localOverridesKey] as Map).entries) {
-      if (entry.key is String) {
-        overrides.putIfAbsent(entry.key as String, () => entry.value);
-      }
-    }
-  }
-  if (deviceOnly) {
-    if (localConfig == null) {
-      throw StateError(
-        'A configuração local do dispositivo não foi encontrada.',
-      );
-    }
-    overrides[key] = effectiveValue;
-    if (languageId != null) {
-      await ref
-          .read(apiClientProvider)
-          .getUserLocalConfigApi()
-          .updateUserLocalConfigApiV1UserConfigUserLocalConfigUpdateIdentificatorPut(
-            identificator: localConfig.id,
-            userLocalConfigUpdate: UserLocalConfigUpdate((b) {
-              b
-                ..preferences = jsonEncode(overrides)
-                ..idLanguage = languageId;
-            }),
-          );
-    } else {
-      await _saveLocalOverrides(
-        ref,
-        localUserId: user.id,
-        localConfig: localConfig,
-        overrides: overrides,
-      );
-      return;
-    }
-    await _cacheLocalOverrideValues(
-      ref,
-      localUserId: user.id,
-      localConfig: localConfig,
-      overrides: overrides,
-    );
-    return;
-  }
-
-  final api = ref.read(apiClientProvider).getUserGlobalConfigApi();
-  final remote = await api
-      .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-        identificator: user.remoteId,
-      );
-  final globalPreferences = <String, dynamic>{
-    for (final entry in remote.data!.preferences.entries)
-      entry.key: entry.value?.value,
-  };
-  globalPreferences[key] = effectiveValue;
-  await api
-      .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
-        identificator: user.remoteId,
-        userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
-          b.preferences = jsonEncode(globalPreferences);
-          if (key == 'locale' && languageId != null) {
-            b.idLanguage = languageId;
-          }
-        }),
-      );
-
-  overrides.remove(key);
-  if (localConfig == null) {
-    await _cacheLocalOverrides(
-      ref,
-      localUserId: user.id,
-      localConfigId: null,
-      overrides: overrides,
-    );
-  } else {
-    await _saveLocalOverrides(
-      ref,
-      localUserId: user.id,
-      localConfig: localConfig,
-      overrides: overrides,
-    );
-  }
   final dao = ConfigDao(ref.read(appDatabaseProvider));
   final config = await dao.getConfigByUser(userId: user.id);
-  if (config == null) return;
-  final preferences = decodeConfigPreferences(config.preferences);
-  final cached = <String, dynamic>{
-    if (preferences[_localOverridesKey] is Map)
-      for (final entry in (preferences[_localOverridesKey] as Map).entries)
-        if (entry.key is String) entry.key as String: entry.value,
-  }..remove(key);
-  preferences[_localOverridesKey] = cached;
-  preferences[key] = effectiveValue;
-  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
-}
-
-Future<void> _cacheLocalOverrideValues(
-  Ref ref, {
-  required String localUserId,
-  required UserLocalConfigOut localConfig,
-  required Map<String, dynamic> overrides,
-}) async {
-  final dao = ConfigDao(ref.read(appDatabaseProvider));
-  final config = await dao.getConfigByUser(userId: localUserId);
   if (config == null) {
     throw StateError('Configuração local do usuário não encontrada.');
   }
-  final preferences = decodeConfigPreferences(config.preferences)
-    ..[_localConfigIdKey] = localConfig.id
-    ..[_localOverridesKey] = overrides;
-  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
-}
 
-Future<UserLocalConfigOut?> _getCachedLocalConfig(Ref ref, String id) async {
-  try {
-    return (await ref
-            .read(apiClientProvider)
-            .getUserLocalConfigApi()
-            .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-              identificator: id,
-            ))
-        .data;
-  } on DioException catch (error) {
-    if (error.response?.statusCode != 404) rethrow;
-    return null;
+  await dao.updateConfig(
+    id: config.id,
+    preferences: updateConfigPreferenceLocally(
+      currentPreferences: config.preferences,
+      key: key,
+      value: effectiveValue,
+      deviceOnly: deviceOnly,
+    ),
+  );
+  if (!deviceOnly && config.autoSync) {
+    ref.read(configPreferenceSyncRequestProvider.notifier).request();
   }
-}
-
-Future<void> _cacheLocalOverrides(
-  Ref ref, {
-  required String localUserId,
-  required String? localConfigId,
-  required Map<String, dynamic> overrides,
-}) async {
-  final dao = ConfigDao(ref.read(appDatabaseProvider));
-  final config = await dao.getConfigByUser(userId: localUserId);
-  if (config == null) {
-    throw StateError('Configuração local do usuário não encontrada.');
-  }
-  final preferences = decodeConfigPreferences(config.preferences);
-  if (localConfigId == null) {
-    preferences.remove(_localConfigIdKey);
-  } else {
-    preferences[_localConfigIdKey] = localConfigId;
-  }
-  preferences[_localOverridesKey] = overrides;
-  await dao.updateConfig(id: config.id, preferences: jsonEncode(preferences));
 }
 
 Future<void> saveConfigPreference(
   Ref ref, {
   required String key,
   required Object value,
-  String? languageId,
 }) async {
   final user = await ref.read(userProvider.future);
-  final cacheDao = ConfigDao(ref.read(appDatabaseProvider));
-  final localCache = await cacheDao.getConfigByUser(userId: user.id);
-  final cachedOverrides = localCache == null
-      ? <String, dynamic>{}
-      : <String, dynamic>{
-          if (decodeConfigPreferences(
-                localCache.preferences,
-              )[_localOverridesKey]
-              is Map)
-            for (final entry
-                in (decodeConfigPreferences(
-                          localCache.preferences,
-                        )[_localOverridesKey]
-                        as Map)
-                    .entries)
-              if (entry.key is String) entry.key as String: entry.value,
-        };
-  if (cachedOverrides.containsKey(key)) {
-    final localId = decodeConfigPreferences(
-      localCache!.preferences,
-    )[_localConfigIdKey];
-    if (localId is! String || localId.isEmpty) {
-      throw StateError(
-        'A configuração local do dispositivo não foi vinculada.',
-      );
-    }
-    final local =
-        (await ref
-                .read(apiClientProvider)
-                .getUserLocalConfigApi()
-                .getUserLocalConfigApiV1UserConfigUserLocalConfigGetIdentificatorGet(
-                  identificator: localId,
-                ))
-            .data;
-    if (local == null) {
-      throw StateError(
-        'A configuração local do dispositivo não foi encontrada.',
-      );
-    }
-    final overrides = _localOverrides(local);
-    overrides[key] = value;
-    if (languageId != null) {
-      await ref
-          .read(apiClientProvider)
-          .getUserLocalConfigApi()
-          .updateUserLocalConfigApiV1UserConfigUserLocalConfigUpdateIdentificatorPut(
-            identificator: local.id,
-            userLocalConfigUpdate: UserLocalConfigUpdate((b) {
-              b
-                ..preferences = jsonEncode(overrides)
-                ..idLanguage = languageId;
-            }),
-          );
-      await _cacheLocalOverrideValues(
-        ref,
-        localUserId: user.id,
-        localConfig: local,
-        overrides: overrides,
-      );
-    } else {
-      await _saveLocalOverrides(
-        ref,
-        localUserId: user.id,
-        localConfig: local,
-        overrides: overrides,
-      );
-    }
-    return;
-  }
-
-  final api = ref.read(apiClientProvider).getUserGlobalConfigApi();
-  final remote = await api
-      .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-        identificator: user.remoteId,
-      );
-  final preferences = <String, dynamic>{
-    for (final entry in remote.data!.preferences.entries)
-      entry.key: entry.value?.value,
-  }..[key] = value;
-  await api
-      .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
-        identificator: user.remoteId,
-        userGlobalConfigUpdate: UserGlobalConfigUpdate((b) {
-          b.preferences = jsonEncode(preferences);
-          if (languageId != null) b.idLanguage = languageId;
-        }),
-      );
   final dao = ConfigDao(ref.read(appDatabaseProvider));
   final config = await dao.getConfigByUser(userId: user.id);
-  if (config != null) {
-    await dao.updateConfig(
-      id: config.id,
-      preferences: mergeRemoteConfigPreferences(
-        remotePreferences: preferences,
-        localPreferences: config.preferences,
-      ),
-    );
+  if (config == null) {
+    throw StateError('Configuração local do usuário não encontrada.');
+  }
+  final overrides = _stringMap(
+    decodeConfigPreferences(config.preferences)[_localOverridesKey],
+  );
+  final deviceOnly = overrides.containsKey(key);
+  await dao.updateConfig(
+    id: config.id,
+    preferences: updateConfigPreferenceLocally(
+      currentPreferences: config.preferences,
+      key: key,
+      value: value,
+      deviceOnly: deviceOnly,
+    ),
+  );
+  if (!deviceOnly && config.autoSync) {
+    ref.read(configPreferenceSyncRequestProvider.notifier).request();
   }
 }
-
-final preferenceDeviceOnlyProvider = FutureProvider.family<bool, String>((
-  ref,
-  key,
-) {
-  return isPreferenceDeviceOnly(ref, key);
-});
 
 class PreferenceStorageService {
   const PreferenceStorageService(this._ref);
@@ -524,27 +208,335 @@ class PreferenceStorageService {
     required String key,
     required Object effectiveValue,
     required bool deviceOnly,
-    String? languageId,
   }) => setPreferenceDeviceOnly(
     _ref,
     key: key,
     effectiveValue: effectiveValue,
     deviceOnly: deviceOnly,
-    languageId: languageId,
   );
 
-  Future<void> save({
-    required String key,
-    required Object value,
-    String? languageId,
-  }) => saveConfigPreference(
-    _ref,
-    key: key,
-    value: value,
-    languageId: languageId,
-  );
+  Future<void> save({required String key, required Object value}) =>
+      saveConfigPreference(_ref, key: key, value: value);
+
+  Future<void> saveLocally({required String key, required Object value}) =>
+      saveLocalConfigPreference(_ref, key: key, value: value);
 }
 
 final preferenceStorageServiceProvider = Provider<PreferenceStorageService>(
   PreferenceStorageService.new,
 );
+
+final preferenceDeviceOnlyProvider = FutureProvider.family<bool, String>((
+  ref,
+  key,
+) {
+  return isPreferenceDeviceOnly(ref, key);
+});
+
+class AutomaticConfigSyncNotifier extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    final user = await ref.watch(userProvider.future);
+    final config = await ConfigDao(
+      ref.watch(appDatabaseProvider),
+    ).getConfigByUser(userId: user.id);
+    return config?.autoSync ?? true;
+  }
+
+  Future<void> setEnabled(bool enabled) async {
+    final user = await ref.read(userProvider.future);
+    final dao = ConfigDao(ref.read(appDatabaseProvider));
+    final config = await dao.getConfigByUser(userId: user.id);
+    if (config == null) {
+      throw StateError('Configuração local do usuário não encontrada.');
+    }
+    await dao.updateConfig(id: config.id, autoSync: enabled);
+    state = AsyncData(enabled);
+    if (enabled) {
+      ref.read(configPreferenceSyncRequestProvider.notifier).request();
+    }
+  }
+}
+
+final automaticConfigSyncProvider =
+    AsyncNotifierProvider<AutomaticConfigSyncNotifier, bool>(
+      AutomaticConfigSyncNotifier.new,
+    );
+
+final pendingConfigPreferenceCountProvider = StreamProvider.autoDispose<int>((
+  ref,
+) async* {
+  final user = await ref.watch(userProvider.future);
+  final db = ref.watch(appDatabaseProvider);
+  final query = db.select(db.config)
+    ..where((config) => config.userId.equals(user.id));
+  await for (final config in query.watchSingleOrNull()) {
+    yield config == null ? 0 : pendingConfigPreferenceCount(config.preferences);
+  }
+});
+
+class ConfigPreferenceSyncRequestNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void request() => state++;
+}
+
+final configPreferenceSyncRequestProvider =
+    NotifierProvider<ConfigPreferenceSyncRequestNotifier, int>(
+      ConfigPreferenceSyncRequestNotifier.new,
+    );
+
+class ConfigPreferenceSyncService {
+  ConfigPreferenceSyncService(this._ref);
+
+  final Ref _ref;
+  Future<void>? _activeSync;
+
+  Future<void> syncPending({bool force = false}) {
+    final active = _activeSync;
+    if (active != null) return active;
+    final operation = _syncPending(force: force);
+    _activeSync = operation;
+    return operation.whenComplete(() {
+      if (identical(_activeSync, operation)) _activeSync = null;
+    });
+  }
+
+  Future<void> _syncPending({required bool force}) async {
+    final user = await _ref.read(userProvider.future);
+    final dao = ConfigDao(_ref.read(appDatabaseProvider));
+    final config = await dao.getConfigByUser(userId: user.id);
+    if (config == null) {
+      throw StateError('Configuração local do usuário não encontrada.');
+    }
+    if (!force && !config.autoSync) return;
+
+    final pending = _stringMap(
+      decodeConfigPreferences(config.preferences)[_pendingPreferenceSyncKey],
+    );
+    if (pending.isEmpty) return;
+
+    final successful = <String, Object?>{};
+    Map<String, dynamic>? remotePreferences;
+    Object? firstError;
+    StackTrace? firstStackTrace;
+
+    final accountPreferences = Map<String, dynamic>.from(pending)
+      ..remove(responseLanguagePreferenceOrderKey);
+    if (accountPreferences.isNotEmpty) {
+      try {
+        final api = _ref.read(apiClientProvider).getUserGlobalConfigApi();
+        final response = await api
+            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
+              identificator: user.remoteId,
+            );
+        final remoteConfig = response.data;
+        if (remoteConfig == null) {
+          throw StateError('A configuração da conta não foi encontrada.');
+        }
+        remotePreferences = {
+          for (final entry in remoteConfig.preferences.entries)
+            entry.key: entry.value?.value,
+          ...accountPreferences,
+        };
+        await api
+            .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
+              identificator: user.remoteId,
+              userGlobalConfigUpdate: UserGlobalConfigUpdate((builder) {
+                builder.preferences = jsonEncode(remotePreferences);
+              }),
+            );
+        successful.addAll(accountPreferences);
+      } catch (error, stackTrace) {
+        firstError ??= error;
+        firstStackTrace ??= stackTrace;
+      }
+    }
+
+    final responseLanguageOrder = pending[responseLanguagePreferenceOrderKey];
+    if (responseLanguageOrder is List) {
+      try {
+        await _syncResponseLanguageOrder(
+          user.remoteId,
+          responseLanguageOrder.whereType<String>().toList(growable: false),
+        );
+        successful[responseLanguagePreferenceOrderKey] = responseLanguageOrder;
+      } catch (error, stackTrace) {
+        firstError ??= error;
+        firstStackTrace ??= stackTrace;
+      }
+    }
+
+    if (successful.isNotEmpty) {
+      await _acknowledgeSync(
+        dao: dao,
+        userId: user.id,
+        successful: successful,
+        remotePreferences: remotePreferences,
+      );
+    }
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError, firstStackTrace!);
+    }
+  }
+
+  Future<void> _syncResponseLanguageOrder(
+    String remoteUserId,
+    List<String> languageIds,
+  ) async {
+    final syncLanguageIds = await _resolveLanguageIds(languageIds);
+    final api = _ref
+        .read(apiClientProvider)
+        .getResponseResponseLanguagePreferenceOrderApi();
+    final response = await api
+        .listResponseLanguagePreferenceOrdersApiV1UserConfigResponseResponseLanguagePreferenceOrderListGet();
+    final existing =
+        response.data?.where((item) => item.idUser == remoteUserId).toList() ??
+        <ResponseLanguagePreferenceOrderOut>[];
+    final byLanguage = {for (final item in existing) item.idLanguage: item};
+
+    for (final item in existing) {
+      if (!syncLanguageIds.contains(item.idLanguage)) {
+        await api
+            .updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderDeleteIdentificatorDelete(
+              identificator: item.id,
+            );
+      }
+    }
+    for (var index = 0; index < syncLanguageIds.length; index++) {
+      final languageId = syncLanguageIds[index];
+      final existingItem = byLanguage[languageId];
+      if (existingItem == null) {
+        await api
+            .createResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderCreatePost(
+              responseLanguagePreferenceOrderCreate:
+                  ResponseLanguagePreferenceOrderCreate((builder) {
+                    builder
+                      ..preferenceOrder = index + 1
+                      ..idUser = remoteUserId
+                      ..idLanguage = languageId;
+                  }),
+            );
+      } else {
+        await api
+            .updateResponseLanguagePreferenceOrderApiV1UserConfigResponseResponseLanguagePreferenceOrderUpdateIdentificatorPut(
+              identificator: existingItem.id,
+              responseLanguagePreferenceOrderUpdate:
+                  ResponseLanguagePreferenceOrderUpdate(
+                    (builder) => builder.preferenceOrder = index + 1,
+                  ),
+            );
+      }
+    }
+  }
+
+  Future<List<String>> _resolveLanguageIds(List<String> languageIds) async {
+    final needsFallbackMapping = languageIds.any(
+      (id) =>
+          id == fallbackPortugueseLanguageId || id == fallbackEnglishLanguageId,
+    );
+    if (!needsFallbackMapping) return languageIds;
+
+    final response = await _ref
+        .read(apiClientProvider)
+        .getLanguageApi()
+        .listLanguagesApiV1UserConfigLanguageListGet();
+    final languages = response.data?.toList() ?? <LanguageOut>[];
+    return [
+      for (final id in languageIds)
+        if (id == fallbackPortugueseLanguageId)
+          _findLanguageId(languages, 'pt')
+        else if (id == fallbackEnglishLanguageId)
+          _findLanguageId(languages, 'en')
+        else
+          id,
+    ];
+  }
+
+  String _findLanguageId(List<LanguageOut> languages, String code) {
+    final match = languages.where((language) {
+      final normalized = language.name.toLowerCase();
+      return code == 'pt'
+          ? normalized.contains('portugu') || normalized.startsWith('pt')
+          : normalized.contains('english') ||
+                normalized.contains('inglês') ||
+                normalized.startsWith('en');
+    }).firstOrNull;
+    if (match == null) {
+      throw StateError(
+        'O idioma escolhido não está disponível na configuração da conta.',
+      );
+    }
+    return match.id;
+  }
+
+  Future<void> _acknowledgeSync({
+    required ConfigDao dao,
+    required String userId,
+    required Map<String, Object?> successful,
+    required Map<String, dynamic>? remotePreferences,
+  }) async {
+    final config = await dao.getConfigByUser(userId: userId);
+    if (config == null) {
+      throw StateError('Configuração local do usuário não encontrada.');
+    }
+    final local = decodeConfigPreferences(config.preferences);
+    final pending = _stringMap(local[_pendingPreferenceSyncKey]);
+    final base = remotePreferences == null
+        ? Map<String, dynamic>.from(local)
+        : Map<String, dynamic>.from(remotePreferences);
+
+    for (final entry in successful.entries) {
+      if (_sameJsonValue(pending[entry.key], entry.value)) {
+        pending.remove(entry.key);
+      }
+      base[entry.key] = entry.value;
+    }
+
+    for (final key in const [
+      _localConfigIdKey,
+      _localOverridesKey,
+      _localOnlyPreferencesKey,
+    ]) {
+      if (local.containsKey(key)) base[key] = local[key];
+    }
+    base[_pendingPreferenceSyncKey] = pending;
+    base.addAll(pending);
+    await dao.updateConfig(id: config.id, preferences: jsonEncode(base));
+  }
+
+  bool _sameJsonValue(Object? left, Object? right) =>
+      jsonEncode(left) == jsonEncode(right);
+}
+
+final configPreferenceSyncServiceProvider =
+    Provider<ConfigPreferenceSyncService>(ConfigPreferenceSyncService.new);
+
+final configPreferenceSyncLifecycleProvider = Provider<void>((ref) {
+  void syncIfConnected() {
+    if (ref.read(serverConnectionChecker).value != true) return;
+    unawaited(
+      ref.read(configPreferenceSyncServiceProvider).syncPending().catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        debugPrint('Falha ao sincronizar preferências: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      }),
+    );
+  }
+
+  ref.listen(configPreferenceSyncRequestProvider, (_, _) {
+    syncIfConnected();
+  });
+  ref.listen(serverConnectionChecker, (_, next) {
+    if (next.value == true) syncIfConnected();
+  });
+  final retryTimer = Timer.periodic(
+    const Duration(minutes: 2),
+    (_) => syncIfConnected(),
+  );
+  ref.onDispose(retryTimer.cancel);
+  syncIfConnected();
+});

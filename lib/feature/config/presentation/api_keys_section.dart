@@ -91,11 +91,14 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
   }
 
   Future<void> _createKey() async {
-    if (_providers.isEmpty) {
-      _message('Nenhum provedor de IA está disponível no momento.');
+    final availableProviders = _providers
+        .where((provider) => provider.isActive)
+        .toList(growable: false);
+    if (availableProviders.isEmpty) {
+      _message('Nenhum provedor ativo está disponível no momento.');
       return;
     }
-    final draft = await _editDialog(providers: _providers);
+    final draft = await _editDialog(providers: availableProviders);
     if (draft == null) return;
     setState(() => _saving = true);
     try {
@@ -118,8 +121,27 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
       if (response.data!.idUser != user.remoteId) {
         throw StateError('A chave criada não pertence ao usuário atual.');
       }
-      await _load();
-      _message('Chave adicionada. O segredo não é salvo neste dispositivo.');
+      try {
+        final enabledModelCount = await _allowAllProviderModels(
+          response.data!.id,
+          draft.providerId,
+        );
+        await _load();
+        _message(
+          enabledModelCount == 0
+              ? 'Chave adicionada. Não há modelos ativos para este provedor; '
+                    'o acesso pode ser configurado depois.'
+              : 'Chave adicionada com acesso aos $enabledModelCount modelos '
+                    'ativos do provedor. O segredo não é salvo neste dispositivo.',
+        );
+      } catch (_) {
+        await _load();
+        _message(
+          'A chave foi criada, mas não foi possível liberar todos os modelos. '
+          'Revise “Modelos permitidos” na chave.',
+        );
+        return;
+      }
     } catch (error) {
       _message(
         'Não foi possível adicionar a chave. Verifique o provedor e tente novamente.',
@@ -129,8 +151,57 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
     }
   }
 
+  Future<int> _allowAllProviderModels(
+    String apiKeyId,
+    String providerId,
+  ) async {
+    final models = await ref
+        .read(personalAiConfigurationServiceProvider)
+        .listModels();
+    final providerModels = models
+        .where((model) => model.providerId == providerId && model.isActive)
+        .toList();
+    if (providerModels.isEmpty) return 0;
+
+    final api = ref.read(apiClientProvider).getUserApiKeyCanUseIaModelApi();
+    final assignedResponse = await api
+        .listAgentModelApiV1AiUserApiKeyCanUseIaModelListGet(
+          idUserApiKey: apiKeyId,
+        );
+    final assignments = assignedResponse.data;
+    if (assignments == null) {
+      throw StateError('A API não retornou as permissões da chave.');
+    }
+
+    final assignedIds = assignments
+        .where((assignment) => assignment.idUserApiKey == apiKeyId)
+        .map((assignment) => assignment.idAiModel)
+        .toSet();
+    for (final model in providerModels) {
+      if (assignedIds.contains(model.id)) continue;
+      final response = await api
+          .createAgentModelApiV1AiUserApiKeyCanUseIaModelCreatePost(
+            userApiKeyCanUseIaModelCreate: UserApiKeyCanUseIaModelCreate(
+              (builder) => builder
+                ..idUserApiKey = apiKeyId
+                ..idAiModel = model.id,
+            ),
+          );
+      if (response.data?.idUserApiKey != apiKeyId ||
+          response.data?.idAiModel != model.id) {
+        throw StateError('A API não confirmou o acesso ao modelo.');
+      }
+    }
+    return providerModels.length;
+  }
+
   Future<void> _editKey(UserApiKeyOut key) async {
-    final draft = await _editDialog(providers: _providers, apiKey: key);
+    final availableProviders = _providers
+        .where(
+          (provider) => provider.isActive || provider.id == key.idAiProvider,
+        )
+        .toList(growable: false);
+    final draft = await _editDialog(providers: availableProviders, apiKey: key);
     if (draft == null) return;
     setState(() => _saving = true);
     try {
@@ -278,37 +349,50 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.outline,
                 ),
-                title: Text(key.name),
+                title: Text(
+                  key.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(
                   '${_providers.where((provider) => provider.id == key.idAiProvider).firstOrNull?.displayName ?? 'Provedor'}'
                   ' · ${key.isActive ? 'Ativa' : 'Desativada'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                trailing: PopupMenuButton<String>(
-                  enabled: !_saving,
-                  onSelected: (action) {
-                    if (action == 'toggle') {
-                      _setActive(key, !key.isActive);
-                    } else if (action == 'edit') {
-                      _editKey(key);
-                    } else if (action == 'models') {
-                      _manageModels(key);
-                    } else if (action == 'delete') {
-                      _deleteKey(key);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'toggle',
-                      child: Text(key.isActive ? 'Desativar' : 'Ativar'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Modelos permitidos',
+                      onPressed: _saving ? null : () => _manageModels(key),
+                      icon: const Icon(Icons.tune_rounded),
                     ),
-                    const PopupMenuItem(value: 'edit', child: Text('Editar')),
-                    const PopupMenuItem(
-                      value: 'models',
-                      child: Text('Modelos permitidos'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Remover'),
+                    PopupMenuButton<String>(
+                      enabled: !_saving,
+                      onSelected: (action) {
+                        if (action == 'toggle') {
+                          _setActive(key, !key.isActive);
+                        } else if (action == 'edit') {
+                          _editKey(key);
+                        } else if (action == 'delete') {
+                          _deleteKey(key);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'toggle',
+                          child: Text(key.isActive ? 'Desativar' : 'Ativar'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Text('Editar'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Remover'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -319,7 +403,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
   }
 
   Future<void> _manageModels(UserApiKeyOut key) async {
-    await showDialog<void>(
+    final saved = await showDialog<bool>(
       context: context,
       builder: (context) => _ModelAccessDialog(
         apiKeyId: key.id,
@@ -327,6 +411,9 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
         apiKeyName: key.name,
       ),
     );
+    if (saved == true) {
+      _message('Permissões de modelos atualizadas.');
+    }
   }
 
   Future<void> _setActive(UserApiKeyOut key, bool isActive) async {
@@ -367,12 +454,73 @@ class _ModelAccessDialog extends ConsumerStatefulWidget {
 }
 
 class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
+  final TextEditingController _searchController = TextEditingController();
   List<PersonalAiModel> _models = [];
   Map<String, String> _assignedIds = {};
   Set<String> _selectedIds = {};
+  String _searchQuery = '';
   bool _loading = true;
   bool _saving = false;
   String? _error;
+
+  int get _selectedActiveCount => _models
+      .where((model) => model.isActive && _selectedIds.contains(model.id))
+      .length;
+
+  int get _selectedInactiveCount => _models
+      .where((model) => !model.isActive && _selectedIds.contains(model.id))
+      .length;
+
+  int get _activeModelCount => _models.where((model) => model.isActive).length;
+
+  bool get _allActiveSelected =>
+      _activeModelCount > 0 && _selectedActiveCount == _activeModelCount;
+
+  bool get _hasChanges =>
+      _selectedIds.length != _assignedIds.length ||
+      !_selectedIds.containsAll(_assignedIds.keys);
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleAllActive() {
+    setState(() {
+      final activeIds = _models
+          .where((model) => model.isActive)
+          .map((model) => model.id)
+          .toSet();
+      if (_allActiveSelected) {
+        _selectedIds.removeAll(activeIds);
+      } else {
+        _selectedIds.addAll(activeIds);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(_selectedIds.clear);
+  }
+
+  void _invertActiveSelection() {
+    setState(() {
+      for (final model in _models.where((model) => model.isActive)) {
+        if (!_selectedIds.add(model.id)) _selectedIds.remove(model.id);
+      }
+    });
+  }
+
+  void _setModelSelected(String modelId, bool selected) {
+    setState(() {
+      if (selected) {
+        _selectedIds.add(modelId);
+      } else {
+        _selectedIds.remove(modelId);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -399,9 +547,16 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
       if (assignments == null) {
         throw StateError('A API não retornou os modelos desta chave.');
       }
-      final providerModels = models
-          .where((model) => model.providerId == widget.providerId)
-          .toList();
+      final providerModels =
+          models
+              .where((model) => model.providerId == widget.providerId)
+              .toList()
+            ..sort((a, b) {
+              if (a.isActive != b.isActive) return a.isActive ? -1 : 1;
+              return a.displayName.toLowerCase().compareTo(
+                b.displayName.toLowerCase(),
+              );
+            });
       final scopedAssignments = assignments
           .where((assignment) => assignment.idUserApiKey == widget.apiKeyId)
           .where(
@@ -453,12 +608,13 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                   ..idAiModel = modelId,
               ),
             );
-        if (response.data?.idUserApiKey != widget.apiKeyId) {
+        if (response.data?.idUserApiKey != widget.apiKeyId ||
+            response.data?.idAiModel != modelId) {
           throw StateError('A API não confirmou a permissão do modelo.');
         }
       }
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -472,10 +628,23 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedQuery = _searchQuery.trim().toLowerCase();
+    final visibleModels = _models
+        .where(
+          (model) =>
+              normalizedQuery.isEmpty ||
+              model.displayName.toLowerCase().contains(normalizedQuery) ||
+              model.slug.toLowerCase().contains(normalizedQuery),
+        )
+        .toList();
+    final activeProgress = _activeModelCount == 0
+        ? 0.0
+        : _selectedActiveCount / _activeModelCount;
+
     return AlertDialog(
       title: Text('Modelos para ${widget.apiKeyName}'),
       content: SizedBox(
-        width: 440,
+        width: 520,
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
@@ -493,36 +662,136 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                 ],
               )
             : _models.isEmpty
-            ? const Text('Este provedor não possui modelos ativos.')
+            ? const Text('Nenhum modelo foi cadastrado para este provedor.')
             : Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Selecione os modelos que podem usar esta chave.'),
+                  Text(
+                    '$_selectedActiveCount de $_activeModelCount modelos ativos selecionados',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  if (_selectedInactiveCount > 0) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_selectedInactiveCount modelo(s) inativo(s) ainda com acesso. '
+                      'Desmarque para revogar.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                   const SizedBox(height: 8),
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        for (final model in _models)
-                          CheckboxListTile(
-                            value: _selectedIds.contains(model.id),
-                            title: Text(model.displayName),
-                            subtitle: Text(model.slug),
-                            onChanged: _saving
-                                ? null
-                                : (selected) {
-                                    setState(() {
-                                      if (selected == true) {
-                                        _selectedIds.add(model.id);
-                                      } else {
-                                        _selectedIds.remove(model.id);
-                                      }
-                                    });
-                                  },
-                          ),
-                      ],
+                  LinearProgressIndicator(value: activeProgress),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: InputDecoration(
+                      labelText: 'Buscar modelo',
+                      hintText: 'Nome ou identificador',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Limpar busca',
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                      isDense: true,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: _saving || _activeModelCount == 0
+                            ? null
+                            : _toggleAllActive,
+                        icon: Icon(
+                          _allActiveSelected
+                              ? Icons.deselect
+                              : Icons.select_all,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _allActiveSelected
+                              ? 'Desmarcar ativos'
+                              : 'Selecionar todos',
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _saving || _activeModelCount == 0
+                            ? null
+                            : _invertActiveSelection,
+                        icon: const Icon(Icons.swap_vert_rounded, size: 18),
+                        label: const Text('Inverter ativos'),
+                      ),
+                      TextButton.icon(
+                        onPressed: _saving || _selectedIds.isEmpty
+                            ? null
+                            : _clearSelection,
+                        icon: const Icon(Icons.deselect, size: 18),
+                        label: const Text('Limpar'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (visibleModels.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'Nenhum modelo encontrado para “$_searchQuery”.',
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: visibleModels.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final model = visibleModels[index];
+                          final isSelected = _selectedIds.contains(model.id);
+                          return CheckboxListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: isSelected,
+                            title: Text(model.displayName),
+                            subtitle: Text(
+                              model.isActive
+                                  ? model.slug
+                                  : '${model.slug} · Inativo',
+                            ),
+                            secondary: model.supportsVision
+                                ? const Tooltip(
+                                    message: 'Suporta imagens',
+                                    child: Icon(Icons.visibility_outlined),
+                                  )
+                                : null,
+                            onChanged:
+                                _saving || (!model.isActive && !isSelected)
+                                ? null
+                                : (selected) => _setModelSelected(
+                                    model.id,
+                                    selected == true,
+                                  ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
       ),
@@ -533,7 +802,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
         ),
         if (!_loading && _error == null && _models.isNotEmpty)
           FilledButton(
-            onPressed: _saving ? null : _save,
+            onPressed: _saving || !_hasChanges ? null : _save,
             child: _saving
                 ? const SizedBox.square(
                     dimension: 18,
@@ -670,6 +939,27 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
                     ? 'Informe uma chave para o novo provedor.'
                     : null,
               ),
+              if (!editing) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Ao adicionar, todos os modelos ativos deste provedor '
+                        'serão liberados para a chave. Você pode ajustar isso depois.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Ativa'),
