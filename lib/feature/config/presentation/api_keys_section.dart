@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/config/data/personal_ai_configuration_service.dart';
+import 'package:noema/feature/config/presentation/shared_ai_api_keys_section.dart';
 import 'package:noema/feature/config/providers/config_refresh_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
@@ -239,18 +241,18 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remover chave de API?'),
+        title: const RuntimeLocalizedText('Remover chave de API?'),
         content: Text(
           'A chave “${key.name}” deixará de estar disponível para este app.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remover'),
+            child: const RuntimeLocalizedText('Remover'),
           ),
         ],
       ),
@@ -309,7 +311,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
           OutlinedButton.icon(
             onPressed: _loadIfConnected,
             icon: const Icon(Icons.refresh),
-            label: const Text('Tentar novamente'),
+            label: const RuntimeLocalizedText('Tentar novamente'),
           ),
         ],
       );
@@ -329,14 +331,14 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
           child: FilledButton.icon(
             onPressed: _saving ? null : _createKey,
             icon: const Icon(Icons.add),
-            label: const Text('Adicionar chave'),
+            label: const RuntimeLocalizedText('Adicionar chave'),
           ),
         ),
         if (_saving) const LinearProgressIndicator(),
         if (_keys.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
-            child: Text('Nenhuma chave de API configurada.'),
+            child: RuntimeLocalizedText('Nenhuma chave de API configurada.'),
           )
         else
           for (final key in _keys)
@@ -386,11 +388,11 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
                         ),
                         const PopupMenuItem(
                           value: 'edit',
-                          child: Text('Editar'),
+                          child: RuntimeLocalizedText('Editar'),
                         ),
                         const PopupMenuItem(
                           value: 'delete',
-                          child: Text('Remover'),
+                          child: RuntimeLocalizedText('Remover'),
                         ),
                       ],
                     ),
@@ -398,6 +400,15 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
                 ),
               ),
             ),
+        const SizedBox(height: 24),
+        const Divider(),
+        const SizedBox(height: 16),
+        Text(
+          'Chaves compartilhadas do servidor',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        SharedAiApiKeysSection(providers: _providers),
       ],
     );
   }
@@ -642,7 +653,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
         : _selectedActiveCount / _activeModelCount;
 
     return AlertDialog(
-      title: Text('Modelos para ${widget.apiKeyName}'),
+      title: RuntimeLocalizedText('Modelos para ${widget.apiKeyName}'),
       content: SizedBox(
         width: 520,
         child: _loading
@@ -657,12 +668,14 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                   TextButton.icon(
                     onPressed: _saving ? null : _load,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Recarregar'),
+                    label: const RuntimeLocalizedText('Recarregar'),
                   ),
                 ],
               )
             : _models.isEmpty
-            ? const Text('Nenhum modelo foi cadastrado para este provedor.')
+            ? const RuntimeLocalizedText(
+                'Nenhum modelo foi cadastrado para este provedor.',
+              )
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -729,14 +742,14 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                             ? null
                             : _invertActiveSelection,
                         icon: const Icon(Icons.swap_vert_rounded, size: 18),
-                        label: const Text('Inverter ativos'),
+                        label: const RuntimeLocalizedText('Inverter ativos'),
                       ),
                       TextButton.icon(
                         onPressed: _saving || _selectedIds.isEmpty
                             ? null
                             : _clearSelection,
                         icon: const Icon(Icons.deselect, size: 18),
-                        label: const Text('Limpar'),
+                        label: const RuntimeLocalizedText('Limpar'),
                       ),
                     ],
                   ),
@@ -798,7 +811,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
       actions: [
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         if (!_loading && _error == null && _models.isNotEmpty)
           FilledButton(
@@ -808,7 +821,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                     dimension: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Salvar permissões'),
+                : const RuntimeLocalizedText('Salvar permissões'),
           ),
       ],
     );
@@ -889,7 +902,9 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
                   ))
                     DropdownMenuItem(
                       value: _providerId,
-                      child: const Text('Provedor atual (indisponível)'),
+                      child: const RuntimeLocalizedText(
+                        'Provedor atual (indisponível)',
+                      ),
                     ),
                   ...widget.providers.map(
                     (provider) => DropdownMenuItem(
@@ -962,7 +977,7 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
               ],
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Ativa'),
+                title: const RuntimeLocalizedText('Ativa'),
                 value: _isActive,
                 onChanged: (value) => setState(() => _isActive = value),
               ),
@@ -973,7 +988,7 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         FilledButton(
           onPressed: _submit,

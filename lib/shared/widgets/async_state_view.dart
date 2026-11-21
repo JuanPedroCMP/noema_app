@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 
 class AppLoadingView extends StatelessWidget {
@@ -61,16 +62,19 @@ class AppErrorView extends StatelessWidget {
                 ),
               ),
               SizedBox(height: spacing.md),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
               SizedBox(height: spacing.md),
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Tentar novamente'),
+                label: const RuntimeLocalizedText('Tentar novamente'),
               ),
             ],
           ),
@@ -121,10 +125,13 @@ class AppEmptyView extends StatelessWidget {
                 ),
               ),
               SizedBox(height: spacing.md),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
+              Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
               ),
               SizedBox(height: spacing.sm),
               Text(

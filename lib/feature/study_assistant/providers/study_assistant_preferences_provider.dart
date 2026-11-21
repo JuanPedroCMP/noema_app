@@ -35,10 +35,7 @@ class StudyAssistantPreferencesNotifier
       learningGoal: learningGoal is String ? learningGoal : '',
       pinPanel: pinPanel is bool ? pinPanel : false,
       responseStyle: StudyAssistantResponseStyle.fromPreference(
-        readConfigPreference(
-          config.preferences,
-          'studyAssistantResponseStyle',
-        ),
+        readConfigPreference(config.preferences, 'studyAssistantResponseStyle'),
       ),
       sendOnEnter: sendOnEnter is bool ? sendOnEnter : false,
     );
@@ -103,7 +100,8 @@ class StudyAssistantPreferencesNotifier
   }
 }
 
-final studyAssistantSettingsProvider = AsyncNotifierProvider<
-  StudyAssistantPreferencesNotifier,
-  StudyAssistantSettings
->(StudyAssistantPreferencesNotifier.new);
+final studyAssistantSettingsProvider =
+    AsyncNotifierProvider<
+      StudyAssistantPreferencesNotifier,
+      StudyAssistantSettings
+    >(StudyAssistantPreferencesNotifier.new);

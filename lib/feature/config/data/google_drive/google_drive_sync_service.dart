@@ -85,7 +85,10 @@ class DriveSyncPreview {
     required String remoteDataHash,
     required String? localInstallationId,
     required String? remoteInstallationId,
+    required int conflictCount,
   }) {
+    if (conflictCount == 0) return DriveSyncResolution.merge;
+
     if (lastSyncedDataHash == null || lastSyncedDataHash.isEmpty) {
       // This install created the remote snapshot, so only its local state has
       // diverged since that snapshot.
@@ -245,12 +248,10 @@ class GoogleDriveSyncService {
         .read(apiClientProvider)
         .getGoogleDriveSyncApi()
         .listSyncLogApiV1GoogleDriveSyncLogListGet(
-          filters: SyncLogFilters(
-            (builder) {
-              builder.idGoogleAccount = accountId;
-              if (deviceId != null) builder.idDevice = deviceId;
-            },
-          ),
+          filters: SyncLogFilters((builder) {
+            builder.idGoogleAccount = accountId;
+            if (deviceId != null) builder.idDevice = deviceId;
+          }),
           limit: 100,
           offset: 0,
         );
@@ -275,8 +276,11 @@ class GoogleDriveSyncService {
       (entry) =>
           entry.idDevice == deviceId &&
           entry.result == SyncResult.success &&
-          const {'backup_created', 'backup_updated', 'sync_completed'}
-              .contains(entry.event),
+          const {
+            'backup_created',
+            'backup_updated',
+            'sync_completed',
+          }.contains(entry.event),
     );
     return latestSync.firstOrNull;
   }
@@ -458,10 +462,10 @@ class GoogleDriveSyncService {
               ]),
               localDataHash: local.dataHash,
               remoteDataHash: remote.dataHash,
-              localInstallationId:
-                  local.manifest['installation_id'] as String?,
+              localInstallationId: local.manifest['installation_id'] as String?,
               remoteInstallationId:
                   remote.manifest['installation_id'] as String?,
+              conflictCount: diff.conflicts,
             );
 
       final preview = DriveSyncPreview(

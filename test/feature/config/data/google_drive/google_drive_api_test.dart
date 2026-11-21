@@ -36,8 +36,7 @@ void main() {
                     'appProperties': {
                       'noema_local_ref': 'primary-snapshot',
                       'noema_snapshot_version': 'snapshot-2',
-                      'noema_content_hash':
-                          'sha256:${sha256.convert(bytes)}',
+                      'noema_content_hash': 'sha256:${sha256.convert(bytes)}',
                     },
                   },
                 ),

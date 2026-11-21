@@ -49,6 +49,13 @@ class TypographyThemeController {
     required int fontScale,
   }) async {
     _validate(name, fontScale);
+    final user = await ref.read(userProvider.notifier).getUser();
+    if (theme.userId != user.id) {
+      throw StateError('Tema de tipografia não encontrado.');
+    }
+    if (theme.systemDefault) {
+      throw StateError('A tipografia padrão do Noema não pode ser alterada.');
+    }
     final db = ref.read(appDatabaseProvider);
     await TypographyThemeDao(db).updateTypographyTheme(
       id: theme.id,

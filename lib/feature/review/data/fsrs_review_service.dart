@@ -63,13 +63,13 @@ class FsrsReviewService {
     required String itemId,
     DateTime? now,
   }) async {
-    final state = await (_database.select(_database.reviewItemState)
-          ..where(
-            (row) =>
-                row.itemType.equals(itemType.databaseValue) &
-                row.itemId.equals(itemId),
-          ))
-        .getSingleOrNull();
+    final state =
+        await (_database.select(_database.reviewItemState)..where(
+              (row) =>
+                  row.itemType.equals(itemType.databaseValue) &
+                  row.itemId.equals(itemId),
+            ))
+            .getSingleOrNull();
     if (state == null) return true;
     final nowSeconds = (now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
     return state.nextReviewAt <= nowSeconds;
@@ -106,12 +106,13 @@ class FsrsReviewService {
 
     late FsrsReviewResult result;
     await _database.transaction(() async {
-      final existing = await (_database.select(stateTable)..where(
-            (row) =>
-                row.itemType.equals(itemType.databaseValue) &
-                row.itemId.equals(itemId),
-          ))
-          .getSingleOrNull();
+      final existing =
+          await (_database.select(stateTable)..where(
+                (row) =>
+                    row.itemType.equals(itemType.databaseValue) &
+                    row.itemId.equals(itemId),
+              ))
+              .getSingleOrNull();
       if (existing != null && existing.nodeId != nodeId) {
         throw StateError('O item de revisão não pertence ao nó informado.');
       }
@@ -122,10 +123,7 @@ class FsrsReviewService {
       final scheduler = _schedulerFor(itemType);
       final beforeRetrievability = card.lastReview == null
           ? null
-          : scheduler.getCardRetrievability(
-              card,
-              currentDateTime: reviewTime,
-            );
+          : scheduler.getCardRetrievability(card, currentDateTime: reviewTime);
       final scheduled = scheduler.reviewCard(
         card,
         rating,
@@ -139,28 +137,28 @@ class FsrsReviewService {
           .clamp(0, 36500);
 
       if (existing == null) {
-        await _database.into(stateTable).insert(
-          ReviewItemStateCompanion.insert(
-            id: stateId,
-            nodeId: nodeId,
-            itemType: itemType.databaseValue,
-            itemId: itemId,
-            cardStateJson: jsonEncode(scheduled.card.toMap()),
-            nextReviewAt: nextDue.millisecondsSinceEpoch ~/ 1000,
-          ),
-        );
-      } else {
-        await (_database.update(stateTable)
-              ..where((row) => row.id.equals(existing.id)))
-            .write(
-              ReviewItemStateCompanion(
-                cardStateJson: Value(jsonEncode(scheduled.card.toMap())),
-                nextReviewAt: Value(
-                  nextDue.millisecondsSinceEpoch ~/ 1000,
-                ),
-                updatedAt: Value(nowSeconds),
+        await _database
+            .into(stateTable)
+            .insert(
+              ReviewItemStateCompanion.insert(
+                id: stateId,
+                nodeId: nodeId,
+                itemType: itemType.databaseValue,
+                itemId: itemId,
+                cardStateJson: jsonEncode(scheduled.card.toMap()),
+                nextReviewAt: nextDue.millisecondsSinceEpoch ~/ 1000,
               ),
             );
+      } else {
+        await (_database.update(
+          stateTable,
+        )..where((row) => row.id.equals(existing.id))).write(
+          ReviewItemStateCompanion(
+            cardStateJson: Value(jsonEncode(scheduled.card.toMap())),
+            nextReviewAt: Value(nextDue.millisecondsSinceEpoch ~/ 1000),
+            updatedAt: Value(nowSeconds),
+          ),
+        );
       }
 
       await DomainMasteryService(_database).recordReview(
@@ -179,20 +177,22 @@ class FsrsReviewService {
             },
       );
 
-      await _database.into(logTable).insert(
-        ReviewItemLogCompanion.insert(
-          id: const Uuid().v4(),
-          reviewItemStateId: existing?.id ?? stateId,
-          rating: rating.value,
-          durationSeconds: Value(durationSeconds),
-          score: Value(score),
-          reviewMethod: method.databaseValue,
-          sourceResponseId: Value(sourceResponseId),
-          retrievability: Value(beforeRetrievability),
-          scheduledDays: Value(scheduledDays),
-          reviewedAt: Value(nowSeconds),
-        ),
-      );
+      await _database
+          .into(logTable)
+          .insert(
+            ReviewItemLogCompanion.insert(
+              id: const Uuid().v4(),
+              reviewItemStateId: existing?.id ?? stateId,
+              rating: rating.value,
+              durationSeconds: Value(durationSeconds),
+              score: Value(score),
+              reviewMethod: method.databaseValue,
+              sourceResponseId: Value(sourceResponseId),
+              retrievability: Value(beforeRetrievability),
+              scheduledDays: Value(scheduledDays),
+              reviewedAt: Value(nowSeconds),
+            ),
+          );
 
       result = FsrsReviewResult(
         dueAt: nextDue,

@@ -4515,7 +4515,7 @@ class AiBackgroundTask extends Table
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     $customConstraints:
-        'NOT NULL CHECK (task_type IN (\'NODE_DESCRIPTION\', \'OPEN_ENDED_CORRECTION\', \'MULTIPLE_CHOICE_CORRECTION\'))',
+        'NOT NULL CHECK (task_type IN (\'NODE_DESCRIPTION\', \'OPEN_ENDED_CORRECTION\', \'MULTIPLE_CHOICE_CORRECTION\', \'STUDY_PACK\'))',
   );
   static const VerificationMeta _subjectIdMeta = const VerificationMeta(
     'subjectId',
@@ -4527,6 +4527,19 @@ class AiBackgroundTask extends Table
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'NOT NULL DEFAULT \'{}\' CHECK (json_valid(payload_json))',
+    defaultValue: const CustomExpression('\'{}\''),
   );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -4603,6 +4616,7 @@ class AiBackgroundTask extends Table
     nodeId,
     taskType,
     subjectId,
+    payloadJson,
     status,
     attemptCount,
     nextAttemptAt,
@@ -4647,6 +4661,15 @@ class AiBackgroundTask extends Table
       context.handle(
         _subjectIdMeta,
         subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
       );
     }
     if (data.containsKey('status')) {
@@ -4716,6 +4739,10 @@ class AiBackgroundTask extends Table
         DriftSqlType.string,
         data['${effectivePrefix}subject_id'],
       ),
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -4758,6 +4785,7 @@ class AiBackgroundTaskData extends DataClass
   final String nodeId;
   final String taskType;
   final String? subjectId;
+  final String payloadJson;
   final String status;
   final int attemptCount;
   final int? nextAttemptAt;
@@ -4769,6 +4797,7 @@ class AiBackgroundTaskData extends DataClass
     required this.nodeId,
     required this.taskType,
     this.subjectId,
+    required this.payloadJson,
     required this.status,
     required this.attemptCount,
     this.nextAttemptAt,
@@ -4785,6 +4814,7 @@ class AiBackgroundTaskData extends DataClass
     if (!nullToAbsent || subjectId != null) {
       map['subject_id'] = Variable<String>(subjectId);
     }
+    map['payload_json'] = Variable<String>(payloadJson);
     map['status'] = Variable<String>(status);
     map['attempt_count'] = Variable<int>(attemptCount);
     if (!nullToAbsent || nextAttemptAt != null) {
@@ -4806,6 +4836,7 @@ class AiBackgroundTaskData extends DataClass
       subjectId: subjectId == null && nullToAbsent
           ? const Value.absent()
           : Value(subjectId),
+      payloadJson: Value(payloadJson),
       status: Value(status),
       attemptCount: Value(attemptCount),
       nextAttemptAt: nextAttemptAt == null && nullToAbsent
@@ -4829,6 +4860,7 @@ class AiBackgroundTaskData extends DataClass
       nodeId: serializer.fromJson<String>(json['node_id']),
       taskType: serializer.fromJson<String>(json['task_type']),
       subjectId: serializer.fromJson<String?>(json['subject_id']),
+      payloadJson: serializer.fromJson<String>(json['payload_json']),
       status: serializer.fromJson<String>(json['status']),
       attemptCount: serializer.fromJson<int>(json['attempt_count']),
       nextAttemptAt: serializer.fromJson<int?>(json['next_attempt_at']),
@@ -4845,6 +4877,7 @@ class AiBackgroundTaskData extends DataClass
       'node_id': serializer.toJson<String>(nodeId),
       'task_type': serializer.toJson<String>(taskType),
       'subject_id': serializer.toJson<String?>(subjectId),
+      'payload_json': serializer.toJson<String>(payloadJson),
       'status': serializer.toJson<String>(status),
       'attempt_count': serializer.toJson<int>(attemptCount),
       'next_attempt_at': serializer.toJson<int?>(nextAttemptAt),
@@ -4859,6 +4892,7 @@ class AiBackgroundTaskData extends DataClass
     String? nodeId,
     String? taskType,
     Value<String?> subjectId = const Value.absent(),
+    String? payloadJson,
     String? status,
     int? attemptCount,
     Value<int?> nextAttemptAt = const Value.absent(),
@@ -4870,6 +4904,7 @@ class AiBackgroundTaskData extends DataClass
     nodeId: nodeId ?? this.nodeId,
     taskType: taskType ?? this.taskType,
     subjectId: subjectId.present ? subjectId.value : this.subjectId,
+    payloadJson: payloadJson ?? this.payloadJson,
     status: status ?? this.status,
     attemptCount: attemptCount ?? this.attemptCount,
     nextAttemptAt: nextAttemptAt.present
@@ -4885,6 +4920,9 @@ class AiBackgroundTaskData extends DataClass
       nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
       taskType: data.taskType.present ? data.taskType.value : this.taskType,
       subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
       status: data.status.present ? data.status.value : this.status,
       attemptCount: data.attemptCount.present
           ? data.attemptCount.value
@@ -4905,6 +4943,7 @@ class AiBackgroundTaskData extends DataClass
           ..write('nodeId: $nodeId, ')
           ..write('taskType: $taskType, ')
           ..write('subjectId: $subjectId, ')
+          ..write('payloadJson: $payloadJson, ')
           ..write('status: $status, ')
           ..write('attemptCount: $attemptCount, ')
           ..write('nextAttemptAt: $nextAttemptAt, ')
@@ -4921,6 +4960,7 @@ class AiBackgroundTaskData extends DataClass
     nodeId,
     taskType,
     subjectId,
+    payloadJson,
     status,
     attemptCount,
     nextAttemptAt,
@@ -4936,6 +4976,7 @@ class AiBackgroundTaskData extends DataClass
           other.nodeId == this.nodeId &&
           other.taskType == this.taskType &&
           other.subjectId == this.subjectId &&
+          other.payloadJson == this.payloadJson &&
           other.status == this.status &&
           other.attemptCount == this.attemptCount &&
           other.nextAttemptAt == this.nextAttemptAt &&
@@ -4949,6 +4990,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
   final Value<String> nodeId;
   final Value<String> taskType;
   final Value<String?> subjectId;
+  final Value<String> payloadJson;
   final Value<String> status;
   final Value<int> attemptCount;
   final Value<int?> nextAttemptAt;
@@ -4961,6 +5003,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
     this.nodeId = const Value.absent(),
     this.taskType = const Value.absent(),
     this.subjectId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
     this.status = const Value.absent(),
     this.attemptCount = const Value.absent(),
     this.nextAttemptAt = const Value.absent(),
@@ -4974,6 +5017,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
     required String nodeId,
     required String taskType,
     this.subjectId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
     this.status = const Value.absent(),
     this.attemptCount = const Value.absent(),
     this.nextAttemptAt = const Value.absent(),
@@ -4989,6 +5033,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
     Expression<String>? nodeId,
     Expression<String>? taskType,
     Expression<String>? subjectId,
+    Expression<String>? payloadJson,
     Expression<String>? status,
     Expression<int>? attemptCount,
     Expression<int>? nextAttemptAt,
@@ -5002,6 +5047,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
       if (nodeId != null) 'node_id': nodeId,
       if (taskType != null) 'task_type': taskType,
       if (subjectId != null) 'subject_id': subjectId,
+      if (payloadJson != null) 'payload_json': payloadJson,
       if (status != null) 'status': status,
       if (attemptCount != null) 'attempt_count': attemptCount,
       if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
@@ -5017,6 +5063,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
     Value<String>? nodeId,
     Value<String>? taskType,
     Value<String?>? subjectId,
+    Value<String>? payloadJson,
     Value<String>? status,
     Value<int>? attemptCount,
     Value<int?>? nextAttemptAt,
@@ -5030,6 +5077,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
       nodeId: nodeId ?? this.nodeId,
       taskType: taskType ?? this.taskType,
       subjectId: subjectId ?? this.subjectId,
+      payloadJson: payloadJson ?? this.payloadJson,
       status: status ?? this.status,
       attemptCount: attemptCount ?? this.attemptCount,
       nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
@@ -5054,6 +5102,9 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
     }
     if (subjectId.present) {
       map['subject_id'] = Variable<String>(subjectId.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -5086,6 +5137,7 @@ class AiBackgroundTaskCompanion extends UpdateCompanion<AiBackgroundTaskData> {
           ..write('nodeId: $nodeId, ')
           ..write('taskType: $taskType, ')
           ..write('subjectId: $subjectId, ')
+          ..write('payloadJson: $payloadJson, ')
           ..write('status: $status, ')
           ..write('attemptCount: $attemptCount, ')
           ..write('nextAttemptAt: $nextAttemptAt, ')
@@ -20820,6 +20872,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'ai_background_task_subject_task_uq',
     'CREATE UNIQUE INDEX ai_background_task_subject_task_uq ON ai_background_task (subject_id, task_type) WHERE subject_id IS NOT NULL',
   );
+  late final Index aiBackgroundTaskActivePackUq = Index(
+    'ai_background_task_active_pack_uq',
+    'CREATE UNIQUE INDEX ai_background_task_active_pack_uq ON ai_background_task (node_id) WHERE task_type = \'STUDY_PACK\' AND status IN (\'PENDING\', \'RUNNING\', \'RETRY_WAIT\')',
+  );
   late final GraphEdge graphEdge = GraphEdge(this);
   late final NodeSkill nodeSkill = NodeSkill(this);
   late final LearningResource learningResource = LearningResource(this);
@@ -21070,6 +21126,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     aiBackgroundTaskStatusNextAttemptIdx,
     aiBackgroundTaskNodeDescriptionUq,
     aiBackgroundTaskSubjectTaskUq,
+    aiBackgroundTaskActivePackUq,
     graphEdge,
     nodeSkill,
     learningResource,
@@ -26818,6 +26875,7 @@ typedef $AiBackgroundTaskCreateCompanionBuilder =
       required String nodeId,
       required String taskType,
       Value<String?> subjectId,
+      Value<String> payloadJson,
       Value<String> status,
       Value<int> attemptCount,
       Value<int?> nextAttemptAt,
@@ -26832,6 +26890,7 @@ typedef $AiBackgroundTaskUpdateCompanionBuilder =
       Value<String> nodeId,
       Value<String> taskType,
       Value<String?> subjectId,
+      Value<String> payloadJson,
       Value<String> status,
       Value<int> attemptCount,
       Value<int?> nextAttemptAt,
@@ -26885,6 +26944,11 @@ class $AiBackgroundTaskFilterComposer
 
   ColumnFilters<String> get subjectId => $composableBuilder(
     column: $table.subjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26966,6 +27030,11 @@ class $AiBackgroundTaskOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -27037,6 +27106,11 @@ class $AiBackgroundTaskAnnotationComposer
 
   GeneratedColumn<String> get subjectId =>
       $composableBuilder(column: $table.subjectId, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -27116,6 +27190,7 @@ class $AiBackgroundTaskTableManager
                 Value<String> nodeId = const Value.absent(),
                 Value<String> taskType = const Value.absent(),
                 Value<String?> subjectId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<int> attemptCount = const Value.absent(),
                 Value<int?> nextAttemptAt = const Value.absent(),
@@ -27128,6 +27203,7 @@ class $AiBackgroundTaskTableManager
                 nodeId: nodeId,
                 taskType: taskType,
                 subjectId: subjectId,
+                payloadJson: payloadJson,
                 status: status,
                 attemptCount: attemptCount,
                 nextAttemptAt: nextAttemptAt,
@@ -27142,6 +27218,7 @@ class $AiBackgroundTaskTableManager
                 required String nodeId,
                 required String taskType,
                 Value<String?> subjectId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<int> attemptCount = const Value.absent(),
                 Value<int?> nextAttemptAt = const Value.absent(),
@@ -27154,6 +27231,7 @@ class $AiBackgroundTaskTableManager
                 nodeId: nodeId,
                 taskType: taskType,
                 subjectId: subjectId,
+                payloadJson: payloadJson,
                 status: status,
                 attemptCount: attemptCount,
                 nextAttemptAt: nextAttemptAt,

@@ -60,24 +60,15 @@ abstract class AppSpacing with _$AppSpacing {
 class AppSpacingTheme extends ThemeExtension<AppSpacingTheme> {
   final AppSpacing spacing;
 
-  const AppSpacingTheme({
-    required this.spacing,
-  });
+  const AppSpacingTheme({required this.spacing});
 
   @override
-  AppSpacingTheme copyWith({
-    AppSpacing? spacing,
-  }) {
-    return AppSpacingTheme(
-      spacing: spacing ?? this.spacing,
-    );
+  AppSpacingTheme copyWith({AppSpacing? spacing}) {
+    return AppSpacingTheme(spacing: spacing ?? this.spacing);
   }
 
   @override
-  AppSpacingTheme lerp(
-    ThemeExtension<AppSpacingTheme>? other,
-    double t,
-  ) {
+  AppSpacingTheme lerp(ThemeExtension<AppSpacingTheme>? other, double t) {
     if (other is! AppSpacingTheme) {
       return this;
     }

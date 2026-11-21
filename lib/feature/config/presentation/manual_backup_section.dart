@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/data/google_drive/local_snapshot.dart';
@@ -229,13 +230,13 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
           identical
               ? 'Este backup já contém os mesmos dados. Nada foi alterado.'
               : switch (strategy) {
-                ManualBackupStrategy.keepLocal =>
-                  'Seus dados neste dispositivo foram mantidos.',
-                ManualBackupStrategy.keepRemote =>
-                  'Os dados do arquivo foram restaurados neste dispositivo.',
-                ManualBackupStrategy.merge =>
-                  'Os dados do arquivo foram mesclados com os dados locais.',
-              },
+                  ManualBackupStrategy.keepLocal =>
+                    'Seus dados neste dispositivo foram mantidos.',
+                  ManualBackupStrategy.keepRemote =>
+                    'Os dados do arquivo foram restaurados neste dispositivo.',
+                  ManualBackupStrategy.merge =>
+                    'Os dados do arquivo foram mesclados com os dados locais.',
+                },
         );
       }
     } on Object catch (error) {
@@ -267,7 +268,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Desbloquear backup'),
+        title: const RuntimeLocalizedText('Desbloquear backup'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -277,11 +278,11 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Desbloquear'),
+            child: const RuntimeLocalizedText('Desbloquear'),
           ),
         ],
       ),
@@ -298,7 +299,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
-        title: const Text('Como resolver as diferenças?'),
+        title: const RuntimeLocalizedText('Como resolver as diferenças?'),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -349,24 +350,24 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           OutlinedButton.icon(
             onPressed: () =>
                 Navigator.pop(context, ManualBackupStrategy.keepLocal),
             icon: const Icon(Icons.phone_android),
-            label: const Text('Manter meus dados'),
+            label: const RuntimeLocalizedText('Manter meus dados'),
           ),
           OutlinedButton.icon(
             onPressed: () =>
                 Navigator.pop(context, ManualBackupStrategy.keepRemote),
             icon: const Icon(Icons.archive_outlined),
-            label: const Text('Usar arquivo'),
+            label: const RuntimeLocalizedText('Usar arquivo'),
           ),
           FilledButton.icon(
             onPressed: () => Navigator.pop(context, ManualBackupStrategy.merge),
             icon: const Icon(Icons.merge_type),
-            label: const Text('Mesclar'),
+            label: const RuntimeLocalizedText('Mesclar'),
           ),
         ],
       ),
@@ -377,7 +378,9 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Substituir dados deste dispositivo?'),
+          title: const RuntimeLocalizedText(
+            'Substituir dados deste dispositivo?',
+          ),
           content: const Text(
             'Esta ação substituirá os dados locais que fazem parte do snapshot '
             'pelo conteúdo do arquivo. O restante do aplicativo, incluindo '
@@ -388,11 +391,11 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
+              child: const RuntimeLocalizedText('Cancelar'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Substituir dados'),
+              child: const RuntimeLocalizedText('Substituir dados'),
             ),
           ],
         ),
@@ -429,7 +432,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
                   _encrypt = value;
                   _error = null;
                 }),
-          title: const Text('Criptografar o arquivo'),
+          title: const RuntimeLocalizedText('Criptografar o arquivo'),
           subtitle: const Text(
             'Opcional. A proteção usa AES-256-GCM. Sem a chave correta, o '
             'backup não pode ser recuperado.',
@@ -446,7 +449,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
                     if (value != null) _keyMode = value;
                     _error = null;
                   }),
-            title: const Text('Usar meu ID Noema (padrão)'),
+            title: const RuntimeLocalizedText('Usar meu ID Noema (padrão)'),
             subtitle: const Text(
               'Conveniente, mas menos seguro: quem souber seu ID poderá '
               'derivar a chave.',
@@ -462,7 +465,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
                     if (value != null) _keyMode = value;
                     _error = null;
                   }),
-            title: const Text('Usar uma chave personalizada'),
+            title: const RuntimeLocalizedText('Usar uma chave personalizada'),
             subtitle: const Text(
               'Mais segura. Guarde-a separadamente: o Noema não consegue '
               'recuperá-la.',
@@ -511,12 +514,12 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
             FilledButton.icon(
               onPressed: _working ? null : _exportBackup,
               icon: const Icon(Icons.file_download_outlined),
-              label: const Text('Exportar backup'),
+              label: const RuntimeLocalizedText('Exportar backup'),
             ),
             OutlinedButton.icon(
               onPressed: _working ? null : _importBackup,
               icon: const Icon(Icons.file_upload_outlined),
-              label: const Text('Importar backup'),
+              label: const RuntimeLocalizedText('Importar backup'),
             ),
           ],
         ),
@@ -541,7 +544,9 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
         else if (_historyError != null)
           Text(_historyError!, style: TextStyle(color: theme.colorScheme.error))
         else if (_history.isEmpty)
-          const Text('Ainda não há exportações ou importações manuais.')
+          const RuntimeLocalizedText(
+            'Ainda não há exportações ou importações manuais.',
+          )
         else
           for (final entry in _history) _HistoryTile(entry: entry),
       ],

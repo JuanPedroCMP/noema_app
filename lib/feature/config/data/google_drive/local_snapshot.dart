@@ -717,16 +717,17 @@ class LocalSnapshotRepository {
           column.data['name'] as String: column.data,
     };
     final columns = columnInfo.keys.toSet();
-    final missingRequiredColumns = columnInfo.entries
-        .where(
-          (entry) =>
-              !row.containsKey(entry.key) &&
-              (entry.value['notnull'] == 1 || entry.value['pk'] != 0) &&
-              entry.value['dflt_value'] == null,
-        )
-        .map((entry) => entry.key)
-        .toList()
-      ..sort();
+    final missingRequiredColumns =
+        columnInfo.entries
+            .where(
+              (entry) =>
+                  !row.containsKey(entry.key) &&
+                  (entry.value['notnull'] == 1 || entry.value['pk'] != 0) &&
+                  entry.value['dflt_value'] == null,
+            )
+            .map((entry) => entry.key)
+            .toList()
+          ..sort();
     if (missingRequiredColumns.isNotEmpty || !row.containsKey('id')) {
       throw FormatException(
         'O backup não contém as colunas obrigatórias da tabela "$table": '
@@ -1009,26 +1010,18 @@ Map<String, dynamic> mergeSnapshotData(
     'fsrs_review_log': ('fsrs_state', 'fsrs_state_id'),
   };
   final suppressedRemoteIds = <String, Set<String>>{};
-  for (final parent in const [
-    'note',
-    'review_item_state',
-    'fsrs_state',
-  ]) {
+  for (final parent in const ['note', 'review_item_state', 'fsrs_state']) {
     final spec = _snapshotTables.firstWhere((item) => item.name == parent);
     final localRows = _rows(localData, spec.category, parent);
     final localIds = {for (final row in localRows) row['id']};
     final localIdentities = {
-      for (final row in localRows)
-        ..._logicalIdentities(parent, row),
+      for (final row in localRows) ..._logicalIdentities(parent, row),
     };
     final remoteRows = _rows(remoteData, spec.category, parent);
     suppressedRemoteIds[parent] = {
       for (final row in remoteRows)
         if (!localIds.contains(row['id']) &&
-            _logicalIdentities(
-              parent,
-              row,
-            ).any(localIdentities.contains))
+            _logicalIdentities(parent, row).any(localIdentities.contains))
           row['id'] as String,
     };
   }

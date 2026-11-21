@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -42,57 +43,57 @@ class AiQueuePage extends ConsumerWidget {
             ),
             _QueueStatusCard(runner: runner),
             tasks.when(
-                loading: () => const Expanded(
-                  child: Center(child: CircularProgressIndicator()),
-            ),
-                error: (error, _) => Expanded(
-                  child: _QueueLoadError(
-                    error: error,
-                    onRetry: () => ref.invalidate(aiBackgroundTaskItemsProvider),
-                  ),
-                ),
-                data: (items) => Expanded(
-                  child: Column(
-                    children: [
-                      const TabBar(
-                        isScrollable: true,
-                        tabs: [
-                          Tab(text: 'Na fila'),
-                          Tab(text: 'Retentativas'),
-                          Tab(text: 'Falhas'),
-                          Tab(text: 'Concluídas'),
-                        ],
-                      ),
-                      SizedBox(height: context.spacing.sm),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _TaskList(
-                              items: _filterItems(
-                                items,
-                                const {aiTaskPending, aiTaskRunning},
-                              ),
-                            ),
-                            _TaskList(
-                              items: _filterItems(items, const {aiTaskRetryWait}),
-                            ),
-                            _TaskList(
-                              items: _filterItems(items, const {aiTaskFailed}),
-                            ),
-                            _TaskList(
-                              items: _filterItems(items, const {
-                                aiTaskCompleted,
-                                aiTaskCanceled,
-                              }),
-                              includeCanceled: true,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+              loading: () => const Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Expanded(
+                child: _QueueLoadError(
+                  error: error,
+                  onRetry: () => ref.invalidate(aiBackgroundTaskItemsProvider),
                 ),
               ),
+              data: (items) => Expanded(
+                child: Column(
+                  children: [
+                    const TabBar(
+                      isScrollable: true,
+                      tabs: [
+                        Tab(text: 'Na fila'),
+                        Tab(text: 'Retentativas'),
+                        Tab(text: 'Falhas'),
+                        Tab(text: 'Concluídas'),
+                      ],
+                    ),
+                    SizedBox(height: context.spacing.sm),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _TaskList(
+                            items: _filterItems(items, const {
+                              aiTaskPending,
+                              aiTaskRunning,
+                            }),
+                          ),
+                          _TaskList(
+                            items: _filterItems(items, const {aiTaskRetryWait}),
+                          ),
+                          _TaskList(
+                            items: _filterItems(items, const {aiTaskFailed}),
+                          ),
+                          _TaskList(
+                            items: _filterItems(items, const {
+                              aiTaskCompleted,
+                              aiTaskCanceled,
+                            }),
+                            includeCanceled: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -112,7 +113,7 @@ class AiQueuePage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Limpar histórico concluído?'),
+        title: const RuntimeLocalizedText('Limpar histórico concluído?'),
         content: const Text(
           'As tarefas concluídas e canceladas serão removidas da lista. '
           'As respostas e correções já salvas serão mantidas.',
@@ -120,24 +121,26 @@ class AiQueuePage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Manter'),
+            child: const RuntimeLocalizedText('Manter'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Limpar'),
+            child: const RuntimeLocalizedText('Limpar'),
           ),
         ],
       ),
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      await AiBackgroundTaskDao(
-        ref.read(appDatabaseProvider),
-      ).clearFinished();
+      await AiBackgroundTaskDao(ref.read(appDatabaseProvider)).clearFinished();
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível limpar o histórico: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível limpar o histórico: $error',
+          ),
+        ),
       );
     }
   }
@@ -157,14 +160,14 @@ class _QueueLoadError extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline, size: 40),
           const SizedBox(height: 12),
-          const Text('Não foi possível carregar a fila de IA.'),
+          const RuntimeLocalizedText('Não foi possível carregar a fila de IA.'),
           const SizedBox(height: 4),
           Text(error.toString(), textAlign: TextAlign.center),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('Tentar novamente'),
+            label: const RuntimeLocalizedText('Tentar novamente'),
           ),
         ],
       ),
@@ -186,8 +189,7 @@ class _QueueStatusCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final compact =
-                constraints.maxWidth <
-                AppLayoutTokens.compactHeaderBreakpoint;
+                constraints.maxWidth < AppLayoutTokens.compactHeaderBreakpoint;
             return ListenableBuilder(
               listenable: runner,
               builder: (context, _) {
@@ -213,9 +215,7 @@ class _QueueStatusCard extends StatelessWidget {
                 );
                 final pauseButton = OutlinedButton.icon(
                   onPressed: runner.isPaused ? runner.resume : runner.pause,
-                  icon: Icon(
-                    runner.isPaused ? Icons.play_arrow : Icons.pause,
-                  ),
+                  icon: Icon(runner.isPaused ? Icons.play_arrow : Icons.pause),
                   label: Text(runner.isPaused ? 'Retomar' : 'Pausar'),
                 );
                 final icon = Icon(
@@ -305,14 +305,18 @@ class _TaskList extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${item.graph.title} · ${_statusLabel(item.task.status)}'),
+                  RuntimeLocalizedText(
+                    '${item.graph.title} · ${_statusLabel(item.task.status)}',
+                  ),
                   if (item.task.status == aiTaskRetryWait &&
                       item.task.nextAttemptAt != null)
                     Text(
                       'Nova tentativa: ${_formatTime(item.task.nextAttemptAt!)}',
                     ),
                   if (item.task.status == aiTaskRunning)
-                    Text('Tentativa ${item.task.attemptCount} de 3'),
+                    RuntimeLocalizedText(
+                      'Tentativa ${item.task.attemptCount} de 3',
+                    ),
                   if (item.task.lastError?.isNotEmpty == true)
                     Text(
                       item.task.lastError!,
@@ -320,11 +324,12 @@ class _TaskList extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   if (includeCanceled && item.task.status == aiTaskCanceled)
-                    const Text('Esta tarefa foi cancelada.'),
+                    const RuntimeLocalizedText('Esta tarefa foi cancelada.'),
                 ],
               ),
             ),
-            isThreeLine: item.task.lastError?.isNotEmpty == true ||
+            isThreeLine:
+                item.task.lastError?.isNotEmpty == true ||
                 item.task.status == aiTaskRetryWait,
             trailing: _TaskActions(item: item),
           ),
@@ -337,7 +342,8 @@ class _TaskList extends ConsumerWidget {
     final time = DateTime.fromMillisecondsSinceEpoch(
       epochMilliseconds,
     ).toLocal();
-    final date = '${time.day.toString().padLeft(2, '0')}/'
+    final date =
+        '${time.day.toString().padLeft(2, '0')}/'
         '${time.month.toString().padLeft(2, '0')} '
         '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}';
@@ -358,6 +364,7 @@ class _TaskList extends ConsumerWidget {
     aiNodeDescriptionTaskType => 'Descrição do nó',
     aiOpenEndedCorrectionTaskType => 'Correção dissertativa',
     aiMultipleChoiceCorrectionTaskType => 'Correção de múltipla escolha',
+    aiStudyPackTaskType => 'Pacote de estudo',
     _ => 'Tarefa de IA',
   };
 }
@@ -370,8 +377,7 @@ class _TaskActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canRetry =
-        item.task.status == aiTaskFailed ||
-        item.task.status == aiTaskRetryWait;
+        item.task.status == aiTaskFailed || item.task.status == aiTaskRetryWait;
     final canCancel =
         item.task.status == aiTaskPending ||
         item.task.status == aiTaskRetryWait ||
@@ -418,7 +424,7 @@ class _TaskActions extends ConsumerWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('$message: $error')));
+    ).showSnackBar(SnackBar(content: RuntimeLocalizedText('$message: $error')));
   }
 }
 
@@ -436,21 +442,15 @@ class _TaskStatusIcon extends StatelessWidget {
         ? SizedBox(
             width: 24,
             height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: color,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: color),
           )
-        : Icon(
-            switch (status) {
-              aiTaskPending => Icons.schedule,
-              aiTaskRetryWait => Icons.replay_circle_filled_outlined,
-              aiTaskFailed => Icons.error_outline,
-              aiTaskCompleted => Icons.check_circle_outline,
-              aiTaskCanceled => Icons.cancel_outlined,
-              _ => Icons.auto_awesome_outlined,
-            },
-            color: color,
-          );
+        : Icon(switch (status) {
+            aiTaskPending => Icons.schedule,
+            aiTaskRetryWait => Icons.replay_circle_filled_outlined,
+            aiTaskFailed => Icons.error_outline,
+            aiTaskCompleted => Icons.check_circle_outline,
+            aiTaskCanceled => Icons.cancel_outlined,
+            _ => Icons.auto_awesome_outlined,
+          }, color: color);
   }
 }

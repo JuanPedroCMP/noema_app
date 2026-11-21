@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/feature/auth/providers/sign_up_form_state.dart';
 
@@ -33,4 +32,7 @@ class SignUpFormNotifier extends Notifier<SignUpFormState> {
   }
 }
 
-final signUpFormProvider = NotifierProvider<SignUpFormNotifier, SignUpFormState>(SignUpFormNotifier.new);
+final signUpFormProvider =
+    NotifierProvider<SignUpFormNotifier, SignUpFormState>(
+      SignUpFormNotifier.new,
+    );

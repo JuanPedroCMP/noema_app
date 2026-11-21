@@ -59,12 +59,11 @@ class AppUserDao extends DatabaseAccessor<AppDatabase> with _$AppUserDaoMixin {
     )..where((user) => user.id.equals(id))).getSingleOrNull();
   }
 
-   Future<AppUserData?> getUserByRemoteId({required String id}) {
+  Future<AppUserData?> getUserByRemoteId({required String id}) {
     return (select(
       attachedDatabase.appUser,
     )..where((user) => user.remoteId.equals(id))).getSingleOrNull();
   }
-
 
   Future<AppUserData?> getActiveUser() {
     return (select(

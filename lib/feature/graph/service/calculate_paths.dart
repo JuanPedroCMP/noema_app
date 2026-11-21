@@ -52,7 +52,6 @@ import 'package:noema/core/database/database.dart';
     );
     final childTop = Offset(child.positionX, child.positionY - nodeHeight / 2);
     final path = Path();
-
     if (option == 1) {
       path
         ..moveTo(parentBottom.dx, parentBottom.dy)

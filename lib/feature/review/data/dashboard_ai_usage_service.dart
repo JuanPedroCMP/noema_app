@@ -65,7 +65,10 @@ class DashboardAiUsageService {
     for (final log in logs) {
       if (!_matchesPeriod(log, query)) continue;
       final details = _asMap(log.usageDetails);
-      final graphId = _findString(details, const {'graphid', 'knowledgegraphid'});
+      final graphId = _findString(details, const {
+        'graphid',
+        'knowledgegraphid',
+      });
       final nodeId = _findString(details, const {'nodeid'});
       final filteredByScope = query.graphId != null || query.nodeId != null;
       if (filteredByScope) {
@@ -142,7 +145,8 @@ class DashboardAiUsageService {
 
   bool _matchesPeriod(AiUsageLogOut log, DomainDashboardQuery query) {
     final createdAt = log.createdAt;
-    if (createdAt == null) return query.startAt == null && query.endBefore == null;
+    if (createdAt == null)
+      return query.startAt == null && query.endBefore == null;
     if (query.startAt != null && createdAt.isBefore(query.startAt!)) {
       return false;
     }
@@ -208,8 +212,7 @@ final dashboardAiUsageProvider =
         throw StateError('A conta não possui um identificador remoto.');
       }
       final api = ref.watch(apiClientProvider).getAiUsageLogApi();
-      return DashboardAiUsageService(api).load(
-        remoteUserId: user.remoteId,
-        query: query,
-      );
+      return DashboardAiUsageService(
+        api,
+      ).load(remoteUserId: user.remoteId, query: query);
     });

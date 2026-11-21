@@ -51,33 +51,44 @@ class ConfigDao extends DatabaseAccessor<AppDatabase> with _$ConfigDaoMixin {
     )..where((tbl) => tbl.id.equals(id))).write(
       ConfigCompanion(
         userId: userId == null ? const Value.absent() : Value(userId),
-        colorThemeId: colorThemeId == null ? const Value.absent() : Value(colorThemeId),
-        typographyThemeId: typographyThemeId == null ? const Value.absent() : Value(typographyThemeId),
-        preferences: preferences == null ? const Value.absent() : Value(preferences),
-        lastSync: lastSync == null ? const Value.absent() : Value(lastSync.millisecondsSinceEpoch),
+        colorThemeId: colorThemeId == null
+            ? const Value.absent()
+            : Value(colorThemeId),
+        typographyThemeId: typographyThemeId == null
+            ? const Value.absent()
+            : Value(typographyThemeId),
+        preferences: preferences == null
+            ? const Value.absent()
+            : Value(preferences),
+        lastSync: lastSync == null
+            ? const Value.absent()
+            : Value(lastSync.millisecondsSinceEpoch),
         autoSync: autoSync == null ? const Value.absent() : Value(autoSync),
         aiMaxConcurrentRequests: aiMaxConcurrentRequests == null
             ? const Value.absent()
             : Value(aiMaxConcurrentRequests),
-        deviceFingerprint: deviceFingerprint == null ? const Value.absent() : Value(deviceFingerprint),
+        deviceFingerprint: deviceFingerprint == null
+            ? const Value.absent()
+            : Value(deviceFingerprint),
       ),
     );
   }
 
   Future<ConfigData?> getConfig({required String id}) {
-    return (select(attachedDatabase.config)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.config,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<ConfigData?> getConfigByUser({required String userId}) {
-    return (select(attachedDatabase.config)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.config,
+    )..where((tbl) => tbl.userId.equals(userId))).getSingleOrNull();
   }
 
   Future<int> deleteConfig({required String id}) {
-    return (delete(attachedDatabase.config)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (delete(
+      attachedDatabase.config,
+    )..where((tbl) => tbl.id.equals(id))).go();
   }
 }

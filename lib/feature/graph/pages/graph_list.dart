@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -11,6 +12,7 @@ import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
 import 'package:noema/feature/graph/pages/create_blank_graph.dart';
 import 'package:noema/feature/graph/pages/create_graph_with_ai.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
+import 'package:noema/feature/graph/service/graph_transfer_service.dart';
 import 'package:noema/shared/widgets/async_state_view.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
 import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
@@ -79,6 +81,28 @@ class _GraphListState extends ConsumerState<GraphList> {
     setState(() => _creationMode = _creationMode == mode ? 0 : mode);
   }
 
+  Future<void> _importGraphFile() async {
+    if (_dao == null || _user == null) return;
+    try {
+      final id = await GraphTransferService.importGraph(
+        db: ref.read(appDatabaseProvider),
+        userId: _user!.id,
+      );
+      if (id == null) return;
+      ref.invalidate(knowledgeGraphsProvider);
+      if (mounted) context.go(RoutePaths.graph(id));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'O arquivo não pôde ser importado. Verifique o JSON.',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final graphsAsync = ref.watch(knowledgeGraphsProvider);
@@ -115,7 +139,9 @@ class _GraphListState extends ConsumerState<GraphList> {
                     child: _Header(
                       graphCount: graphs.length,
                       compact: compact,
-                      onCreate: () => _toggleCreation(1),
+                      onCreateWithAi: () => _toggleCreation(3),
+                      onCreateBlank: () => _toggleCreation(2),
+                      onImport: _importGraphFile,
                     ),
                   ),
                 ),
@@ -128,7 +154,9 @@ class _GraphListState extends ConsumerState<GraphList> {
                       child: Card(
                         child: ListTile(
                           leading: const Icon(Icons.quiz_outlined),
-                          title: const Text('Escolha onde criar o exercício'),
+                          title: const RuntimeLocalizedText(
+                            'Escolha onde criar o exercício',
+                          ),
                           subtitle: Text(
                             '${widget.initialHandoff?.prompt}\n'
                             'Abra um grafo e escolha o nó que deseja praticar.',
@@ -166,10 +194,22 @@ class _GraphListState extends ConsumerState<GraphList> {
                       title: 'Seu primeiro grafo começa aqui',
                       message:
                           'Crie um mapa vazio e adicione nós aos poucos, ou use a IA para gerar uma estrutura inicial.',
-                      action: FilledButton.icon(
-                        onPressed: () => _toggleCreation(1),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Criar grafo'),
+                      action: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => _toggleCreation(3),
+                            icon: const Icon(Icons.auto_awesome_rounded),
+                            label: const RuntimeLocalizedText('Gerar com IA'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => _toggleCreation(2),
+                            icon: const Icon(Icons.add),
+                            label: const RuntimeLocalizedText('Criar vazio'),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -216,18 +256,18 @@ class _GraphListState extends ConsumerState<GraphList> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.delete_outline),
-        title: const Text('Excluir grafo?'),
+        title: const RuntimeLocalizedText('Excluir grafo?'),
         content: Text(
           '“${graph.title}” será removido da sua lista. Essa ação não pode ser desfeita.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Excluir'),
+            child: const RuntimeLocalizedText('Excluir'),
           ),
         ],
       ),
@@ -253,7 +293,9 @@ class _GraphListState extends ConsumerState<GraphList> {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Não foi possível excluir o grafo.')),
+          const SnackBar(
+            content: RuntimeLocalizedText('Não foi possível excluir o grafo.'),
+          ),
         );
     } finally {
       if (mounted) setState(() => _deletingGraphId = null);
@@ -265,12 +307,16 @@ class _Header extends StatelessWidget {
   const _Header({
     required this.graphCount,
     required this.compact,
-    required this.onCreate,
+    required this.onCreateWithAi,
+    required this.onCreateBlank,
+    required this.onImport,
   });
 
   final int graphCount;
   final bool compact;
-  final VoidCallback onCreate;
+  final VoidCallback onCreateWithAi;
+  final VoidCallback onCreateBlank;
+  final VoidCallback onImport;
 
   @override
   Widget build(BuildContext context) {
@@ -298,22 +344,52 @@ class _Header extends StatelessWidget {
                 ],
               ),
             ),
-            if (!compact)
-              FilledButton.icon(
-                onPressed: onCreate,
-                icon: const Icon(Icons.add),
-                label: const Text('Novo grafo'),
+            if (!compact) ...[
+              OutlinedButton.icon(
+                onPressed: onImport,
+                icon: const Icon(Icons.upload_file),
+                label: const RuntimeLocalizedText('Importar'),
               ),
+              SizedBox(width: spacing.sm),
+              OutlinedButton.icon(
+                onPressed: onCreateBlank,
+                icon: const Icon(Icons.add),
+                label: const RuntimeLocalizedText('Criar vazio'),
+              ),
+              SizedBox(width: spacing.sm),
+              FilledButton.icon(
+                onPressed: onCreateWithAi,
+                icon: const Icon(Icons.auto_awesome_rounded),
+                label: const RuntimeLocalizedText('Gerar com IA'),
+              ),
+            ],
           ],
         ),
         if (compact) ...[
           SizedBox(height: spacing.md),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onCreate,
-              icon: const Icon(Icons.add),
-              label: const Text('Novo grafo'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.icon(
+                  onPressed: onCreateWithAi,
+                  icon: const Icon(Icons.auto_awesome_rounded),
+                  label: const RuntimeLocalizedText('Gerar com IA'),
+                ),
+                SizedBox(height: spacing.sm),
+                OutlinedButton.icon(
+                  onPressed: onCreateBlank,
+                  icon: const Icon(Icons.add),
+                  label: const RuntimeLocalizedText('Criar vazio'),
+                ),
+                SizedBox(height: spacing.sm),
+                OutlinedButton.icon(
+                  onPressed: onImport,
+                  icon: const Icon(Icons.upload_file),
+                  label: const RuntimeLocalizedText('Importar arquivo JSON'),
+                ),
+              ],
             ),
           ),
         ],
@@ -351,9 +427,9 @@ class _CreationPanel extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Como você quer começar?',
+                    mode == 3 ? 'Gerar grafo com IA' : 'Criar grafo vazio',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                 ),
@@ -365,19 +441,21 @@ class _CreationPanel extends StatelessWidget {
               ],
             ),
             SizedBox(height: spacing.xs),
-            const Text('Escolha uma opção para criar seu próximo mapa.'),
+            const Text(
+              'Gere um mapa a partir de um tema ou comece com uma estrutura vazia.',
+            ),
             SizedBox(height: spacing.md),
             SegmentedButton<int>(
               segments: const [
                 ButtonSegment(
                   value: 2,
                   icon: Icon(Icons.edit_note),
-                  label: Text('Começar vazio'),
+                  label: RuntimeLocalizedText('Começar vazio'),
                 ),
                 ButtonSegment(
                   value: 3,
                   icon: Icon(Icons.auto_awesome),
-                  label: Text('Gerar com IA'),
+                  label: RuntimeLocalizedText('Gerar com IA'),
                 ),
               ],
               selected: {mode == 3 ? 3 : 2},
@@ -440,10 +518,13 @@ class _GraphCard extends StatelessWidget {
                       if (value == 'delete') onDelete();
                     },
                     itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'open', child: Text('Abrir grafo')),
+                      PopupMenuItem(
+                        value: 'open',
+                        child: RuntimeLocalizedText('Abrir grafo'),
+                      ),
                       PopupMenuItem(
                         value: 'delete',
-                        child: Text('Excluir grafo'),
+                        child: RuntimeLocalizedText('Excluir grafo'),
                       ),
                     ],
                   ),

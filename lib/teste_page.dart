@@ -1,3 +1,4 @@
+import 'package:noema/shared/localization/runtime_localization.dart';
 // m3_showcase_page.dart
 //
 // A single-file reference page that showcases the Material 3 color
@@ -104,7 +105,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
   void _showSnackBarDemo(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('This is a Material 3 SnackBar'),
+        content: const RuntimeLocalizedText('This is a Material 3 SnackBar'),
         action: SnackBarAction(label: 'Undo', onPressed: () {}),
       ),
     );
@@ -114,18 +115,18 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Alert Dialog'),
+        title: const RuntimeLocalizedText('Alert Dialog'),
         content: const Text(
           'This is a Material 3 styled AlertDialog, opened from a button.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const RuntimeLocalizedText('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: const RuntimeLocalizedText('OK'),
           ),
         ],
       ),
@@ -171,7 +172,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Material 3 Showcase'),
+        title: const RuntimeLocalizedText('Material 3 Showcase'),
         actions: [
           IconButton(
             tooltip: 'Toggle light / dark',
@@ -482,14 +483,26 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Buttons
           const _SectionTitle('Buttons'),
           _demoWrap([
-            ElevatedButton(onPressed: () {}, child: const Text('Elevated')),
-            FilledButton(onPressed: () {}, child: const Text('Filled')),
+            ElevatedButton(
+              onPressed: () {},
+              child: const RuntimeLocalizedText('Elevated'),
+            ),
+            FilledButton(
+              onPressed: () {},
+              child: const RuntimeLocalizedText('Filled'),
+            ),
             FilledButton.tonal(
               onPressed: () {},
-              child: const Text('Filled Tonal'),
+              child: const RuntimeLocalizedText('Filled Tonal'),
             ),
-            OutlinedButton(onPressed: () {}, child: const Text('Outlined')),
-            TextButton(onPressed: () {}, child: const Text('Text')),
+            OutlinedButton(
+              onPressed: () {},
+              child: const RuntimeLocalizedText('Outlined'),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const RuntimeLocalizedText('Text'),
+            ),
           ]),
           const SizedBox(height: 16),
           _demoWrap([
@@ -531,7 +544,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
               onPressed: () {},
               heroTag: 'fabExtended',
               icon: const Icon(Icons.add),
-              label: const Text('Extended'),
+              label: const RuntimeLocalizedText('Extended'),
             ),
           ]),
           const SizedBox(height: 16),
@@ -539,17 +552,17 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
             segments: const [
               ButtonSegment(
                 value: 0,
-                label: Text('Day'),
+                label: RuntimeLocalizedText('Day'),
                 icon: Icon(Icons.calendar_view_day),
               ),
               ButtonSegment(
                 value: 1,
-                label: Text('Week'),
+                label: RuntimeLocalizedText('Week'),
                 icon: Icon(Icons.calendar_view_week),
               ),
               ButtonSegment(
                 value: 2,
-                label: Text('Month'),
+                label: RuntimeLocalizedText('Month'),
                 icon: Icon(Icons.calendar_view_month),
               ),
             ],
@@ -586,14 +599,14 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Radio<int>(value: 0),
-                      const Text('Option A'),
+                      const RuntimeLocalizedText('Option A'),
                     ],
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Radio<int>(value: 1),
-                      const Text('Option B'),
+                      const RuntimeLocalizedText('Option B'),
                     ],
                   ),
                 ],
@@ -616,21 +629,27 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           const _SectionTitle('Chips'),
           _demoWrap([
             const Chip(
-              label: Text('Chip'),
+              label: RuntimeLocalizedText('Chip'),
               avatar: CircleAvatar(child: Icon(Icons.tag, size: 16)),
             ),
-            InputChip(label: const Text('Input'), onDeleted: () {}),
+            InputChip(
+              label: const RuntimeLocalizedText('Input'),
+              onDeleted: () {},
+            ),
             ChoiceChip(
-              label: const Text('Choice'),
+              label: const RuntimeLocalizedText('Choice'),
               selected: _choiceChipSelected,
               onSelected: (v) => setState(() => _choiceChipSelected = v),
             ),
             FilterChip(
-              label: const Text('Filter'),
+              label: const RuntimeLocalizedText('Filter'),
               selected: _filterChipSelected,
               onSelected: (v) => setState(() => _filterChipSelected = v),
             ),
-            ActionChip(label: const Text('Action'), onPressed: () {}),
+            ActionChip(
+              label: const RuntimeLocalizedText('Action'),
+              onPressed: () {},
+            ),
           ]),
           const SizedBox(height: 32),
           //endregion
@@ -706,23 +725,23 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           _demoWrap([
             FilledButton(
               onPressed: () => _showSnackBarDemo(context),
-              child: const Text('Show SnackBar'),
+              child: const RuntimeLocalizedText('Show SnackBar'),
             ),
             FilledButton.tonal(
               onPressed: () => _showDialogDemo(context),
-              child: const Text('Show Dialog'),
+              child: const RuntimeLocalizedText('Show Dialog'),
             ),
             OutlinedButton(
               onPressed: () => _showBottomSheetDemo(context),
-              child: const Text('Show Bottom Sheet'),
+              child: const RuntimeLocalizedText('Show Bottom Sheet'),
             ),
             OutlinedButton(
               onPressed: () => _showDatePickerDemo(context),
-              child: const Text('Show Date Picker'),
+              child: const RuntimeLocalizedText('Show Date Picker'),
             ),
             OutlinedButton(
               onPressed: () => _showTimePickerDemo(context),
-              child: const Text('Show Time Picker'),
+              child: const RuntimeLocalizedText('Show Time Picker'),
             ),
           ]),
           const SizedBox(height: 16),
@@ -732,7 +751,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
               child: Icon(Icons.info_outline, color: cs.onSurfaceVariant),
             ),
             Badge(
-              label: const Text('3'),
+              label: const RuntimeLocalizedText('3'),
               child: Icon(
                 Icons.notifications_outlined,
                 color: cs.onSurfaceVariant,
@@ -749,7 +768,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
           //region Menus
           const _SectionTitle('Menus'),
           const DropdownMenu<String>(
-            label: Text('Favorite fruit'),
+            label: RuntimeLocalizedText('Favorite fruit'),
             dropdownMenuEntries: [
               DropdownMenuEntry(value: 'apple', label: 'Apple'),
               DropdownMenuEntry(value: 'banana', label: 'Banana'),
@@ -768,30 +787,30 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
                   columns: const [
-                    DataColumn(label: Text('Name')),
-                    DataColumn(label: Text('Role')),
-                    DataColumn(label: Text('Status')),
+                    DataColumn(label: RuntimeLocalizedText('Name')),
+                    DataColumn(label: RuntimeLocalizedText('Role')),
+                    DataColumn(label: RuntimeLocalizedText('Status')),
                   ],
                   rows: const [
                     DataRow(
                       cells: [
-                        DataCell(Text('Ana')),
-                        DataCell(Text('Dev')),
-                        DataCell(Text('Active')),
+                        DataCell(RuntimeLocalizedText('Ana')),
+                        DataCell(RuntimeLocalizedText('Dev')),
+                        DataCell(RuntimeLocalizedText('Active')),
                       ],
                     ),
                     DataRow(
                       cells: [
-                        DataCell(Text('Bruno')),
-                        DataCell(Text('Design')),
-                        DataCell(Text('Away')),
+                        DataCell(RuntimeLocalizedText('Bruno')),
+                        DataCell(RuntimeLocalizedText('Design')),
+                        DataCell(RuntimeLocalizedText('Away')),
                       ],
                     ),
                     DataRow(
                       cells: [
-                        DataCell(Text('Carla')),
-                        DataCell(Text('QA')),
-                        DataCell(Text('Active')),
+                        DataCell(RuntimeLocalizedText('Carla')),
+                        DataCell(RuntimeLocalizedText('QA')),
+                        DataCell(RuntimeLocalizedText('Active')),
                       ],
                     ),
                   ],
@@ -810,8 +829,8 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.person_outline),
-                  title: const Text('List Tile'),
-                  subtitle: const Text('Supporting text'),
+                  title: const RuntimeLocalizedText('List Tile'),
+                  subtitle: const RuntimeLocalizedText('Supporting text'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
@@ -819,21 +838,23 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
                 CheckboxListTile(
                   value: _checkboxValue ?? false,
                   onChanged: (v) => setState(() => _checkboxValue = v),
-                  title: const Text('Checkbox List Tile'),
+                  title: const RuntimeLocalizedText('Checkbox List Tile'),
                 ),
                 SwitchListTile(
                   value: _switchValue,
                   onChanged: (v) => setState(() => _switchValue = v),
-                  title: const Text('Switch List Tile'),
+                  title: const RuntimeLocalizedText('Switch List Tile'),
                 ),
                 ExpansionTile(
-                  title: const Text('Expansion Tile'),
+                  title: const RuntimeLocalizedText('Expansion Tile'),
                   children: const [
                     Padding(
                       padding: EdgeInsets.all(16),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Expanded content goes here.'),
+                        child: RuntimeLocalizedText(
+                          'Expanded content goes here.',
+                        ),
                       ),
                     ),
                   ],

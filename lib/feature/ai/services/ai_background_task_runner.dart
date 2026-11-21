@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
@@ -9,7 +10,10 @@ import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/providers/ai_queue_concurrency_provider.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/services/ai_task_notification_service.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/exercises/data/queued_exercise_correction_service.dart';
+import 'package:noema/feature/exercises/data/study_pack_service.dart';
 
 const maximumAiBackgroundAttempts = aiTaskMaximumAttempts;
 
@@ -20,9 +24,10 @@ Duration? aiBackgroundRetryDelay(int attemptCount) => switch (attemptCount) {
 };
 
 class AiBackgroundTaskRunner extends ChangeNotifier {
-  AiBackgroundTaskRunner(this._ref);
+  AiBackgroundTaskRunner(this._ref, {required this._userId});
 
   final Ref _ref;
+  final String? _userId;
   Timer? _timer;
   StreamSubscription<List<AiQueueItem>>? _subscription;
   bool _started = false;
@@ -37,27 +42,27 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
   int get activeTasks => _activeTasks;
 
   Future<void> start() async {
-    if (_started || _starting || _disposed) return;
+    final userId = _userId;
+    if (_started || _starting || _disposed || userId == null) return;
     _starting = true;
     try {
       final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
-      await dao.recoverInterruptedTasks();
-      _subscription = dao.watchQueueItems().listen(
-        (_) => requestPump(),
-        onError: (Object error, StackTrace stackTrace) {
-          developer.log(
-            'Não foi possível observar a fila de IA.',
-            name: 'noema.ai.queue',
-            error: error,
-            stackTrace: stackTrace,
+      await dao.recoverInterruptedTasks(userId: userId);
+      _subscription = dao
+          .watchQueueItems(userId: userId)
+          .listen(
+            (_) => requestPump(),
+            onError: (Object error, StackTrace stackTrace) {
+              developer.log(
+                'Não foi possível observar a fila de IA.',
+                name: 'noema.ai.queue',
+                error: error,
+                stackTrace: stackTrace,
+              );
+            },
           );
-        },
-      );
       _started = true;
-      _timer = Timer.periodic(
-        const Duration(seconds: 2),
-        (_) => requestPump(),
-      );
+      _timer = Timer.periodic(const Duration(seconds: 2), (_) => requestPump());
       requestPump();
     } catch (error, stackTrace) {
       developer.log(
@@ -70,6 +75,35 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
     } finally {
       _starting = false;
     }
+  }
+
+  Future<bool> runNextReadyTask() async {
+    final userId = _userId;
+    if (userId == null) return false;
+    final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
+    final ready = await dao.getReadyTasks(
+      userId: userId,
+      now: DateTime.now().millisecondsSinceEpoch,
+      limit: 1,
+    );
+    if (ready.isEmpty) return false;
+    final task = await dao.markRunning(id: ready.first.id, userId: userId);
+    if (task == null) return false;
+    await _execute(task, dao);
+    final savedTask = await dao.getTask(task.id);
+    if (savedTask?.status == aiTaskCompleted) {
+      final node = await dao.getNode(task.nodeId);
+      if (node != null && !node.softDeleted) {
+        await _ref
+            .read(aiTaskNotificationServiceProvider)
+            .show(
+              taskId: task.id,
+              taskType: task.taskType,
+              nodeTitle: node.title,
+            );
+      }
+    }
+    return true;
   }
 
   void pause() {
@@ -93,19 +127,21 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
   }
 
   Future<void> _pump() async {
-    if (_pumping || !_started || _paused) return;
+    final userId = _userId;
+    if (_pumping || !_started || _paused || userId == null) return;
     _pumping = true;
     try {
       final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
       while (!_paused) {
         final ready = await dao.getReadyTasks(
+          userId: userId,
           now: DateTime.now().millisecondsSinceEpoch,
           limit: 1,
         );
         if (ready.isEmpty) break;
         final concurrency = await _ref.read(aiQueueConcurrencyProvider.future);
         if (_activeTasks >= concurrency) break;
-        final task = await dao.markRunning(ready.first.id);
+        final task = await dao.markRunning(id: ready.first.id, userId: userId);
         if (task == null) break;
         _activeTasks++;
         _notifyIfAlive();
@@ -167,6 +203,33 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
           description: description,
           expectedNodeTitle: node.title,
         );
+      } else if (task.taskType == aiStudyPackTaskType) {
+        final payload = jsonDecode(task.payloadJson);
+        if (payload is! Map<String, dynamic>) {
+          throw const FormatException('O pacote de estudo está inválido.');
+        }
+        final request = StudyPackRequest.fromJson(payload);
+        final configuredDeckName = payload['deck_name'];
+        final service = StudyPackService(
+          ai: _ref.read(aiContentGenerationServiceProvider),
+          database: _ref.read(appDatabaseProvider),
+        );
+        final draft = await service.generate(
+          nodeTitle: node.title,
+          nodeDescription: node.description,
+          request: request,
+        );
+        await service.save(
+          nodeId: node.id,
+          flashcardDeckName:
+              configuredDeckName is String &&
+                  configuredDeckName.trim().isNotEmpty
+              ? configuredDeckName.trim()
+              : '${node.title} - estudo recomendado',
+          draft: draft,
+          idempotencyKey: task.id,
+        );
+        await dao.complete(task.id);
       } else {
         await QueuedExerciseCorrectionService(
           database: _ref.read(appDatabaseProvider),
@@ -176,7 +239,7 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
       }
     } catch (error, stackTrace) {
       developer.log(
-        'Falha ao gerar descrição para o nó ${task.nodeId}.',
+        'Falha ao processar a tarefa ${task.taskType} para o nó ${task.nodeId}.',
         name: 'noema.ai.queue',
         error: error,
         stackTrace: stackTrace,
@@ -225,9 +288,13 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
 
 const _nodeDescriptionTask = AiAgentTask.generateNodeDescription;
 
+final aiBackgroundWorkerModeProvider = Provider<bool>((ref) => false);
+
 final aiBackgroundTaskRunnerProvider = Provider<AiBackgroundTaskRunner>((ref) {
-  final runner = AiBackgroundTaskRunner(ref);
-  unawaited(runner.start());
+  final user = ref.watch(userProvider).asData?.value;
+  final workerMode = ref.watch(aiBackgroundWorkerModeProvider);
+  final runner = AiBackgroundTaskRunner(ref, userId: user?.id);
+  if (user != null && !workerMode) unawaited(runner.start());
   ref.onDispose(runner.dispose);
   return runner;
 });

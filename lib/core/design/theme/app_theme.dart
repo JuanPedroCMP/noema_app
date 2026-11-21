@@ -1,5 +1,6 @@
 import "dart:convert";
 import "package:flutter/material.dart";
+import "package:google_fonts/google_fonts.dart";
 import "package:noema/core/design/theme/app_semantic_colors.dart";
 import "package:noema/core/design/tokens/durations.dart";
 import "package:noema/core/design/tokens/elevation.dart";
@@ -11,6 +12,21 @@ import "package:noema/core/design/tokens/spacing.dart";
 class AppTheme {
   const AppTheme._();
 
+  static const List<String> systemFontFamilies = <String>[
+    'sans-serif',
+    'serif',
+    'monospace',
+    'Arial',
+    'Helvetica',
+    'Roboto',
+    'Noto Sans',
+    'Noto Serif',
+    'DejaVu Sans',
+    'Liberation Sans',
+    'Ubuntu',
+    'Cantarell',
+  ];
+
   static ThemeData create({
     required int seedColor,
     required Brightness brightness,
@@ -19,7 +35,6 @@ class AppTheme {
     String? displayFont,
     String? bodyFont,
     String? monoFont,
-    int fontScale = 100,
   }) {
     final scheme = ColorScheme.fromSeed(
       seedColor: Color(seedColor),
@@ -64,31 +79,54 @@ class AppTheme {
       scrim: _color(overrides, 'scrim') ?? scheme.scrim,
     );
 
-    final scale = (fontScale <= 10 ? 100 : fontScale) / 100;
     final baseText = Typography.material2021().black;
-    final textTheme = baseText.apply(
+    final bodyTextTheme = baseText.apply(
       fontFamily: bodyFont,
       displayColor: customizedScheme.onSurface,
       bodyColor: customizedScheme.onSurface,
     );
-    TextStyle? scaled(TextStyle? style, {String? family}) {
+    TextStyle? withFamily(TextStyle? style, String? family) {
       if (style == null) return null;
-      return style.copyWith(
-        fontFamily: family ?? style.fontFamily,
-        fontSize: style.fontSize == null ? null : style.fontSize! * scale,
-      );
+      final selected = family?.trim();
+      if (selected == null || selected.isEmpty) {
+        return style.copyWith(fontFamily: style.fontFamily);
+      }
+      if (!GoogleFonts.asMap().containsKey(selected)) {
+        return style.copyWith(fontFamily: selected);
+      }
+      try {
+        return GoogleFonts.getFont(selected, textStyle: style);
+      } on Object {
+        return style.copyWith(fontFamily: selected);
+      }
     }
+
+    final textTheme = bodyTextTheme.copyWith(
+      displayLarge: withFamily(bodyTextTheme.displayLarge, displayFont),
+      displayMedium: withFamily(bodyTextTheme.displayMedium, displayFont),
+      displaySmall: withFamily(bodyTextTheme.displaySmall, displayFont),
+      headlineLarge: withFamily(bodyTextTheme.headlineLarge, displayFont),
+      headlineMedium: withFamily(bodyTextTheme.headlineMedium, displayFont),
+      headlineSmall: withFamily(bodyTextTheme.headlineSmall, displayFont),
+      titleLarge: withFamily(bodyTextTheme.titleLarge, displayFont),
+      titleMedium: withFamily(bodyTextTheme.titleMedium, displayFont),
+      titleSmall: withFamily(bodyTextTheme.titleSmall, displayFont),
+      labelLarge: withFamily(bodyTextTheme.labelLarge, monoFont),
+      labelMedium: withFamily(bodyTextTheme.labelMedium, monoFont),
+      labelSmall: withFamily(bodyTextTheme.labelSmall, monoFont),
+    );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: customizedScheme,
-      scaffoldBackgroundColor: customizedScheme.surface,
+      scaffoldBackgroundColor: customizedScheme.surfaceContainerLowest,
       visualDensity: VisualDensity.standard,
       cardTheme: CardThemeData(
-        color: customizedScheme.surfaceContainerLow,
+        color: customizedScheme.surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
-        elevation: 0,
+        elevation: 1,
+        shadowColor: customizedScheme.shadow.withValues(alpha: .08),
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius.card),
@@ -99,7 +137,17 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: customizedScheme.surfaceContainerHighest.withValues(alpha: .35),
+        fillColor: customizedScheme.surfaceContainerHighest.withValues(
+          alpha: .35,
+        ),
+        floatingLabelStyle: textTheme.bodyLarge?.copyWith(
+          color: customizedScheme.primary,
+        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: customizedScheme.onSurfaceVariant,
+        ),
+        prefixIconColor: customizedScheme.onSurfaceVariant,
+        suffixIconColor: customizedScheme.onSurfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius.md),
           borderSide: BorderSide(color: customizedScheme.outline),
@@ -127,6 +175,27 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radius.button),
           ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: customizedScheme.primary,
+          foregroundColor: customizedScheme.onPrimary,
+          minimumSize: const Size(0, AppLayoutTokens.minimumControlHeight),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppLayoutTokens.buttonHorizontalPadding,
+            vertical: AppLayoutTokens.buttonVerticalPadding,
+          ),
+          elevation: 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius.button),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -139,6 +208,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radius.button),
           ),
+          side: BorderSide(color: customizedScheme.outline),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -150,6 +223,9 @@ class AppTheme {
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radius.button),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -164,15 +240,27 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        backgroundColor: customizedScheme.surface,
+        scrolledUnderElevation: 0,
+        backgroundColor: customizedScheme.surfaceContainerLow,
         surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: customizedScheme.onSurfaceVariant),
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: customizedScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: Border(
+          bottom: BorderSide(
+            color: customizedScheme.outlineVariant.withValues(alpha: .55),
+          ),
+        ),
       ),
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: customizedScheme.surface,
+        backgroundColor: customizedScheme.surfaceContainerLow,
         minExtendedWidth: AppLayoutTokens.extendedNavigationRailWidth,
         indicatorColor: customizedScheme.primaryContainer,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.button),
+        ),
         selectedIconTheme: IconThemeData(
           color: customizedScheme.onPrimaryContainer,
         ),
@@ -187,6 +275,25 @@ class AppTheme {
           color: customizedScheme.onSurfaceVariant,
         ),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: customizedScheme.primaryContainer,
+        foregroundColor: customizedScheme.onPrimaryContainer,
+        elevation: 1,
+        focusElevation: 2,
+        hoverElevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius.fab),
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: customizedScheme.primary,
+        unselectedLabelColor: customizedScheme.onSurfaceVariant,
+        indicatorColor: customizedScheme.primary,
+        dividerColor: customizedScheme.outlineVariant,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelStyle: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: textTheme.titleSmall,
+      ),
       navigationBarTheme: NavigationBarThemeData(
         height: AppLayoutTokens.navigationBarHeight,
         elevation: 0,
@@ -195,6 +302,14 @@ class AppTheme {
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius.button),
         ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected
+                ? customizedScheme.onPrimaryContainer
+                : customizedScheme.onSurfaceVariant,
+          );
+        }),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -272,6 +387,11 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: customizedScheme.primary,
+        selectionColor: customizedScheme.primary.withValues(alpha: .22),
+        selectionHandleColor: customizedScheme.primary,
+      ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: customizedScheme.primary,
         linearTrackColor: customizedScheme.surfaceContainerHighest,
@@ -293,29 +413,16 @@ class AppTheme {
       dropdownMenuTheme: DropdownMenuThemeData(
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: customizedScheme.surfaceContainerHighest.withValues(alpha: .35),
+          fillColor: customizedScheme.surfaceContainerHighest.withValues(
+            alpha: .35,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(radius.md),
           ),
         ),
       ),
-      textTheme: textTheme.copyWith(
-        displayLarge: scaled(textTheme.displayLarge, family: displayFont),
-        displayMedium: scaled(textTheme.displayMedium, family: displayFont),
-        displaySmall: scaled(textTheme.displaySmall, family: displayFont),
-        headlineLarge: scaled(textTheme.headlineLarge, family: displayFont),
-        headlineMedium: scaled(textTheme.headlineMedium, family: displayFont),
-        headlineSmall: scaled(textTheme.headlineSmall, family: displayFont),
-        titleLarge: scaled(textTheme.titleLarge, family: displayFont),
-        titleMedium: scaled(textTheme.titleMedium, family: displayFont),
-        titleSmall: scaled(textTheme.titleSmall, family: displayFont),
-        bodyLarge: scaled(textTheme.bodyLarge),
-        bodyMedium: scaled(textTheme.bodyMedium),
-        bodySmall: scaled(textTheme.bodySmall),
-        labelLarge: scaled(textTheme.labelLarge, family: monoFont),
-        labelMedium: scaled(textTheme.labelMedium, family: monoFont),
-        labelSmall: scaled(textTheme.labelSmall, family: monoFont),
-      ),
+      fontFamily: bodyFont,
+      textTheme: textTheme,
       extensions: [
         AppSpacingTheme(spacing: AppSpacingTheme.spacingFor(displayWidth)),
 
@@ -327,20 +434,32 @@ class AppTheme {
 
         AppIconSizeTheme(iconSize: AppIconSize.material),
         AppSemanticColors(
-          accent: _color(overrides, 'customAccent') ?? customizedScheme.tertiary,
+          accent:
+              _color(overrides, 'customAccent') ?? customizedScheme.tertiary,
           success:
               _color(overrides, 'customSuccess') ??
               AppSemanticColors.successDefault,
           warning:
               _color(overrides, 'customWarning') ??
               AppSemanticColors.warningDefault,
-          info: _color(overrides, 'customInfo') ?? AppSemanticColors.infoDefault,
+          info:
+              _color(overrides, 'customInfo') ?? AppSemanticColors.infoDefault,
           highlight:
               _color(overrides, 'customHighlight') ??
               AppSemanticColors.highlightDefault,
         ),
       ],
     );
+  }
+
+  static int normalizeFontScale(int value) =>
+      (value <= 10 ? 100 : value).clamp(75, 200).toInt();
+
+  static TextScaler textScaler(TextScaler systemScaler, int fontScale) {
+    final factor = normalizeFontScale(fontScale) / 100;
+    return factor == 1
+        ? systemScaler
+        : _CombinedTextScaler(systemScaler, factor);
   }
 
   static Map<String, dynamic> _parseOverrides(String? json) {
@@ -358,4 +477,40 @@ class AppTheme {
     if (value is! num || value < 0 || value > 0xFFFFFFFF) return null;
     return Color(value.toInt());
   }
+}
+
+class _CombinedTextScaler extends TextScaler {
+  const _CombinedTextScaler(this.systemScaler, this.userScale);
+
+  final TextScaler systemScaler;
+  final double userScale;
+
+  @override
+  double scale(double fontSize) => systemScaler.scale(fontSize) * userScale;
+
+  @override
+  double get textScaleFactor => scale(14) / 14;
+
+  @override
+  TextScaler clamp({
+    double minScaleFactor = 0,
+    double maxScaleFactor = double.infinity,
+  }) {
+    return _CombinedTextScaler(
+      systemScaler.clamp(
+        minScaleFactor: minScaleFactor / userScale,
+        maxScaleFactor: maxScaleFactor / userScale,
+      ),
+      userScale,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _CombinedTextScaler &&
+      other.systemScaler == systemScaler &&
+      other.userScale == userScale;
+
+  @override
+  int get hashCode => Object.hash(systemScaler, userScale);
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/shared/widgets/app_card.dart';
@@ -66,7 +67,7 @@ class ConfigConnectionBanner extends StatelessWidget {
     final refreshButton = OutlinedButton.icon(
       onPressed: isConnected ? onRefresh : null,
       icon: const Icon(Icons.refresh, size: 18),
-      label: const Text('Atualizar'),
+      label: const RuntimeLocalizedText('Atualizar'),
     );
 
     return AppCard(

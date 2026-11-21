@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' show ChoiceData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
@@ -106,7 +107,7 @@ class _Choise extends ConsumerState<Choise> {
           height: 20,
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
-        title: Text("Carregando alternativa..."),
+        title: RuntimeLocalizedText("Carregando alternativa..."),
       );
     }
     if (_error != null) {

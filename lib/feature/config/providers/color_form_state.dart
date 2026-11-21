@@ -4,7 +4,5 @@ part 'color_form_state.freezed.dart';
 
 @freezed
 sealed class ColorUpFormState with _$ColorUpFormState {
-  const factory ColorUpFormState({
-    @Default(0) int color,
-  }) = _ColorUpFormState;
+  const factory ColorUpFormState({@Default(0) int color}) = _ColorUpFormState;
 }

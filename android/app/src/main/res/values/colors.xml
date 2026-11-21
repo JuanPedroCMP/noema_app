@@ -1,0 +1,5 @@
+<resources>
+    <color name="noema_splash_background">#FAF8FC</color>
+    <color name="noema_icon_background">#F4F2F6</color>
+    <color name="noema_icon_monochrome">#FFFFFFFF</color>
+</resources>

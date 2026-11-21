@@ -121,7 +121,9 @@ class _SidebarNavItem extends StatelessWidget {
                       color: isSelected
                           ? colorScheme.onPrimaryContainer
                           : colorScheme.onSurface,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                 ),

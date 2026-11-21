@@ -93,9 +93,7 @@ class DomainMasteryUpdate {
     return DomainMasteryUpdate(
       scoreBefore: scoreBefore,
       scoreAfter: scoreAfter,
-      levelBefore: previousScore == null
-          ? null
-          : levelForScore(previousScore),
+      levelBefore: previousScore == null ? null : levelForScore(previousScore),
       levelAfter: levelForScore(scoreAfter),
     );
   }
@@ -129,24 +127,22 @@ class DomainMasteryService {
     required DomainEventOrigin eventOrigin,
     required String sourceStudySessionType,
   }) async {
-    final node = await (_database.select(_database.graphNode)
-          ..where((row) => row.id.equals(nodeId))
-          ..where((row) => row.softDeleted.equals(false)))
-        .getSingleOrNull();
+    final node =
+        await (_database.select(_database.graphNode)
+              ..where((row) => row.id.equals(nodeId))
+              ..where((row) => row.softDeleted.equals(false)))
+            .getSingleOrNull();
     if (node == null) {
-      throw StateError('Não foi possível atualizar o domínio de um nó ausente.');
+      throw StateError(
+        'Não foi possível atualizar o domínio de um nó ausente.',
+      );
     }
 
     final state = _database.reviewItemState;
     final reviewLog = _database.reviewItemLog;
-    final reviewRows =
-        await (_database.select(reviewLog).join([
-              innerJoin(
-                state,
-                state.id.equalsExp(reviewLog.reviewItemStateId),
-              ),
-            ])..where(state.nodeId.equals(nodeId)))
-            .get();
+    final reviewRows = await (_database.select(reviewLog).join([
+      innerJoin(state, state.id.equalsExp(reviewLog.reviewItemStateId)),
+    ])..where(state.nodeId.equals(nodeId))).get();
     final previousReviewCount = reviewRows.length;
     final scoredReviews = reviewRows
         .map((row) => row.readTable(reviewLog).score)
@@ -169,69 +165,75 @@ class DomainMasteryService {
     );
     final nowSeconds = reviewedAt.toUtc().millisecondsSinceEpoch ~/ 1000;
 
-    await (_database.update(_database.graphNode)
-          ..where((row) => row.id.equals(nodeId)))
-        .write(
-          GraphNodeCompanion(
-            masteryScore: Value(update.scoreAfter),
-            fsrsRating: Value(rating.value),
-            updatedAt: Value(nowSeconds),
-          ),
-        );
-    await _database.into(_database.domainLog).insert(
-      DomainLogCompanion.insert(
-        id: const Uuid().v4(),
-        nodeId: nodeId,
-        scoreBefore: update.scoreBefore,
-        scoreAfter: update.scoreAfter,
-        levelBefore: Value(update.levelBefore),
-        levelAfter: Value(update.levelAfter),
-        eventOrigin: eventOrigin.databaseValue,
-        sourceStudySessionType: Value(sourceStudySessionType),
-        loggedAt: Value(nowSeconds),
+    await (_database.update(
+      _database.graphNode,
+    )..where((row) => row.id.equals(nodeId))).write(
+      GraphNodeCompanion(
+        masteryScore: Value(update.scoreAfter),
+        fsrsRating: Value(rating.value),
+        updatedAt: Value(nowSeconds),
       ),
     );
+    await _database
+        .into(_database.domainLog)
+        .insert(
+          DomainLogCompanion.insert(
+            id: const Uuid().v4(),
+            nodeId: nodeId,
+            scoreBefore: update.scoreBefore,
+            scoreAfter: update.scoreAfter,
+            levelBefore: Value(update.levelBefore),
+            levelAfter: Value(update.levelAfter),
+            eventOrigin: eventOrigin.databaseValue,
+            sourceStudySessionType: Value(sourceStudySessionType),
+            loggedAt: Value(nowSeconds),
+          ),
+        );
     return update;
   }
 
   Future<int> _countExposureEvents(String nodeId) async {
     final flashcardLog = _database.flashcardResponseLog;
     final flashcard = _database.flashcard;
-    final flashcardCountQuery = _database.selectOnly(flashcardLog).join([
-      innerJoin(flashcard, flashcard.id.equalsExp(flashcardLog.flashcardId)),
-    ])
-      ..addColumns([flashcardLog.id.count()])
-      ..where(flashcard.nodeId.equals(nodeId));
+    final flashcardCountQuery =
+        _database.selectOnly(flashcardLog).join([
+            innerJoin(
+              flashcard,
+              flashcard.id.equalsExp(flashcardLog.flashcardId),
+            ),
+          ])
+          ..addColumns([flashcardLog.id.count()])
+          ..where(flashcard.nodeId.equals(nodeId));
     final flashcardCount = await flashcardCountQuery
         .map((row) => row.read(flashcardLog.id.count()) ?? 0)
         .getSingle();
 
     final multipleChoiceLog = _database.multipleChoiceResponseLog;
     final multipleChoice = _database.multipleChoice;
-    final multipleChoiceCountQuery = _database
-        .selectOnly(multipleChoiceLog)
-        .join([
-          innerJoin(
-            multipleChoice,
-            multipleChoice.id.equalsExp(multipleChoiceLog.multipleChoiceId),
-          ),
-        ])
-      ..addColumns([multipleChoiceLog.id.count()])
-      ..where(multipleChoice.nodeId.equals(nodeId));
+    final multipleChoiceCountQuery =
+        _database.selectOnly(multipleChoiceLog).join([
+            innerJoin(
+              multipleChoice,
+              multipleChoice.id.equalsExp(multipleChoiceLog.multipleChoiceId),
+            ),
+          ])
+          ..addColumns([multipleChoiceLog.id.count()])
+          ..where(multipleChoice.nodeId.equals(nodeId));
     final multipleChoiceCount = await multipleChoiceCountQuery
         .map((row) => row.read(multipleChoiceLog.id.count()) ?? 0)
         .getSingle();
 
     final openEndedLog = _database.openEndedResponseLog;
     final openEnded = _database.openEnded;
-    final openEndedCountQuery = _database.selectOnly(openEndedLog).join([
-      innerJoin(
-        openEnded,
-        openEnded.id.equalsExp(openEndedLog.openEndedId),
-      ),
-    ])
-      ..addColumns([openEndedLog.id.count()])
-      ..where(openEnded.nodeId.equals(nodeId));
+    final openEndedCountQuery =
+        _database.selectOnly(openEndedLog).join([
+            innerJoin(
+              openEnded,
+              openEnded.id.equalsExp(openEndedLog.openEndedId),
+            ),
+          ])
+          ..addColumns([openEndedLog.id.count()])
+          ..where(openEnded.nodeId.equals(nodeId));
     final openEndedCount = await openEndedCountQuery
         .map((row) => row.read(openEndedLog.id.count()) ?? 0)
         .getSingle();

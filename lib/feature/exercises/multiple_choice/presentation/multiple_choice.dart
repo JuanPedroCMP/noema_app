@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
@@ -15,6 +16,7 @@ import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
+import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_scoring.dart';
 import 'package:noema/feature/exercises/data/exercise_correction_queue.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/choise.dart';
 import 'package:noema/feature/exercises/multiple_choice/widgets/manipulate_choise.dart';
@@ -237,10 +239,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
 
   Future<void> _generateWithAi({bool skipInstructionPrompt = false}) async {
     if (_isGenerating || _isSaving) return;
-    final instructions = skipInstructionPrompt
-        ? widget.initialAiInstructions ?? ''
+    final request = skipInstructionPrompt
+        ? (instructions: widget.initialAiInstructions ?? '', count: 1)
         : await _askAiInstructions();
-    if (instructions == null || !mounted) return;
+    if (request == null || !mounted) return;
 
     setState(() {
       _isGenerating = true;
@@ -261,25 +263,75 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         ..writeln('Nó: ${node.title}')
         ..writeln('Descrição: ${node.description ?? "não informada"}')
         ..writeln(
-          'Instruções adicionais: ${instructions.trim().isEmpty ? "sem instruções adicionais" : instructions.trim()}',
+          'Instruções adicionais: ${request.instructions.trim().isEmpty ? "sem instruções adicionais" : request.instructions.trim()}',
         )
         ..writeln(
           'Retorne título, enunciado e pelo menos 4 alternativas objetivas, '
           'com uma única alternativa correta. Cada alternativa deve incluir '
-          'is_correct (boolean), statement, explanation e weigth (inteiro).',
+          'is_correct (boolean), statement, explanation e weight (inteiro).',
         );
-      final response = await ref
-          .read(aiContentGenerationServiceProvider)
-          .generate(
-            task: AiAgentTask.createMultipleChoiceQuestion,
-            prompt: prompt.toString(),
-          );
-      final draft = _parseAiQuestion(response);
+      final prompts = List.generate(request.count, (index) {
+        if (request.count == 1) return prompt.toString();
+        return '${prompt.toString()}\n'
+            'Esta é a questão ${index + 1} de ${request.count}. '
+            'Crie uma questão distinta das demais, avaliando outro aspecto '
+            'do nó sem repetir enunciados ou alternativas.';
+      });
+      final ai = ref.read(aiContentGenerationServiceProvider);
+      final task = AiAgentTask.createMultipleChoiceQuestion;
+      final responses = request.count == 1
+          ? [await ai.generate(task: task, prompt: prompts.single)]
+          : await ai.generateBatch(
+              task: task,
+              agentId: await ai.resolveAgentId(task),
+              prompts: prompts,
+            );
+      final drafts = responses.map(_parseAiQuestion).toList(growable: false);
       if (!mounted) return;
-      final accepted = await _previewAiQuestion(draft);
+      final accepted = request.count == 1
+          ? await _previewAiQuestion(drafts.single)
+          : await _previewAiQuestions(drafts);
       if (accepted != true || !mounted) return;
 
       final db = ref.read(appDatabaseProvider);
+      if (request.count > 1) {
+        final savedQuestionId = await db.transaction(() async {
+          final multipleChoiceDao = MultipleChoiceDao(db);
+          final choiceDao = ChoiceDao(db);
+          String? firstId;
+          for (final draft in drafts) {
+            final id = await multipleChoiceDao.insertMultipleChoice(
+              nodeId: widget.nodeId,
+              title: draft.title,
+              statement: draft.statement,
+              isAiGenerated: true,
+            );
+            firstId ??= id;
+            for (final choice in draft.choices) {
+              await choiceDao.insertChoice(
+                multipleChoiceId: id,
+                isCorrect: choice.isCorrect,
+                statement: choice.statement,
+                explanation: choice.explanation,
+                weight: choice.weight,
+                isAiGenerated: true,
+              );
+            }
+          }
+          if (firstId == null) {
+            throw StateError('Nenhuma questão foi gerada para salvar.');
+          }
+          return firstId;
+        });
+        tempId = savedQuestionId;
+        await _loadData();
+        if (mounted) {
+          _showAiMessage('${drafts.length} questões foram geradas e salvas.');
+        }
+        return;
+      }
+
+      final draft = drafts.single;
       final savedQuestionId = await db.transaction(() async {
         title = draft.title;
         statement = draft.statement;
@@ -327,51 +379,98 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     }
   }
 
-  Future<String?> _askAiInstructions() async {
+  Future<({String instructions, int count})?> _askAiInstructions() async {
     final controller = TextEditingController(
       text: widget.initialAiInstructions ?? '',
     );
+    var count = 1;
     try {
-      return await showDialog<String>(
+      return await showDialog<({String instructions, int count})>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Gerar questão com IA'),
-          content: SizedBox(
-            width: 440,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'A questão será baseada no nó atual. Você pode orientar '
-                  'a dificuldade ou o aspecto que deseja avaliar.',
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const RuntimeLocalizedText('Gerar questão com IA'),
+            content: SizedBox(
+              width: 440,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'A questão será baseada no nó atual. Você pode orientar '
+                      'a dificuldade ou o aspecto que deseja avaliar.',
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      maxLines: 3,
+                      maxLength: 300,
+                      decoration: const InputDecoration(
+                        labelText: 'Orientação adicional (opcional)',
+                        hintText: 'Ex.: nível intermediário, foco em aplicação',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: count,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantidade de questões',
+                      ),
+                      items: [
+                        for (var amount = 1; amount <= 3; amount++)
+                          DropdownMenuItem(
+                            value: amount,
+                            child: Text(
+                              '$amount ${amount == 1 ? 'questão' : 'questões'}',
+                            ),
+                          ),
+                      ],
+                      onChanged: widget.multipleChoiseId == null
+                          ? (value) {
+                              if (value != null) {
+                                setDialogState(() => count = value);
+                              }
+                            }
+                          : null,
+                    ),
+                    if (count > 1)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Cada questão será gerada em uma solicitação '
+                          'independente à IA.',
+                        ),
+                      ),
+                    if (widget.multipleChoiseId != null)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Para não alterar outras questões, a edição gera '
+                          'uma questão por vez.',
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLines: 3,
-                  maxLength: 300,
-                  decoration: const InputDecoration(
-                    labelText: 'Orientação adicional (opcional)',
-                    hintText: 'Ex.: nível intermediário, foco em aplicação',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const RuntimeLocalizedText('Cancelar'),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(dialogContext, (
+                  instructions: controller.text,
+                  count: count,
+                )),
+                icon: const Icon(Icons.auto_awesome),
+                label: const RuntimeLocalizedText('Gerar'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(dialogContext, controller.text),
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('Gerar'),
-            ),
-          ],
         ),
       );
     } finally {
@@ -430,7 +529,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Revise a questão gerada'),
+        title: const RuntimeLocalizedText('Revise a questão gerada'),
         content: SizedBox(
           width: 520,
           child: SingleChildScrollView(
@@ -467,12 +566,71 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Descartar'),
+            child: const RuntimeLocalizedText('Descartar'),
           ),
           FilledButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
             icon: const Icon(Icons.check),
-            label: const Text('Aplicar ao editor'),
+            label: const RuntimeLocalizedText('Aplicar ao editor'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _previewAiQuestions(List<_AiMultipleChoiceDraft> drafts) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: RuntimeLocalizedText('Revise ${drafts.length} questões geradas'),
+        content: SizedBox(
+          width: 560,
+          height: 480,
+          child: ListView.separated(
+            itemCount: drafts.length,
+            separatorBuilder: (_, _) => const Divider(height: 24),
+            itemBuilder: (context, index) {
+              final draft = drafts[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${index + 1}. ${draft.title}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(draft.statement),
+                  for (final choice in draft.choices)
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        choice.isCorrect
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: choice.isCorrect
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      ),
+                      title: Text(choice.statement),
+                      subtitle: choice.explanation.isEmpty
+                          ? null
+                          : Text(choice.explanation),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const RuntimeLocalizedText('Descartar todas'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.save_outlined),
+            label: const RuntimeLocalizedText('Salvar todas'),
           ),
         ],
       ),
@@ -507,7 +665,11 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     if (questionId == null || questionId.isEmpty || choises.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Esta questão ainda não está pronta.")),
+          const SnackBar(
+            content: RuntimeLocalizedText(
+              "Esta questão ainda não está pronta.",
+            ),
+          ),
         );
       }
       return;
@@ -515,7 +677,11 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
 
     if (_selectedChoiceIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Selecione pelo menos uma alternativa.")),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            "Selecione pelo menos uma alternativa.",
+          ),
+        ),
       );
       return;
     }
@@ -527,7 +693,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     if (correctIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Esta questão ainda não tem uma alternativa correta."),
+          content: RuntimeLocalizedText(
+            "Esta questão ainda não tem uma alternativa correta.",
+          ),
         ),
       );
       return;
@@ -536,10 +704,18 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     setState(() => _isSending = true);
     final selectedCorrect = _selectedChoiceIds.intersection(correctIds).length;
     final wrongSelected = _selectedChoiceIds.difference(correctIds).length;
-    final score = ((selectedCorrect - wrongSelected) / correctIds.length).clamp(
-      0.0,
-      1.0,
+    final weightedScore = calculateMultipleChoiceScore(
+      choices: [
+        for (final choice in choises)
+          WeightedChoice(
+            id: choice.id,
+            isCorrect: choice.isCorrect,
+            weight: choice.weight,
+          ),
+      ],
+      selectedChoiceIds: _selectedChoiceIds,
     );
+    final score = weightedScore.normalizedScore;
     final durationSeconds = _answerTimer.elapsed.inSeconds;
     final db = ref.read(appDatabaseProvider);
     final responseDao = MultipleChoiceResponseLogDao(db);
@@ -604,13 +780,19 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Resposta registrada.$correctionMessage')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Resposta registrada.$correctionMessage',
+          ),
+        ),
       );
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível registrar a resposta: $error'),
+            content: RuntimeLocalizedText(
+              'Não foi possível registrar a resposta: $error',
+            ),
           ),
         );
       }
@@ -638,17 +820,24 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       if (!mounted) return;
       if (id == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Preencha título e enunciado.")),
+          const SnackBar(
+            content: RuntimeLocalizedText("Preencha título e enunciado."),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Questão salva.")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: RuntimeLocalizedText("Questão salva. Voltando à lista."),
+          ),
+        );
+        Navigator.of(context).pop(true);
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Não foi possível salvar a questão.")),
+          const SnackBar(
+            content: RuntimeLocalizedText("Não foi possível salvar a questão."),
+          ),
         );
       }
     } finally {
@@ -664,7 +853,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       if (!mounted) return;
       if (id == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Preencha título e enunciado.")),
+          const SnackBar(
+            content: RuntimeLocalizedText("Preencha título e enunciado."),
+          ),
         );
         return;
       }
@@ -678,7 +869,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Não foi possível preparar a alternativa."),
+          content: RuntimeLocalizedText(
+            "Não foi possível preparar a alternativa.",
+          ),
         ),
       );
     } finally {
@@ -690,16 +883,18 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Excluir alternativa?"),
-        content: Text("“${choice.statement}” será removida da questão."),
+        title: const RuntimeLocalizedText("Excluir alternativa?"),
+        content: RuntimeLocalizedText(
+          "“${choice.statement}” será removida da questão.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancelar"),
+            child: const RuntimeLocalizedText("Cancelar"),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Excluir"),
+            child: const RuntimeLocalizedText("Excluir"),
           ),
         ],
       ),
@@ -714,7 +909,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Não foi possível excluir a alternativa."),
+          content: RuntimeLocalizedText(
+            "Não foi possível excluir a alternativa.",
+          ),
         ),
       );
     }
@@ -967,7 +1164,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                             Card(
                               child: ListTile(
                                 leading: const Icon(Icons.feedback_outlined),
-                                title: const Text('Feedback'),
+                                title: const RuntimeLocalizedText('Feedback'),
                                 subtitle: Text(_latestResponse!.aiFeedback!),
                               ),
                             ),
@@ -1020,12 +1217,21 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
         correctSelected == correctIds.length &&
         wrongSelected == 0;
     final colorScheme = Theme.of(context).colorScheme;
-    final score = correctIds.isEmpty
-        ? 0.0
-        : ((correctSelected - wrongSelected) / correctIds.length).clamp(
-            0.0,
-            1.0,
-          );
+    final weightedScore = calculateMultipleChoiceScore(
+      choices: [
+        for (final choice in choises)
+          WeightedChoice(
+            id: choice.id,
+            isCorrect: choice.isCorrect,
+            weight: choice.weight,
+          ),
+      ],
+      selectedChoiceIds: _selectedChoiceIds,
+    );
+    final score = weightedScore.normalizedScore;
+    final pointsLabel = weightedScore.points > 0
+        ? '+${weightedScore.points}'
+        : '${weightedScore.points}';
 
     return Card(
       color: isPerfect
@@ -1057,7 +1263,10 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                     'selecionadas · $wrongSelected incorreta(s) marcada(s)',
                   ),
                   const SizedBox(height: 4),
-                  Text('Aproveitamento: ${(score * 100).round()}%'),
+                  RuntimeLocalizedText(
+                    'Pontos: $pointsLabel · Aproveitamento: '
+                    '${(score * 100).round()}%',
+                  ),
                 ],
               ),
             ),

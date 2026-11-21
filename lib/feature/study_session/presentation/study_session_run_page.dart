@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/exercises/multiple_choice/presentation/multiple_choice.dart';
@@ -49,9 +50,7 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
       final session = await StudySessionDao(
         db,
       ).getStudySession(id: widget.sessionId);
-      if (session == null ||
-          session.softDeleted ||
-          session.userId != user.id) {
+      if (session == null || session.softDeleted || session.userId != user.id) {
         throw StateError('Esta sessão não existe ou foi arquivada.');
       }
       final questions = await StudySessionQuestionDao(
@@ -169,7 +168,9 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
       setState(() => _isAdvancing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Não foi possível atualizar o progresso: $error'),
+          content: RuntimeLocalizedText(
+            'Não foi possível atualizar o progresso: $error',
+          ),
         ),
       );
     }
@@ -186,18 +187,18 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
     final shouldLeave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Interromper sessão?'),
+        title: const RuntimeLocalizedText('Interromper sessão?'),
         content: const Text(
           'O progresso desta realização será salvo no histórico.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Continuar'),
+            child: const RuntimeLocalizedText('Continuar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Interromper'),
+            child: const RuntimeLocalizedText('Interromper'),
           ),
         ],
       ),
@@ -227,7 +228,9 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Não foi possível salvar a interrupção: $error'),
+          content: RuntimeLocalizedText(
+            'Não foi possível salvar a interrupção: $error',
+          ),
         ),
       );
     }
@@ -256,7 +259,7 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () => context.pop(),
-                  child: const Text('Voltar'),
+                  child: const RuntimeLocalizedText('Voltar'),
                 ),
               ],
             ),
@@ -394,7 +397,7 @@ class _CompletionCard extends StatelessWidget {
             const SizedBox(height: 20),
             FilledButton(
               onPressed: onClose,
-              child: const Text('Ver histórico da sessão'),
+              child: const RuntimeLocalizedText('Ver histórico da sessão'),
             ),
           ],
         ),

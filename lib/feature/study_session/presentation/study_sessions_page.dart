@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -57,16 +58,18 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Arquivar sessão?'),
-        content: Text('“${session.title}” sairá da sua lista de sessões.'),
+        title: const RuntimeLocalizedText('Arquivar sessão?'),
+        content: RuntimeLocalizedText(
+          '“${session.title}” sairá da sua lista de sessões.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Arquivar'),
+            child: const RuntimeLocalizedText('Arquivar'),
           ),
         ],
       ),
@@ -81,7 +84,11 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível arquivar a sessão: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível arquivar a sessão: $error',
+          ),
+        ),
       );
     }
   }
@@ -102,7 +109,7 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createSession,
         icon: const Icon(Icons.add),
-        label: const Text('Nova sessão'),
+        label: const RuntimeLocalizedText('Nova sessão'),
       ),
       body: RefreshIndicator(
         onRefresh: _loadSessions,
@@ -173,7 +180,7 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
                           itemBuilder: (context) => const [
                             PopupMenuItem(
                               value: 'archive',
-                              child: Text('Arquivar'),
+                              child: RuntimeLocalizedText('Arquivar'),
                             ),
                           ],
                         ),

@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -99,7 +100,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
     final title = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Criar anotação'),
+        title: const RuntimeLocalizedText('Criar anotação'),
         content: TextField(
           controller: titleController,
           autofocus: true,
@@ -117,14 +118,14 @@ class NotesPageState extends ConsumerState<NotesPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () {
               if (titleController.text.trim().isEmpty) return;
               Navigator.pop(context, titleController.text.trim());
             },
-            child: const Text('Criar'),
+            child: const RuntimeLocalizedText('Criar'),
           ),
         ],
       ),
@@ -179,7 +180,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
       final title = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Importar anotação'),
+          title: const RuntimeLocalizedText('Importar anotação'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -205,14 +206,14 @@ class NotesPageState extends ConsumerState<NotesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: const RuntimeLocalizedText('Cancelar'),
             ),
             FilledButton(
               onPressed: () {
                 final value = titleController.text.trim();
                 if (value.isNotEmpty) Navigator.pop(context, value);
               },
-              child: const Text('Importar'),
+              child: const RuntimeLocalizedText('Importar'),
             ),
           ],
         ),
@@ -228,12 +229,20 @@ class NotesPageState extends ConsumerState<NotesPage> {
       ref.invalidate(notesProvider(userId));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('“${initialVersion.title}” foi importada.')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            '“${initialVersion.title}” foi importada.',
+          ),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível importar a anotação: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível importar a anotação: $error',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isImporting = false);
@@ -255,12 +264,20 @@ class NotesPageState extends ConsumerState<NotesPage> {
       );
       if (uri == null || !mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Anotação exportada em ${format.extension}.')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Anotação exportada em ${format.extension}.',
+          ),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível exportar a anotação: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível exportar a anotação: $error',
+          ),
+        ),
       );
     }
   }
@@ -281,18 +298,18 @@ class NotesPageState extends ConsumerState<NotesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mover anotação para a lixeira?'),
+        title: const RuntimeLocalizedText('Mover anotação para a lixeira?'),
         content: Text(
           '“${note.title}” será ocultada da sua lista. O histórico será mantido.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Mover para lixeira'),
+            child: const RuntimeLocalizedText('Mover para lixeira'),
           ),
         ],
       ),
@@ -311,7 +328,11 @@ class NotesPageState extends ConsumerState<NotesPage> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível remover a nota: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível remover a nota: $error',
+          ),
+        ),
       );
     }
   }
@@ -328,14 +349,16 @@ class NotesPageState extends ConsumerState<NotesPage> {
         _selectedNoteId = note.id;
       });
       ref.invalidate(notesProvider(userId));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Anotação restaurada.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: RuntimeLocalizedText('Anotação restaurada.')),
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Não foi possível restaurar a anotação: $error'),
+          content: RuntimeLocalizedText(
+            'Não foi possível restaurar a anotação: $error',
+          ),
         ),
       );
     }
@@ -345,18 +368,18 @@ class NotesPageState extends ConsumerState<NotesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir definitivamente?'),
+        title: const RuntimeLocalizedText('Excluir definitivamente?'),
         content: Text(
           '“${note.title}” e todo o seu histórico serão removidos sem possibilidade de restauração.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir definitivamente'),
+            child: const RuntimeLocalizedText('Excluir definitivamente'),
           ),
         ],
       ),
@@ -371,7 +394,11 @@ class NotesPageState extends ConsumerState<NotesPage> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível excluir a anotação: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível excluir a anotação: $error',
+          ),
+        ),
       );
     }
   }
@@ -384,7 +411,9 @@ class NotesPageState extends ConsumerState<NotesPage> {
       error: (error, _) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('Não foi possível acessar suas anotações: $error'),
+          child: RuntimeLocalizedText(
+            'Não foi possível acessar suas anotações: $error',
+          ),
         ),
       ),
       data: (currentUser) => ref
@@ -395,12 +424,14 @@ class NotesPageState extends ConsumerState<NotesPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Não foi possível carregar as anotações: $error'),
+                  RuntimeLocalizedText(
+                    'Não foi possível carregar as anotações: $error',
+                  ),
                   const SizedBox(height: 12),
                   FilledButton(
                     onPressed: () =>
                         ref.invalidate(notesProvider(currentUser.id)),
-                    child: const Text('Tentar novamente'),
+                    child: const RuntimeLocalizedText('Tentar novamente'),
                   ),
                 ],
               ),
@@ -412,8 +443,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
 
   Widget _buildWorkspace(List<NoteData> notes, String userId) {
     final compact =
-        MediaQuery.sizeOf(context).width <
-        AppLayoutTokens.notesSplitBreakpoint;
+        MediaQuery.sizeOf(context).width < AppLayoutTokens.notesSplitBreakpoint;
     final activeNotes = notes.where((note) => !note.softDeleted).toList();
     final deletedNotes = notes.where((note) => note.softDeleted).toList();
     final libraryNotes = _showTrash ? deletedNotes : activeNotes;
@@ -438,15 +468,15 @@ class NotesPageState extends ConsumerState<NotesPage> {
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                    NotesLibraryPane(
-                      compact: compact,
-                      child: _buildLibrary(
-                        visibleNotes,
-                        userId,
-                        activeNotes.length,
-                        deletedNotes.length,
-                      ),
+                  NotesLibraryPane(
+                    compact: compact,
+                    child: _buildLibrary(
+                      visibleNotes,
+                      userId,
+                      activeNotes.length,
+                      deletedNotes.length,
                     ),
+                  ),
                   if (!compact) ...[
                     SizedBox(width: context.spacing.md),
                     const VerticalDivider(width: 1),
@@ -510,7 +540,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.add),
-                label: const Text('Nova'),
+                label: const RuntimeLocalizedText('Nova'),
               ),
             ],
           ],
@@ -521,12 +551,12 @@ class NotesPageState extends ConsumerState<NotesPage> {
             ButtonSegment(
               value: false,
               icon: const Icon(Icons.notes_outlined),
-              label: Text('Notas ($totalCount)'),
+              label: RuntimeLocalizedText('Notas ($totalCount)'),
             ),
             ButtonSegment(
               value: true,
               icon: const Icon(Icons.delete_outline),
-              label: Text('Lixeira ($trashedCount)'),
+              label: RuntimeLocalizedText('Lixeira ($trashedCount)'),
             ),
           ],
           selected: {_showTrash},
@@ -639,17 +669,23 @@ class NotesPageState extends ConsumerState<NotesPage> {
                                   ? const [
                                       PopupMenuItem(
                                         value: 'restore',
-                                        child: Text('Restaurar'),
+                                        child: RuntimeLocalizedText(
+                                          'Restaurar',
+                                        ),
                                       ),
                                       PopupMenuItem(
                                         value: 'deletePermanently',
-                                        child: Text('Excluir definitivamente'),
+                                        child: RuntimeLocalizedText(
+                                          'Excluir definitivamente',
+                                        ),
                                       ),
                                     ]
                                   : const [
                                       PopupMenuItem(
                                         value: 'delete',
-                                        child: Text('Mover para lixeira'),
+                                        child: RuntimeLocalizedText(
+                                          'Mover para lixeira',
+                                        ),
                                       ),
                                     ],
                             ),
@@ -705,7 +741,6 @@ class NotesPageState extends ConsumerState<NotesPage> {
       return 'Sem prévia disponível';
     }
   }
-
 }
 
 class NotesLibraryPane extends StatelessWidget {
@@ -808,7 +843,7 @@ class _NotesEmptyState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onCreate,
                 icon: const Icon(Icons.add),
-                label: const Text('Criar anotação'),
+                label: const RuntimeLocalizedText('Criar anotação'),
               ),
             ],
           ],

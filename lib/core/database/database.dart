@@ -15,7 +15,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -215,6 +215,70 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 9 && to >= 9) {
         await _ensureManualBackupHistory();
+      }
+      if (from < 10 && to >= 10) {
+        await customStatement('''
+          CREATE TABLE ai_background_task_v10 (
+            id TEXT NOT NULL PRIMARY KEY,
+            node_id TEXT NOT NULL REFERENCES graph_node(id) ON DELETE CASCADE,
+            task_type TEXT NOT NULL CHECK (
+              task_type IN (
+                'NODE_DESCRIPTION',
+                'OPEN_ENDED_CORRECTION',
+                'MULTIPLE_CHOICE_CORRECTION',
+                'STUDY_PACK'
+              )
+            ),
+            subject_id TEXT,
+            payload_json TEXT NOT NULL DEFAULT '{}'
+              CHECK (json_valid(payload_json)),
+            status TEXT NOT NULL DEFAULT 'PENDING' CHECK (
+              status IN (
+                'PENDING', 'RUNNING', 'RETRY_WAIT', 'FAILED',
+                'COMPLETED', 'CANCELED'
+              )
+            ),
+            attempt_count INTEGER NOT NULL DEFAULT 0
+              CHECK (attempt_count >= 0),
+            next_attempt_at INTEGER,
+            last_error TEXT,
+            created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+          )
+        ''');
+        await customStatement('''
+          INSERT INTO ai_background_task_v10 (
+            id, node_id, task_type, subject_id, status, attempt_count,
+            next_attempt_at, last_error, created_at, updated_at
+          )
+          SELECT id, node_id, task_type, subject_id, status, attempt_count,
+                 next_attempt_at, last_error, created_at, updated_at
+          FROM ai_background_task
+        ''');
+        await customStatement('DROP TABLE ai_background_task');
+        await customStatement(
+          'ALTER TABLE ai_background_task_v10 RENAME TO ai_background_task',
+        );
+        await customStatement(
+          'CREATE INDEX ai_background_task_status_next_attempt_idx '
+          'ON ai_background_task(status, next_attempt_at)',
+        );
+        await customStatement('''
+          CREATE UNIQUE INDEX ai_background_task_node_description_uq
+          ON ai_background_task(node_id)
+          WHERE task_type = 'NODE_DESCRIPTION'
+        ''');
+        await customStatement('''
+          CREATE UNIQUE INDEX ai_background_task_subject_task_uq
+          ON ai_background_task(subject_id, task_type)
+          WHERE subject_id IS NOT NULL
+        ''');
+        await customStatement('''
+          CREATE UNIQUE INDEX ai_background_task_active_pack_uq
+          ON ai_background_task(node_id)
+          WHERE task_type = 'STUDY_PACK'
+            AND status IN ('PENDING', 'RUNNING', 'RETRY_WAIT')
+        ''');
       }
     },
     beforeOpen: (details) async {

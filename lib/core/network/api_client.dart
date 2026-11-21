@@ -2,12 +2,20 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:openapi/openapi.dart';
 
+const _aiRequestPaths = {
+  '/api/v1/ai_router/use_ai',
+  '/api/v1/ai_router/get_materials',
+};
+
 final apiClientProvider = Provider<Openapi>((ref) {
   final client = Openapi(basePathOverride: "https://api.tccnoema.me");
   client.dio.options.receiveTimeout = const Duration(minutes: 2);
   client.dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
+        if (_aiRequestPaths.contains(options.path)) {
+          options.receiveTimeout = Duration.zero;
+        }
         final security = options.extra['secure'];
         final requiresOAuth =
             security is List &&

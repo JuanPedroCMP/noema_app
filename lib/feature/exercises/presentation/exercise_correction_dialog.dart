@@ -1,3 +1,4 @@
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:dio/dio.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
@@ -142,7 +143,9 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('Não foi possível aplicar a correção: $error'),
+            content: RuntimeLocalizedText(
+              'Não foi possível aplicar a correção: $error',
+            ),
           ),
         );
     } finally {
@@ -161,7 +164,7 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AlertDialog(
-      title: const Text('Revisar resposta'),
+      title: const RuntimeLocalizedText('Revisar resposta'),
       content: SizedBox(
         width: 600,
         child: ConstrainedBox(
@@ -219,13 +222,22 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                     border: OutlineInputBorder(),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'WEAK', child: Text('Inicial')),
-                    DropdownMenuItem(value: 'PARTIAL', child: Text('Parcial')),
+                    DropdownMenuItem(
+                      value: 'WEAK',
+                      child: RuntimeLocalizedText('Inicial'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'PARTIAL',
+                      child: RuntimeLocalizedText('Parcial'),
+                    ),
                     DropdownMenuItem(
                       value: 'ADEQUATE',
-                      child: Text('Adequado'),
+                      child: RuntimeLocalizedText('Adequado'),
                     ),
-                    DropdownMenuItem(value: 'STRONG', child: Text('Forte')),
+                    DropdownMenuItem(
+                      value: 'STRONG',
+                      child: RuntimeLocalizedText('Forte'),
+                    ),
                   ],
                   onChanged: (value) {
                     if (value != null) setState(() => _mastery = value);
@@ -242,19 +254,21 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                   items: const [
                     DropdownMenuItem(
                       value: fsrs.Rating.again,
-                      child: Text('De novo — esqueci'),
+                      child: RuntimeLocalizedText('De novo — esqueci'),
                     ),
                     DropdownMenuItem(
                       value: fsrs.Rating.hard,
-                      child: Text('Difícil — muito esforço'),
+                      child: RuntimeLocalizedText('Difícil — muito esforço'),
                     ),
                     DropdownMenuItem(
                       value: fsrs.Rating.good,
-                      child: Text('Bom — lembrei com esforço'),
+                      child: RuntimeLocalizedText('Bom — lembrei com esforço'),
                     ),
                     DropdownMenuItem(
                       value: fsrs.Rating.easy,
-                      child: Text('Fácil — lembrei imediatamente'),
+                      child: RuntimeLocalizedText(
+                        'Fácil — lembrei imediatamente',
+                      ),
                     ),
                   ],
                   onChanged: (value) {
@@ -285,7 +299,7 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
       actions: [
         TextButton(
           onPressed: _isGenerating ? null : () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         FilledButton.icon(
           onPressed: _isGenerating || _feedback.text.trim().isEmpty
@@ -302,7 +316,7 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                   ),
                 ),
           icon: const Icon(Icons.save_outlined),
-          label: const Text('Salvar revisão'),
+          label: const RuntimeLocalizedText('Salvar revisão'),
         ),
       ],
     );

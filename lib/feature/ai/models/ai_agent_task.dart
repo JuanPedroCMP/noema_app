@@ -27,7 +27,7 @@ enum AiAgentTask {
     'Editar grupo de flashcards',
   ),
   createFlashcard('create_flashcard', 'Criar flashcard'),
-  createFlashcards('create_flashcardS', 'Criar flashcards');
+  createFlashcards('create_flashcards', 'Criar flashcards');
 
   const AiAgentTask(this.wireName, this.label);
 

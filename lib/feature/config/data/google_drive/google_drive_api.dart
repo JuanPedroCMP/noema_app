@@ -252,8 +252,7 @@ class GoogleDriveApi {
         fileId: existingFile.id,
       );
       if (latestFile.version != existingFile.version ||
-          (existingFile.etag != null &&
-              latestFile.etag != existingFile.etag)) {
+          (existingFile.etag != null && latestFile.etag != existingFile.etag)) {
         throw const GoogleDriveApiException(
           'drive_revision_conflict',
           'O backup remoto mudou desde a prévia. Gere uma nova prévia antes de sincronizar.',

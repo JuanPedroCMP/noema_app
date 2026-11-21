@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
@@ -18,23 +19,65 @@ class GlobalSearchAnchor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final searchWidth = (MediaQuery.sizeOf(context).width * .25)
+        .clamp(240.0, 320.0)
+        .toDouble();
     return SearchAnchor(
       isFullScreen: !isDesktop,
       viewHintText: 'Grafos, tópicos, tarefas, flashcards…',
+      viewBackgroundColor: context.colors.surfaceContainerLow,
+      viewElevation: 4,
+      viewShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(context.radius.dialog),
+      ),
+      viewConstraints: const BoxConstraints(maxWidth: 680),
       builder: (context, controller) {
         if (!isDesktop) {
           return IconButton(
             tooltip: 'Buscar no Noema',
             onPressed: controller.openView,
+            style: IconButton.styleFrom(
+              backgroundColor: context.colors.surfaceContainerHighest,
+              foregroundColor: context.colors.onSurfaceVariant,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(context.radius.button),
+              ),
+            ),
             icon: const Icon(Icons.search_rounded),
           );
         }
 
         return SizedBox(
-          width: 280,
+          width: searchWidth,
           child: SearchBar(
             controller: controller,
             hintText: 'Buscar no Noema',
+            constraints: const BoxConstraints(minHeight: 48, maxHeight: 48),
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              context.colors.surfaceContainerHighest,
+            ),
+            side: WidgetStateProperty.resolveWith(
+              (states) => BorderSide(
+                color: states.contains(WidgetState.focused)
+                    ? context.colors.primary
+                    : context.colors.outlineVariant,
+              ),
+            ),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(context.radius.button),
+              ),
+            ),
+            padding: const WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: 14),
+            ),
+            hintStyle: WidgetStatePropertyAll(
+              context.textTheme.bodyMedium?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+            textStyle: WidgetStatePropertyAll(context.textTheme.bodyMedium),
             leading: const Icon(Icons.search_rounded),
             onTap: controller.openView,
             onChanged: (_) => controller.openView(),
@@ -51,8 +94,10 @@ class GlobalSearchAnchor extends ConsumerWidget {
                 Icons.tips_and_updates_outlined,
                 color: context.colors.primary,
               ),
-              title: const Text('Encontre conteúdos em todo o Noema'),
-              subtitle: const Text(
+              title: const RuntimeLocalizedText(
+                'Encontre conteúdos em todo o Noema',
+              ),
+              subtitle: const RuntimeLocalizedText(
                 'Digite ao menos 2 caracteres para buscar.',
               ),
             ),
@@ -68,8 +113,12 @@ class GlobalSearchAnchor extends ConsumerWidget {
             return [
               ListTile(
                 leading: const Icon(Icons.search_off_rounded),
-                title: const Text('Nenhum resultado encontrado'),
-                subtitle: Text('Tente outro termo para “$query”.'),
+                title: const RuntimeLocalizedText(
+                  'Nenhum resultado encontrado',
+                ),
+                subtitle: RuntimeLocalizedText(
+                  'Tente outro termo para “$query”.',
+                ),
               ),
             ];
           }
@@ -108,8 +157,12 @@ class GlobalSearchAnchor extends ConsumerWidget {
                 Icons.error_outline_rounded,
                 color: context.colors.error,
               ),
-              title: const Text('Não foi possível concluir a busca'),
-              subtitle: const Text('Feche a busca e tente novamente.'),
+              title: const RuntimeLocalizedText(
+                'Não foi possível concluir a busca',
+              ),
+              subtitle: const RuntimeLocalizedText(
+                'Feche a busca e tente novamente.',
+              ),
             ),
           ];
         }

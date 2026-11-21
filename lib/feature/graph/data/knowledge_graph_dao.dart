@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'knowledge_graph_dao.g.dart';
 
 @DriftAccessor(tables: [KnowledgeGraph])
-class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGraphDaoMixin {
+class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase>
+    with _$KnowledgeGraphDaoMixin {
   KnowledgeGraphDao(super.db);
 
   Future<String> insertKnowledgeGraph({
@@ -22,7 +23,9 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
         userId: userId,
         title: title,
         description: Value(description),
-        isArchived: isArchived == null ? const Value.absent() : Value(isArchived),
+        isArchived: isArchived == null
+            ? const Value.absent()
+            : Value(isArchived),
         synced: synced == null ? const Value.absent() : Value(synced),
       ),
     );
@@ -43,8 +46,12 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
       KnowledgeGraphCompanion(
         userId: userId == null ? const Value.absent() : Value(userId),
         title: title == null ? const Value.absent() : Value(title),
-        description: description == null ? const Value.absent() : Value(description),
-        isArchived: isArchived == null ? const Value.absent() : Value(isArchived),
+        description: description == null
+            ? const Value.absent()
+            : Value(description),
+        isArchived: isArchived == null
+            ? const Value.absent()
+            : Value(isArchived),
         synced: synced == null ? const Value.absent() : Value(synced),
       ),
     );
@@ -57,7 +64,9 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
         .getSingleOrNull();
   }
 
-  Future<List<KnowledgeGraphData>> getKnowledgeGraphsByUser({required String userId}) {
+  Future<List<KnowledgeGraphData>> getKnowledgeGraphsByUser({
+    required String userId,
+  }) {
     return (select(attachedDatabase.knowledgeGraph)
           ..where((tbl) => tbl.userId.equals(userId))
           ..where((tbl) => tbl.softDeleted.equals(false)))
@@ -65,18 +74,20 @@ class KnowledgeGraphDao extends DatabaseAccessor<AppDatabase> with _$KnowledgeGr
   }
 
   Future<bool> deleteKnowledgeGraph({required String id}) async {
-    final changed = await (update(
-      attachedDatabase.knowledgeGraph,
-    )..where((tbl) => tbl.id.equals(id))).write(
-      KnowledgeGraphCompanion(
-        softDeleted: const Value(true),
-        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
-      ),
-    );
+    final changed =
+        await (update(
+          attachedDatabase.knowledgeGraph,
+        )..where((tbl) => tbl.id.equals(id))).write(
+          KnowledgeGraphCompanion(
+            softDeleted: const Value(true),
+            softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
     return changed > 0;
   }
 
-  DeleteStatement<KnowledgeGraph, KnowledgeGraphData> deleteAllKnowledgeGraph() {
+  DeleteStatement<KnowledgeGraph, KnowledgeGraphData>
+  deleteAllKnowledgeGraph() {
     return (delete(attachedDatabase.knowledgeGraph));
   }
 }

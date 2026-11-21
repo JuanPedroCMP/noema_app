@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
+import 'package:noema/core/design/theme/app_theme.dart';
 import 'package:noema/core/design/theme/typography_theme_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/typography_theme_dao.dart';
+import 'package:noema/l10n/app_localizations.dart';
 
 class TypographyThemeSection extends ConsumerStatefulWidget {
   const TypographyThemeSection({super.key});
@@ -56,14 +60,20 @@ class _TypographyThemeSectionState
       ref.invalidate(activeTypographyThemeProvider);
       if (mounted) setState(() => _selectedId = id);
     } catch (_) {
-      _message('Não foi possível aplicar o tema de tipografia.');
+      if (!mounted) return;
+      _message(AppLocalizations.of(context)!.applyTypographyFailed);
     }
   }
 
   Future<void> _edit({TypographyThemeData? theme}) async {
     final draft = await showDialog<_TypographyDraft>(
       context: context,
-      builder: (_) => _TypographyEditor(theme: theme),
+      builder: (_) => _TypographyEditor(
+        theme: theme,
+        activeFontScale: AppTheme.normalizeFontScale(
+          _selected?.fontScale ?? 100,
+        ),
+      ),
     );
     if (draft == null) return;
     setState(() => _saving = true);
@@ -88,11 +98,15 @@ class _TypographyThemeSectionState
           monoFont: draft.monoFont,
           fontScale: draft.fontScale,
         );
+        ref.invalidate(activeTypographyThemeProvider);
         await _load();
       }
-      _message(theme == null ? 'Tema criado e aplicado.' : 'Tema atualizado.');
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      _message(theme == null ? l10n.createdTypography : l10n.updatedTypography);
     } catch (_) {
-      _message('Não foi possível salvar o tema. Verifique o nome e a escala.');
+      if (!mounted) return;
+      _message(AppLocalizations.of(context)!.saveTypographyFailed);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -108,36 +122,35 @@ class _TypographyThemeSectionState
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Temas de tipografia',
+                l10n.typographyThemes,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             FilledButton.icon(
               onPressed: _saving ? null : () => _edit(),
               icon: const Icon(Icons.add),
-              label: const Text('Novo tema'),
+              label: Text(l10n.newTypographyTheme),
             ),
           ],
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Defina fontes e escala para melhorar a leitura do aplicativo.',
-        ),
+        Text(l10n.typographyDescription),
         const SizedBox(height: 16),
         if (_themes.isEmpty)
-          const Text('Nenhum tema de tipografia disponível.')
+          Text(l10n.noTypographyThemes)
         else
           DropdownButtonFormField<String>(
             initialValue: _selectedId,
-            decoration: const InputDecoration(
-              labelText: 'Tema ativo',
+            decoration: InputDecoration(
+              labelText: l10n.activeTypographyTheme,
               prefixIcon: Icon(Icons.text_fields),
             ),
             items: _themes
@@ -156,20 +169,162 @@ class _TypographyThemeSectionState
             child: ListTile(
               title: Text(_selected!.name),
               subtitle: Text(
-                'Escala: ${_selected!.fontScale}%'
+                '${l10n.scale}: ${AppTheme.normalizeFontScale(_selected!.fontScale)}%'
                 '${_selected!.bodyFont == null ? '' : ' • Corpo: ${_selected!.bodyFont}'}',
               ),
               leading: const Icon(Icons.font_download_outlined),
-              trailing: IconButton(
-                tooltip: 'Editar tema',
-                onPressed: _saving ? null : () => _edit(theme: _selected),
-                icon: const Icon(Icons.edit_outlined),
-              ),
+              trailing: _selected!.systemDefault
+                  ? const Icon(Icons.lock_outline)
+                  : IconButton(
+                      tooltip: l10n.editTypographyThemeTooltip,
+                      onPressed: _saving ? null : () => _edit(theme: _selected),
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
             ),
           ),
+          if (_selected!.systemDefault)
+            Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(l10n.defaultTypographyNote),
+            ),
         ],
       ],
     );
+  }
+}
+
+class _GoogleFontField extends StatelessWidget {
+  const _GoogleFontField({
+    required this.controller,
+    required this.families,
+    required this.label,
+    required this.hint,
+  });
+
+  final TextEditingController controller;
+  final List<String> families;
+  final String label;
+  final String hint;
+
+  Future<void> _openPicker(BuildContext context) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) =>
+          _GoogleFontPicker(families: families, initialValue: controller.text),
+    );
+    if (selected != null) {
+      controller.text = selected;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        suffixIcon: IconButton(
+          tooltip: l10n.searchGoogleFonts,
+          onPressed: () => _openPicker(context),
+          icon: const Icon(Icons.search),
+        ),
+      ),
+      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+    );
+  }
+}
+
+class _GoogleFontPicker extends StatefulWidget {
+  const _GoogleFontPicker({required this.families, required this.initialValue});
+
+  final List<String> families;
+  final String initialValue;
+
+  @override
+  State<_GoogleFontPicker> createState() => _GoogleFontPickerState();
+}
+
+class _GoogleFontPickerState extends State<_GoogleFontPicker> {
+  late String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final normalized = _query.trim().toLowerCase();
+    final matches = widget.families
+        .where(
+          (family) =>
+              normalized.isEmpty || family.toLowerCase().contains(normalized),
+        )
+        .take(200)
+        .toList();
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.78,
+      minChildSize: 0.45,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: l10n.searchGoogleFonts,
+                prefixIcon: const Icon(Icons.search),
+              ),
+              onChanged: (value) => setState(() => _query = value),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: matches.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final family = matches[index];
+                final selected =
+                    family.toLowerCase() ==
+                    widget.initialValue.trim().toLowerCase();
+                return ListTile(
+                  selected: selected,
+                  title: Text(
+                    family,
+                    style: _fontPreview(family, fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    'Aa 0123456789 · $family',
+                    style: _fontPreview(family, fontSize: 13),
+                  ),
+                  trailing: selected
+                      ? const Icon(Icons.check_circle)
+                      : const Icon(Icons.download_outlined),
+                  onTap: () => Navigator.pop(context, family),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TextStyle _fontPreview(String family, {required double fontSize}) {
+    final style = TextStyle(fontSize: fontSize);
+    if (!GoogleFonts.asMap().containsKey(family)) {
+      return style.copyWith(fontFamily: family);
+    }
+    try {
+      return GoogleFonts.getFont(family, textStyle: style);
+    } on Object {
+      return style;
+    }
   }
 }
 
@@ -189,8 +344,11 @@ class _TypographyDraft {
 }
 
 class _TypographyEditor extends StatefulWidget {
-  const _TypographyEditor({this.theme});
+  const _TypographyEditor({this.theme, required this.activeFontScale});
+
   final TypographyThemeData? theme;
+  final int activeFontScale;
+
   @override
   State<_TypographyEditor> createState() => _TypographyEditorState();
 }
@@ -201,6 +359,7 @@ class _TypographyEditorState extends State<_TypographyEditor> {
   late final TextEditingController _body;
   late final TextEditingController _mono;
   late double _scale;
+  List<String> _fontFamilies = const [];
 
   @override
   void initState() {
@@ -210,7 +369,14 @@ class _TypographyEditorState extends State<_TypographyEditor> {
     _display = TextEditingController(text: theme?.displayFont ?? '');
     _body = TextEditingController(text: theme?.bodyFont ?? '');
     _mono = TextEditingController(text: theme?.monoFont ?? '');
-    _scale = (theme?.fontScale ?? 100).clamp(75, 200).toDouble();
+    _scale = AppTheme.normalizeFontScale(theme?.fontScale ?? 100).toDouble();
+    _fontFamilies = <String>{
+      ...AppTheme.systemFontFamilies,
+      ...GoogleFonts.asMap().keys,
+    }.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    for (final controller in [_display, _body, _mono]) {
+      controller.addListener(_onDraftChanged);
+    }
   }
 
   @override
@@ -222,11 +388,31 @@ class _TypographyEditorState extends State<_TypographyEditor> {
     super.dispose();
   }
 
+  void _onDraftChanged() {
+    if (mounted) setState(() {});
+  }
+
+  TextStyle _previewStyle({required TextStyle style, required String? family}) {
+    final selected = family?.trim();
+    if (selected == null || selected.isEmpty) return style;
+    if (!GoogleFonts.asMap().containsKey(selected)) {
+      return style.copyWith(fontFamily: selected);
+    }
+    try {
+      return GoogleFonts.getFont(selected, textStyle: style);
+    } on Object {
+      return style;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(
-        widget.theme == null ? 'Criar tema de tipografia' : 'Editar tipografia',
+        widget.theme == null
+            ? l10n.createTypographyTheme
+            : l10n.editTypographyTheme,
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -235,33 +421,32 @@ class _TypographyEditorState extends State<_TypographyEditor> {
             TextField(
               controller: _name,
               maxLength: 40,
-              decoration: const InputDecoration(labelText: 'Nome'),
+              decoration: InputDecoration(labelText: l10n.name),
             ),
-            TextField(
+            _GoogleFontField(
               controller: _display,
-              decoration: const InputDecoration(
-                labelText: 'Fonte de títulos',
-                hintText: 'Nome da fonte instalada',
-              ),
+              families: _fontFamilies,
+              label: l10n.displayFont,
+              hint: l10n.fontFamilyHint,
             ),
-            TextField(
+            const SizedBox(height: 12),
+            _GoogleFontField(
               controller: _body,
-              decoration: const InputDecoration(
-                labelText: 'Fonte do corpo',
-                hintText: 'Nome da fonte instalada',
-              ),
+              families: _fontFamilies,
+              label: l10n.bodyFont,
+              hint: l10n.fontFamilyHint,
             ),
-            TextField(
+            const SizedBox(height: 12),
+            _GoogleFontField(
               controller: _mono,
-              decoration: const InputDecoration(
-                labelText: 'Fonte monoespaçada',
-                hintText: 'Opcional',
-              ),
+              families: _fontFamilies,
+              label: l10n.monoFont,
+              hint: '${l10n.fontFamilyHint} · ${l10n.optional.toLowerCase()}',
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                const Text('Escala'),
+                Text(l10n.scale),
                 Expanded(
                   child: Slider(
                     min: 75,
@@ -272,12 +457,47 @@ class _TypographyEditorState extends State<_TypographyEditor> {
                     onChanged: (value) => setState(() => _scale = value),
                   ),
                 ),
-                Text('${_scale.round()}%'),
+                RuntimeLocalizedText('${_scale.round()}%'),
               ],
             ),
-            Text(
-              'Aa  Exemplo de leitura',
-              style: TextStyle(fontSize: 16 * _scale / 100),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.readingPreview),
+                    Text(
+                      'Noema',
+                      style: _previewStyle(
+                        family: _display.text,
+                        style: const TextStyle(fontWeight: FontWeight.w700)
+                            .copyWith(
+                              fontSize: 24 * _scale / widget.activeFontScale,
+                            ),
+                      ),
+                    ),
+                    Text(
+                      l10n.readingPreview,
+                      style: _previewStyle(
+                        family: _body.text,
+                        style: TextStyle(
+                          fontSize: 16 * _scale / widget.activeFontScale,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Aa 0123456789',
+                      style: _previewStyle(
+                        family: _mono.text,
+                        style: TextStyle(
+                          fontSize: 14 * _scale / widget.activeFontScale,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -285,7 +505,7 @@ class _TypographyEditorState extends State<_TypographyEditor> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -301,7 +521,7 @@ class _TypographyEditorState extends State<_TypographyEditor> {
               ),
             );
           },
-          child: const Text('Salvar'),
+          child: Text(l10n.save),
         ),
       ],
     );

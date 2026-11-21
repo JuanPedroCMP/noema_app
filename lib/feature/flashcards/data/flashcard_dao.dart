@@ -283,15 +283,14 @@ class FlashcardDao extends DatabaseAccessor<AppDatabase>
             .getSingleOrNull();
     if (ownedDeck == null) return false;
 
-    final changed = await (update(
-      decks,
-    )..where((deck) => deck.id.equals(deckId))).write(
-      FlashcardGroupCompanion(
-        softDeleted: const Value(true),
-        softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
-        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-      ),
-    );
+    final changed =
+        await (update(decks)..where((deck) => deck.id.equals(deckId))).write(
+          FlashcardGroupCompanion(
+            softDeleted: const Value(true),
+            softDeletedAt: Value(DateTime.now().millisecondsSinceEpoch),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
     return changed > 0;
   }
 

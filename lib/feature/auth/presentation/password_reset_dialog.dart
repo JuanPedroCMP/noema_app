@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/auth/services/password_policy.dart';
 
 Future<void> showPasswordResetDialog(
   BuildContext context, {
@@ -121,7 +123,9 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text('Senha alterada. Entre com sua nova senha.'),
+            content: RuntimeLocalizedText(
+              'Senha alterada. Entre com sua nova senha.',
+            ),
           ),
         );
     } on DioException catch (error) {
@@ -239,6 +243,8 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                     enabled: !_busy,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.newPassword],
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Nova senha',
                       prefixIcon: const Icon(Icons.lock_outline),
@@ -257,22 +263,17 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                         ),
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Informe a nova senha.';
-                      }
-                      if (value.length < 6) {
-                        return 'Use pelo menos 6 caracteres.';
-                      }
-                      return null;
-                    },
+                    validator: PasswordPolicy.validate,
                   ),
+                  const SizedBox(height: 8),
+                  _PasswordRequirements(password: _passwordController.text),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _confirmationController,
                     enabled: !_busy,
                     obscureText: _obscureConfirmation,
                     textInputAction: TextInputAction.done,
+                    onChanged: (_) => setState(() {}),
                     onFieldSubmitted: (_) => _confirmReset(),
                     decoration: InputDecoration(
                       labelText: 'Confirme a nova senha',
@@ -292,9 +293,15 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                         ),
                       ),
                     ),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Confirme a nova senha.'
-                        : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Confirme a nova senha.';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'As senhas não coincidem.';
+                      }
+                      return null;
+                    },
                   ),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -308,7 +315,9 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                               });
                             },
                       icon: const Icon(Icons.edit_outlined),
-                      label: const Text('Alterar usuário ou e-mail'),
+                      label: const RuntimeLocalizedText(
+                        'Alterar usuário ou e-mail',
+                      ),
                     ),
                   ),
                 ],
@@ -329,12 +338,12 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         if (_codeRequested)
           TextButton(
             onPressed: _busy ? null : _requestCode,
-            child: const Text('Reenviar código'),
+            child: const RuntimeLocalizedText('Reenviar código'),
           ),
         FilledButton.icon(
           onPressed: _busy
@@ -358,6 +367,42 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                 : 'Enviar código',
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _PasswordRequirements extends StatelessWidget {
+  const _PasswordRequirements({required this.password});
+
+  final String password;
+
+  @override
+  Widget build(BuildContext context) {
+    final requirements = [
+      (PasswordPolicy.hasMinimumLength(password), 'Pelo menos 8 caracteres'),
+      (PasswordPolicy.hasLetter(password), 'Uma letra'),
+      (PasswordPolicy.hasNumber(password), 'Um número'),
+    ];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 4,
+      children: [
+        for (final (valid, label) in requirements)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                valid ? Icons.check_circle : Icons.circle_outlined,
+                size: 15,
+                color: valid
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+              Text(label, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
       ],
     );
   }

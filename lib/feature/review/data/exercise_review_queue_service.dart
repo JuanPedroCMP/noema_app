@@ -51,8 +51,7 @@ class ExerciseReviewQueueService {
     required String userId,
     DateTime? now,
   }) async {
-    final nowSeconds =
-        (now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+    final nowSeconds = (now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
     final graphNode = _database.graphNode;
     final graph = _database.knowledgeGraph;
     final nodeRows =
@@ -72,14 +71,12 @@ class ExerciseReviewQueueService {
         ),
     };
 
-    final openEndedRows =
-        await (_database.select(_database.openEnded)
-              ..where((row) => row.softDeleted.equals(false)))
-            .get();
-    final multipleChoiceRows =
-        await (_database.select(_database.multipleChoice)
-              ..where((row) => row.softDeleted.equals(false)))
-            .get();
+    final openEndedRows = await (_database.select(
+      _database.openEnded,
+    )..where((row) => row.softDeleted.equals(false))).get();
+    final multipleChoiceRows = await (_database.select(
+      _database.multipleChoice,
+    )..where((row) => row.softDeleted.equals(false))).get();
     final openEndedById = {for (final row in openEndedRows) row.id: row};
     final multipleChoiceById = {
       for (final row in multipleChoiceRows) row.id: row,
@@ -127,21 +124,24 @@ class ExerciseReviewQueueService {
       grouped.putIfAbsent('${graphData.id}/${node.id}', () => []).add(item);
     }
 
-    final groups = [
-      for (final entry in grouped.entries)
-        ExerciseReviewGroup(
-          graphId: entry.value.first.graphId,
-          graphTitle: entry.value.first.graphTitle,
-          nodeId: entry.value.first.nodeId,
-          nodeTitle: entry.value.first.nodeTitle,
-          items: List.unmodifiable(entry.value),
-        ),
-    ]..sort((a, b) {
-      final dueTime = a.items.first.dueAt.compareTo(b.items.first.dueAt);
-      if (dueTime != 0) return dueTime;
-      final graphOrder = a.graphTitle.compareTo(b.graphTitle);
-      return graphOrder != 0 ? graphOrder : a.nodeTitle.compareTo(b.nodeTitle);
-    });
+    final groups =
+        [
+          for (final entry in grouped.entries)
+            ExerciseReviewGroup(
+              graphId: entry.value.first.graphId,
+              graphTitle: entry.value.first.graphTitle,
+              nodeId: entry.value.first.nodeId,
+              nodeTitle: entry.value.first.nodeTitle,
+              items: List.unmodifiable(entry.value),
+            ),
+        ]..sort((a, b) {
+          final dueTime = a.items.first.dueAt.compareTo(b.items.first.dueAt);
+          if (dueTime != 0) return dueTime;
+          final graphOrder = a.graphTitle.compareTo(b.graphTitle);
+          return graphOrder != 0
+              ? graphOrder
+              : a.nodeTitle.compareTo(b.nodeTitle);
+        });
     return List.unmodifiable(groups);
   }
 
@@ -173,13 +173,19 @@ class ExerciseReviewQueueService {
       }
 
       subscriptions.add(
-        _database.select(_database.reviewItemState).watch().listen((_) => refresh()),
+        _database
+            .select(_database.reviewItemState)
+            .watch()
+            .listen((_) => refresh()),
       );
       subscriptions.add(
         _database.select(_database.openEnded).watch().listen((_) => refresh()),
       );
       subscriptions.add(
-        _database.select(_database.multipleChoice).watch().listen((_) => refresh()),
+        _database
+            .select(_database.multipleChoice)
+            .watch()
+            .listen((_) => refresh()),
       );
       subscriptions.add(
         _database.select(_database.graphNode).watch().listen((_) => refresh()),
@@ -187,7 +193,9 @@ class ExerciseReviewQueueService {
       refresh();
       controller.onCancel = () async {
         canceled = true;
-        await Future.wait(subscriptions.map((subscription) => subscription.cancel()));
+        await Future.wait(
+          subscriptions.map((subscription) => subscription.cancel()),
+        );
       };
     });
   }

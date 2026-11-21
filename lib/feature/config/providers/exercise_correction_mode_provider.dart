@@ -29,10 +29,7 @@ class ExerciseCorrectionModeNotifier
     ).getConfigByUser(userId: user.id);
     if (config == null) return ExerciseCorrectionMode.automaticAi;
     return ExerciseCorrectionMode.fromPreference(
-      readConfigPreference(
-        config.preferences,
-        'exerciseCorrectionMode',
-      ),
+      readConfigPreference(config.preferences, 'exerciseCorrectionMode'),
     );
   }
 
@@ -46,7 +43,8 @@ class ExerciseCorrectionModeNotifier
   }
 }
 
-final exerciseCorrectionModeProvider = AsyncNotifierProvider<
-  ExerciseCorrectionModeNotifier,
-  ExerciseCorrectionMode
->(ExerciseCorrectionModeNotifier.new);
+final exerciseCorrectionModeProvider =
+    AsyncNotifierProvider<
+      ExerciseCorrectionModeNotifier,
+      ExerciseCorrectionMode
+    >(ExerciseCorrectionModeNotifier.new);

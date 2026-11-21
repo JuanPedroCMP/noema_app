@@ -56,16 +56,16 @@ void main() {
   test(
     'persists generated descriptions and recovers interrupted work',
     () async {
-      final task = await dao.markRunning(taskId);
+      final task = await dao.markRunning(id: taskId, userId: 'user-id');
       expect(task?.attemptCount, 1);
-      await dao.recoverInterruptedTasks();
+      await dao.recoverInterruptedTasks(userId: 'user-id');
 
       final recoveredTask = await (database.select(
         database.aiBackgroundTask,
       )..where((row) => row.id.equals(taskId))).getSingle();
       expect(recoveredTask.status, aiTaskPending);
 
-      await dao.markRunning(taskId);
+      await dao.markRunning(id: taskId, userId: 'user-id');
       await dao.complete(taskId, description: 'Unidade básica da vida.');
 
       final savedTask = await (database.select(
@@ -78,7 +78,7 @@ void main() {
   );
 
   test('exposes task, node, and graph details to the queue page', () async {
-    final items = await dao.watchQueueItems().first;
+    final items = await dao.watchQueueItems(userId: 'user-id').first;
 
     expect(items, hasLength(1));
     expect(items.single.node.title, 'Célula');
@@ -86,42 +86,112 @@ void main() {
     expect(items.single.task.status, aiTaskPending);
   });
 
-  test('queues multiple exercise corrections by response without collisions', () async {
-    final firstResponse = await dao.enqueueExerciseCorrection(
+  test(
+    'queues multiple exercise corrections by response without collisions',
+    () async {
+      final firstResponse = await dao.enqueueExerciseCorrection(
+        nodeId: nodeId,
+        responseId: 'response-one',
+        taskType: aiOpenEndedCorrectionTaskType,
+      );
+      final secondResponse = await dao.enqueueExerciseCorrection(
+        nodeId: nodeId,
+        responseId: 'response-two',
+        taskType: aiOpenEndedCorrectionTaskType,
+      );
+      final multipleChoice = await dao.enqueueExerciseCorrection(
+        nodeId: nodeId,
+        responseId: 'response-three',
+        taskType: aiMultipleChoiceCorrectionTaskType,
+      );
+      final duplicate = await dao.enqueueExerciseCorrection(
+        nodeId: nodeId,
+        responseId: 'response-one',
+        taskType: aiOpenEndedCorrectionTaskType,
+      );
+
+      expect(duplicate, firstResponse);
+      expect({firstResponse, secondResponse, multipleChoice}, hasLength(3));
+      final items = await dao.watchQueueItems(userId: 'user-id').first;
+      expect(items, hasLength(4));
+      expect(items.where((item) => item.task.subjectId != null), hasLength(3));
+    },
+  );
+
+  test('deduplicates active study packs and persists their payload', () async {
+    const payload = {
+      'multiple_choice': 2,
+      'essay': 1,
+      'feynman': 0,
+      'flashcards': 3,
+      'instructions': 'Foque nos conceitos principais.',
+    };
+    final firstId = await dao.enqueueStudyPack(
       nodeId: nodeId,
-      responseId: 'response-one',
-      taskType: aiOpenEndedCorrectionTaskType,
+      payload: payload,
     );
-    final secondResponse = await dao.enqueueExerciseCorrection(
+    final duplicateId = await dao.enqueueStudyPack(
       nodeId: nodeId,
-      responseId: 'response-two',
-      taskType: aiOpenEndedCorrectionTaskType,
-    );
-    final multipleChoice = await dao.enqueueExerciseCorrection(
-      nodeId: nodeId,
-      responseId: 'response-three',
-      taskType: aiMultipleChoiceCorrectionTaskType,
-    );
-    final duplicate = await dao.enqueueExerciseCorrection(
-      nodeId: nodeId,
-      responseId: 'response-one',
-      taskType: aiOpenEndedCorrectionTaskType,
+      payload: const {'multiple_choice': 1},
     );
 
-    expect(duplicate, firstResponse);
-    expect({firstResponse, secondResponse, multipleChoice}, hasLength(3));
-    final items = await dao.watchQueueItems().first;
-    expect(items, hasLength(4));
-    expect(
-      items.where((item) => item.task.subjectId != null),
-      hasLength(3),
+    expect(duplicateId, firstId);
+    final task = await (database.select(
+      database.aiBackgroundTask,
+    )..where((row) => row.id.equals(firstId))).getSingle();
+    expect(task.taskType, aiStudyPackTaskType);
+    expect(jsonDecode(task.payloadJson), payload);
+  });
+
+  test('only exposes queue items owned by the requested user', () async {
+    await database
+        .into(database.appUser)
+        .insert(
+          AppUserCompanion.insert(
+            id: 'other-user-id',
+            remoteId: 'other-remote-user-id',
+            userName: 'other-student',
+            displayName: 'Other Student',
+            primaryEmail: 'other@example.com',
+            lastSeenAt: 0,
+          ),
+        );
+    await importGraphFromJson(
+      db: database,
+      userId: 'other-user-id',
+      isAiGenerated: true,
+      queueMissingAiDescriptions: true,
+      jsonString: jsonEncode({
+        'graph_title': 'Outro grafo',
+        'nodes': [
+          {'node_id': 2, 'title': 'Outro conceito', 'type': 'TOPIC'},
+        ],
+        'edges': [],
+      }),
     );
+
+    final ownedItems = await dao.watchQueueItems(userId: 'user-id').first;
+    final otherItems = await dao.watchQueueItems(userId: 'other-user-id').first;
+
+    expect(ownedItems, hasLength(1));
+    expect(ownedItems.single.graph.title, 'Biologia');
+    expect(otherItems, hasLength(1));
+    expect(otherItems.single.graph.title, 'Outro grafo');
+    expect(
+      await dao.getReadyTasks(
+        userId: 'other-user-id',
+        now: DateTime.now().millisecondsSinceEpoch,
+        limit: 10,
+      ),
+      hasLength(1),
+    );
+    expect(await dao.markRunning(id: taskId, userId: 'other-user-id'), isNull);
   });
 
   test(
     'does not overwrite a description edited while generation is running',
     () async {
-      await dao.markRunning(taskId);
+      await dao.markRunning(id: taskId, userId: 'user-id');
       await (database.update(
         database.graphNode,
       )..where((node) => node.id.equals(nodeId))).write(
@@ -140,7 +210,7 @@ void main() {
   );
 
   test('schedules a retry and allows a user to retry it immediately', () async {
-    await dao.markRunning(taskId);
+    await dao.markRunning(id: taskId, userId: 'user-id');
     await dao.scheduleRetry(
       taskId: taskId,
       error: 'Temporary provider error',
@@ -151,6 +221,7 @@ void main() {
 
     expect(
       await dao.getReadyTasks(
+        userId: 'user-id',
         now: DateTime.now().millisecondsSinceEpoch,
         limit: 1,
       ),
@@ -159,6 +230,7 @@ void main() {
     expect(await dao.retryNow(taskId), 1);
 
     final ready = await dao.getReadyTasks(
+      userId: 'user-id',
       now: DateTime.now().millisecondsSinceEpoch,
       limit: 1,
     );
@@ -169,7 +241,7 @@ void main() {
 
   test('does not exceed the automatic-attempt limit after restart', () async {
     for (var attempt = 1; attempt < aiTaskMaximumAttempts; attempt++) {
-      await dao.markRunning(taskId);
+      await dao.markRunning(id: taskId, userId: 'user-id');
       await dao.scheduleRetry(
         taskId: taskId,
         error: 'Temporary provider error',
@@ -178,10 +250,10 @@ void main() {
             .millisecondsSinceEpoch,
       );
     }
-    final lastAttempt = await dao.markRunning(taskId);
+    final lastAttempt = await dao.markRunning(id: taskId, userId: 'user-id');
     expect(lastAttempt?.attemptCount, aiTaskMaximumAttempts);
 
-    await dao.recoverInterruptedTasks();
+    await dao.recoverInterruptedTasks(userId: 'user-id');
 
     final savedTask = await (database.select(
       database.aiBackgroundTask,

@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/network/connetction_checker.dart';
+import 'package:noema/feature/auth/providers/auth_state_provider.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
+import 'package:noema/feature/config/data/user_preferences_api.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:openapi/openapi.dart';
 
@@ -15,6 +18,7 @@ const _localOverridesKey = '__localPreferenceOverrides';
 const _localOnlyPreferencesKey = '__localOnlyPreferences';
 const _pendingPreferenceSyncKey = '__pendingPreferenceSync';
 const responseLanguagePreferenceOrderKey = 'responseLanguagePreferenceOrder';
+const cachedResponseLanguagesKey = '__cachedResponseLanguages';
 const fallbackPortugueseLanguageId = '__localLanguage_pt';
 const fallbackEnglishLanguageId = '__localLanguage_en';
 
@@ -326,27 +330,10 @@ class ConfigPreferenceSyncService {
       ..remove(responseLanguagePreferenceOrderKey);
     if (accountPreferences.isNotEmpty) {
       try {
-        final api = _ref.read(apiClientProvider).getUserGlobalConfigApi();
-        final response = await api
-            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-              identificator: user.remoteId,
-            );
-        final remoteConfig = response.data;
-        if (remoteConfig == null) {
-          throw StateError('A configuração da conta não foi encontrada.');
-        }
-        remotePreferences = {
-          for (final entry in remoteConfig.preferences.entries)
-            entry.key: entry.value?.value,
-          ...accountPreferences,
-        };
-        await api
-            .updateUserGlobalConfigApiV1UserConfigUserGlobalConfigUpdateIdentificatorPut(
-              identificator: user.remoteId,
-              userGlobalConfigUpdate: UserGlobalConfigUpdate((builder) {
-                builder.preferences = jsonEncode(remotePreferences);
-              }),
-            );
+        final api = UserPreferencesApi(_ref.read(apiClientProvider));
+        final currentPreferences = await api.getPreferences();
+        remotePreferences = {...currentPreferences, ...accountPreferences};
+        remotePreferences = await api.replacePreferences(remotePreferences);
         successful.addAll(accountPreferences);
       } catch (error, stackTrace) {
         firstError ??= error;
@@ -540,3 +527,93 @@ final configPreferenceSyncLifecycleProvider = Provider<void>((ref) {
   ref.onDispose(retryTimer.cancel);
   syncIfConnected();
 });
+
+final deviceTimezoneSyncLifecycleProvider = Provider<void>((ref) {
+  Future<void>? activeSync;
+  Timer? retryTimer;
+  String? syncedUserId;
+  String? syncedTimezone;
+  late void Function() syncIfConnected;
+
+  Future<void> syncTimezone() {
+    final active = activeSync;
+    if (active != null) return active;
+
+    final operation =
+        _syncDeviceTimezone(
+              ref,
+              syncedUserId: syncedUserId,
+              syncedTimezone: syncedTimezone,
+            )
+            .then((result) {
+              if (result == null) return;
+              syncedUserId = result.userId;
+              syncedTimezone = result.timezone;
+              retryTimer?.cancel();
+              retryTimer = null;
+            })
+            .catchError((Object error, StackTrace stackTrace) {
+              debugPrint(
+                'Falha ao sincronizar o fuso horário do dispositivo: $error',
+              );
+              debugPrintStack(stackTrace: stackTrace);
+              retryTimer?.cancel();
+              retryTimer = Timer(const Duration(minutes: 2), syncIfConnected);
+            });
+    activeSync = operation;
+    return operation.whenComplete(() {
+      if (identical(activeSync, operation)) activeSync = null;
+    });
+  }
+
+  syncIfConnected = () {
+    if (ref.read(serverConnectionChecker).value != true) return;
+    unawaited(syncTimezone());
+  };
+
+  ref.listen(serverConnectionChecker, (_, next) {
+    if (next.value == true) syncIfConnected();
+  });
+  ref.listen(userProvider, (_, next) {
+    if (next.hasValue) syncIfConnected();
+  });
+  final observer = _DeviceTimezoneLifecycleObserver(syncIfConnected);
+  WidgetsBinding.instance.addObserver(observer);
+  ref.onDispose(() {
+    retryTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(observer);
+  });
+  syncIfConnected();
+});
+
+class _DeviceTimezoneLifecycleObserver extends WidgetsBindingObserver {
+  _DeviceTimezoneLifecycleObserver(this._syncIfConnected);
+
+  final VoidCallback _syncIfConnected;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _syncIfConnected();
+  }
+}
+
+Future<({String userId, String timezone})?> _syncDeviceTimezone(
+  Ref ref, {
+  required String? syncedUserId,
+  required String? syncedTimezone,
+}) async {
+  final isAuthenticated = await ref.read(authStateProvider.future);
+  if (!isAuthenticated) return null;
+  final user = await ref.read(userProvider.future);
+  final timezone = (await FlutterTimezone.getLocalTimezone()).identifier;
+  if (user.remoteId == syncedUserId && timezone == syncedTimezone) {
+    return (userId: user.remoteId, timezone: timezone);
+  }
+
+  final api = UserPreferencesApi(ref.read(apiClientProvider));
+  final preferences = await api.getPreferences();
+  if (preferences['timezone'] != timezone) {
+    await api.patchPreferences({'timezone': timezone});
+  }
+  return (userId: user.remoteId, timezone: timezone);
+}

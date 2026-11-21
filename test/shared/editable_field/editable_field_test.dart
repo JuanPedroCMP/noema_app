@@ -24,6 +24,8 @@ void main() {
             child: SizedBox(
               width: 436,
               child: EditableField(
+                initialValue:
+                    'a.very.long.google.account.address@example-domain.com',
                 displayLabel: const Text('Email:'),
                 display: const Text(
                   'a.very.long.google.account.address@example-domain.com',
@@ -46,6 +48,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      'a.very.long.google.account.address@example-domain.com',
+    );
     expect(find.text('Salvar'), findsOneWidget);
     expect(find.text('Cancelar'), findsOneWidget);
   });

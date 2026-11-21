@@ -15,6 +15,11 @@ abstract final class RoutePaths {
 
   static String graph(String graphId) => '$graphs/$graphId';
 
+  static String dashboardForNode(String graphId, String nodeId) => Uri(
+    path: dashboard,
+    queryParameters: {'scope': 'node', 'graphId': graphId, 'nodeId': nodeId},
+  ).toString();
+
   static String withReturnPath(String path, String? returnPath) {
     if (returnPath == null) return path;
     return Uri(path: path, queryParameters: {'from': returnPath}).toString();
@@ -45,6 +50,9 @@ abstract final class RoutePaths {
 
   static String exercises(String graphId, String nodeId) =>
       '${graph(graphId)}/exercises/$nodeId';
+
+  static String exerciseResponses(String graphId, String nodeId) =>
+      '${exercises(graphId, nodeId)}/responses';
 
   static String openEndedCreate(String graphId, String nodeId) =>
       '${exercises(graphId, nodeId)}/open-ended/create';

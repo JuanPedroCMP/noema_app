@@ -356,22 +356,22 @@ class DomainDashboardService {
         ),
     }.length;
     final availableGraphs = [
-        for (final graph in graphRows)
-          DashboardGraphOption(
-            id: graph.id,
-            title: graph.title,
-            nodeCount: nodes.values
-                .where((node) => node.graphId == graph.id)
-                .length,
-          ),
+      for (final graph in graphRows)
+        DashboardGraphOption(
+          id: graph.id,
+          title: graph.title,
+          nodeCount: nodes.values
+              .where((node) => node.graphId == graph.id)
+              .length,
+        ),
     ]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     final availableNodes = [
-        for (final node in nodes.values)
-          DashboardNodeOption(
-            id: node.id,
-            graphId: node.graphId,
-            title: node.title,
-          ),
+      for (final node in nodes.values)
+        DashboardNodeOption(
+          id: node.id,
+          graphId: node.graphId,
+          title: node.title,
+        ),
     ]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     return DomainDashboardSummary(
       masteredConcepts: scopedNodes.values

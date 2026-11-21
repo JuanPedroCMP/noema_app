@@ -64,26 +64,24 @@ class AppSideBar extends ConsumerWidget {
             duration: context.durations.instant,
             child: sideBar.isOpen
                 ? SingleChildScrollView(
-                  key: const ValueKey('sidebar-page'),
-                  child: Column(
-                    spacing: context.spacing.md,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          sideBarProdiver.alternateIsFixed(
-                            sideBar.isFixed,
-                          );
-                        },
-                        child: Icon(
-                          sideBar.isFixed
-                              ? Icons.lock_rounded
-                              : Icons.lock_open_rounded,
+                    key: const ValueKey('sidebar-page'),
+                    child: Column(
+                      spacing: context.spacing.md,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            sideBarProdiver.alternateIsFixed(sideBar.isFixed);
+                          },
+                          child: Icon(
+                            sideBar.isFixed
+                                ? Icons.lock_rounded
+                                : Icons.lock_open_rounded,
+                          ),
                         ),
-                      ),
 
-                      ...pageWidgets,
-                    ],
+                        ...pageWidgets,
+                      ],
                     ),
                   )
                 : null,

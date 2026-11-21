@@ -15,10 +15,7 @@ class AiQueueConcurrencyNotifier extends AsyncNotifier<int> {
     final config = await ConfigDao(db).getConfigByUser(userId: user.id);
     final storedValue = config == null
         ? null
-        : readConfigPreference(
-            config.preferences,
-            'aiMaxConcurrentRequests',
-          );
+        : readConfigPreference(config.preferences, 'aiMaxConcurrentRequests');
     if (storedValue is int &&
         storedValue >= minimum &&
         storedValue <= maximum) {
@@ -49,10 +46,7 @@ class AiQueueConcurrencyNotifier extends AsyncNotifier<int> {
       throw StateError('Configuração local do usuário não encontrada.');
     }
 
-    await dao.updateConfig(
-      id: config.id,
-      aiMaxConcurrentRequests: concurrency,
-    );
+    await dao.updateConfig(id: config.id, aiMaxConcurrentRequests: concurrency);
     state = AsyncData(concurrency);
   }
 }

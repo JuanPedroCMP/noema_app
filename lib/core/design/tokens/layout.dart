@@ -4,6 +4,7 @@ class AppLayoutTokens {
   static const compactBreakpoint = 600.0;
   static const desktopBreakpoint = 900.0;
   static const extendedNavigationRailBreakpoint = 1200.0;
+  static const compactNavigationRailWidth = 80.0;
   static const extendedNavigationRailWidth = 224.0;
   static const pinnedAssistantBreakpoint = 1100.0;
   static const compactHeaderBreakpoint = 560.0;
@@ -48,5 +49,4 @@ class AppLayoutTokens {
   static const assistantPanelMaxHeight = 560.0;
   static const floatingPanelOffset = 12.0;
   static const floatingPanelInset = 24.0;
-  static const assistantDockPadding = 12.0;
 }

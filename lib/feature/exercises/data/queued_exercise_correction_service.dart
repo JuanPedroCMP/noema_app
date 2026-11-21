@@ -6,6 +6,7 @@ import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/services/ai_request_queue.dart';
+import 'package:noema/feature/exercises/data/ai_exercise_evaluation.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
 import 'package:noema/feature/review/data/domain_mastery_service.dart';
@@ -26,7 +27,9 @@ class QueuedExerciseCorrectionService {
   }) async {
     final responseId = task.subjectId;
     if (responseId == null || responseId.isEmpty) {
-      throw StateError('A tarefa de correção não possui uma resposta associada.');
+      throw StateError(
+        'A tarefa de correção não possui uma resposta associada.',
+      );
     }
 
     switch (task.taskType) {
@@ -63,9 +66,7 @@ class QueuedExerciseCorrectionService {
     );
 
     await database.transaction(() async {
-      final current = await responseDao.getOpenEndedResponseLog(
-        id: responseId,
-      );
+      final current = await responseDao.getOpenEndedResponseLog(id: responseId);
       if (current == null || current.corrected) return;
       await responseDao.updateOpenEndedResponseLog(
         id: responseId,
@@ -109,9 +110,9 @@ class QueuedExerciseCorrectionService {
         .whereType<Map>()
         .map((choice) => Map<String, dynamic>.from(choice))
         .toList(growable: false);
-    final selectedIds = _decodeJsonList(response.selectedChoiceIds)
-        .whereType<String>()
-        .toList(growable: false);
+    final selectedIds = _decodeJsonList(
+      response.selectedChoiceIds,
+    ).whereType<String>().toList(growable: false);
     final correction = await _evaluate(
       task: AiAgentTask.evaluateMultipleChoiceQuestion,
       node: node,
@@ -159,64 +160,32 @@ class QueuedExerciseCorrectionService {
     required GraphNodeData node,
     required Map<String, dynamic> context,
   }) async {
-    final result = await ai.generate(
+    final nodeContext = {
+      'title': node.title,
+      'description': node.description,
+      'type': node.type,
+    };
+    final response = await ai.generate(
       task: task,
       priority: AiRequestPriority.background,
-      prompt: '''
-Avalie esta tentativa de estudo com rigor pedagógico, respeito e foco no aprendizado.
-Tipo de tarefa: ${task.label}.
-Contexto do nó: ${jsonEncode({
-        'title': node.title,
-        'description': node.description,
-        'type': node.type,
-      })}
-Dados da tentativa: ${jsonEncode(context)}
-
-Considere a resposta de referência e as alternativas corretas quando estiverem
-presentes. Não invente informações ausentes. Em múltipla escolha, explique por
-que a seleção está correta ou incorreta e corrija equívocos conceituais.
-Retorne somente um objeto JSON com:
-{
-  "feedback": "feedback claro e específico em português",
-  "score": 0.0,
-  "is_correct": false,
-  "mastery_demonstrated": "WEAK|PARTIAL|ADEQUATE|STRONG"
-}
-score deve ser um número entre 0 e 1.
-''',
+      prompt: buildAiExerciseEvaluationPrompt(
+        task: task,
+        nodeTitle: node.title,
+        nodeDescription: node.description,
+        nodeType: node.type,
+        context: context,
+      ),
+      context: {'node': nodeContext, 'attempt': context},
     );
-    final feedback = result['feedback'] ??
-        result['ai_feedback'] ??
-        result['explanation'] ??
-        result['comment'];
-    if (feedback is! String || feedback.trim().isEmpty) {
-      throw const FormatException(
-        'A IA não retornou um feedback de correção válido.',
-      );
-    }
-    final rawScore = result['score'] ?? result['grade'] ?? result['weight'];
-    if (rawScore is! num || !rawScore.isFinite) {
-      throw const FormatException('A IA não retornou uma nota válida.');
-    }
-    var score = rawScore.toDouble();
-    if (score > 1) score /= 100;
-    if (score < 0 || score > 1) {
-      throw const FormatException(
-        'A nota retornada pela IA deve estar entre 0 e 1.',
-      );
-    }
-    final rawMastery =
-        (result['mastery_demonstrated'] ?? result['mastery'] ?? 'ADEQUATE')
-            .toString()
-            .toUpperCase();
-    final mastery = switch (rawMastery) {
-      'WEAK' || 'PARTIAL' || 'STRONG' => rawMastery,
-      _ => 'ADEQUATE',
-    };
+    final result = normalizeAiExerciseEvaluation(
+      task: task,
+      response: response,
+      context: context,
+    );
     return _ExerciseCorrection(
-      feedback: feedback.trim(),
-      score: score,
-      mastery: mastery,
+      feedback: result['feedback']! as String,
+      score: result['score']! as double,
+      mastery: result['mastery_demonstrated']! as String,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -106,7 +107,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             const SnackBar(
-              content: Text('Não foi possível atualizar as questões.'),
+              content: RuntimeLocalizedText(
+                'Não foi possível atualizar as questões.',
+              ),
             ),
           );
       }
@@ -126,16 +129,16 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir questão?'),
-        content: Text('“$title” será removida desta lista.'),
+        title: const RuntimeLocalizedText('Excluir questão?'),
+        content: RuntimeLocalizedText('“$title” será removida desta lista.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
+            child: const RuntimeLocalizedText('Excluir'),
           ),
         ],
       ),
@@ -153,7 +156,9 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível excluir a questão.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível excluir a questão.'),
+        ),
       );
     }
   }
@@ -200,8 +205,14 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                     }
                   },
                   itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Editar')),
-                    PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: RuntimeLocalizedText('Editar'),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: RuntimeLocalizedText('Excluir'),
+                    ),
                   ],
                 ),
               ],
@@ -248,7 +259,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 OutlinedButton.icon(
                   onPressed: () => _navigate('$currentUri/$route/$id/view'),
                   icon: const Icon(Icons.visibility_outlined),
-                  label: const Text('Visualizar'),
+                  label: const RuntimeLocalizedText('Visualizar'),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: () => _navigate('$currentUri/$route/$id/answer'),
@@ -317,7 +328,10 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Questões', style: context.textTheme.headlineSmall),
+                    RuntimeLocalizedText(
+                      'Questões',
+                      style: context.textTheme.headlineSmall,
+                    ),
                     SizedBox(height: context.spacing.xs),
                     Text(
                       '$total ${total == 1 ? 'questão cadastrada' : 'questões cadastradas'}',
@@ -346,18 +360,18 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
               FilledButton.icon(
                 onPressed: () => _navigate('$currentUri/open-ended/create'),
                 icon: const Icon(Icons.edit_note_rounded),
-                label: const Text('Questão aberta'),
+                label: const RuntimeLocalizedText('Questão aberta'),
               ),
               OutlinedButton.icon(
                 onPressed: () =>
                     _navigate('$currentUri/multiple-choice/create'),
                 icon: const Icon(Icons.checklist_rounded),
-                label: const Text('Múltipla escolha'),
+                label: const RuntimeLocalizedText('Múltipla escolha'),
               ),
               OutlinedButton.icon(
                 onPressed: () => _navigate('$currentUri/responses'),
                 icon: const Icon(Icons.history_rounded),
-                label: const Text('Histórico'),
+                label: const RuntimeLocalizedText('Histórico'),
               ),
             ],
           ),
@@ -391,7 +405,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                       TextButton(
                         onPressed: () =>
                             setState(() => _filter = _ExerciseFilter.due),
-                        child: const Text('Ver pendentes'),
+                        child: const RuntimeLocalizedText('Ver pendentes'),
                       ),
                   ],
                 ),

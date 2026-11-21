@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
@@ -57,7 +58,14 @@ final dashboardSectionsPreferenceProvider = FutureProvider<List<String>?>((
 enum _DashboardLayout { overview, rhythm, mastery, ai, custom }
 
 class DomainDashboardPage extends ConsumerStatefulWidget {
-  const DomainDashboardPage({super.key});
+  const DomainDashboardPage({
+    super.key,
+    this.initialGraphId,
+    this.initialNodeId,
+  });
+
+  final String? initialGraphId;
+  final String? initialNodeId;
 
   @override
   ConsumerState<DomainDashboardPage> createState() =>
@@ -79,6 +87,16 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialNodeId != null) {
+      _scopeType = 'node';
+      _selectedGraphId = widget.initialGraphId;
+      _selectedNodeId = widget.initialNodeId;
+      _filtersExpanded = true;
+    } else if (widget.initialGraphId != null) {
+      _scopeType = 'graph';
+      _selectedGraphId = widget.initialGraphId;
+      _filtersExpanded = true;
+    }
     _loadSavedSections();
   }
 
@@ -115,7 +133,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                 error: (error, _) => Card(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Text('Não foi possível carregar o painel: $error'),
+                    child: RuntimeLocalizedText(
+                      'Não foi possível carregar o painel: $error',
+                    ),
                   ),
                 ),
                 data: (data) => _buildDashboard(context, data, aiUsage, query),
@@ -168,8 +188,8 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.filter_list_rounded),
-                title: const Text('Filtros'),
-                subtitle: Text('$scopeName · $periodName'),
+                title: const RuntimeLocalizedText('Filtros'),
+                subtitle: RuntimeLocalizedText('$scopeName · $periodName'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -193,7 +213,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           value: DashboardExportFormat.csv,
                           child: ListTile(
                             leading: Icon(Icons.table_chart_outlined),
-                            title: Text('Planilha / CSV'),
+                            title: RuntimeLocalizedText('Planilha / CSV'),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -201,7 +221,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           value: DashboardExportFormat.pdf,
                           child: ListTile(
                             leading: Icon(Icons.picture_as_pdf_outlined),
-                            title: Text('Relatório PDF'),
+                            title: RuntimeLocalizedText('Relatório PDF'),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -209,7 +229,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           value: DashboardExportFormat.png,
                           child: ListTile(
                             leading: Icon(Icons.image_outlined),
-                            title: Text('Imagem PNG'),
+                            title: RuntimeLocalizedText('Imagem PNG'),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -246,15 +266,15 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           items: const [
                             DropdownMenuItem(
                               value: 'global',
-                              child: Text('Global'),
+                              child: RuntimeLocalizedText('Global'),
                             ),
                             DropdownMenuItem(
                               value: 'graph',
-                              child: Text('Por grafo'),
+                              child: RuntimeLocalizedText('Por grafo'),
                             ),
                             DropdownMenuItem(
                               value: 'node',
-                              child: Text('Por nó'),
+                              child: RuntimeLocalizedText('Por nó'),
                             ),
                           ],
                           onChanged: (value) {
@@ -282,7 +302,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                                 )
                                 ? _selectedGraphId
                                 : null,
-                            hint: const Text('Selecione um grafo'),
+                            hint: const RuntimeLocalizedText(
+                              'Selecione um grafo',
+                            ),
                             items: [
                               for (final graph in graphOptions)
                                 DropdownMenuItem(
@@ -304,7 +326,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           width: 260,
                           child: DropdownMenu<String>(
                             key: ValueKey(_selectedNodeId),
-                            label: const Text('Nó'),
+                            label: const RuntimeLocalizedText('Nó'),
                             width: 260,
                             enableFilter: true,
                             enableSearch: true,
@@ -342,27 +364,27 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           items: const [
                             DropdownMenuItem(
                               value: '7',
-                              child: Text('Últimos 7 dias'),
+                              child: RuntimeLocalizedText('Últimos 7 dias'),
                             ),
                             DropdownMenuItem(
                               value: '30',
-                              child: Text('Últimos 30 dias'),
+                              child: RuntimeLocalizedText('Últimos 30 dias'),
                             ),
                             DropdownMenuItem(
                               value: '90',
-                              child: Text('Últimos 90 dias'),
+                              child: RuntimeLocalizedText('Últimos 90 dias'),
                             ),
                             DropdownMenuItem(
                               value: '365',
-                              child: Text('Último ano'),
+                              child: RuntimeLocalizedText('Último ano'),
                             ),
                             DropdownMenuItem(
                               value: 'all',
-                              child: Text('Todo o período'),
+                              child: RuntimeLocalizedText('Todo o período'),
                             ),
                             DropdownMenuItem(
                               value: 'custom',
-                              child: Text('Personalizado…'),
+                              child: RuntimeLocalizedText('Personalizado…'),
                             ),
                           ],
                           onChanged: (value) {
@@ -585,14 +607,22 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
 
     return switch (_layout) {
       _DashboardLayout.overview => [
-        _Metric('Domínio médio', mastery, Icons.track_changes_outlined),
-        _Metric('Acertos', accuracy, Icons.check_circle_outline),
-        _Metric('Revisões', '${summary.reviewCount}', Icons.replay_rounded),
         _Metric(
-          'Dias ativos',
-          '${summary.activeReviewDays}',
-          Icons.calendar_today_outlined,
+          'Conceitos dominados',
+          '${summary.masteredConcepts}',
+          Icons.check_circle_outline_rounded,
         ),
+        _Metric(
+          'Conceitos frágeis',
+          '${summary.fragileConcepts}',
+          Icons.warning_amber_outlined,
+        ),
+        _Metric(
+          'Pré-requisitos críticos',
+          '${summary.criticalPrerequisites}',
+          Icons.account_tree_outlined,
+        ),
+        _Metric('Domínio médio', mastery, Icons.track_changes_outlined),
       ],
       _DashboardLayout.rhythm => [
         _Metric('Revisões', '${summary.reviewCount}', Icons.replay_rounded),
@@ -647,7 +677,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
     }
     return switch (_layout) {
       _DashboardLayout.overview =>
-        section == 'evolution' || section == 'reviews',
+        section == 'evolution' || section == 'reviews' || section == 'graphs',
       _DashboardLayout.rhythm => section == 'reviews',
       _DashboardLayout.mastery =>
         section == 'evolution' || section == 'fsrs' || section == 'graphs',
@@ -750,7 +780,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                           Navigator.of(context).pop();
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
-                              content: Text('Personalização salva.'),
+                              content: RuntimeLocalizedText(
+                                'Personalização salva.',
+                              ),
                             ),
                           );
                         } on Object catch (error) {
@@ -775,7 +807,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save_outlined),
-                label: const Text('Salvar personalização'),
+                label: const RuntimeLocalizedText('Salvar personalização'),
               ),
             ],
           ),
@@ -797,7 +829,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Não foi possível carregar a personalização: $error'),
+          content: RuntimeLocalizedText(
+            'Não foi possível carregar a personalização: $error',
+          ),
         ),
       );
     }
@@ -831,7 +865,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
           );
           if (uri == null) return;
           messenger?.showSnackBar(
-            const SnackBar(content: Text('Planilha CSV exportada.')),
+            const SnackBar(
+              content: RuntimeLocalizedText('Planilha CSV exportada.'),
+            ),
           );
           break;
         case DashboardExportFormat.pdf:
@@ -850,7 +886,9 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
           );
           if (uri == null) return;
           messenger?.showSnackBar(
-            const SnackBar(content: Text('Relatório PDF exportado.')),
+            const SnackBar(
+              content: RuntimeLocalizedText('Relatório PDF exportado.'),
+            ),
           );
           break;
         case DashboardExportFormat.png:
@@ -872,14 +910,18 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
           );
           if (uri == null) return;
           messenger?.showSnackBar(
-            const SnackBar(content: Text('Imagem PNG exportada.')),
+            const SnackBar(
+              content: RuntimeLocalizedText('Imagem PNG exportada.'),
+            ),
           );
           break;
       }
     } on Object catch (error) {
       if (!mounted) return;
       messenger?.showSnackBar(
-        SnackBar(content: Text('Não foi possível exportar: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText('Não foi possível exportar: $error'),
+        ),
       );
     }
   }
@@ -963,13 +1005,14 @@ class _ShareSummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Wrap(
-              spacing: 24,
-              runSpacing: 16,
+              spacing: 12,
+              runSpacing: 12,
               children: [
                 for (final metric in metrics)
                   _ShareMetric(
                     label: metric.label,
                     value: metric.value,
+                    icon: metric.icon,
                     color: scheme.primary,
                     labelColor: scheme.onSurfaceVariant,
                   ),
@@ -993,36 +1036,59 @@ class _ShareMetric extends StatelessWidget {
   const _ShareMetric({
     required this.label,
     required this.value,
+    required this.icon,
     required this.color,
     required this.labelColor,
   });
 
   final String label;
   final String value;
+  final IconData icon;
   final Color color;
   final Color labelColor;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 120,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth >= 760
+          ? (constraints.maxWidth - 36) / 4
+          : constraints.maxWidth >= 480
+          ? (constraints.maxWidth - 12) / 2
+          : constraints.maxWidth;
+      return SizedBox(
+        width: width,
+        child: Card(
+          margin: EdgeInsets.zero,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: labelColor),
+                ),
+              ],
+            ),
           ),
         ),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: labelColor),
-        ),
-      ],
-    ),
+      );
+    },
   );
 }
 
@@ -1229,7 +1295,10 @@ class _AccuracyTrendChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Taxa de acertos', style: Theme.of(context).textTheme.titleSmall),
+        RuntimeLocalizedText(
+          'Taxa de acertos',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         SizedBox(
           height: 180,
@@ -1632,7 +1701,10 @@ class _ModelCallsChart extends StatelessWidget {
                 ),
                 SizedBox(
                   width: 44,
-                  child: Text('${entry.value}', textAlign: TextAlign.end),
+                  child: RuntimeLocalizedText(
+                    '${entry.value}',
+                    textAlign: TextAlign.end,
+                  ),
                 ),
               ],
             ),
@@ -1674,7 +1746,9 @@ class _ActivityPanel extends StatelessWidget {
                     '${activity.graphTitle} · '
                     '${DateFormat.yMd().add_Hm().format(activity.loggedAt)}',
                   ),
-                  trailing: Text('${(activity.score * 100).round()}%'),
+                  trailing: RuntimeLocalizedText(
+                    '${(activity.score * 100).round()}%',
+                  ),
                 ),
             ],
           ),

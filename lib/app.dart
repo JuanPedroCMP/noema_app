@@ -8,6 +8,7 @@ import 'package:noema/core/design/theme/color_theme_provider.dart'
     show activeColorThemeProvider, brightnessProvider, colorProvider;
 import 'package:noema/core/design/theme/typography_theme_provider.dart';
 import 'package:noema/core/router/router.dart';
+import 'package:noema/feature/config/data/google_drive/automatic_backup_scheduler.dart';
 import 'package:noema/feature/config/providers/app_locale_provider.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
@@ -18,11 +19,17 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(configPreferenceSyncLifecycleProvider);
+    ref.watch(deviceTimezoneSyncLifecycleProvider);
+    ref.watch(automaticBackupSchedulingLifecycleProvider);
     final colorAsync = ref.watch(colorProvider);
     final activeTheme = ref.watch(activeColorThemeProvider);
     final activeTypography = ref.watch(activeTypographyThemeProvider);
     final brightnessApp = ref.watch(brightnessProvider);
     final appLocale = ref.watch(appLocaleProvider);
+    final fontScale = activeTypography.maybeWhen(
+      data: (theme) => theme?.fontScale ?? 100,
+      orElse: () => 100,
+    );
 
     final colorApp =
         activeTheme.maybeWhen(
@@ -35,6 +42,21 @@ class App extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
+      key: ValueKey(
+        appLocale.maybeWhen(
+          data: (locale) => locale?.languageCode ?? 'system',
+          orElse: () => 'system',
+        ),
+      ),
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: AppTheme.textScaler(mediaQuery.textScaler, fontScale),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
 
       localizationsDelegates: [
         AppLocalizations.delegate,
@@ -43,15 +65,8 @@ class App extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
-        const Locale('pt', ''), // Português
-        const Locale('en', ''), // Inglês
-        // const Locale.fromSubtags(languageCode: 'zh'),
-      ],
-      locale: appLocale.maybeWhen(
-        data: (locale) => locale,
-        orElse: () => null,
-      ),
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: appLocale.maybeWhen(data: (locale) => locale, orElse: () => null),
 
       routerConfig: ref.watch(goRouterProvider),
 
@@ -74,10 +89,6 @@ class App extends ConsumerWidget {
         monoFont: activeTypography.maybeWhen(
           data: (theme) => theme?.monoFont,
           orElse: () => null,
-        ),
-        fontScale: activeTypography.maybeWhen(
-          data: (theme) => theme?.fontScale ?? 100,
-          orElse: () => 100,
         ),
       ),
     );

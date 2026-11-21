@@ -14,10 +14,7 @@ class DeviceFingerprint {
 
     final fingerprint = const Uuid().v4();
 
-    await _storage.write(
-      key: _key,
-      value: fingerprint,
-    );
+    await _storage.write(key: _key, value: fingerprint);
 
     return fingerprint;
   }

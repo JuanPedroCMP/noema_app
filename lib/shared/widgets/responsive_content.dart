@@ -67,11 +67,16 @@ class AppPageHeader extends StatelessWidget {
         final heading = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: compact ? textTheme.headlineSmall : textTheme.headlineMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: compact
+                    ? textTheme.headlineSmall
+                    : textTheme.headlineMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             if (subtitle != null) ...[
               SizedBox(height: context.spacing.xs),

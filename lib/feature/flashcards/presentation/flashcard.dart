@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -74,7 +75,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   bool _isGeneratingAssistantCards = false;
   bool _assistantAutoGenerationScheduled = false;
   bool _assistantHandoffDismissed = false;
+  bool _showAiGenerationCard = false;
   String? _assistantNodeId;
+  int _assistantCardCount = 4;
   late final TextEditingController _assistantPromptController;
   String _search = '';
   final Stopwatch _reviewTimer = Stopwatch();
@@ -112,7 +115,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   ) {
     if (cards.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Este deck ainda não tem flashcards.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Este deck ainda não tem flashcards.'),
+        ),
       );
       return;
     }
@@ -151,11 +156,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     setState(() => _isReviewing = true);
     try {
       final durationSeconds = _reviewTimer.elapsed.inSeconds;
-      final result = await FlashcardDao(ref.read(appDatabaseProvider)).logReview(
-        card: card,
-        rating: rating,
-        durationSeconds: durationSeconds,
-      );
+      final result = await FlashcardDao(
+        ref.read(appDatabaseProvider),
+      ).logReview(card: card, rating: rating, durationSeconds: durationSeconds);
       if (!mounted) return;
       final nextIndex = _studyIndex + 1;
       setState(() {
@@ -184,7 +187,11 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível registrar a revisão.')),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível registrar a revisão.',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isReviewing = false);
@@ -197,7 +204,11 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   }) async {
     if (nodes.isEmpty && card == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Crie um nó antes de adicionar cartões.')),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'Crie um nó antes de adicionar cartões.',
+          ),
+        ),
       );
       return;
     }
@@ -242,7 +253,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível salvar o flashcard.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível salvar o flashcard.'),
+        ),
       );
     }
   }
@@ -281,7 +294,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível salvar o deck.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível salvar o deck.'),
+        ),
       );
     }
   }
@@ -290,16 +305,18 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir flashcard?'),
-        content: Text('“${card.title}” será removido dos decks que o contêm.'),
+        title: const RuntimeLocalizedText('Excluir flashcard?'),
+        content: RuntimeLocalizedText(
+          '“${card.title}” será removido dos decks que o contêm.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
+            child: const RuntimeLocalizedText('Excluir'),
           ),
         ],
       ),
@@ -315,7 +332,11 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível excluir o flashcard.')),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível excluir o flashcard.',
+          ),
+        ),
       );
     }
   }
@@ -324,18 +345,18 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir deck?'),
+        title: const RuntimeLocalizedText('Excluir deck?'),
         content: Text(
           'O deck “${deck.name}” será removido. Os flashcards continuarão disponíveis.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir deck'),
+            child: const RuntimeLocalizedText('Excluir deck'),
           ),
         ],
       ),
@@ -352,7 +373,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível excluir o deck.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível excluir o deck.'),
+        ),
       );
     }
   }
@@ -364,7 +387,9 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     if (prompt.isEmpty || nodeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Informe o tema e escolha um nó para gerar cartões.'),
+          content: RuntimeLocalizedText(
+            'Informe o tema e escolha um nó para gerar cartões.',
+          ),
         ),
       );
       return;
@@ -372,32 +397,38 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final matchingNodes = data.nodes.where((item) => item.id == nodeId);
     if (matchingNodes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Escolha um nó disponível no seu grafo.')),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'Escolha um nó disponível no seu grafo.',
+          ),
+        ),
       );
       return;
     }
     final node = matchingNodes.first;
+    final cardCount = _assistantCardCount;
     setState(() => _isGeneratingAssistantCards = true);
     try {
       final response = await ref
           .read(aiContentGenerationServiceProvider)
           .generate(
             task: AiAgentTask.createFlashcards,
-            prompt: '''
-Crie de 3 a 8 flashcards de estudo objetivos em português brasileiro.
+            prompt:
+                '''
+Crie exatamente $cardCount ${cardCount == 1 ? 'flashcard' : 'flashcards'} de estudo objetivos.
 Tema pedido: $prompt
 Nó de estudo: ${node.title}
 Descrição do nó: ${node.description ?? 'não informada'}
-Retorne somente JSON: {"flashcards":[{"title":"pergunta curta","statement":"resposta correta, clara e suficiente","targetSkill":"habilidade avaliada"}]}.
-Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
+Retorne somente JSON no formato {"flashcards":[{"title":"pergunta curta","statement":"resposta correta, clara e suficiente","target_skill":"habilidade avaliada"}]}.
+Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
 ''',
           );
-      final cards = _parseSuggestedCards(response);
+      final cards = _parseSuggestedCards(response, expectedCount: cardCount);
       if (!mounted) return;
       final accepted = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('${cards.length} flashcards sugeridos'),
+          title: RuntimeLocalizedText('${cards.length} flashcards sugeridos'),
           content: SizedBox(
             width: 520,
             height: 420,
@@ -421,12 +452,12 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Descartar'),
+              child: const RuntimeLocalizedText('Descartar'),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, true),
               icon: const Icon(Icons.save_outlined),
-              label: const Text('Salvar cartões'),
+              label: const RuntimeLocalizedText('Salvar cartões'),
             ),
           ],
         ),
@@ -447,16 +478,28 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
       });
       if (!mounted) return;
       ref.invalidate(flashcardsProvider(widget.nodeId));
-      ref.read(studyAssistantProvider.notifier).consumeHandoff();
-      setState(() => _assistantHandoffDismissed = true);
+      if (widget.initialHandoff?.type ==
+          StudyAssistantActionType.createFlashcards) {
+        ref.read(studyAssistantProvider.notifier).consumeHandoff();
+      }
+      setState(() {
+        _assistantHandoffDismissed = true;
+        _showAiGenerationCard = false;
+      });
       _assistantPromptController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${cards.length} flashcards salvos.')),
+        SnackBar(
+          content: RuntimeLocalizedText('${cards.length} flashcards salvos.'),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível gerar os flashcards: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível gerar os flashcards: $error',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isGeneratingAssistantCards = false);
@@ -464,43 +507,89 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
   }
 
   List<({String title, String statement, String? targetSkill})>
-  _parseSuggestedCards(Map<String, dynamic> response) {
+  _parseSuggestedCards(
+    Map<String, dynamic> response, {
+    required int expectedCount,
+  }) {
     final rawCards = response['flashcards'];
-    if (rawCards is! List || rawCards.isEmpty || rawCards.length > 8) {
+    if (rawCards is! List ||
+        rawCards.length != expectedCount ||
+        rawCards.length > 8) {
       throw const FormatException(
-        'A resposta deve conter de 1 a 8 flashcards.',
+        'A quantidade de flashcards retornada não corresponde à solicitada.',
       );
     }
-    return rawCards.map((item) {
-      if (item is! Map) {
-        throw const FormatException('Um flashcard retornado é inválido.');
-      }
-      final card = Map<String, dynamic>.from(item);
-      final title = card['title'];
-      final statement = card['statement'];
-      final skill = card['targetSkill'] ?? card['target_skill'];
-      if (title is! String ||
-          title.trim().isEmpty ||
-          title.trim().length > 160 ||
-          statement is! String ||
-          statement.trim().isEmpty ||
-          statement.trim().length > 3000) {
-        throw const FormatException(
-          'Cada flashcard precisa de pergunta e resposta.',
-        );
-      }
-      return (
-        title: title.trim(),
-        statement: statement.trim(),
-        targetSkill: skill is String ? skill.trim() : null,
+    return rawCards
+        .map((item) {
+          if (item is! Map) {
+            throw const FormatException('Um flashcard retornado é inválido.');
+          }
+          final card = Map<String, dynamic>.from(item);
+          final title = card['title'];
+          final statement = card['statement'];
+          final skill = card['targetSkill'] ?? card['target_skill'];
+          if (title is! String ||
+              title.trim().isEmpty ||
+              title.trim().length > 160 ||
+              statement is! String ||
+              statement.trim().isEmpty ||
+              statement.trim().length > 3000) {
+            throw const FormatException(
+              'Cada flashcard precisa de pergunta e resposta.',
+            );
+          }
+          return (
+            title: title.trim(),
+            statement: statement.trim(),
+            targetSkill: skill is String ? skill.trim() : null,
+          );
+        })
+        .toList(growable: false);
+  }
+
+  void _openAiGeneration(FlashcardPageData data) {
+    if (data.nodes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            'Crie um nó antes de gerar flashcards.',
+          ),
+        ),
       );
-    }).toList(growable: false);
+      return;
+    }
+
+    final selectedNode = data.nodes.firstWhere(
+      (node) => node.id == _assistantNodeId,
+      orElse: () => data.nodes.first,
+    );
+    _assistantNodeId = selectedNode.id;
+    if (_assistantPromptController.text.trim().isEmpty) {
+      _assistantPromptController.text =
+          'Crie flashcards de estudo sobre ${selectedNode.title}.';
+    }
+    setState(() {
+      _showAiGenerationCard = true;
+      _assistantHandoffDismissed = false;
+    });
+  }
+
+  void _closeAiGeneration() {
+    if (widget.initialHandoff?.type ==
+        StudyAssistantActionType.createFlashcards) {
+      ref.read(studyAssistantProvider.notifier).consumeHandoff();
+    }
+    setState(() {
+      _showAiGenerationCard = false;
+      _assistantHandoffDismissed = true;
+    });
   }
 
   Widget _buildAssistantGenerationCard(FlashcardPageData data) {
     final handoff = widget.initialHandoff;
     if (_assistantHandoffDismissed ||
-        handoff?.type != StudyAssistantActionType.createFlashcards) {
+        (handoff?.type != StudyAssistantActionType.createFlashcards &&
+            !_showAiGenerationCard)) {
       return const SizedBox.shrink();
     }
     final firstNodeId = data.nodes.isEmpty ? null : data.nodes.first.id;
@@ -508,7 +597,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
         !data.nodes.any((node) => node.id == _assistantNodeId)) {
       _assistantNodeId = firstNodeId;
     }
-    if (handoff!.autoGenerate && !_assistantAutoGenerationScheduled) {
+    if (handoff?.autoGenerate == true && !_assistantAutoGenerationScheduled) {
       _assistantAutoGenerationScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _generateAssistantCards(data);
@@ -518,7 +607,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
       return const Card(
         child: ListTile(
           leading: Icon(Icons.info_outline),
-          title: Text('Crie um nó antes de gerar flashcards'),
+          title: RuntimeLocalizedText('Crie um nó antes de gerar flashcards'),
           subtitle: Text(
             'Os cartões precisam estar vinculados a um conceito do seu grafo.',
           ),
@@ -535,16 +624,13 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               children: [
                 Expanded(
                   child: Text(
-                    'Preparar flashcards com o assistente',
+                    'Criar flashcards com IA',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Descartar sugestão',
-                  onPressed: () {
-                    ref.read(studyAssistantProvider.notifier).consumeHandoff();
-                    setState(() => _assistantHandoffDismissed = true);
-                  },
+                  tooltip: 'Fechar geração',
+                  onPressed: _closeAiGeneration,
                   icon: const Icon(Icons.close),
                 ),
               ],
@@ -557,6 +643,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
             const SizedBox(height: 12),
             TextField(
               controller: _assistantPromptController,
+              enabled: !_isGeneratingAssistantCards,
               maxLines: 2,
               maxLength: 1000,
               decoration: const InputDecoration(
@@ -566,12 +653,40 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
             ),
             DropdownButtonFormField<String>(
               initialValue: _assistantNodeId,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Vincular ao nó'),
               items: [
                 for (final node in data.nodes)
-                  DropdownMenuItem(value: node.id, child: Text(node.title)),
+                  DropdownMenuItem(
+                    value: node.id,
+                    child: Text(node.title, overflow: TextOverflow.ellipsis),
+                  ),
               ],
               onChanged: (value) => setState(() => _assistantNodeId = value),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              initialValue: _assistantCardCount,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Quantidade de flashcards',
+              ),
+              items: [
+                for (var count = 1; count <= 8; count++)
+                  DropdownMenuItem(
+                    value: count,
+                    child: Text(
+                      '$count ${count == 1 ? 'flashcard' : 'flashcards'}',
+                    ),
+                  ),
+              ],
+              onChanged: _isGeneratingAssistantCards
+                  ? null
+                  : (value) {
+                      if (value != null) {
+                        setState(() => _assistantCardCount = value);
+                      }
+                    },
             ),
             const SizedBox(height: 12),
             Align(
@@ -599,6 +714,25 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
     );
   }
 
+  Widget _buildAiGenerationAction(FlashcardPageData data) {
+    if (_showAiGenerationCard ||
+        (widget.initialHandoff?.type ==
+                StudyAssistantActionType.createFlashcards &&
+            !_assistantHandoffDismissed)) {
+      return const SizedBox.shrink();
+    }
+    return Align(
+      alignment: Alignment.centerRight,
+      child: OutlinedButton.icon(
+        onPressed: _isGeneratingAssistantCards
+            ? null
+            : () => _openAiGeneration(data),
+        icon: const Icon(Icons.auto_awesome_rounded),
+        label: const RuntimeLocalizedText('Criar com IA'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppResponsiveContent(
@@ -616,6 +750,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                 ? Column(
                     children: [
                       _buildAssistantGenerationCard(data),
+                      _buildAiGenerationAction(data),
                       Expanded(child: _buildDeckLibrary(context, data)),
                     ],
                   )
@@ -677,7 +812,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               OutlinedButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const Text('Novo cartão'),
+                label: const RuntimeLocalizedText('Novo cartão'),
               ),
               FilledButton.icon(
                 onPressed: data.cards.isEmpty
@@ -688,10 +823,11 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                         graphs: data.graphs,
                       ),
                 icon: const Icon(Icons.library_add_outlined),
-                label: const Text('Criar deck'),
+                label: const RuntimeLocalizedText('Criar deck'),
               ),
             ],
           ),
+          _buildAiGenerationAction(data),
           if (data.cards.isEmpty)
             AppEmptyView(
               icon: Icons.style_outlined,
@@ -701,7 +837,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               action: FilledButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const Text('Criar primeiro cartão'),
+                label: const RuntimeLocalizedText('Criar primeiro cartão'),
               ),
             )
           else ...[
@@ -709,18 +845,18 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               _ReviewOverview(
                 dueCount: data.dueCards.length,
                 totalCount: data.cards.length,
-                onReview: () => _startDeck(
-                  'Revisão pendente',
-                  data.cards,
-                  data.dueCards,
-                ),
+                onReview: () =>
+                    _startDeck('Revisão pendente', data.cards, data.dueCards),
               ),
             _SectionHeader(
               title: 'Decks automáticos',
               subtitle: 'Gerados a partir dos seus grafos e nós.',
             ),
             if (graphDecks.isNotEmpty) ...[
-              Text('Por grafo', style: Theme.of(context).textTheme.titleMedium),
+              RuntimeLocalizedText(
+                'Por grafo',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               for (final entry in graphDecks)
                 _DeckTile(
                   title: entry.graph.title,
@@ -740,7 +876,10 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
             if (data.nodes.any(
               (node) => cardsByNode[node.id]?.isNotEmpty == true,
             )) ...[
-              Text('Por nó', style: Theme.of(context).textTheme.titleMedium),
+              RuntimeLocalizedText(
+                'Por nó',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               for (final node in data.nodes)
                 if (cardsByNode[node.id]?.isNotEmpty == true)
                   _DeckTile(
@@ -771,7 +910,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                   graphs: data.graphs,
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Novo'),
+                label: const RuntimeLocalizedText('Novo'),
               ),
             ),
             if (data.customDecks.isEmpty)
@@ -804,8 +943,12 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                 ),
             const Divider(),
             ExpansionTile(
-              title: Text('Todos os cartões (${data.cards.length})'),
-              subtitle: const Text('Pesquisar, editar ou remover cartões'),
+              title: RuntimeLocalizedText(
+                'Todos os cartões (${data.cards.length})',
+              ),
+              subtitle: const RuntimeLocalizedText(
+                'Pesquisar, editar ou remover cartões',
+              ),
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -838,7 +981,9 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                 if (visibleCards.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(20),
-                    child: Text('Nenhum cartão corresponde à busca.'),
+                    child: RuntimeLocalizedText(
+                      'Nenhum cartão corresponde à busca.',
+                    ),
                   ),
               ],
             ),
@@ -869,17 +1014,18 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               OutlinedButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const Text('Novo cartão'),
+                label: const RuntimeLocalizedText('Novo cartão'),
               ),
               FilledButton.icon(
                 onPressed: cards.isEmpty
                     ? null
                     : () => _startDeck(nodeName, cards, dueCards),
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('Estudar deck'),
+                label: const RuntimeLocalizedText('Estudar deck'),
               ),
             ],
           ),
+          _buildAiGenerationAction(data),
           if (cards.isEmpty)
             AppEmptyView(
               icon: Icons.style_outlined,
@@ -889,7 +1035,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
               action: FilledButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const Text('Criar flashcard'),
+                label: const RuntimeLocalizedText('Criar flashcard'),
               ),
             )
           else ...[
@@ -1034,7 +1180,7 @@ Cada cartão deve testar uma ideia diferente. Não inclua texto fora do JSON.
                   onPressed: () => setState(() => _showAnswer = true),
                   child: const Padding(
                     padding: EdgeInsets.all(14),
-                    child: Text('Mostrar resposta · Espaço'),
+                    child: RuntimeLocalizedText('Mostrar resposta · Espaço'),
                   ),
                 ),
               )
@@ -1131,12 +1277,12 @@ class _DeckTile extends StatelessWidget {
                   if (onEdit != null)
                     const PopupMenuItem(
                       value: 'edit',
-                      child: Text('Editar deck'),
+                      child: RuntimeLocalizedText('Editar deck'),
                     ),
                   if (onDelete != null)
                     const PopupMenuItem(
                       value: 'delete',
-                      child: Text('Excluir deck'),
+                      child: RuntimeLocalizedText('Excluir deck'),
                     ),
                 ],
               ),
@@ -1158,7 +1304,7 @@ class _StudyCount extends StatelessWidget {
       message: '$count para revisar agora',
       child: Chip(
         avatar: const Icon(Icons.schedule, size: 16),
-        label: Text('$count'),
+        label: RuntimeLocalizedText('$count'),
         visualDensity: VisualDensity.compact,
       ),
     );
@@ -1236,7 +1382,7 @@ class _ReviewOverview extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: onReview,
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Revisar agora'),
+              label: const RuntimeLocalizedText('Revisar agora'),
             ),
           ],
         ),
@@ -1426,12 +1572,14 @@ class _StudyCompleteView extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: onBack,
-                  child: const Text('Voltar aos decks'),
+                  child: const RuntimeLocalizedText('Voltar aos decks'),
                 ),
                 if (!hasCards)
                   FilledButton(
                     onPressed: onStudyAll,
-                    child: const Text('Estudar todos mesmo assim'),
+                    child: const RuntimeLocalizedText(
+                      'Estudar todos mesmo assim',
+                    ),
                   ),
               ],
             ),
@@ -1521,6 +1669,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
                 if (widget.selectedNodeId == null && widget.card == null)
                   DropdownButtonFormField<String>(
                     initialValue: _nodeId,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Nó relacionado',
                       border: OutlineInputBorder(),
@@ -1583,7 +1732,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         FilledButton(
           onPressed: () {
@@ -1603,7 +1752,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
               ),
             );
           },
-          child: const Text('Salvar cartão'),
+          child: const RuntimeLocalizedText('Salvar cartão'),
         ),
       ],
     );
@@ -1698,12 +1847,16 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: Text('${_selectedIds.length} selecionados')),
+                Expanded(
+                  child: RuntimeLocalizedText(
+                    '${_selectedIds.length} selecionados',
+                  ),
+                ),
                 TextButton(
                   onPressed: () => setState(() {
                     _selectedIds.addAll(cards.map((card) => card.id));
                   }),
-                  child: const Text('Selecionar visíveis'),
+                  child: const RuntimeLocalizedText('Selecionar visíveis'),
                 ),
                 TextButton(
                   onPressed: () => setState(() {
@@ -1711,7 +1864,7 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
                       _selectedIds.remove(card.id);
                     }
                   }),
-                  child: const Text('Limpar visíveis'),
+                  child: const RuntimeLocalizedText('Limpar visíveis'),
                 ),
               ],
             ),
@@ -1747,7 +1900,9 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
                   if (cards.isEmpty)
                     const Padding(
                       padding: EdgeInsets.all(20),
-                      child: Text('Nenhum cartão corresponde à busca.'),
+                      child: RuntimeLocalizedText(
+                        'Nenhum cartão corresponde à busca.',
+                      ),
                     ),
                 ],
               ),
@@ -1758,7 +1913,7 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         FilledButton(
           onPressed: () {
@@ -1780,7 +1935,7 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
               ),
             );
           },
-          child: const Text('Salvar deck'),
+          child: const RuntimeLocalizedText('Salvar deck'),
         ),
       ],
     );

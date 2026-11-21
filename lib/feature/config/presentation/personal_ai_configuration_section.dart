@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/enums.dart';
@@ -585,11 +586,11 @@ class _PersonalAiConfigurationSectionState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Desativar'),
+            child: const RuntimeLocalizedText('Desativar'),
           ),
         ],
       ),
@@ -715,7 +716,7 @@ class _PersonalAiConfigurationSectionState
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar'),
+                child: const RuntimeLocalizedText('Cancelar'),
               ),
               FilledButton(
                 onPressed: () {
@@ -745,7 +746,7 @@ class _PersonalAiConfigurationSectionState
                   }
                   Navigator.pop(context, result);
                 },
-                child: const Text('Salvar'),
+                child: const RuntimeLocalizedText('Salvar'),
               ),
             ],
           ),
@@ -844,7 +845,7 @@ class _PersonalAiConfigurationSectionState
           OutlinedButton.icon(
             onPressed: _loadIfConnected,
             icon: const Icon(Icons.refresh),
-            label: const Text('Tentar novamente'),
+            label: const RuntimeLocalizedText('Tentar novamente'),
           ),
         ],
       );
@@ -1093,14 +1094,14 @@ class _AgentModelsCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: saving ? null : onAdd,
                 icon: const Icon(Icons.add),
-                label: const Text('Vincular modelo'),
+                label: const RuntimeLocalizedText('Vincular modelo'),
               ),
             ],
           ),
           if (links.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('Nenhum modelo vinculado.'),
+              child: RuntimeLocalizedText('Nenhum modelo vinculado.'),
             )
           else
             for (final link in links)
@@ -1119,10 +1120,13 @@ class _AgentModelsCard extends StatelessWidget {
                     if (action == 'deactivate') onDeactivate(link);
                   },
                   itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Editar vínculo')),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: RuntimeLocalizedText('Editar vínculo'),
+                    ),
                     PopupMenuItem(
                       value: 'deactivate',
-                      child: Text('Desativar vínculo'),
+                      child: RuntimeLocalizedText('Desativar vínculo'),
                     ),
                   ],
                 ),
@@ -1180,7 +1184,7 @@ class _AiSetupGuide extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: onConfigureKeys,
                 icon: const Icon(Icons.key_outlined, size: 18),
-                label: const Text('Configurar chave de API'),
+                label: const RuntimeLocalizedText('Configurar chave de API'),
               ),
             ),
           ],

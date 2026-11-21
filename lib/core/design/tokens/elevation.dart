@@ -46,24 +46,15 @@ abstract class AppElevation with _$AppElevation {
 class AppElevationTheme extends ThemeExtension<AppElevationTheme> {
   final AppElevation elevation;
 
-  const AppElevationTheme({
-    required this.elevation,
-  });
+  const AppElevationTheme({required this.elevation});
 
   @override
-  AppElevationTheme copyWith({
-    AppElevation? elevation,
-  }) {
-    return AppElevationTheme(
-      elevation: elevation ?? this.elevation,
-    );
+  AppElevationTheme copyWith({AppElevation? elevation}) {
+    return AppElevationTheme(elevation: elevation ?? this.elevation);
   }
 
   @override
-  AppElevationTheme lerp(
-    ThemeExtension<AppElevationTheme>? other,
-    double t,
-  ) {
+  AppElevationTheme lerp(ThemeExtension<AppElevationTheme>? other, double t) {
     if (other is! AppElevationTheme) {
       return this;
     }

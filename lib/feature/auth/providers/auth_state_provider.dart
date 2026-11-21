@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:built_value/json_object.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/database/database.dart'
@@ -13,6 +12,7 @@ import 'package:noema/core/device_fingerprint.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
+import 'package:noema/feature/config/data/user_preferences_api.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/auth/services/login_service.dart';
@@ -129,23 +129,38 @@ Future<void> _ensureUserConfig({
       ) ??
       await _createDefaultTypographyTheme(typographyDao, userId);
 
+  if (!colorTheme.systemDefault) {
+    final overrides = _decodeThemeOverrides(colorTheme.overridesJson)
+      ..['__brightness'] = 'dark';
+    await colorDao.updateColorTheme(
+      id: colorTheme.id,
+      seedColor:
+          AppThemeDefaults.isUntouchedLegacyDefault(
+            name: colorTheme.name,
+            seedColor: colorTheme.seedColor,
+            overridesJson: colorTheme.overridesJson,
+          )
+          ? AppThemeDefaults.seedColor
+          : null,
+      overridesJson: jsonEncode(overrides),
+      systemDefault: true,
+    );
+  }
+  if (!typographyTheme.systemDefault) {
+    await typographyDao.updateTypographyTheme(
+      id: typographyTheme.id,
+      systemDefault: true,
+    );
+  }
+
   var config = await configDao.getConfigByUser(userId: userId);
   if (config == null) {
     var preferences = '{}';
     if (isConnected) {
       try {
-        final response = await ref
-            .read(apiClientProvider)
-            .getUserGlobalConfigApi()
-            .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-              identificator: remoteId,
-            )
-            .timeout(const Duration(seconds: 5));
-        final remotePreferences = <String, dynamic>{
-          for (final entry in response.data?.preferences.entries ??
-              const <MapEntry<String, JsonObject?>>[])
-            entry.key: entry.value?.value,
-        };
+        final remotePreferences = await UserPreferencesApi(
+          ref.read(apiClientProvider),
+        ).getPreferences().timeout(const Duration(seconds: 5));
         preferences = jsonEncode(remotePreferences);
       } catch (error, stackTrace) {
         debugPrint('Falha ao sincronizar a configuração local: $error');
@@ -183,22 +198,14 @@ Future<void> _ensureUserConfig({
 
   if (isConnected && config != null) {
     try {
-      final response = await ref
-          .read(apiClientProvider)
-          .getUserGlobalConfigApi()
-          .getUserGlobalConfigApiV1UserConfigUserGlobalConfigGetIdentificatorGet(
-            identificator: remoteId,
-          )
-          .timeout(const Duration(seconds: 5));
+      final remotePreferences = await UserPreferencesApi(
+        ref.read(apiClientProvider),
+      ).getPreferences().timeout(const Duration(seconds: 5));
       await configDao.updateConfig(
         id: config.id,
         userId: userId,
         preferences: mergeRemoteConfigPreferences(
-          remotePreferences: {
-            for (final entry in response.data?.preferences.entries ??
-                const <MapEntry<String, JsonObject?>>[])
-              entry.key: entry.value?.value,
-          },
+          remotePreferences: remotePreferences,
           localPreferences: config.preferences,
         ),
         deviceFingerprint: fingerprint,
@@ -218,6 +225,8 @@ Future<ColorThemeData> _createDefaultColorTheme(
     userId: userId,
     name: 'Default',
     seedColor: AppThemeDefaults.seedColor,
+    overridesJson: jsonEncode({'__brightness': 'dark'}),
+    systemDefault: true,
   );
   final theme = await dao.getColorTheme(id: id);
   if (theme == null) {
@@ -233,11 +242,23 @@ Future<TypographyThemeData> _createDefaultTypographyTheme(
   final id = await dao.insertTypographyTheme(
     userId: userId,
     name: 'Default',
-    fontScale: 1,
+    fontScale: 100,
+    systemDefault: true,
   );
   final theme = await dao.getTypographyTheme(id: id);
   if (theme == null) {
     throw StateError('Não foi possível criar o tema de tipografia padrão.');
   }
   return theme;
+}
+
+Map<String, dynamic> _decodeThemeOverrides(String? json) {
+  if (json == null || json.trim().isEmpty) return {};
+  try {
+    final decoded = jsonDecode(json);
+    if (decoded is Map<String, dynamic>) return Map.of(decoded);
+  } on FormatException {
+    return {};
+  }
+  return {};
 }

@@ -161,9 +161,6 @@ class GraphResponse {
     if (nodes.isEmpty) {
       throw const FormatException('A IA não gerou nenhum nó para o grafo.');
     }
-    if (nodes.length > 30) {
-      throw const FormatException('O grafo gerado excede o limite de 30 nós.');
-    }
 
     final nodeIds = <int>{};
     for (final node in nodes) {

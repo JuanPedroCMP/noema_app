@@ -4,6 +4,11 @@ import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/l10n/app_localizations.dart';
+
+final _supportedLanguageCodes = AppLocalizations.supportedLocales
+    .map((locale) => locale.languageCode)
+    .toSet();
 
 class AppLocaleNotifier extends AsyncNotifier<Locale?> {
   @override
@@ -13,12 +18,9 @@ class AppLocaleNotifier extends AsyncNotifier<Locale?> {
       ref.watch(appDatabaseProvider),
     ).getConfigByUser(userId: user.id);
     if (config == null) return null;
-    final languageCode = readConfigPreference(
-      config.preferences,
-      'locale',
-    );
+    final languageCode = readConfigPreference(config.preferences, 'locale');
     if (languageCode is! String ||
-        !const {'en', 'pt'}.contains(languageCode)) {
+        !_supportedLanguageCodes.contains(languageCode)) {
       return null;
     }
     return Locale(languageCode);
@@ -26,7 +28,8 @@ class AppLocaleNotifier extends AsyncNotifier<Locale?> {
 
   Future<void> setLocale(Locale? locale) async {
     final languageCode = locale?.languageCode;
-    if (languageCode != null && !const {'en', 'pt'}.contains(languageCode)) {
+    if (languageCode != null &&
+        !_supportedLanguageCodes.contains(languageCode)) {
       throw ArgumentError.value(languageCode, 'locale', 'is not supported');
     }
     await saveConfigPreference(
@@ -35,8 +38,10 @@ class AppLocaleNotifier extends AsyncNotifier<Locale?> {
       value: languageCode ?? 'system',
     );
     state = AsyncData(locale);
+    ref.notifyListeners();
   }
 }
 
-final appLocaleProvider =
-    AsyncNotifierProvider<AppLocaleNotifier, Locale?>(AppLocaleNotifier.new);
+final appLocaleProvider = AsyncNotifierProvider<AppLocaleNotifier, Locale?>(
+  AppLocaleNotifier.new,
+);

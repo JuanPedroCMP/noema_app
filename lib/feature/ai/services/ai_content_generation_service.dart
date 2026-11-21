@@ -4,10 +4,84 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/database/database.dart';
+import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/providers/ai_queue_concurrency_provider.dart';
 import 'package:noema/feature/ai/services/ai_request_queue.dart';
+import 'package:noema/feature/config/data/config_dao.dart';
+import 'package:noema/feature/config/data/user_dao.dart';
+import 'package:noema/feature/config/providers/preference_storage_provider.dart';
+import 'package:noema/feature/graph/data/graph_edge_dao.dart';
+import 'package:noema/feature/graph/data/graph_node_dao.dart';
+import 'package:noema/feature/graph/service/compact_graph_context.dart';
+
+final aiResponseLanguageResolverProvider = Provider<Future<String?> Function()>(
+  (ref) {
+    return () async {
+      final database = ref.read(appDatabaseProvider);
+      final user = await AppUserDao(database).getActiveUser();
+      if (user == null) return null;
+      final config = await ConfigDao(database).getConfigByUser(userId: user.id);
+      if (config == null) return null;
+
+      final order = readConfigPreference(
+        config.preferences,
+        responseLanguagePreferenceOrderKey,
+      );
+      final languageId = order is List
+          ? order.whereType<String>().firstOrNull
+          : null;
+      if (languageId == null) return null;
+
+      String? findLanguageName(Object? value) {
+        if (value is! List) return null;
+        for (final item in value) {
+          if (item is Map &&
+              item['id'] == languageId &&
+              item['name'] is String &&
+              (item['name'] as String).trim().isNotEmpty) {
+            return (item['name'] as String).trim();
+          }
+        }
+        return null;
+      }
+
+      final cachedLanguage = findLanguageName(
+        readConfigPreference(config.preferences, cachedResponseLanguagesKey),
+      );
+      if (cachedLanguage != null) return cachedLanguage;
+
+      final response = await ref
+          .read(apiClientProvider)
+          .getLanguageApi()
+          .listLanguagesApiV1UserConfigLanguageListGet();
+      final remoteLanguage = response.data
+          ?.where((language) {
+            if (languageId == fallbackPortugueseLanguageId) {
+              final name = language.name.toLowerCase();
+              return name.contains('portugu') || name.startsWith('pt');
+            }
+            if (languageId == fallbackEnglishLanguageId) {
+              final name = language.name.toLowerCase();
+              return name.contains('english') ||
+                  name.contains('inglês') ||
+                  name.startsWith('en');
+            }
+            return language.id == languageId;
+          })
+          .firstOrNull
+          ?.name;
+      if (remoteLanguage == null || remoteLanguage.trim().isEmpty) {
+        throw StateError(
+          'O idioma escolhido para respostas não está disponível na API.',
+        );
+      }
+      return remoteLanguage.trim();
+    };
+  },
+);
 
 class AiContentGenerationService {
   AiContentGenerationService(this._ref);
@@ -86,11 +160,8 @@ class AiContentGenerationService {
         ? normalizedPrompt
         : buildUserPrompt(prompt: normalizedPrompt, context: context);
 
-    Future<Map<String, dynamic>> action() => _generateNow(
-      task: task,
-      userPrompt: userPrompt,
-      agentId: agentId,
-    );
+    Future<Map<String, dynamic>> action() =>
+        _generateNow(task: task, userPrompt: userPrompt, agentId: agentId);
     final queue = _ref.read(aiRequestQueueProvider);
     if (priority == AiRequestPriority.user) {
       return queue.run(priority: priority, action: action);
@@ -101,6 +172,21 @@ class AiContentGenerationService {
       priority: priority,
       backgroundConcurrencyLimit: concurrency,
       action: action,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> generateBatch({
+    required AiAgentTask task,
+    required String agentId,
+    required List<String> prompts,
+  }) {
+    if (prompts.isEmpty) {
+      throw ArgumentError.value(prompts, 'prompts', 'must not be empty');
+    }
+    return Future.wait(
+      prompts.map(
+        (prompt) => generate(task: task, prompt: prompt, agentId: agentId),
+      ),
     );
   }
 
@@ -149,10 +235,7 @@ class AiContentGenerationService {
         'Nenhum agente está configurado para a tarefa "${task.label}".',
       );
     }
-    return matchingAgents
-            .where((agent) => agent.isPersonal)
-            .firstOrNull
-            ?.id ??
+    return matchingAgents.where((agent) => agent.isPersonal).firstOrNull?.id ??
         matchingAgents.first.id;
   }
 
@@ -163,19 +246,43 @@ class AiContentGenerationService {
     required String? existingDescription,
     required String agentId,
   }) async {
-    final prompt = '''
+    final database = _ref.read(appDatabaseProvider);
+    final node = await GraphNodeDao(
+      database,
+    ).getGraphNode(id: nodeId);
+    if (node == null || node.softDeleted) {
+      throw StateError('O nó $nodeId não existe mais.');
+    }
+    final graphNodes = await GraphNodeDao(
+      database,
+    ).getGraphNodesByGraph(graphId: node.graphId);
+    final graphEdges = await GraphEdgeDao(
+      database,
+    ).getGraphEdgesByGraph(graphId: node.graphId);
+    final graphContext = compactGraphSnapshot(
+      nodes: graphNodes,
+      edges: graphEdges,
+    ).toJson(includeNodeTypes: true, targetNodeId: nodeId);
+
+    final prompt =
+        '''
 Gere uma descrição curta, correta e didática para o nó de estudo abaixo.
-Retorne somente um objeto JSON com a chave "description" contendo a descrição em português.
+Retorne somente um objeto JSON com a chave "description" contendo a descrição.
 Não inclua título, identificadores, markdown ou texto fora do JSON.
 
 Nó: $title
 Tipo: $type
 Descrição atual (se houver): ${existingDescription?.trim().isNotEmpty == true ? existingDescription : "não informada"}
+
+Use o mapa de conhecimento completo no contexto para delimitar o assunto,
+diferenciar este nó dos conceitos próximos e respeitar pré-requisitos e
+subtópicos. Descreva somente o nó alvo.
 ''';
     final response = await generate(
       task: AiAgentTask.generateNodeDescription,
       prompt: prompt,
       agentId: agentId,
+      context: {'graph': graphContext},
       priority: AiRequestPriority.background,
     );
     final description = response['description'] ?? response['node_description'];
@@ -210,9 +317,15 @@ Descrição atual (se houver): ${existingDescription?.trim().isNotEmpty == true 
     }
 
     final client = _ref.read(apiClientProvider);
+    final responseLanguage = await _ref.read(
+      aiResponseLanguageResolverProvider,
+    )();
     final response = await client.getAiRouterApi().useAiApiV1AiRouterUseAiPost(
       userPrompt: userPrompt,
       agentId: selectedAgentId,
+      headers: responseLanguage == null
+          ? null
+          : {'X-Response-Language': responseLanguage},
     );
     final data = response.data;
     if (data == null) {

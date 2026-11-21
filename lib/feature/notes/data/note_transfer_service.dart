@@ -16,8 +16,11 @@ enum NoteExportFormat {
   markdown('Markdown (.md)', 'md', 'text/markdown'),
   plainText('Texto simples (.txt)', 'txt', 'text/plain'),
   html('Página HTML (.html)', 'html', 'text/html'),
-  word('Documento Word (.docx)', 'docx',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+  word(
+    'Documento Word (.docx)',
+    'docx',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ),
   pdf('Documento PDF (.pdf)', 'pdf', 'application/pdf');
 
   const NoteExportFormat(this.label, this.extension, this.mimeType);
@@ -176,7 +179,9 @@ class NoteTransferService {
     final decoded = jsonDecode(source);
     if (decoded is List) return (null, decoded);
     if (decoded is! Map) {
-      throw const FormatException('O JSON não contém uma nota ou Delta válido.');
+      throw const FormatException(
+        'O JSON não contém uma nota ou Delta válido.',
+      );
     }
     final title = decoded['title'];
     final rawDelta = decoded['delta'] ?? decoded['ops'];
@@ -201,16 +206,18 @@ class NoteTransferService {
     }
     final xml = XmlDocument.parse(utf8.decode(file.content));
     final paragraphs = xml.findAllElements('w:p');
-    final text = paragraphs.map((paragraph) {
-      final buffer = StringBuffer();
-      for (final node in paragraph.descendants) {
-        if (node is! XmlElement) continue;
-        if (node.name.local == 't') buffer.write(node.innerText);
-        if (node.name.local == 'tab') buffer.write('\t');
-        if (node.name.local == 'br') buffer.write('\n');
-      }
-      return buffer.toString();
-    }).join('\n');
+    final text = paragraphs
+        .map((paragraph) {
+          final buffer = StringBuffer();
+          for (final node in paragraph.descendants) {
+            if (node is! XmlElement) continue;
+            if (node.name.local == 't') buffer.write(node.innerText);
+            if (node.name.local == 'tab') buffer.write('\t');
+            if (node.name.local == 'br') buffer.write('\n');
+          }
+          return buffer.toString();
+        })
+        .join('\n');
     return text;
   }
 
@@ -229,11 +236,7 @@ class NoteTransferService {
   }
 
   static Uint8List _exportDocx({required String title, required String text}) {
-    final paragraphs = [
-      title,
-      '',
-      ...text.split('\n'),
-    ].map((line) {
+    final paragraphs = [title, '', ...text.split('\n')].map((line) {
       final escaped = _escapeXml(line);
       return '<w:p><w:r><w:t xml:space="preserve">$escaped</w:t></w:r></w:p>';
     }).join();
@@ -258,7 +261,9 @@ class NoteTransferService {
         ArchiveFile.bytes('[Content_Types].xml', utf8.encode(contentTypes)),
       )
       ..addFile(ArchiveFile.bytes('_rels/.rels', utf8.encode(relationships)))
-      ..addFile(ArchiveFile.bytes('word/document.xml', utf8.encode(documentXml)));
+      ..addFile(
+        ArchiveFile.bytes('word/document.xml', utf8.encode(documentXml)),
+      );
     return Uint8List.fromList(ZipEncoder().encode(archive));
   }
 
@@ -404,8 +409,9 @@ class NoteTransferService {
     if (header != null) blockAttributes['header'] = header;
     if (tag == 'blockquote') blockAttributes['blockquote'] = true;
     if (tag == 'li') {
-      blockAttributes['list'] =
-          node.parent?.localName == 'ol' ? 'ordered' : 'bullet';
+      blockAttributes['list'] = node.parent?.localName == 'ol'
+          ? 'ordered'
+          : 'bullet';
     }
     final isBlock = {
       'p',

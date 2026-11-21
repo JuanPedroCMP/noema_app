@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
 import 'package:noema/feature/graph/provider/graph_form_provider.dart';
 import 'package:noema/feature/graph/provider/temp_json_graph_provider.dart';
+import 'package:noema/feature/graph/service/graph_transfer_service.dart';
 import 'package:noema/feature/graph/service/import_grap_from_json.dart';
 
 class CreateBlankGraph extends ConsumerStatefulWidget {
@@ -77,6 +79,29 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
     }
   }
 
+  Future<void> _importGraphFile() async {
+    if (_isImporting) return;
+    setState(() => _isImporting = true);
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final user = await AppUserDao(db).getActiveUser();
+      if (user == null) {
+        _showMessage('Não foi possível identificar o usuário atual.');
+        return;
+      }
+      final id = await GraphTransferService.importGraph(
+        db: db,
+        userId: user.id,
+      );
+      if (id == null) return;
+      if (mounted) context.go(RoutePaths.graph(id));
+    } catch (_) {
+      _showMessage('O arquivo não pôde ser importado. Verifique o JSON.');
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
+    }
+  }
+
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -128,14 +153,31 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
             label: Text(_isCreating ? 'Criando...' : 'Criar grafo vazio'),
           ),
         ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _isImporting ? null : _importGraphFile,
+            icon: _isImporting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.upload_file),
+            label: const RuntimeLocalizedText('Importar arquivo JSON'),
+          ),
+        ),
         const SizedBox(height: 16),
         ExpansionTile(
           initiallyExpanded: _showAdvancedImport,
           onExpansionChanged: (value) =>
               setState(() => _showAdvancedImport = value),
           tilePadding: EdgeInsets.zero,
-          title: const Text('Importar estrutura JSON'),
-          subtitle: const Text('Opção avançada para dados já estruturados'),
+          title: const RuntimeLocalizedText('Importar estrutura JSON'),
+          subtitle: const RuntimeLocalizedText(
+            'Opção avançada para dados já estruturados',
+          ),
           children: [
             TextField(
               onChanged: jsonNotifier.jsonChanged,

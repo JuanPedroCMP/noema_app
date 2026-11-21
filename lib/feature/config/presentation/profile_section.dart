@@ -4,6 +4,7 @@ import 'package:dicebear_styles/pixelbot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/tokens/durations.dart';
 import 'package:noema/core/network/connetction_checker.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -73,7 +74,9 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Senha alterada com sucesso.')),
+          const SnackBar(
+            content: RuntimeLocalizedText('Senha alterada com sucesso.'),
+          ),
         );
     } catch (error) {
       if (!mounted) return;
@@ -153,10 +156,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  _ProfileAvatar(
-                    imageUrl: avatarUrl,
-                    seed: profile.remoteId,
-                  ),
+                  _ProfileAvatar(imageUrl: avatarUrl, seed: profile.userName),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -195,187 +195,219 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
           loading: () => const SizedBox.shrink(),
         ),
         const SizedBox(height: 16),
-        Column(
-          key: const ValueKey("View"),
-          spacing: 30,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            EditableField(
-              display: user.when(
-                data: (user) => Text(user.userName),
-                error: (e, _) => const Text("Ocorreu um erro"),
-                loading: () => const Text("Carregando..."),
-              ),
-              inputLabel: "User Name:",
-              onCancel: () {},
-              onChanged: (value) {
-                formNotifier.userNameChanged(value);
-              },
-              onConfirm: () async {
-                await userNotifier.updateUser(userName: form.userName);
-              },
-              displayLabel: const Text("Nome de usuário:"),
-            ),
-            EditableField(
-              display: user.when(
-                data: (user) => Text(user.displayName),
-                error: (e, _) => const Text("Ocorreu um erro"),
-                loading: () => const Text("Carregando..."),
-              ),
-              inputLabel: "Display name:",
-              onCancel: () {},
-              onChanged: (value) {
-                formNotifier.displayNameChanged(value);
-              },
-              onConfirm: () async {
-                await userNotifier.updateUser(displayName: form.displayName);
-              },
-              displayLabel: Text("Nome de Display: "),
-            ),
-            EditableField(
-              display: user.when(
-                data: (user) => Text(user.primaryEmail),
-                error: (e, _) => const Text("Ocorreu um erro"),
-                loading: () => const Text("Carregando..."),
-              ),
-              inputLabel: "Email",
-              onCancel: () {},
-              onChanged: (value) {
-                formNotifier.emailChanged(value);
-              },
-              onConfirm: () async {
-                await userNotifier.updateUser(primaryEmail: form.email);
-              },
-              displayLabel: Text("Email: "),
-            ),
-
-            AnimatedSwitcher(
-              transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(0.0, 0.1),
-                  end: Offset.zero,
-                ).animate(animation);
-
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: offsetAnimation,
-                    child: child,
+        Card(
+          child: Padding(
+            padding: EdgeInsets.all(context.spacing.md),
+            child: Column(
+              key: const ValueKey("View"),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: context.spacing.md,
+              children: [
+                RuntimeLocalizedText(
+                  'Dados da conta',
+                  style: context.textTheme.titleLarge,
+                ),
+                Text(
+                  'Mantenha suas informações de perfil atualizadas.',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                );
-              },
-              duration: durations.fast,
-              child: !form.isEditing
-                  ? OutlinedButton(
-                      onPressed: () {
-                        formNotifier.isEditingChanged(true);
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [Icon(Icons.edit), Text("Mudar senha")],
+                ),
+                EditableField(
+                  initialValue: user.asData?.value.userName ?? '',
+                  display: user.when(
+                    data: (user) => Text(user.userName),
+                    error: (e, _) =>
+                        const RuntimeLocalizedText("Ocorreu um erro"),
+                    loading: () => const RuntimeLocalizedText("Carregando..."),
+                  ),
+                  inputLabel: "Nome de usuário",
+                  onCancel: formNotifier.reset,
+                  onChanged: formNotifier.userNameChanged,
+                  onConfirm: () async {
+                    await userNotifier.updateUser(userName: form.userName);
+                  },
+                  displayLabel: const RuntimeLocalizedText("Nome de usuário"),
+                ),
+                EditableField(
+                  initialValue: user.asData?.value.displayName ?? '',
+                  display: user.when(
+                    data: (user) => Text(user.displayName),
+                    error: (e, _) =>
+                        const RuntimeLocalizedText("Ocorreu um erro"),
+                    loading: () => const RuntimeLocalizedText("Carregando..."),
+                  ),
+                  inputLabel: "Nome de exibição",
+                  onCancel: formNotifier.reset,
+                  onChanged: formNotifier.displayNameChanged,
+                  onConfirm: () async {
+                    await userNotifier.updateUser(
+                      displayName: form.displayName,
+                    );
+                  },
+                  displayLabel: const RuntimeLocalizedText("Nome de exibição"),
+                ),
+                EditableField(
+                  initialValue: user.asData?.value.primaryEmail ?? '',
+                  display: user.when(
+                    data: (user) => Text(user.primaryEmail),
+                    error: (e, _) =>
+                        const RuntimeLocalizedText("Ocorreu um erro"),
+                    loading: () => const RuntimeLocalizedText("Carregando..."),
+                  ),
+                  inputLabel: "E-mail",
+                  onCancel: formNotifier.reset,
+                  onChanged: formNotifier.emailChanged,
+                  onConfirm: () async {
+                    await userNotifier.updateUser(primaryEmail: form.email);
+                  },
+                  displayLabel: const RuntimeLocalizedText("E-mail"),
+                ),
+                const Divider(),
+                RuntimeLocalizedText(
+                  'Segurança',
+                  style: context.textTheme.titleMedium,
+                ),
+                AnimatedSwitcher(
+                  transitionBuilder: (child, animation) {
+                    final offsetAnimation = Tween<Offset>(
+                      begin: const Offset(0.0, 0.1),
+                      end: Offset.zero,
+                    ).animate(animation);
+
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
                       ),
-                    )
-                  : Column(
-                      key: const ValueKey("Edit"),
-                      children: [
-                        Form(
-                          key: _passwordFormKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: context.spacing.md,
+                    );
+                  },
+                  duration: durations.fast,
+                  child: !form.isEditing
+                      ? OutlinedButton(
+                          onPressed: () {
+                            formNotifier.isEditingChanged(true);
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'Escolha uma senha forte para proteger sua conta.',
-                                style: context.textTheme.bodyMedium,
-                              ),
-                              TextFormField(
-                                onChanged: formNotifier.passwordChanged,
-                                obscureText: !_passwordVisible,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                validator: PasswordPolicy.validate,
-                                decoration: InputDecoration(
-                                  labelText: 'Nova senha',
-                                  prefixIcon: const Icon(Icons.lock_outline),
-                                  suffixIcon: IconButton(
-                                    tooltip: _passwordVisible
-                                        ? 'Ocultar senha'
-                                        : 'Mostrar senha',
-                                    onPressed: () => setState(
-                                      () =>
-                                          _passwordVisible = !_passwordVisible,
-                                    ),
-                                    icon: Icon(
-                                      _passwordVisible
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              _PasswordRequirements(password: form.password),
-                              TextFormField(
-                                onChanged: formNotifier.passwordVerifyChanged,
-                                obscureText: !_passwordConfirmationVisible,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Confirme a nova senha.';
-                                  }
-                                  if (value != form.password) {
-                                    return 'As senhas não coincidem.';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'Confirme a nova senha',
-                                  prefixIcon: const Icon(Icons.lock_reset),
-                                  suffixIcon: IconButton(
-                                    tooltip: _passwordConfirmationVisible
-                                        ? 'Ocultar confirmação'
-                                        : 'Mostrar confirmação',
-                                    onPressed: () => setState(
-                                      () => _passwordConfirmationVisible =
-                                          !_passwordConfirmationVisible,
-                                    ),
-                                    icon: Icon(
-                                      _passwordConfirmationVisible
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              AsyncActionButton(
-                                loading: _savingPassword,
-                                label: 'Atualizar senha',
-                                icon: Icons.check,
-                                onPressed: _savingPassword
-                                    ? null
-                                    : () => _submitPassword(
-                                        userNotifier: userNotifier,
-                                        formNotifier: formNotifier,
-                                        password: form.password,
-                                      ),
-                              ),
-                              OutlinedButton.icon(
-                                onPressed: _savingPassword
-                                    ? null
-                                    : () {
-                                        formNotifier.reset();
-                                        _passwordFormKey.currentState?.reset();
-                                      },
-                                icon: const Icon(Icons.close),
-                                label: const Text('Cancelar'),
-                              ),
+                              Icon(Icons.edit),
+                              RuntimeLocalizedText("Mudar senha"),
                             ],
                           ),
+                        )
+                      : Column(
+                          key: const ValueKey("Edit"),
+                          children: [
+                            Form(
+                              key: _passwordFormKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                spacing: context.spacing.md,
+                                children: [
+                                  Text(
+                                    'Escolha uma senha forte para proteger sua conta.',
+                                    style: context.textTheme.bodyMedium,
+                                  ),
+                                  TextFormField(
+                                    onChanged: formNotifier.passwordChanged,
+                                    obscureText: !_passwordVisible,
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                    validator: PasswordPolicy.validate,
+                                    decoration: InputDecoration(
+                                      labelText: 'Nova senha',
+                                      prefixIcon: const Icon(
+                                        Icons.lock_outline,
+                                      ),
+                                      suffixIcon: IconButton(
+                                        tooltip: _passwordVisible
+                                            ? 'Ocultar senha'
+                                            : 'Mostrar senha',
+                                        onPressed: () => setState(
+                                          () => _passwordVisible =
+                                              !_passwordVisible,
+                                        ),
+                                        icon: Icon(
+                                          _passwordVisible
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  _PasswordRequirements(
+                                    password: form.password,
+                                  ),
+                                  TextFormField(
+                                    onChanged:
+                                        formNotifier.passwordVerifyChanged,
+                                    obscureText: !_passwordConfirmationVisible,
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Confirme a nova senha.';
+                                      }
+                                      if (value != form.password) {
+                                        return 'As senhas não coincidem.';
+                                      }
+                                      return null;
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'Confirme a nova senha',
+                                      prefixIcon: const Icon(Icons.lock_reset),
+                                      suffixIcon: IconButton(
+                                        tooltip: _passwordConfirmationVisible
+                                            ? 'Ocultar confirmação'
+                                            : 'Mostrar confirmação',
+                                        onPressed: () => setState(
+                                          () => _passwordConfirmationVisible =
+                                              !_passwordConfirmationVisible,
+                                        ),
+                                        icon: Icon(
+                                          _passwordConfirmationVisible
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  AsyncActionButton(
+                                    loading: _savingPassword,
+                                    label: 'Atualizar senha',
+                                    icon: Icons.check,
+                                    onPressed: _savingPassword
+                                        ? null
+                                        : () => _submitPassword(
+                                            userNotifier: userNotifier,
+                                            formNotifier: formNotifier,
+                                            password: form.password,
+                                          ),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: _savingPassword
+                                        ? null
+                                        : () {
+                                            formNotifier.reset();
+                                            _passwordFormKey.currentState
+                                                ?.reset();
+                                          },
+                                    icon: const Icon(Icons.close),
+                                    label: const RuntimeLocalizedText(
+                                      'Cancelar',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -450,9 +482,7 @@ class _ProfileAvatar extends StatelessWidget {
       fit: BoxFit.cover,
       semanticsLabel: 'Avatar ilustrado',
       placeholderBuilder: (context) => const SizedBox.expand(
-        child: Center(
-          child: Icon(Icons.person_outline, size: 32),
-        ),
+        child: Center(child: Icon(Icons.person_outline, size: 32)),
       ),
     );
 

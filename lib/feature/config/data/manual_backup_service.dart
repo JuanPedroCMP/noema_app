@@ -218,7 +218,8 @@ class ManualBackupService {
         snapshotSizeBytes: preview.incoming.sizeBytes,
         recordCount: preview.recordCount,
         encrypted: preview.encrypted,
-        details: 'A restauração não foi concluída; os dados locais foram mantidos.',
+        details:
+            'A restauração não foi concluída; os dados locais foram mantidos.',
       );
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
@@ -239,7 +240,10 @@ class ManualBackupService {
             : null,
       );
     } on Object catch (error, stackTrace) {
-      Error.throwWithStackTrace(ManualBackupHistoryException(error), stackTrace);
+      Error.throwWithStackTrace(
+        ManualBackupHistoryException(error),
+        stackTrace,
+      );
     }
   }
 
@@ -263,7 +267,10 @@ class ManualBackupService {
         encrypted: export.encrypted,
       );
     } on Object catch (error, stackTrace) {
-      Error.throwWithStackTrace(ManualBackupHistoryException(error), stackTrace);
+      Error.throwWithStackTrace(
+        ManualBackupHistoryException(error),
+        stackTrace,
+      );
     }
   }
 
@@ -353,7 +360,10 @@ class ManualBackupService {
   int _recordCount(Map<String, dynamic> manifest) {
     final counts = manifest['counts'];
     if (counts is! Map) return 0;
-    return counts.values.whereType<int>().fold(0, (total, count) => total + count);
+    return counts.values.whereType<int>().fold(
+      0,
+      (total, count) => total + count,
+    );
   }
 
   String _strategyName(ManualBackupStrategy strategy) => switch (strategy) {

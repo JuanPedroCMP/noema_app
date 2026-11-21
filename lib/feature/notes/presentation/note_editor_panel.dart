@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
@@ -223,7 +224,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
     final description = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Criar versão'),
+        title: const RuntimeLocalizedText('Criar versão'),
         content: TextField(
           controller: descriptionController,
           autofocus: true,
@@ -238,12 +239,12 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () =>
                 Navigator.pop(context, descriptionController.text.trim()),
-            child: const Text('Salvar versão'),
+            child: const RuntimeLocalizedText('Salvar versão'),
           ),
         ],
       ),
@@ -305,7 +306,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
           ..hideCurrentSnackBar()
           ..showSnackBar(
             const SnackBar(
-              content: Text('Nota salva.'),
+              content: RuntimeLocalizedText('Nota salva.'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -314,7 +315,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text('Versão ${updated.currentVersion} criada.'),
+              content: RuntimeLocalizedText(
+                'Versão ${updated.currentVersion} criada.',
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -328,7 +331,11 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
       _scheduleAutoSave();
       if (!automatic) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível salvar a nota: $error')),
+          SnackBar(
+            content: RuntimeLocalizedText(
+              'Não foi possível salvar a nota: $error',
+            ),
+          ),
         );
       }
     } finally {
@@ -348,7 +355,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Não foi possível carregar conceitos: $error'),
+              content: RuntimeLocalizedText(
+                'Não foi possível carregar conceitos: $error',
+              ),
             ),
           );
         }
@@ -380,7 +389,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível carregar as versões: $error'),
+            content: RuntimeLocalizedText(
+              'Não foi possível carregar as versões: $error',
+            ),
           ),
         );
       }
@@ -390,11 +401,11 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Histórico da nota'),
+        title: const RuntimeLocalizedText('Histórico da nota'),
         content: SizedBox(
           width: 520,
           child: versions.isEmpty
-              ? const Text('Ainda não há versões salvas.')
+              ? const RuntimeLocalizedText('Ainda não há versões salvas.')
               : ListView.separated(
                   shrinkWrap: true,
                   itemCount: versions.length,
@@ -404,7 +415,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        child: Text('${version.versionNumber}'),
+                        child: RuntimeLocalizedText('${version.versionNumber}'),
                       ),
                       title: Text(
                         version.changeDescription ?? 'Alteração',
@@ -421,7 +432,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                           final shouldRestore = await showDialog<bool>(
                             context: this.context,
                             builder: (context) => AlertDialog(
-                              title: const Text('Restaurar versão?'),
+                              title: const RuntimeLocalizedText(
+                                'Restaurar versão?',
+                              ),
                               content: Text(
                                 'A versão ${version.versionNumber} será aplicada '
                                 'como uma nova versão. As alterações atuais '
@@ -431,11 +444,13 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.pop(context, false),
-                                  child: const Text('Cancelar'),
+                                  child: const RuntimeLocalizedText('Cancelar'),
                                 ),
                                 FilledButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Restaurar'),
+                                  child: const RuntimeLocalizedText(
+                                    'Restaurar',
+                                  ),
                                 ),
                               ],
                             ),
@@ -461,7 +476,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                             }
                           }
                         },
-                        child: const Text('Restaurar'),
+                        child: const RuntimeLocalizedText('Restaurar'),
                       ),
                     );
                   },
@@ -470,7 +485,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            child: const RuntimeLocalizedText('Fechar'),
           ),
         ],
       ),
@@ -483,7 +498,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
     final instruction = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Aprimorar nota com IA'),
+        title: const RuntimeLocalizedText('Aprimorar nota com IA'),
         content: TextField(
           controller: instructionController,
           autofocus: true,
@@ -498,14 +513,14 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () {
               if (instructionController.text.trim().isEmpty) return;
               Navigator.pop(context, instructionController.text.trim());
             },
-            child: const Text('Continuar'),
+            child: const RuntimeLocalizedText('Continuar'),
           ),
         ],
       ),
@@ -543,7 +558,7 @@ $noteContent
               ],
             },
           );
-      final content = response['content'];
+      final content = response['content'] ?? response['feedback'];
       if (content is! String || content.trim().isEmpty) {
         throw const FormatException(
           'A IA não retornou o texto revisado da nota.',
@@ -553,7 +568,7 @@ $noteContent
       final accepted = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Prévia da alteração'),
+          title: const RuntimeLocalizedText('Prévia da alteração'),
           content: SizedBox(
             width: 600,
             child: SingleChildScrollView(child: SelectableText(content.trim())),
@@ -561,12 +576,12 @@ $noteContent
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Descartar'),
+              child: const RuntimeLocalizedText('Descartar'),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, true),
               icon: const Icon(Icons.check),
-              label: const Text('Aplicar e salvar'),
+              label: const RuntimeLocalizedText('Aplicar e salvar'),
             ),
           ],
         ),
@@ -613,12 +628,18 @@ $noteContent
       });
       widget.onDirtyChanged(false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Alteração da IA aplicada e salva.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Alteração da IA aplicada e salva.'),
+        ),
       );
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível aprimorar a nota: $error')),
+          SnackBar(
+            content: RuntimeLocalizedText(
+              'Não foi possível aprimorar a nota: $error',
+            ),
+          ),
         );
       }
     } finally {
@@ -645,7 +666,7 @@ $noteContent
               FilledButton.icon(
                 onPressed: _load,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Tentar novamente'),
+                label: const RuntimeLocalizedText('Tentar novamente'),
               ),
             ],
           ),
@@ -699,20 +720,20 @@ $noteContent
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'version',
-                    child: Text('Criar versão'),
+                    child: RuntimeLocalizedText('Criar versão'),
                   ),
                   const PopupMenuItem(
                     value: 'history',
-                    child: Text('Versões anteriores'),
+                    child: RuntimeLocalizedText('Versões anteriores'),
                   ),
                   const PopupMenuItem(
                     value: 'links',
-                    child: Text('Relacionar conceitos'),
+                    child: RuntimeLocalizedText('Relacionar conceitos'),
                   ),
                   PopupMenuItem(
                     value: 'ai',
                     enabled: !_isAiWorking && !_isSaving,
-                    child: const Text('Aprimorar com IA'),
+                    child: const RuntimeLocalizedText('Aprimorar com IA'),
                   ),
                 ],
                 child: const Padding(
@@ -1026,7 +1047,7 @@ class _NodeLinkDialogState extends State<_NodeLinkDialog> {
         )
         .toList();
     return AlertDialog(
-      title: const Text('Conceitos relacionados'),
+      title: const RuntimeLocalizedText('Conceitos relacionados'),
       content: SizedBox(
         width: 520,
         height: 480,
@@ -1044,7 +1065,9 @@ class _NodeLinkDialogState extends State<_NodeLinkDialog> {
             Expanded(
               child: nodes.isEmpty
                   ? const Center(
-                      child: Text('Nenhum conceito corresponde à busca.'),
+                      child: RuntimeLocalizedText(
+                        'Nenhum conceito corresponde à busca.',
+                      ),
                     )
                   : ListView.builder(
                       itemCount: nodes.length,
@@ -1072,11 +1095,11 @@ class _NodeLinkDialogState extends State<_NodeLinkDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _selected),
-          child: Text('Aplicar (${_selected.length})'),
+          child: RuntimeLocalizedText('Aplicar (${_selected.length})'),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 
@@ -29,24 +30,33 @@ class AppSection extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      if (description != null) ...[
-                        SizedBox(height: spacing.xs),
-                        Text(
-                          description!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: context.colors.onSurfaceVariant),
-                        ),
-                      ],
-                    ],
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                 ),
+                if (description != null)
+                  IconButton(
+                    tooltip: 'Mais informações',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(title),
+                        content: Text(description!),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const RuntimeLocalizedText('Entendi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    icon: const Icon(Icons.info_outline, size: 20),
+                  ),
                 ?trailing,
               ],
             ),

@@ -113,15 +113,16 @@ class GlobalSearchService {
     final node = _database.graphNode;
     final rows =
         await (_database.select(node).join([
-              innerJoin(graph, graph.id.equalsExp(node.graphId)),
-            ])..where(
-              graph.userId.equals(userId) &
-                  graph.softDeleted.equals(false) &
-                  node.softDeleted.equals(false) &
-                  (node.title.like(pattern) | node.description.like(pattern)),
-            )
-            ..orderBy([OrderingTerm.asc(node.title)])
-            ..limit(4))
+                innerJoin(graph, graph.id.equalsExp(node.graphId)),
+              ])
+              ..where(
+                graph.userId.equals(userId) &
+                    graph.softDeleted.equals(false) &
+                    node.softDeleted.equals(false) &
+                    (node.title.like(pattern) | node.description.like(pattern)),
+              )
+              ..orderBy([OrderingTerm.asc(node.title)])
+              ..limit(4))
             .get();
     return [
       for (final row in rows)
@@ -149,17 +150,18 @@ class GlobalSearchService {
     final task = _database.openEnded;
     final rows =
         await (_database.select(task).join([
-              innerJoin(node, node.id.equalsExp(task.nodeId)),
-              innerJoin(graph, graph.id.equalsExp(node.graphId)),
-            ])..where(
-              graph.userId.equals(userId) &
-                  graph.softDeleted.equals(false) &
-                  node.softDeleted.equals(false) &
-                  task.softDeleted.equals(false) &
-                  (task.title.like(pattern) | task.statement.like(pattern)),
-            )
-            ..orderBy([OrderingTerm.asc(task.title)])
-            ..limit(4))
+                innerJoin(node, node.id.equalsExp(task.nodeId)),
+                innerJoin(graph, graph.id.equalsExp(node.graphId)),
+              ])
+              ..where(
+                graph.userId.equals(userId) &
+                    graph.softDeleted.equals(false) &
+                    node.softDeleted.equals(false) &
+                    task.softDeleted.equals(false) &
+                    (task.title.like(pattern) | task.statement.like(pattern)),
+              )
+              ..orderBy([OrderingTerm.asc(task.title)])
+              ..limit(4))
             .get();
     return [
       for (final row in rows)
@@ -192,17 +194,18 @@ class GlobalSearchService {
     final task = _database.multipleChoice;
     final rows =
         await (_database.select(task).join([
-              innerJoin(node, node.id.equalsExp(task.nodeId)),
-              innerJoin(graph, graph.id.equalsExp(node.graphId)),
-            ])..where(
-              graph.userId.equals(userId) &
-                  graph.softDeleted.equals(false) &
-                  node.softDeleted.equals(false) &
-                  task.softDeleted.equals(false) &
-                  (task.title.like(pattern) | task.statement.like(pattern)),
-            )
-            ..orderBy([OrderingTerm.asc(task.title)])
-            ..limit(4))
+                innerJoin(node, node.id.equalsExp(task.nodeId)),
+                innerJoin(graph, graph.id.equalsExp(node.graphId)),
+              ])
+              ..where(
+                graph.userId.equals(userId) &
+                    graph.softDeleted.equals(false) &
+                    node.softDeleted.equals(false) &
+                    task.softDeleted.equals(false) &
+                    (task.title.like(pattern) | task.statement.like(pattern)),
+              )
+              ..orderBy([OrderingTerm.asc(task.title)])
+              ..limit(4))
             .get();
     return [
       for (final row in rows)
@@ -236,18 +239,19 @@ class GlobalSearchService {
     final flashcard = _database.flashcard;
     final rows =
         await (_database.select(flashcard).join([
-              innerJoin(node, node.id.equalsExp(flashcard.nodeId)),
-              innerJoin(graph, graph.id.equalsExp(node.graphId)),
-            ])..where(
-              graph.userId.equals(userId) &
-                  graph.softDeleted.equals(false) &
-                  node.softDeleted.equals(false) &
-                  flashcard.softDeleted.equals(false) &
-                  (flashcard.title.like(pattern) |
-                      flashcard.statement.like(pattern)),
-            )
-            ..orderBy([OrderingTerm.asc(flashcard.title)])
-            ..limit(4))
+                innerJoin(node, node.id.equalsExp(flashcard.nodeId)),
+                innerJoin(graph, graph.id.equalsExp(node.graphId)),
+              ])
+              ..where(
+                graph.userId.equals(userId) &
+                    graph.softDeleted.equals(false) &
+                    node.softDeleted.equals(false) &
+                    flashcard.softDeleted.equals(false) &
+                    (flashcard.title.like(pattern) |
+                        flashcard.statement.like(pattern)),
+              )
+              ..orderBy([OrderingTerm.asc(flashcard.title)])
+              ..limit(4))
             .get();
     return [
       for (final row in rows)

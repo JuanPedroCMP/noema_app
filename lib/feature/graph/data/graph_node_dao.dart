@@ -14,6 +14,7 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
     required String type,
     required String title,
     String? description,
+    String? id,
     double? masteryScore,
     bool? isSkipped,
     required double positionX,
@@ -22,7 +23,7 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
   }) {
     return into(attachedDatabase.graphNode).insert(
       GraphNodeCompanion.insert(
-        id: Uuid().v4(),
+        id: id ?? Uuid().v4(),
         graphId: graphId,
         type: type,
         title: title,
@@ -41,12 +42,13 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
     String? graphId,
     String? type,
     String? title,
-    String? description,
+    Value<String?> description = const Value.absent(),
     double? masteryScore,
     bool? isSkipped,
     double? positionX,
     double? positionY,
     int? fsrsRating,
+    int? updatedAt,
   }) {
     return (update(
       attachedDatabase.graphNode,
@@ -55,9 +57,7 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
         graphId: graphId == null ? const Value.absent() : Value(graphId),
         type: type == null ? const Value.absent() : Value(type),
         title: title == null ? const Value.absent() : Value(title),
-        description: description == null
-            ? const Value.absent()
-            : Value(description),
+        description: description,
         masteryScore: masteryScore == null
             ? const Value.absent()
             : Value(masteryScore),
@@ -67,6 +67,7 @@ class GraphNodeDao extends DatabaseAccessor<AppDatabase>
         fsrsRating: fsrsRating == null
             ? const Value.absent()
             : Value(fsrsRating),
+        updatedAt: updatedAt == null ? const Value.absent() : Value(updatedAt),
       ),
     );
   }

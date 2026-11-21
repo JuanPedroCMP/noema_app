@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ModeOpenEndedNotifier extends Notifier<int>{
+class ModeOpenEndedNotifier extends Notifier<int> {
   @override
   int build() {
     return 0;
   }
 
-  void modeChanged(int value){
+  void modeChanged(int value) {
     state = value;
   }
 }
 
-final modeOpenEndedProvider = NotifierProvider<ModeOpenEndedNotifier, int>(ModeOpenEndedNotifier.new);
+final modeOpenEndedProvider = NotifierProvider<ModeOpenEndedNotifier, int>(
+  ModeOpenEndedNotifier.new,
+);

@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'graph_version_dao.g.dart';
 
 @DriftAccessor(tables: [GraphVersion])
-class GraphVersionDao extends DatabaseAccessor<AppDatabase> with _$GraphVersionDaoMixin {
+class GraphVersionDao extends DatabaseAccessor<AppDatabase>
+    with _$GraphVersionDaoMixin {
   GraphVersionDao(super.db);
 
   Future<int> insertGraphVersion({
@@ -37,19 +38,28 @@ class GraphVersionDao extends DatabaseAccessor<AppDatabase> with _$GraphVersionD
     )..where((tbl) => tbl.id.equals(id))).write(
       GraphVersionCompanion(
         graphId: graphId == null ? const Value.absent() : Value(graphId),
-        versionNumber: versionNumber == null ? const Value.absent() : Value(versionNumber),
-        snapshotJson: snapshotJson == null ? const Value.absent() : Value(snapshotJson),
-        changeSummary: changeSummary == null ? const Value.absent() : Value(changeSummary),
+        versionNumber: versionNumber == null
+            ? const Value.absent()
+            : Value(versionNumber),
+        snapshotJson: snapshotJson == null
+            ? const Value.absent()
+            : Value(snapshotJson),
+        changeSummary: changeSummary == null
+            ? const Value.absent()
+            : Value(changeSummary),
       ),
     );
   }
 
   Future<GraphVersionData?> getGraphVersion({required String id}) {
-    return (select(attachedDatabase.graphVersion)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.graphVersion,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-  Future<List<GraphVersionData>> getGraphVersionsByGraph({required String graphId}) {
+  Future<List<GraphVersionData>> getGraphVersionsByGraph({
+    required String graphId,
+  }) {
     return (select(attachedDatabase.graphVersion)
           ..where((tbl) => tbl.graphId.equals(graphId))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.versionNumber)]))
@@ -57,8 +67,8 @@ class GraphVersionDao extends DatabaseAccessor<AppDatabase> with _$GraphVersionD
   }
 
   Future<int> deleteGraphVersion({required String id}) {
-    return (delete(attachedDatabase.graphVersion)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (delete(
+      attachedDatabase.graphVersion,
+    )..where((tbl) => tbl.id.equals(id))).go();
   }
 }

@@ -11,140 +11,164 @@ import 'package:noema/feature/graph/provider/graph_provider.dart';
 
 // OBS.: Gerei com IA
 //
-// OBS. 2: Revisado para nunca lançar exceções durante o auto-layout, e para
-// suportar dois modos de organização horizontal (`SugiyamaLayoutMode`).
+// ============================================================================
+// O QUE MUDOU NESTA VERSÃO
+// ============================================================================
 //
-//   - Ciclos no grafo (ex.: A pré-requisito de B e B pré-requisito de A,
-//     algo que uma IA gerando o grafo pode produzir por engano) são
-//     detectados e quebrados automaticamente em `_breakCycles`, em vez de
-//     travar o layout.
-//   - `_assignLayers` mantém uma rede de segurança extra: se por algum
-//     motivo inesperado ainda sobrar um nó não processado, ele recebe uma
-//     camada de fallback em vez de lançar exceção.
-//   - `sugiyama()` (ponto de entrada público) envolve o pipeline inteiro em
-//     try/catch: qualquer erro inesperado é registrado via `debugPrint` e
-//     engolido, para nunca derrubar a tela do usuário. Em vez de não
-//     retornar nada, ela devolve um `SugiyamaRunResult` com o que
-//     aconteceu (quantos nós foram salvos, quantos falharam, quantos
-//     ciclos foram quebrados e o retângulo que envolve o grafo).
-//   - A persistência no banco é feita nó a nó, cada um com seu próprio
-//     try/catch, então a falha ao salvar um nó não impede os demais de
-//     serem salvos.
-//   - Valores de configuração inválidos (negativos, zero ou não finitos)
-//     são normalizados para os padrões seguros em `_sanitizeConfig`.
-//   - `SugiyamaLayoutMode.balanced` (padrão) posiciona cada nó na média
-//     dos vizinhos; `SugiyamaLayoutMode.centered` centraliza cada nó
-//     exatamente entre o vizinho mais à esquerda e o mais à direita,
-//     dando um visual de organograma/árvore genealógica.
-//   - `_projectLayerPositions` usa regressão isotônica (PAVA) em vez de
-//     só empurrar nós para a direita. Isso é o que garante que irmãos
-//     com a mesma posição desejada (ex.: filhos de um mesmo pai) fiquem
-//     distribuídos simetricamente ao redor dela, e não "grudados" à
-//     esquerda — ao custo de usar um pouco mais de espaço quando preciso.
-
-/// ============================================================================
-/// CONFIGURAÇÃO
-/// ============================================================================
+// CAMADAS
+//   - Antes: Kahn com limite de largura (sqrt(n)). Isso empurrava irmãos para
+//     camadas diferentes e criava arestas longas. Agora: caminho mais longo +
+//     "tightening" (nós com folga descem até ficarem logo acima dos filhos,
+//     encurtando arestas). O limite de largura virou opcional (null = sem
+//     limite) e as camadas vazias são comprimidas.
+//
+// COMPONENTES
+//   - Componentes conexos são diagramados separadamente e depois empacotados
+//     (shelf packing). Grafos desconexos deixam de se misturar na mesma
+//     camada, e nós isolados não formam mais uma linha gigante.
+//
+// QUEBRA DE CICLOS
+//   - O DFS agora começa pelos nós "fonte" e explora primeiro as arestas de
+//     maior peso. Assim as arestas hierárquicas viram arestas de árvore e as
+//     de menor importância é que são invertidas.
+//
+// CRUZAMENTOS
+//   - Nós sem vizinhos na camada de referência mantêm o próprio slot (antes
+//     eram jogados para a direita).
+//   - Mediana ponderada com desempate pela média ponderada.
+//   - Transpose passou de O(E log V) por troca para O(grau²) por troca
+//     (conta só os cruzamentos entre os dois nós trocados).
+//   - Parada antecipada (estagnação / zero cruzamentos).
+//
+// COORDENADAS X
+//   - Projeção por camada DENTRO de cada passada (antes só no fim, então a
+//     camada seguinte se baseava em posições inviáveis).
+//   - PAVA ponderada com folgas variáveis: dummy nodes ocupam menos espaço e
+//     têm prioridade maior, o que mantém arestas longas retas.
+//   - Posição desejada ponderada pelo peso das arestas.
+//   - Posição inicial centralizada por camada.
+//   - A última passada é sempre "para trás": pais centralizados sobre filhos.
+//   - A "compactação" por deslocamento médio de camada (que não tinha base
+//     teórica) foi removida. `compact` agora controla o empacotamento 2D dos
+//     componentes.
+//
+// ============================================================================
+// CONFIGURAÇÃO
+// ============================================================================
 
 enum SugiyamaLayoutMode {
-  /// Cada nó tenta se aproximar da média de todos os seus vizinhos (pais e
-  /// filhos). Bom modo geral: minimiza o deslocamento total das arestas e
-  /// tende a se comportar bem mesmo em grafos com muitas conexões
-  /// cruzadas entre si.
+  /// Cada nó tenta se aproximar da média ponderada de seus vizinhos.
   balanced,
 
-  /// Cada nó é centralizado exatamente entre o vizinho mais à esquerda e
-  /// o mais à direita (pais na passagem para frente, filhos na passagem
-  /// para trás). Na prática isso centraliza cada pai bem em cima do
-  /// intervalo ocupado pelos seus filhos — e cada filho único fica
-  /// exatamente embaixo do seu pai — resultando num visual mais
-  /// simétrico e "arrumado", parecido com organograma ou árvore
-  /// genealógica. É o modo recomendado quando o grafo é predominantemente
-  /// hierárquico (poucos nós com múltiplos pais).
+  /// Cada nó é centralizado entre o vizinho mais à esquerda e o mais à
+  /// direita. Visual de organograma / árvore genealógica. Recomendado para
+  /// grafos predominantemente hierárquicos.
   centered,
 }
 
 class SugiyamaConfig {
-  /// Distância entre os centros dos nós na horizontal.
-  ///
-  /// Esse valor deve ser maior ou igual à largura do maior nó
-  /// + o espaço desejado entre eles.
+  /// Espaçamento horizontal preferido entre nós reais na posição inicial.
+  /// O resultado final respeita `minimumHorizontalGap`.
   final double horizontalSpacing;
 
   /// Distância vertical entre camadas.
   final double verticalSpacing;
 
-  /// Distância mínima entre os centros de dois nós da mesma camada.
+  /// Distância mínima entre os centros de dois nós reais da mesma camada.
   final double minimumHorizontalGap;
 
-  /// Quantidade de ciclos de:
-  ///
-  ///   downward sweep -> upward sweep
+  /// Distância mínima entre dois dummy nodes (pontos de passagem de arestas
+  /// longas). Menor que `minimumHorizontalGap`, pois dummies não têm largura.
+  final double dummyGap;
+
+  /// Distância horizontal entre componentes desconexos.
+  final double componentGap;
+
+  /// Ciclos de downward sweep -> upward sweep -> transpose.
   final int crossingIterations;
 
-  /// Quantidade de refinamentos por troca adjacente.
+  /// Rodadas de refinamento por troca adjacente.
   final int transposeIterations;
 
-  /// Quantidade de iterações utilizadas para melhorar as coordenadas X.
+  /// Iterações de ajuste das coordenadas X (arredondado para par).
   final int coordinateIterations;
 
-  /// Tenta preservar a posição X dos nós antes do auto-layout.
+  /// Limite opcional de nós por camada. `null` = sem limite (recomendado:
+  /// limitar quebra a hierarquia visual).
+  final int? maxNodesPerLayer;
+
+  /// Usa a posição X anterior como ordem inicial.
   final bool preservePreviousOrder;
 
-  /// Quando true, tenta compactar o grafo depois do posicionamento.
+  /// Quando true, empacota componentes desconexos em linhas (proporção
+  /// ~16:9). Quando false, coloca todos lado a lado em uma única linha.
   final bool compact;
 
-  /// Estratégia usada para posicionar horizontalmente os nós dentro de
-  /// cada camada. Veja `SugiyamaLayoutMode`.
+  /// Aproxima nós com folga vertical dos filhos (arestas mais curtas).
+  final bool tightenLayers;
+
+  /// Estratégia de posicionamento horizontal. Veja `SugiyamaLayoutMode`.
   final SugiyamaLayoutMode mode;
 
   const SugiyamaConfig({
-    this.horizontalSpacing = 220.0,
-    this.verticalSpacing = 180.0,
-    this.minimumHorizontalGap = 220.0,
-    this.crossingIterations = 12,
-    this.transposeIterations = 4,
-    this.coordinateIterations = 6,
+    this.horizontalSpacing = 250.0,
+    this.verticalSpacing = 190.0,
+    this.minimumHorizontalGap = 250.0,
+    this.dummyGap = 80.0,
+    this.componentGap = 300.0,
+    this.crossingIterations = 36,
+    this.transposeIterations = 10,
+    this.coordinateIterations = 12,
+    this.maxNodesPerLayer,
     this.preservePreviousOrder = true,
     this.compact = true,
+    this.tightenLayers = true,
     this.mode = SugiyamaLayoutMode.balanced,
   });
 }
 
-/// ============================================================================
-/// TIPOS INTERNOS
-/// ============================================================================
+/// Prioridade de um dummy node na projeção horizontal. Maior que 1 faz com
+/// que ele se mova menos, mantendo arestas longas retas.
+const double _dummyPriority = 4.0;
+
+// ============================================================================
+// TIPOS INTERNOS
+// ============================================================================
 
 class _InputEdge {
   final String source;
   final String target;
+  final String type;
+  final double? weight;
 
-  const _InputEdge({required this.source, required this.target});
+  const _InputEdge({
+    required this.source,
+    required this.target,
+    required this.type,
+    this.weight,
+  });
 }
 
 class _LayoutNode {
   final String id;
-
-  /// true para dummy nodes.
   final bool isDummy;
-
-  /// ID do nó real.
-  ///
-  /// null para dummy nodes.
   final String? realNodeId;
 
-  const _LayoutNode({
-    required this.id,
-    required this.isDummy,
-    this.realNodeId,
-  });
+  const _LayoutNode({required this.id, required this.isDummy, this.realNodeId});
 }
 
 class _LayoutEdge {
   final String source;
   final String target;
+  final bool isHierarchical;
+  final int crossingWeight;
 
-  const _LayoutEdge({required this.source, required this.target});
+  const _LayoutEdge({
+    required this.source,
+    required this.target,
+    required this.isHierarchical,
+    required this.crossingWeight,
+  });
 }
 
 class _GraphModel {
@@ -153,12 +177,13 @@ class _GraphModel {
 
   final Map<String, List<String>> parents;
   final Map<String, List<String>> children;
+  final Map<String, List<String>> hierarchyParents;
+  final Map<String, List<String>> hierarchyChildren;
+  final Map<(String, String), int> edgeWeights;
 
   final Map<String, int> indegree;
 
-  /// Quantidade de arestas removidas automaticamente por `_breakCycles`
-  /// para tornar o grafo acíclico. Só é preenchido no grafo original
-  /// (antes da inserção de dummy nodes); no grafo expandido fica 0.
+  /// Arestas invertidas apenas no layout por `_breakCycles`.
   final int cyclesBrokenCount;
 
   const _GraphModel({
@@ -166,6 +191,9 @@ class _GraphModel {
     required this.edges,
     required this.parents,
     required this.children,
+    required this.hierarchyParents,
+    required this.hierarchyChildren,
+    required this.edgeWeights,
     required this.indegree,
     this.cyclesBrokenCount = 0,
   });
@@ -188,45 +216,83 @@ class _LayerOrderResult {
   });
 }
 
-class _SugiyamaResult {
+class _Component {
+  final List<GraphNodeData> nodes;
+  final List<_InputEdge> edges;
+
+  const _Component({required this.nodes, required this.edges});
+}
+
+class _ComponentLayout {
+  /// Posições apenas dos nós reais, normalizadas (canto superior esquerdo
+  /// do `bounds` em 0,0).
+  final Map<String, Offset> positions;
+  final Map<String, int> layers;
+  final int cyclesBroken;
+  final int nodeCount;
+
+  /// Retângulo que envolve também os dummy nodes (por onde as arestas
+  /// passam), para que componentes vizinhos não colidam com elas.
+  final Rect bounds;
+
+  const _ComponentLayout({
+    required this.positions,
+    required this.layers,
+    required this.cyclesBroken,
+    required this.nodeCount,
+    required this.bounds,
+  });
+}
+
+class SugiyamaLayoutResult {
   final Map<String, Offset> positions;
   final Map<String, int> layers;
   final int cyclesBrokenCount;
 
-  const _SugiyamaResult({
+  const SugiyamaLayoutResult({
     required this.positions,
     required this.layers,
     required this.cyclesBrokenCount,
   });
 }
 
-/// ============================================================================
-/// RESULTADO DE UMA EXECUÇÃO
-/// ============================================================================
-///
-/// Retornado por `sugiyama()` para que quem chamou saiba o que aconteceu
-/// sem precisar consultar o banco de novo — por exemplo, para mostrar um
-/// aviso ("2 nós não puderam ser salvos") ou para centralizar a
-/// câmera/viewport no grafo usando `bounds`.
+SugiyamaLayoutResult calculateSugiyamaLayout({
+  required List<GraphNodeData> nodes,
+  required List<GraphEdgeData> edges,
+  Map<String, double> previousX = const {},
+  SugiyamaConfig config = const SugiyamaConfig(),
+}) {
+  return _runSugiyama(
+    nodes: nodes,
+    edges: [
+      for (final edge in edges)
+        _InputEdge(
+          source: edge.sourceNodeId,
+          target: edge.targetNodeId,
+          type: edge.type,
+          weight: edge.weight,
+        ),
+    ],
+    previousX: previousX,
+    config: _sanitizeConfig(config),
+  );
+}
+
+// ============================================================================
+// RESULTADO DE UMA EXECUÇÃO
+// ============================================================================
 
 class SugiyamaRunResult {
-  /// Quantidade de nós reais que tiveram a posição salva com sucesso.
+  /// Nós reais cuja posição foi salva com sucesso.
   final int nodesUpdated;
 
-  /// Quantidade de nós reais que falharam ao salvar a nova posição.
-  /// Detalhes de cada falha vão para `debugPrint`.
+  /// Nós reais que falharam ao salvar (detalhes em `debugPrint`).
   final int nodesFailed;
 
-  /// Quantidade de arestas removidas automaticamente para quebrar
-  /// ciclos no grafo (ver `_breakCycles`). Zero na grande maioria dos
-  /// grafos.
+  /// Arestas invertidas apenas no cálculo do layout para quebrar ciclos.
   final int cyclesBroken;
 
-  /// Retângulo que envolve todas as posições calculadas. Útil para
-  /// centralizar a câmera/viewport no grafo depois do auto-layout.
-  ///
-  /// `null` quando nada foi processado (grafo vazio ou falha antes de
-  /// calcular qualquer posição).
+  /// Retângulo que envolve todas as posições calculadas.
   final Rect? bounds;
 
   const SugiyamaRunResult({
@@ -236,8 +302,6 @@ class SugiyamaRunResult {
     required this.bounds,
   });
 
-  /// Resultado neutro, usado quando o grafo está vazio ou quando o
-  /// auto-layout falha antes de processar qualquer nó.
   static const empty = SugiyamaRunResult(
     nodesUpdated: 0,
     nodesFailed: 0,
@@ -246,19 +310,8 @@ class SugiyamaRunResult {
   );
 }
 
-/// ============================================================================
-/// ERRO ESPECÍFICO
-/// ============================================================================
-///
-/// Mantida apenas por compatibilidade com código externo que já capture
-/// esse tipo, por exemplo:
-///
-///     catch (e) { if (e is SugiyamaLayoutException) ... }
-///
-/// O algoritmo não lança mais essa exceção: ciclos no grafo agora são
-/// detectados e quebrados automaticamente (ver `_breakCycles`), então o
-/// layout nunca falha por causa de um ciclo.
-
+/// Mantida apenas por compatibilidade com código externo. O algoritmo não
+/// lança mais essa exceção.
 class SugiyamaLayoutException implements Exception {
   final String message;
 
@@ -268,22 +321,9 @@ class SugiyamaLayoutException implements Exception {
   String toString() => 'SugiyamaLayoutException: $message';
 }
 
-/// ============================================================================
-/// FENWICK TREE
-/// ============================================================================
-///
-/// Usada para contar inversões de forma eficiente.
-///
-/// Sem ela:
-///
-///     O(E²)
-///
-/// Com ela:
-///
-///     O(E log V)
-///
-/// por par de camadas.
-///
+// ============================================================================
+// FENWICK TREE
+// ============================================================================
 
 class _FenwickTree {
   final List<int> _tree;
@@ -310,26 +350,15 @@ class _FenwickTree {
 
     return result;
   }
-
-  int queryRange(int left, int right) {
-    if (right < left) {
-      return 0;
-    }
-
-    return query(right) - (left == 0 ? 0 : query(left - 1));
-  }
 }
 
-/// ============================================================================
-/// API PRINCIPAL
-/// ============================================================================
-///
-/// Ponto de entrada público. Nunca lança exceções: qualquer falha em
-/// qualquer etapa (carregar dados, calcular o layout, persistir) é
-/// capturada e registrada via `debugPrint`, e a função retorna
-/// `SugiyamaRunResult.empty` sem alterar o que já estava salvo.
-///
+// ============================================================================
+// API PRINCIPAL
+// ============================================================================
 
+/// Ponto de entrada público. Nunca lança exceções: qualquer falha é
+/// registrada via `debugPrint` e a função retorna `SugiyamaRunResult.empty`
+/// sem alterar o que já estava salvo.
 Future<SugiyamaRunResult> sugiyama(
   String graphId,
   WidgetRef ref, {
@@ -342,10 +371,6 @@ Future<SugiyamaRunResult> sugiyama(
       config: _sanitizeConfig(config),
     );
   } catch (error, stackTrace) {
-    // --------------------------------------------------------------------------
-    // Última rede de segurança: um erro no auto-layout nunca deve travar a
-    // tela do usuário. As posições anteriores dos nós permanecem intactas.
-    // --------------------------------------------------------------------------
     debugPrint(
       'Sugiyama: falha inesperada no auto-layout do grafo "$graphId". '
       'As posições anteriores foram preservadas. Erro: $error',
@@ -356,10 +381,6 @@ Future<SugiyamaRunResult> sugiyama(
   }
 }
 
-/// Carrega os dados, roda o algoritmo puro e persiste o resultado.
-///
-/// Separado de `sugiyama()` só para que o try/catch externo cubra o
-/// pipeline inteiro (carregamento incluso) em um único lugar.
 Future<SugiyamaRunResult> _runAndPersistSugiyama({
   required String graphId,
   required WidgetRef ref,
@@ -369,18 +390,11 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
   final graphNodeDao = GraphNodeDao(db);
 
   final nodes = await ref.read(nodesProvider(graphId).future);
-
   final edges = await ref.read(edgesProvider(graphId).future);
 
   if (nodes.isEmpty) {
     return SugiyamaRunResult.empty;
   }
-
-  // --------------------------------------------------------------------------
-  // Extrai as posições atuais.
-  //
-  // Elas são usadas apenas para definir uma ordem inicial mais estável.
-  // --------------------------------------------------------------------------
 
   final previousX = <String, double>{};
 
@@ -394,34 +408,12 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
     }
   }
 
-  // --------------------------------------------------------------------------
-  // Converte as arestas do banco para o modelo interno.
-  // --------------------------------------------------------------------------
-
-  final inputEdges = <_InputEdge>[
-    for (final edge in edges)
-      _InputEdge(source: edge.sourceNodeId, target: edge.targetNodeId),
-  ];
-
-  // --------------------------------------------------------------------------
-  // Executa o algoritmo puro.
-  // --------------------------------------------------------------------------
-
-  final result = _runSugiyama(
+  final result = calculateSugiyamaLayout(
     nodes: nodes,
-    edges: inputEdges,
+    edges: edges,
     previousX: previousX,
     config: config,
   );
-
-  // --------------------------------------------------------------------------
-  // Persiste somente nós reais.
-  //
-  // Cada nó é salvo com seu próprio try/catch: se um nó falhar (ex.: erro
-  // transitório de banco), os demais continuam sendo salvos normalmente.
-  // Também acumulamos o retângulo que envolve todas as posições, para
-  // devolver em `SugiyamaRunResult.bounds`.
-  // --------------------------------------------------------------------------
 
   var succeeded = 0;
   var failed = 0;
@@ -451,14 +443,6 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
       );
 
       succeeded++;
-
-      debugPrint(
-        'Sugiyama\n'
-        'Node: ${node.title}\n'
-        'Layer: ${result.layers[node.id]}\n'
-        'X: ${position.dx.toStringAsFixed(1)}\n'
-        'Y: ${position.dy.toStringAsFixed(1)}',
-      );
     } catch (error) {
       failed++;
 
@@ -477,8 +461,7 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
     '${result.cyclesBrokenCount} ciclo(s) quebrado(s)).',
   );
 
-  final bounds =
-      (minX != null && minY != null && maxX != null && maxY != null)
+  final bounds = (minX != null && minY != null && maxX != null && maxY != null)
       ? Rect.fromLTRB(minX, minY, maxX, maxY)
       : null;
 
@@ -490,15 +473,9 @@ Future<SugiyamaRunResult> _runAndPersistSugiyama({
   );
 }
 
-/// ============================================================================
-/// SANITIZAÇÃO DE CONFIGURAÇÃO
-/// ============================================================================
-///
-/// Garante que a configuração usada internamente seja sempre segura, mesmo
-/// que valores inválidos (negativos, zero ou não finitos) sejam passados
-/// por engano — evita espaçamentos degenerados ou loops configurados para
-/// nunca convergir.
-///
+// ============================================================================
+// SANITIZAÇÃO DE CONFIGURAÇÃO
+// ============================================================================
 
 SugiyamaConfig _sanitizeConfig(SugiyamaConfig config) {
   double safeSpacing(double value, double fallback) {
@@ -509,58 +486,92 @@ SugiyamaConfig _sanitizeConfig(SugiyamaConfig config) {
     return value;
   }
 
-  int safeIterations(int value) {
-    if (value < 0) {
-      return 0;
-    }
+  int safeIterations(int value) => value < 0 ? 0 : value;
 
-    return value;
-  }
+  final minimumGap = safeSpacing(config.minimumHorizontalGap, 220.0);
 
   return SugiyamaConfig(
     horizontalSpacing: safeSpacing(config.horizontalSpacing, 220.0),
     verticalSpacing: safeSpacing(config.verticalSpacing, 180.0),
-    minimumHorizontalGap: safeSpacing(config.minimumHorizontalGap, 220.0),
+    minimumHorizontalGap: minimumGap,
+    dummyGap: math.min(safeSpacing(config.dummyGap, 70.0), minimumGap),
+    componentGap: safeSpacing(config.componentGap, 300.0),
     crossingIterations: safeIterations(config.crossingIterations),
     transposeIterations: safeIterations(config.transposeIterations),
     coordinateIterations: safeIterations(config.coordinateIterations),
+    maxNodesPerLayer:
+        config.maxNodesPerLayer != null && config.maxNodesPerLayer! > 0
+        ? config.maxNodesPerLayer
+        : null,
     preservePreviousOrder: config.preservePreviousOrder,
     compact: config.compact,
+    tightenLayers: config.tightenLayers,
     mode: config.mode,
   );
 }
 
-/// ============================================================================
-/// PIPELINE
-/// ============================================================================
+// ============================================================================
+// PIPELINE
+// ============================================================================
 
-_SugiyamaResult _runSugiyama({
+SugiyamaLayoutResult _runSugiyama({
   required List<GraphNodeData> nodes,
   required List<_InputEdge> edges,
   required Map<String, double> previousX,
   required SugiyamaConfig config,
 }) {
-  // ==========================================================================
-  // 1. Construir o grafo (já livre de ciclos, ver `_buildGraph`)
-  // ==========================================================================
+  // 1. Cada componente conexo é diagramado de forma independente.
+  final components = _splitComponents(nodes: nodes, edges: edges);
 
-  final graph = _buildGraph(nodes: nodes, edges: edges);
+  final layouts = <_ComponentLayout>[
+    for (final component in components)
+      _layoutComponent(
+        component: component,
+        previousX: previousX,
+        config: config,
+      ),
+  ];
 
-  // ==========================================================================
-  // 2. Atribuir camadas
-  // ==========================================================================
+  // 2. Os componentes são empacotados na tela.
+  final offsets = _packComponents(layouts: layouts, config: config);
 
-  final layers = _assignLayers(graph: graph);
+  final positions = <String, Offset>{};
+  final layers = <String, int>{};
+  var cycles = 0;
 
-  // ==========================================================================
-  // 3. Inserir dummy nodes
-  // ==========================================================================
+  for (var i = 0; i < layouts.length; i++) {
+    final layout = layouts[i];
+    final offset = offsets[i];
+
+    for (final entry in layout.positions.entries) {
+      positions[entry.key] = entry.value + offset;
+    }
+
+    layers.addAll(layout.layers);
+    cycles += layout.cyclesBroken;
+  }
+
+  return SugiyamaLayoutResult(
+    positions: positions,
+    layers: layers,
+    cyclesBrokenCount: cycles,
+  );
+}
+
+_ComponentLayout _layoutComponent({
+  required _Component component,
+  required Map<String, double> previousX,
+  required SugiyamaConfig config,
+}) {
+  final graph = _buildGraph(nodes: component.nodes, edges: component.edges);
+
+  final layers = _assignLayers(
+    graph: graph,
+    maxNodesPerLayer: config.maxNodesPerLayer,
+    tighten: config.tightenLayers,
+  );
 
   final expanded = _insertDummyNodes(graph: graph, layers: layers);
-
-  // ==========================================================================
-  // 4. Ordem inicial
-  // ==========================================================================
 
   final initialLayers = _buildInitialLayerOrder(
     layers: expanded.layers,
@@ -568,36 +579,224 @@ _SugiyamaResult _runSugiyama({
     previousX: previousX,
   );
 
-  // ==========================================================================
-  // 5. Minimização de cruzamentos
-  // ==========================================================================
-
   final crossingResult = _minimizeCrossings(
     graph: expanded.graph,
     initialLayers: initialLayers,
     config: config,
   );
 
-  // ==========================================================================
-  // 6. Coordenadas (respeita `config.mode`: balanced ou centered)
-  // ==========================================================================
-
-  final positions = _assignCoordinates(
+  final all = _assignCoordinates(
     graph: expanded.graph,
     nodesByLayer: crossingResult.nodesByLayer,
     config: config,
   );
 
-  return _SugiyamaResult(
-    positions: positions,
-    layers: expanded.layers,
-    cyclesBrokenCount: graph.cyclesBrokenCount,
+  var minX = double.infinity;
+  var minY = double.infinity;
+  var maxX = double.negativeInfinity;
+  var maxY = double.negativeInfinity;
+
+  for (final position in all.values) {
+    minX = math.min(minX, position.dx);
+    maxX = math.max(maxX, position.dx);
+    minY = math.min(minY, position.dy);
+    maxY = math.max(maxY, position.dy);
+  }
+
+  if (!minX.isFinite) {
+    minX = 0;
+    minY = 0;
+    maxX = 0;
+    maxY = 0;
+  }
+
+  return _ComponentLayout(
+    positions: {
+      for (final node in component.nodes)
+        if (all[node.id] != null) node.id: all[node.id]!,
+    },
+    layers: {
+      for (final node in component.nodes)
+        if (layers[node.id] != null) node.id: layers[node.id]!,
+    },
+    cyclesBroken: graph.cyclesBrokenCount,
+    nodeCount: component.nodes.length,
+    bounds: Rect.fromLTRB(minX, minY, maxX, maxY),
   );
 }
 
-/// ============================================================================
-/// CONSTRUIR GRAFO
-/// ============================================================================
+// ============================================================================
+// COMPONENTES CONEXOS E EMPACOTAMENTO
+// ============================================================================
+
+List<_Component> _splitComponents({
+  required List<GraphNodeData> nodes,
+  required List<_InputEdge> edges,
+}) {
+  final parent = <String, String>{for (final node in nodes) node.id: node.id};
+
+  String find(String x) {
+    var root = x;
+    while (parent[root] != root) {
+      root = parent[root]!;
+    }
+
+    var current = x;
+    while (parent[current] != root) {
+      final next = parent[current]!;
+      parent[current] = root;
+      current = next;
+    }
+
+    return root;
+  }
+
+  bool isValid(_InputEdge edge) =>
+      parent.containsKey(edge.source) &&
+      parent.containsKey(edge.target) &&
+      edge.source != edge.target;
+
+  for (final edge in edges) {
+    if (!isValid(edge)) continue;
+
+    final a = find(edge.source);
+    final b = find(edge.target);
+
+    if (a != b) {
+      parent[b] = a;
+    }
+  }
+
+  final nodesByRoot = <String, List<GraphNodeData>>{};
+  for (final node in nodes) {
+    nodesByRoot.putIfAbsent(find(node.id), () => <GraphNodeData>[]).add(node);
+  }
+
+  final edgesByRoot = <String, List<_InputEdge>>{};
+  for (final edge in edges) {
+    if (!isValid(edge)) continue;
+
+    edgesByRoot.putIfAbsent(find(edge.source), () => <_InputEdge>[]).add(edge);
+  }
+
+  return [
+    for (final entry in nodesByRoot.entries)
+      _Component(
+        nodes: entry.value,
+        edges: edgesByRoot[entry.key] ?? const <_InputEdge>[],
+      ),
+  ];
+}
+
+/// Shelf packing: componentes maiores primeiro, preenchendo linhas até uma
+/// largura-alvo (~16:9). Retorna o deslocamento a somar em cada layout.
+List<Offset> _packComponents({
+  required List<_ComponentLayout> layouts,
+  required SugiyamaConfig config,
+}) {
+  final offsets = List<Offset>.filled(layouts.length, Offset.zero);
+
+  if (layouts.length <= 1) {
+    return offsets;
+  }
+
+  final order = List<int>.generate(layouts.length, (i) => i)
+    ..sort((a, b) {
+      final byCount = layouts[b].nodeCount.compareTo(layouts[a].nodeCount);
+      return byCount != 0 ? byCount : a.compareTo(b);
+    });
+
+  var maxWidth = 0.0;
+  var totalArea = 0.0;
+
+  for (final layout in layouts) {
+    maxWidth = math.max(maxWidth, layout.bounds.width);
+    totalArea +=
+        (layout.bounds.width + config.componentGap) *
+        (layout.bounds.height + config.verticalSpacing);
+  }
+
+  final targetWidth = config.compact
+      ? math.max(maxWidth, math.sqrt(totalArea) * 1.8)
+      : double.infinity;
+
+  var cursorX = 0.0;
+  var cursorY = 0.0;
+  var rowHeight = 0.0;
+
+  for (final index in order) {
+    final layout = layouts[index];
+    final width = layout.bounds.width;
+    final height = layout.bounds.height;
+
+    if (cursorX > 0 && cursorX + width > targetWidth) {
+      cursorX = 0;
+      cursorY += rowHeight + config.verticalSpacing;
+      rowHeight = 0;
+    }
+
+    offsets[index] = Offset(
+      cursorX - layout.bounds.left,
+      cursorY - layout.bounds.top,
+    );
+
+    cursorX += width + config.componentGap;
+    rowHeight = math.max(rowHeight, height);
+  }
+
+  return offsets;
+}
+
+// ============================================================================
+// CONSTRUIR GRAFO
+// ============================================================================
+
+int? _hierarchyLevel(String type) => switch (type.toUpperCase()) {
+  'AREA' => 0,
+  'TOPIC' => 1,
+  'CONCEPT' => 2,
+  'SUBCONCEPT' => 3,
+  _ => null,
+};
+
+/// Arestas SUBTOPIC são armazenadas como filho -> pai. Aqui elas são
+/// normalizadas para pai -> filho. Quando os níveis hierárquicos dos dois
+/// nós são conhecidos e já estão em ordem (pai de nível menor), a aresta é
+/// mantida; em qualquer outro caso ela é invertida.
+_InputEdge _normalizeEdgeDirection(
+  _InputEdge edge,
+  Map<String, String> nodeTypes,
+) {
+  if (edge.type.toUpperCase() != 'SUBTOPIC') return edge;
+
+  final sourceLevel = _hierarchyLevel(nodeTypes[edge.source] ?? '');
+  final targetLevel = _hierarchyLevel(nodeTypes[edge.target] ?? '');
+
+  if (sourceLevel != null &&
+      targetLevel != null &&
+      sourceLevel < targetLevel) {
+    return edge;
+  }
+
+  return _InputEdge(
+    source: edge.target,
+    target: edge.source,
+    type: edge.type,
+    weight: edge.weight,
+  );
+}
+
+int _edgeCrossingWeight(_InputEdge edge) {
+  final configuredWeight = edge.weight;
+  final importance =
+      configuredWeight != null &&
+          configuredWeight.isFinite &&
+          configuredWeight > 0
+      ? configuredWeight.clamp(0.25, 4.0)
+      : 1.0;
+  final hierarchyPriority = edge.type.toUpperCase() == 'SUBTOPIC' ? 4.0 : 1.0;
+  return (hierarchyPriority * importance * 4).round().clamp(1, 64).toInt();
+}
 
 _GraphModel _buildGraph({
   required List<GraphNodeData> nodes,
@@ -609,19 +808,13 @@ _GraphModel _buildGraph({
   };
 
   final nodeIds = layoutNodes.keys.toSet();
+  final nodeTypes = {for (final node in nodes) node.id: node.type};
 
-  // --------------------------------------------------------------------------
-  // Primeiro filtro: descarta arestas inválidas.
-  //
-  //   - apontando para um nó inexistente
-  //   - self-loop (nó apontando para si mesmo)
-  //   - duplicata
-  // --------------------------------------------------------------------------
+  // Primeiro filtro: descarta arestas inválidas, self-loops e duplicatas.
+  final candidateEdgesByPair = <(String, String), _InputEdge>{};
 
-  final candidateEdges = <_InputEdge>[];
-  final seenEdges = <String>{};
-
-  for (final edge in edges) {
+  for (final rawEdge in edges) {
+    final edge = _normalizeEdgeDirection(rawEdge, nodeTypes);
     final source = edge.source;
     final target = edge.target;
 
@@ -633,63 +826,81 @@ _GraphModel _buildGraph({
       continue;
     }
 
-    final edgeKey = '$source::$target';
-
-    if (!seenEdges.add(edgeKey)) {
-      continue;
+    final edgeKey = (source, target);
+    final existing = candidateEdgesByPair[edgeKey];
+    if (existing == null ||
+        _edgeCrossingWeight(edge) > _edgeCrossingWeight(existing)) {
+      candidateEdgesByPair[edgeKey] = edge;
     }
-
-    candidateEdges.add(edge);
   }
 
-  // --------------------------------------------------------------------------
-  // Segundo filtro: quebra ciclos automaticamente.
-  //
-  // Um grafo de conhecimento gerado por IA pode ocasionalmente conter
-  // relações contraditórias (ex.: A é pré-requisito de B e B é
-  // pré-requisito de A). Em vez de deixar o algoritmo de camadas travar
-  // com uma exceção, removemos o menor conjunto de arestas necessário
-  // para tornar o grafo acíclico.
-  // --------------------------------------------------------------------------
+  final candidateEdges = candidateEdgesByPair.values.toList(growable: false);
 
+  // Segundo filtro: quebra ciclos.
   final cycleResult = _breakCycles(nodeIds: nodeIds, edges: candidateEdges);
 
-  if (cycleResult.removedEdges.isNotEmpty) {
-    final removedDescription = cycleResult.removedEdges
+  if (cycleResult.reversedEdges.isNotEmpty) {
+    final reversedDescription = cycleResult.reversedEdges
         .map((edge) => '${edge.source}->${edge.target}')
         .join(', ');
 
     debugPrint(
-      'Sugiyama: ${cycleResult.removedEdges.length} aresta(s) '
-      'removida(s) automaticamente para quebrar ciclo(s) no grafo: '
-      '$removedDescription',
+      'Sugiyama: ${cycleResult.reversedEdges.length} aresta(s) '
+      'invertida(s) apenas no layout para quebrar ciclo(s): '
+      '$reversedDescription',
     );
   }
 
-  // --------------------------------------------------------------------------
-  // Constrói as estruturas finais a partir do grafo já acíclico.
-  // --------------------------------------------------------------------------
+  final acyclicEdgesByPair = <(String, String), _InputEdge>{};
+  for (final edge in cycleResult.acyclicEdges) {
+    final key = (edge.source, edge.target);
+    final existing = acyclicEdgesByPair[key];
+    if (existing == null ||
+        _edgeCrossingWeight(edge) > _edgeCrossingWeight(existing)) {
+      acyclicEdgesByPair[key] = edge;
+    }
+  }
 
   final parents = <String, List<String>>{
     for (final node in nodes) node.id: <String>[],
   };
-
   final children = <String, List<String>>{
     for (final node in nodes) node.id: <String>[],
   };
+  final hierarchyParents = <String, List<String>>{
+    for (final node in nodes) node.id: <String>[],
+  };
+  final hierarchyChildren = <String, List<String>>{
+    for (final node in nodes) node.id: <String>[],
+  };
 
+  final edgeWeights = <(String, String), int>{};
   final indegree = <String, int>{for (final node in nodes) node.id: 0};
-
   final layoutEdges = <_LayoutEdge>[];
 
-  for (final edge in cycleResult.acyclicEdges) {
+  for (final edge in acyclicEdgesByPair.values) {
     final source = edge.source;
     final target = edge.target;
+    final isHierarchical = edge.type.toUpperCase() == 'SUBTOPIC';
+    final crossingWeight = _edgeCrossingWeight(edge);
 
-    layoutEdges.add(_LayoutEdge(source: source, target: target));
+    layoutEdges.add(
+      _LayoutEdge(
+        source: source,
+        target: target,
+        isHierarchical: isHierarchical,
+        crossingWeight: crossingWeight,
+      ),
+    );
 
     children[source]?.add(target);
     parents[target]?.add(source);
+    edgeWeights[(source, target)] = crossingWeight;
+
+    if (isHierarchical) {
+      hierarchyChildren[source]?.add(target);
+      hierarchyParents[target]?.add(source);
+    }
 
     indegree[target] = (indegree[target] ?? 0) + 1;
   }
@@ -699,35 +910,31 @@ _GraphModel _buildGraph({
     edges: layoutEdges,
     parents: parents,
     children: children,
+    hierarchyParents: hierarchyParents,
+    hierarchyChildren: hierarchyChildren,
+    edgeWeights: edgeWeights,
     indegree: indegree,
-    cyclesBrokenCount: cycleResult.removedEdges.length,
+    cyclesBrokenCount: cycleResult.reversedEdges.length,
   );
 }
 
-/// ============================================================================
-/// REMOÇÃO AUTOMÁTICA DE CICLOS
-/// ============================================================================
-///
-/// DFS iterativo (sem recursão, para não estourar a pilha em grafos
-/// grandes/profundos) com coloração clássica de três cores:
-///
-///   - branco: ainda não visitado
-///   - cinza:  em andamento (é um ancestral do nó atual na busca)
-///   - preto:  totalmente processado
-///
-/// Uma aresta que aponta para um nó cinza é uma "back edge": ela fecha um
-/// ciclo. Essas arestas são removidas do resultado. Todas as outras
-/// (arestas de árvore, forward e cross) são mantidas, garantindo que o
-/// grafo resultante seja sempre um DAG.
-///
+// ============================================================================
+// REMOÇÃO AUTOMÁTICA DE CICLOS
+// ============================================================================
+//
+// DFS iterativo com três cores. Heurísticas para inverter as arestas "certas":
+//
+//   - o DFS começa pelos nós com maior (saída - entrada), ou seja, as fontes;
+//   - as arestas de maior peso são exploradas primeiro, virando arestas de
+//     árvore; as de menor peso é que tendem a ser a "back edge" invertida.
 
 class _CycleBreakResult {
   final List<_InputEdge> acyclicEdges;
-  final List<_InputEdge> removedEdges;
+  final List<_InputEdge> reversedEdges;
 
   const _CycleBreakResult({
     required this.acyclicEdges,
-    required this.removedEdges,
+    required this.reversedEdges,
   });
 }
 
@@ -742,23 +949,44 @@ _CycleBreakResult _breakCycles({
   final adjacency = <String, List<_InputEdge>>{
     for (final id in nodeIds) id: <_InputEdge>[],
   };
+  final indeg = <String, int>{for (final id in nodeIds) id: 0};
+  final outdeg = <String, int>{for (final id in nodeIds) id: 0};
 
   for (final edge in edges) {
     adjacency[edge.source]?.add(edge);
+    outdeg[edge.source] = (outdeg[edge.source] ?? 0) + 1;
+    indeg[edge.target] = (indeg[edge.target] ?? 0) + 1;
   }
+
+  for (final list in adjacency.values) {
+    list.sort(
+      (a, b) => _edgeCrossingWeight(b).compareTo(_edgeCrossingWeight(a)),
+    );
+  }
+
+  final startOrder = nodeIds.toList();
+  final originalIndex = {
+    for (var i = 0; i < startOrder.length; i++) startOrder[i]: i,
+  };
+
+  startOrder.sort((a, b) {
+    final scoreA = (outdeg[a] ?? 0) - (indeg[a] ?? 0);
+    final scoreB = (outdeg[b] ?? 0) - (indeg[b] ?? 0);
+    final byScore = scoreB.compareTo(scoreA);
+    if (byScore != 0) return byScore;
+    return originalIndex[a]!.compareTo(originalIndex[b]!);
+  });
 
   final color = <String, int>{for (final id in nodeIds) id: _dfsWhite};
 
   final acyclicEdges = <_InputEdge>[];
-  final removedEdges = <_InputEdge>[];
+  final reversedEdges = <_InputEdge>[];
 
-  for (final startId in nodeIds) {
+  for (final startId in startOrder) {
     if (color[startId] != _dfsWhite) {
       continue;
     }
 
-    // Pilha explícita: cada frame guarda o nó atual e até onde já
-    // percorremos a lista de vizinhos dele.
     final nodeStack = <String>[startId];
     final edgeIndexStack = <int>[0];
 
@@ -766,11 +994,10 @@ _CycleBreakResult _breakCycles({
 
     while (nodeStack.isNotEmpty) {
       final currentId = nodeStack.last;
-      final neighbors = adjacency[currentId] ?? const [];
+      final neighbors = adjacency[currentId] ?? const <_InputEdge>[];
       final edgeIndex = edgeIndexStack.last;
 
       if (edgeIndex >= neighbors.length) {
-        // Todos os vizinhos foram explorados: finaliza o nó.
         color[currentId] = _dfsBlack;
 
         nodeStack.removeLast();
@@ -779,16 +1006,21 @@ _CycleBreakResult _breakCycles({
         continue;
       }
 
-      // Avança o ponteiro deste frame antes de processar a aresta, para
-      // que, ao voltarmos a este nó, continuemos do próximo vizinho.
       edgeIndexStack[edgeIndexStack.length - 1] = edgeIndex + 1;
 
       final edge = neighbors[edgeIndex];
       final targetColor = color[edge.target] ?? _dfsBlack;
 
       if (targetColor == _dfsGray) {
-        // Back edge: o alvo é um ancestral do nó atual -> fecha um ciclo.
-        removedEdges.add(edge);
+        reversedEdges.add(edge);
+        acyclicEdges.add(
+          _InputEdge(
+            source: edge.target,
+            target: edge.source,
+            type: edge.type,
+            weight: edge.weight,
+          ),
+        );
         continue;
       }
 
@@ -800,120 +1032,228 @@ _CycleBreakResult _breakCycles({
         nodeStack.add(edge.target);
         edgeIndexStack.add(0);
       }
-
-      // Se o alvo já está preto (forward/cross edge), a aresta é mantida
-      // sem empilhar nada: ela não pode fechar um ciclo.
     }
   }
 
   return _CycleBreakResult(
     acyclicEdges: acyclicEdges,
-    removedEdges: removedEdges,
+    reversedEdges: reversedEdges,
   );
 }
 
-/// ============================================================================
-/// LAYER ASSIGNMENT
-/// ============================================================================
-///
-/// Kahn + longest path.
-///
-/// Para cada aresta:
-///
-///     source -> target
-///
-/// temos:
-///
-///     layer[target] >= layer[source] + 1
-///
-/// Portanto:
-///
-///     layer[target] = max(layer[target], layer[source] + 1)
-///
-/// Como `_buildGraph` já garante que o grafo é acíclico, o ordenamento
-/// topológico abaixo sempre termina processando todos os nós. Ainda assim,
-/// mantemos uma rede de segurança: se, por algum motivo inesperado, algum
-/// nó ficar sem processar, ele recebe uma camada de fallback em vez de
-/// lançar uma exceção.
-///
+// ============================================================================
+// LAYER ASSIGNMENT
+// ============================================================================
+//
+// 1. Caminho mais longo (camada mínima que respeita as precedências).
+// 2. Tightening: um nó com folga desce até ficar logo acima do filho mais
+//    próximo, se isso encurtar o peso total das arestas (fontes soltas no
+//    topo deixam de gerar arestas longas).
+// 3. (Opcional) limite de largura por camada.
+// 4. Compressão de camadas vazias.
 
-Map<String, int> _assignLayers({required _GraphModel graph}) {
+({List<String> sorted, List<String> leftover}) _topologicalOrder(
+  _GraphModel graph,
+) {
   final indegree = <String, int>{...graph.indegree};
-
-  final layers = <String, int>{
-    for (final nodeId in graph.nodes.keys) nodeId: 0,
-  };
-
   final queue = Queue<String>();
 
-  for (final entry in indegree.entries) {
-    if (entry.value == 0) {
-      queue.add(entry.key);
+  for (final id in graph.nodes.keys) {
+    if ((indegree[id] ?? 0) == 0) {
+      queue.add(id);
     }
   }
 
-  var processed = 0;
+  final sorted = <String>[];
+  final processed = <String>{};
 
   while (queue.isNotEmpty) {
     final current = queue.removeFirst();
+    sorted.add(current);
+    processed.add(current);
 
-    processed++;
+    for (final child in graph.children[current] ?? const <String>[]) {
+      final remaining = (indegree[child] ?? 0) - 1;
+      indegree[child] = remaining;
 
-    final currentLayer = layers[current] ?? 0;
-
-    for (final child in graph.children[current] ?? const []) {
-      layers[child] = math.max(layers[child] ?? 0, currentLayer + 1);
-
-      indegree[child] = (indegree[child] ?? 0) - 1;
-
-      if (indegree[child] == 0) {
+      if (remaining == 0) {
         queue.add(child);
       }
     }
   }
 
-  // --------------------------------------------------------------------------
-  // Rede de segurança: isso não deveria mais acontecer, já que o grafo
-  // chega aqui sem ciclos. Mas se algo inesperado deixar nós sem
-  // processar, não travamos o layout — atribuímos uma camada de fallback
-  // (logo após a maior camada já calculada) e seguimos em frente.
-  // --------------------------------------------------------------------------
+  final leftover = <String>[
+    for (final id in graph.nodes.keys)
+      if (!processed.contains(id)) id,
+  ];
 
-  if (processed != graph.nodes.length) {
-    final unprocessed = indegree.entries
-        .where((entry) => entry.value > 0)
-        .map((entry) => entry.key)
-        .toList();
+  return (sorted: sorted, leftover: leftover);
+}
 
+Map<String, int> _assignLayers({
+  required _GraphModel graph,
+  required int? maxNodesPerLayer,
+  required bool tighten,
+}) {
+  final topo = _topologicalOrder(graph);
+  final layers = <String, int>{};
+
+  for (final id in topo.sorted) {
+    var layer = 0;
+
+    for (final parent in graph.parents[id] ?? const <String>[]) {
+      final parentLayer = layers[parent];
+      if (parentLayer != null) {
+        layer = math.max(layer, parentLayer + 1);
+      }
+    }
+
+    layers[id] = layer;
+  }
+
+  // Rede de segurança: não deveria acontecer, o grafo chega sem ciclos.
+  if (topo.leftover.isNotEmpty) {
     debugPrint(
-      'Sugiyama: ${unprocessed.length} nó(s) não foram processados pela '
-      'ordenação topológica (ciclo residual inesperado). Usando camada '
-      'de fallback para: $unprocessed',
+      'Sugiyama: ${topo.leftover.length} nó(s) fora da ordenação '
+      'topológica (ciclo residual inesperado). Usando camada de fallback.',
     );
 
     final fallbackLayer =
-        (layers.values.isEmpty ? 0 : layers.values.reduce(math.max)) + 1;
+        (layers.values.isEmpty ? -1 : layers.values.reduce(math.max)) + 1;
 
-    for (final nodeId in unprocessed) {
-      layers[nodeId] = fallbackLayer;
+    for (final id in topo.leftover) {
+      layers[id] = fallbackLayer;
     }
+  } else if (tighten) {
+    _tightenLayers(graph, layers, topo.sorted);
   }
 
-  return layers;
+  if (maxNodesPerLayer != null) {
+    _enforceLayerWidth(graph, layers, maxNodesPerLayer);
+  }
+
+  return _compressLayers(layers);
 }
 
-/// ============================================================================
-/// INSERIR DUMMY NODES
-/// ============================================================================
+void _tightenLayers(
+  _GraphModel graph,
+  Map<String, int> layers,
+  List<String> topologicalOrder,
+) {
+  for (var pass = 0; pass < 4; pass++) {
+    var changed = false;
+
+    for (final id in topologicalOrder.reversed) {
+      final childIds = graph.children[id] ?? const <String>[];
+      if (childIds.isEmpty) continue;
+
+      var minChildLayer = layers[childIds.first] ?? 0;
+      for (final child in childIds) {
+        minChildLayer = math.min(minChildLayer, layers[child] ?? minChildLayer);
+      }
+
+      final upperBound = minChildLayer - 1;
+      final current = layers[id] ?? 0;
+
+      if (upperBound <= current) continue;
+
+      var outWeight = 0;
+      for (final child in childIds) {
+        outWeight += graph.edgeWeights[(id, child)] ?? 1;
+      }
+
+      var inWeight = 0;
+      for (final parent in graph.parents[id] ?? const <String>[]) {
+        inWeight += graph.edgeWeights[(parent, id)] ?? 1;
+      }
+
+      // Descer encurta as arestas de saída e alonga as de entrada.
+      if (outWeight > inWeight) {
+        layers[id] = upperBound;
+        changed = true;
+      }
+    }
+
+    if (!changed) break;
+  }
+}
+
+void _enforceLayerWidth(
+  _GraphModel graph,
+  Map<String, int> layers,
+  int cap,
+) {
+  var layer = 0;
+
+  while (layer <= layers.values.fold<int>(0, math.max)) {
+    final inLayer = <String>[
+      for (final entry in layers.entries)
+        if (entry.value == layer) entry.key,
+    ];
+
+    if (inLayer.length > cap) {
+      final index = {for (var i = 0; i < inLayer.length; i++) inLayer[i]: i};
+
+      // Nós com mais filhos permanecem; os demais descem uma camada.
+      inLayer.sort((a, b) {
+        final byChildren = (graph.children[b]?.length ?? 0).compareTo(
+          graph.children[a]?.length ?? 0,
+        );
+        return byChildren != 0
+            ? byChildren
+            : index[a]!.compareTo(index[b]!);
+      });
+
+      for (final id in inLayer.skip(cap)) {
+        _pushDown(graph, layers, id, layer + 1);
+      }
+    }
+
+    layer++;
+  }
+}
+
+void _pushDown(
+  _GraphModel graph,
+  Map<String, int> layers,
+  String start,
+  int newLayer,
+) {
+  final stack = <(String, int)>[(start, newLayer)];
+  var budget = graph.nodes.length * graph.nodes.length + 16;
+
+  while (stack.isNotEmpty && budget-- > 0) {
+    final (id, target) = stack.removeLast();
+
+    if ((layers[id] ?? 0) >= target) continue;
+
+    layers[id] = target;
+
+    for (final child in graph.children[id] ?? const <String>[]) {
+      if ((layers[child] ?? 0) <= target) {
+        stack.add((child, target + 1));
+      }
+    }
+  }
+}
+
+Map<String, int> _compressLayers(Map<String, int> layers) {
+  final used = layers.values.toSet().toList()..sort();
+  final remap = {for (var i = 0; i < used.length; i++) used[i]: i};
+
+  return {for (final entry in layers.entries) entry.key: remap[entry.value]!};
+}
+
+// ============================================================================
+// INSERIR DUMMY NODES
+// ============================================================================
 
 _ExpandedGraph _insertDummyNodes({
   required _GraphModel graph,
   required Map<String, int> layers,
 }) {
   final expandedNodes = <String, _LayoutNode>{...graph.nodes};
-
   final expandedEdges = <_LayoutEdge>[];
-
   final expandedLayers = <String, int>{...layers};
 
   var dummyCounter = 0;
@@ -924,27 +1264,12 @@ _ExpandedGraph _insertDummyNodes({
 
     final distance = targetLayer - sourceLayer;
 
-    // ------------------------------------------------------------------------
-    // Aresta entre camadas consecutivas (ou, no pior caso de fallback,
-    // uma aresta que não avança camadas). Nunca criamos uma cadeia de
-    // dummies para uma distância <= 1, então isso é sempre seguro.
-    // ------------------------------------------------------------------------
-
     if (distance <= 1) {
       expandedEdges.add(edge);
       continue;
     }
 
-    // ------------------------------------------------------------------------
-    // Aresta longa.
-    //
-    // A -----> D
-    //
-    // vira:
-    //
-    // A -> d1 -> d2 -> D
-    // ------------------------------------------------------------------------
-
+    // A -----> D  vira  A -> d1 -> d2 -> D
     var previousNode = edge.source;
 
     for (var layer = sourceLayer + 1; layer < targetLayer; layer++) {
@@ -960,22 +1285,42 @@ _ExpandedGraph _insertDummyNodes({
 
       expandedLayers[dummyId] = layer;
 
-      expandedEdges.add(_LayoutEdge(source: previousNode, target: dummyId));
+      expandedEdges.add(
+        _LayoutEdge(
+          source: previousNode,
+          target: dummyId,
+          isHierarchical: edge.isHierarchical,
+          crossingWeight: edge.crossingWeight,
+        ),
+      );
 
       previousNode = dummyId;
     }
 
-    expandedEdges.add(_LayoutEdge(source: previousNode, target: edge.target));
+    expandedEdges.add(
+      _LayoutEdge(
+        source: previousNode,
+        target: edge.target,
+        isHierarchical: edge.isHierarchical,
+        crossingWeight: edge.crossingWeight,
+      ),
+    );
   }
 
   final parents = <String, List<String>>{
     for (final nodeId in expandedNodes.keys) nodeId: <String>[],
   };
-
   final children = <String, List<String>>{
     for (final nodeId in expandedNodes.keys) nodeId: <String>[],
   };
+  final hierarchyParents = <String, List<String>>{
+    for (final nodeId in expandedNodes.keys) nodeId: <String>[],
+  };
+  final hierarchyChildren = <String, List<String>>{
+    for (final nodeId in expandedNodes.keys) nodeId: <String>[],
+  };
 
+  final edgeWeights = <(String, String), int>{};
   final indegree = <String, int>{
     for (final nodeId in expandedNodes.keys) nodeId: 0,
   };
@@ -983,6 +1328,12 @@ _ExpandedGraph _insertDummyNodes({
   for (final edge in expandedEdges) {
     children[edge.source]?.add(edge.target);
     parents[edge.target]?.add(edge.source);
+    edgeWeights[(edge.source, edge.target)] = edge.crossingWeight;
+
+    if (edge.isHierarchical) {
+      hierarchyChildren[edge.source]?.add(edge.target);
+      hierarchyParents[edge.target]?.add(edge.source);
+    }
 
     indegree[edge.target] = (indegree[edge.target] ?? 0) + 1;
   }
@@ -993,15 +1344,18 @@ _ExpandedGraph _insertDummyNodes({
       edges: expandedEdges,
       parents: parents,
       children: children,
+      hierarchyParents: hierarchyParents,
+      hierarchyChildren: hierarchyChildren,
+      edgeWeights: edgeWeights,
       indegree: indegree,
     ),
     layers: expandedLayers,
   );
 }
 
-/// ============================================================================
-/// ORDEM INICIAL DAS CAMADAS
-/// ============================================================================
+// ============================================================================
+// ORDEM INICIAL DAS CAMADAS
+// ============================================================================
 
 Map<int, List<String>> _buildInitialLayerOrder({
   required Map<String, int> layers,
@@ -1021,10 +1375,6 @@ Map<int, List<String>> _buildInitialLayerOrder({
       final xA = previousX[a];
       final xB = previousX[b];
 
-      // --------------------------------------------------------------------
-      // Ambos possuem posição anterior.
-      // --------------------------------------------------------------------
-
       if (xA != null && xB != null) {
         final comparison = xA.compareTo(xB);
 
@@ -1035,28 +1385,15 @@ Map<int, List<String>> _buildInitialLayerOrder({
         return originalOrder[a]!.compareTo(originalOrder[b]!);
       }
 
-      // --------------------------------------------------------------------
-      // Apenas A possui posição.
-      // --------------------------------------------------------------------
-
       if (xA != null) {
         return -1;
       }
-
-      // --------------------------------------------------------------------
-      // Apenas B possui posição.
-      // --------------------------------------------------------------------
 
       if (xB != null) {
         return 1;
       }
 
-      // --------------------------------------------------------------------
-      // Dummy nodes sem posição anterior.
-      // --------------------------------------------------------------------
-
       final aDummy = graph.nodes[a]?.isDummy ?? false;
-
       final bDummy = graph.nodes[b]?.isDummy ?? false;
 
       if (aDummy != bDummy) {
@@ -1070,286 +1407,306 @@ Map<int, List<String>> _buildInitialLayerOrder({
   return result;
 }
 
-/// ============================================================================
-/// MINIMIZAÇÃO DE CRUZAMENTOS
-/// ============================================================================
+// ============================================================================
+// MINIMIZAÇÃO DE CRUZAMENTOS
+// ============================================================================
 
 _LayerOrderResult _minimizeCrossings({
   required _GraphModel graph,
   required Map<int, List<String>> initialLayers,
   required SugiyamaConfig config,
 }) {
-  var current = _cloneLayers(initialLayers);
+  final seeds = <Map<int, List<String>>>[
+    _cloneLayers(initialLayers),
+    _reverseLayerSeed(initialLayers),
+    _degreeLayerSeed(graph, initialLayers),
+    _hierarchyLayerSeed(graph, initialLayers),
+  ];
 
-  var currentCrossings = _countAllCrossings(
-    graph: graph,
-    nodesByLayer: current,
-  );
+  var best = _cloneLayers(initialLayers);
+  var bestCrossings = _countAllCrossings(graph: graph, nodesByLayer: best);
 
-  var best = _cloneLayers(current);
+  bool consider(Map<int, List<String>> candidate) {
+    final crossings = _countAllCrossings(graph: graph, nodesByLayer: candidate);
 
-  var bestCrossings = currentCrossings;
-
-  for (
-    var iteration = 0;
-    iteration < config.crossingIterations;
-    iteration++
-  ) {
-    // ========================================================================
-    // Downward sweep
-    // ========================================================================
-
-    final downward = _downwardSweep(graph: graph, nodesByLayer: current);
-
-    final downwardCrossings = _countAllCrossings(
-      graph: graph,
-      nodesByLayer: downward,
-    );
-
-    current = downward;
-    currentCrossings = downwardCrossings;
-
-    if (currentCrossings < bestCrossings) {
-      best = _cloneLayers(current);
-
-      bestCrossings = currentCrossings;
+    if (crossings < bestCrossings) {
+      best = _cloneLayers(candidate);
+      bestCrossings = crossings;
+      return true;
     }
 
-    // ========================================================================
-    // Upward sweep
-    // ========================================================================
+    return false;
+  }
 
-    final upward = _upwardSweep(graph: graph, nodesByLayer: current);
+  for (final seed in seeds) {
+    if (bestCrossings == 0) break;
 
-    final upwardCrossings = _countAllCrossings(
-      graph: graph,
-      nodesByLayer: upward,
-    );
+    var current = _cloneLayers(seed);
+    consider(current);
 
-    current = upward;
-    currentCrossings = upwardCrossings;
+    var stagnant = 0;
 
-    if (currentCrossings < bestCrossings) {
-      best = _cloneLayers(current);
+    for (
+      var iteration = 0;
+      iteration < config.crossingIterations;
+      iteration++
+    ) {
+      var improved = false;
 
-      bestCrossings = currentCrossings;
-    }
+      current = _sweep(graph: graph, nodesByLayer: current, downward: true);
+      improved = consider(current) || improved;
 
-    // ========================================================================
-    // Adjacent transpose
-    //
-    // Tenta trocar pares vizinhos quando isso reduz cruzamentos.
-    // ========================================================================
+      current = _sweep(graph: graph, nodesByLayer: current, downward: false);
+      improved = consider(current) || improved;
 
-    final transposed = _transposeLayers(
-      graph: graph,
-      nodesByLayer: current,
-      maxIterations: config.transposeIterations,
-    );
+      current = _transposeLayers(
+        graph: graph,
+        nodesByLayer: current,
+        maxIterations: config.transposeIterations,
+      );
+      improved = consider(current) || improved;
 
-    final transposedCrossings = _countAllCrossings(
-      graph: graph,
-      nodesByLayer: transposed,
-    );
+      if (bestCrossings == 0) break;
 
-    current = transposed;
-    currentCrossings = transposedCrossings;
-
-    if (currentCrossings < bestCrossings) {
-      best = _cloneLayers(current);
-
-      bestCrossings = currentCrossings;
-    }
-
-    // ========================================================================
-    // Convergência.
-    // ========================================================================
-
-    if (bestCrossings == 0) {
-      break;
+      stagnant = improved ? 0 : stagnant + 1;
+      if (stagnant >= 4) break;
     }
   }
 
   return _LayerOrderResult(nodesByLayer: best, crossingCount: bestCrossings);
 }
 
-/// ============================================================================
-/// DOWNWARD SWEEP
-/// ============================================================================
-///
-/// Cada nó da camada atual é ordenado pelo barycenter dos pais.
-///
-/// Exemplo:
-///
-///     A   B   C
-///      \  |  /
-///        X
-///
-/// Se X possui pais nas posições:
-///
-///     0, 1, 2
-///
-/// barycenter(X) = 1
-///
+Map<int, List<String>> _reverseLayerSeed(Map<int, List<String>> initialLayers) {
+  final reversed = _cloneLayers(initialLayers);
+  for (final entry in reversed.entries) {
+    reversed[entry.key] = entry.value.reversed.toList();
+  }
+  return reversed;
+}
 
-Map<int, List<String>> _downwardSweep({
-  required _GraphModel graph,
-  required Map<int, List<String>> nodesByLayer,
-}) {
-  final result = _cloneLayers(nodesByLayer);
-
-  final maxLayer = _maxLayer(result);
-
-  for (var layer = 1; layer <= maxLayer; layer++) {
-    final currentLayer = result[layer];
-
-    if (currentLayer == null || currentLayer.length <= 1) {
-      continue;
-    }
-
-    final upperLayer = result[layer - 1] ?? const [];
-
-    final upperPosition = _positionMap(upperLayer);
-
-    final oldPosition = _positionMap(currentLayer);
-
-    final score = <String, double>{};
-
-    for (final nodeId in currentLayer) {
-      score[nodeId] = _barycenter(
-        neighbors: graph.parents[nodeId] ?? const [],
-        position: upperPosition,
-      );
-    }
-
-    currentLayer.sort((a, b) {
-      final comparison = _compareScores(score[a]!, score[b]!);
-
-      if (comparison != 0) {
-        return comparison;
-      }
-
-      // Mantém estabilidade.
+Map<int, List<String>> _degreeLayerSeed(
+  _GraphModel graph,
+  Map<int, List<String>> initialLayers,
+) {
+  final seeded = _cloneLayers(initialLayers);
+  for (final entry in seeded.entries) {
+    final oldPosition = _positionMap(entry.value);
+    entry.value.sort((a, b) {
+      final degreeA =
+          (graph.parents[a]?.length ?? 0) + (graph.children[a]?.length ?? 0);
+      final degreeB =
+          (graph.parents[b]?.length ?? 0) + (graph.children[b]?.length ?? 0);
+      final byDegree = degreeB.compareTo(degreeA);
+      if (byDegree != 0) return byDegree;
       return oldPosition[a]!.compareTo(oldPosition[b]!);
     });
+  }
+  return seeded;
+}
+
+/// Semente baseada numa DFS na floresta hierárquica: irmãos e descendentes
+/// ficam contíguos desde o início.
+Map<int, List<String>> _hierarchyLayerSeed(
+  _GraphModel graph,
+  Map<int, List<String>> initialLayers,
+) {
+  final order = <String, int>{};
+  final visited = <String>{};
+
+  void visitFrom(String start) {
+    final pending = <String>[start];
+    while (pending.isNotEmpty) {
+      final nodeId = pending.removeLast();
+      if (!visited.add(nodeId)) continue;
+      order[nodeId] = order.length;
+      final children = graph.hierarchyChildren[nodeId] ?? const <String>[];
+      pending.addAll(children.reversed);
+    }
+  }
+
+  for (final nodeId in graph.nodes.keys) {
+    if ((graph.hierarchyParents[nodeId] ?? const <String>[]).isEmpty) {
+      visitFrom(nodeId);
+    }
+  }
+  for (final nodeId in graph.nodes.keys) {
+    visitFrom(nodeId);
+  }
+
+  final seeded = _cloneLayers(initialLayers);
+  for (final nodes in seeded.values) {
+    final originalOrder = _positionMap(nodes);
+    nodes.sort((first, second) {
+      final byHierarchy = (order[first] ?? originalOrder[first]!).compareTo(
+        order[second] ?? originalOrder[second]!,
+      );
+      return byHierarchy != 0
+          ? byHierarchy
+          : originalOrder[first]!.compareTo(originalOrder[second]!);
+    });
+  }
+  return seeded;
+}
+
+/// Varredura para baixo (referência: pais) ou para cima (referência: filhos).
+Map<int, List<String>> _sweep({
+  required _GraphModel graph,
+  required Map<int, List<String>> nodesByLayer,
+  required bool downward,
+}) {
+  final result = _cloneLayers(nodesByLayer);
+  final maxLayer = _maxLayer(result);
+
+  if (downward) {
+    for (var layer = 1; layer <= maxLayer; layer++) {
+      final current = result[layer];
+      final reference = result[layer - 1];
+
+      if (current == null || current.length <= 1 || reference == null) {
+        continue;
+      }
+
+      _reorderLayer(
+        graph: graph,
+        layerNodes: current,
+        referencePosition: _positionMap(reference),
+        useParents: true,
+      );
+    }
+  } else {
+    for (var layer = maxLayer - 1; layer >= 0; layer--) {
+      final current = result[layer];
+      final reference = result[layer + 1];
+
+      if (current == null || current.length <= 1 || reference == null) {
+        continue;
+      }
+
+      _reorderLayer(
+        graph: graph,
+        layerNodes: current,
+        referencePosition: _positionMap(reference),
+        useParents: false,
+      );
+    }
   }
 
   return result;
 }
 
-/// ============================================================================
-/// UPWARD SWEEP
-/// ============================================================================
-
-Map<int, List<String>> _upwardSweep({
+/// Reordena a camada pela mediana ponderada (desempate: média ponderada).
+/// Nós sem vizinhos na camada de referência mantêm o próprio slot, em vez de
+/// serem empurrados para o fim.
+void _reorderLayer({
   required _GraphModel graph,
-  required Map<int, List<String>> nodesByLayer,
+  required List<String> layerNodes,
+  required Map<String, int> referencePosition,
+  required bool useParents,
 }) {
-  final result = _cloneLayers(nodesByLayer);
+  final oldPosition = _positionMap(layerNodes);
+  final scores = <String, (double, double)>{};
 
-  final maxLayer = _maxLayer(result);
+  for (final id in layerNodes) {
+    final neighbors =
+        (useParents ? graph.parents[id] : graph.children[id]) ??
+        const <String>[];
 
-  for (var layer = maxLayer - 1; layer >= 0; layer--) {
-    final currentLayer = result[layer];
+    scores[id] = _neighborScore(
+      neighbors: neighbors,
+      position: referencePosition,
+      weightOf: (neighbor) => useParents
+          ? (graph.edgeWeights[(neighbor, id)] ?? 1)
+          : (graph.edgeWeights[(id, neighbor)] ?? 1),
+    );
+  }
 
-    if (currentLayer == null || currentLayer.length <= 1) {
+  final movable = <String>[];
+  final slots = <int>[];
+
+  for (var i = 0; i < layerNodes.length; i++) {
+    final id = layerNodes[i];
+
+    if (scores[id]!.$1.isInfinite) {
       continue;
     }
 
-    final lowerLayer = result[layer + 1] ?? const [];
-
-    final lowerPosition = _positionMap(lowerLayer);
-
-    final oldPosition = _positionMap(currentLayer);
-
-    final score = <String, double>{};
-
-    for (final nodeId in currentLayer) {
-      score[nodeId] = _barycenter(
-        neighbors: graph.children[nodeId] ?? const [],
-        position: lowerPosition,
-      );
-    }
-
-    currentLayer.sort((a, b) {
-      final comparison = _compareScores(score[a]!, score[b]!);
-
-      if (comparison != 0) {
-        return comparison;
-      }
-
-      return oldPosition[a]!.compareTo(oldPosition[b]!);
-    });
+    movable.add(id);
+    slots.add(i);
   }
 
-  return result;
+  movable.sort((a, b) {
+    final scoreA = scores[a]!;
+    final scoreB = scores[b]!;
+
+    final byMedian = scoreA.$1.compareTo(scoreB.$1);
+    if (byMedian != 0) return byMedian;
+
+    final byMean = scoreA.$2.compareTo(scoreB.$2);
+    if (byMean != 0) return byMean;
+
+    return oldPosition[a]!.compareTo(oldPosition[b]!);
+  });
+
+  for (var k = 0; k < movable.length; k++) {
+    layerNodes[slots[k]] = movable[k];
+  }
 }
 
-/// ============================================================================
-/// BARYCENTER
-/// ============================================================================
-
-double _barycenter({
+/// Retorna (mediana ponderada, média ponderada). Infinito quando não há
+/// vizinhos posicionados.
+(double, double) _neighborScore({
   required List<String> neighbors,
   required Map<String, int> position,
+  required int Function(String) weightOf,
 }) {
-  var sum = 0.0;
-  var count = 0;
+  final entries = <(int, int)>[];
 
   for (final neighbor in neighbors) {
     final index = position[neighbor];
+    if (index == null) continue;
+    entries.add((index, math.max(1, weightOf(neighbor))));
+  }
 
-    if (index == null) {
-      continue;
+  if (entries.isEmpty) {
+    return (double.infinity, double.infinity);
+  }
+
+  entries.sort((a, b) => a.$1.compareTo(b.$1));
+
+  var totalWeight = 0;
+  var weightedSum = 0;
+
+  for (final entry in entries) {
+    totalWeight += entry.$2;
+    weightedSum += entry.$1 * entry.$2;
+  }
+
+  final mean = weightedSum / totalWeight;
+
+  var cumulative = 0;
+  for (var i = 0; i < entries.length; i++) {
+    cumulative += entries[i].$2;
+    final midpoint = cumulative * 2;
+
+    if (midpoint > totalWeight) {
+      return (entries[i].$1.toDouble(), mean);
     }
 
-    sum += index;
-    count++;
+    if (midpoint == totalWeight && i + 1 < entries.length) {
+      return ((entries[i].$1 + entries[i + 1].$1) / 2, mean);
+    }
   }
 
-  if (count == 0) {
-    return double.infinity;
-  }
-
-  return sum / count;
+  return (entries.last.$1.toDouble(), mean);
 }
 
-/// ============================================================================
-/// COMPARADOR DE SCORES
-/// ============================================================================
-
-int _compareScores(double a, double b) {
-  if (a.isInfinite && b.isInfinite) {
-    return 0;
-  }
-
-  if (a.isInfinite) {
-    return 1;
-  }
-
-  if (b.isInfinite) {
-    return -1;
-  }
-
-  return a.compareTo(b);
-}
-
-/// ============================================================================
-/// ADJACENT TRANSPOSE
-/// ============================================================================
-///
-/// Tenta:
-///
-///     A B C D
-///
-/// trocar:
-///
-///     A C B D
-///
-/// sempre que a troca reduzir o número de cruzamentos.
-///
-/// Isso é uma técnica importante de refinamento após barycenter.
-///
+// ============================================================================
+// ADJACENT TRANSPOSE
+// ============================================================================
+//
+// Para dois nós adjacentes u (esquerda) e v (direita), os únicos cruzamentos
+// afetados pela troca são os entre arestas de u e arestas de v (para cima e
+// para baixo). Contamos só esses, em O(grau(u) * grau(v)).
 
 Map<int, List<String>> _transposeLayers({
   required _GraphModel graph,
@@ -1362,79 +1719,61 @@ Map<int, List<String>> _transposeLayers({
     return result;
   }
 
+  final maxLayer = _maxLayer(result);
+
   for (var iteration = 0; iteration < maxIterations; iteration++) {
     var changed = false;
 
-    final maxLayer = _maxLayer(result);
-
-    // ------------------------------------------------------------------------
-    // Alternamos a direção para evitar viés.
-    // ------------------------------------------------------------------------
-
-    final forward = iteration.isEven;
-
-    final start = forward ? 0 : maxLayer;
-
-    final end = forward ? maxLayer : 0;
-
-    final step = forward ? 1 : -1;
-
-    for (
-      var layer = start;
-      forward ? layer <= end : layer >= end;
-      layer += step
-    ) {
+    for (var layer = 0; layer <= maxLayer; layer++) {
       final nodes = result[layer];
 
       if (nodes == null || nodes.length <= 1) {
         continue;
       }
 
-      var i = forward ? 0 : nodes.length - 2;
+      final upperPosition = layer > 0
+          ? _positionMap(result[layer - 1] ?? const <String>[])
+          : const <String, int>{};
+      final lowerPosition = _positionMap(
+        result[layer + 1] ?? const <String>[],
+      );
 
-      while (forward ? i < nodes.length - 1 : i >= 0) {
-        if (i < 0 || i + 1 >= nodes.length) {
-          break;
-        }
+      for (var i = 0; i < nodes.length - 1; i++) {
+        final left = nodes[i];
+        final right = nodes[i + 1];
 
-        final before = _localCrossingsForNodeLayer(
-          graph: graph,
-          nodesByLayer: result,
-          layer: layer,
+        final leftUp = _sideEntries(
+          graph.parents[left],
+          upperPosition,
+          (neighbor) => graph.edgeWeights[(neighbor, left)] ?? 1,
+        );
+        final rightUp = _sideEntries(
+          graph.parents[right],
+          upperPosition,
+          (neighbor) => graph.edgeWeights[(neighbor, right)] ?? 1,
+        );
+        final leftDown = _sideEntries(
+          graph.children[left],
+          lowerPosition,
+          (neighbor) => graph.edgeWeights[(left, neighbor)] ?? 1,
+        );
+        final rightDown = _sideEntries(
+          graph.children[right],
+          lowerPosition,
+          (neighbor) => graph.edgeWeights[(right, neighbor)] ?? 1,
         );
 
-        final temp = nodes[i];
+        final keep =
+            _orderedCrossings(leftUp, rightUp) +
+            _orderedCrossings(leftDown, rightDown);
+        final swapped =
+            _orderedCrossings(rightUp, leftUp) +
+            _orderedCrossings(rightDown, leftDown);
 
-        nodes[i] = nodes[i + 1];
-        nodes[i + 1] = temp;
-
-        final after = _localCrossingsForNodeLayer(
-          graph: graph,
-          nodesByLayer: result,
-          layer: layer,
-        );
-
-        if (after < before) {
+        if (swapped < keep) {
+          nodes[i] = right;
+          nodes[i + 1] = left;
           changed = true;
-
-          // Mantém a troca e avança.
-          if (forward) {
-            i++;
-          } else {
-            i--;
-          }
-        } else {
-          // Desfaz.
-          final rollback = nodes[i];
-
-          nodes[i] = nodes[i + 1];
-          nodes[i + 1] = rollback;
-
-          if (forward) {
-            i++;
-          } else {
-            i--;
-          }
         }
       }
     }
@@ -1447,68 +1786,66 @@ Map<int, List<String>> _transposeLayers({
   return result;
 }
 
-/// ============================================================================
-/// CROSSINGS LOCAIS
-/// ============================================================================
-///
-/// Só as relações da camada acima e abaixo podem ser afetadas pela troca
-/// de dois nós dentro de uma determinada camada.
-///
+List<(int, int)> _sideEntries(
+  List<String>? neighbors,
+  Map<String, int> position,
+  int Function(String) weightOf,
+) {
+  final entries = <(int, int)>[];
 
-int _localCrossingsForNodeLayer({
-  required _GraphModel graph,
-  required Map<int, List<String>> nodesByLayer,
-  required int layer,
-}) {
-  var result = 0;
+  if (neighbors == null) return entries;
 
-  final upper = nodesByLayer[layer - 1];
-
-  final current = nodesByLayer[layer];
-
-  final lower = nodesByLayer[layer + 1];
-
-  if (upper != null && current != null) {
-    result += _countLayerCrossings(
-      graph: graph,
-      upperLayer: upper,
-      lowerLayer: current,
-    );
+  for (final neighbor in neighbors) {
+    final index = position[neighbor];
+    if (index == null) continue;
+    entries.add((index, weightOf(neighbor)));
   }
 
-  if (current != null && lower != null) {
-    result += _countLayerCrossings(
-      graph: graph,
-      upperLayer: current,
-      lowerLayer: lower,
-    );
-  }
-
-  return result;
+  return entries;
 }
 
-/// ============================================================================
-/// COORDINATE ASSIGNMENT
-/// ============================================================================
-///
-/// Depois que a ordem de cada camada está definida, podemos determinar X.
-///
-/// O algoritmo mantém a ordem encontrada pelo crossing minimization.
-///
-/// Inicialmente:
-///
-///     x = índice * spacing
-///
-/// Depois, a cada iteração (alternando passagem para frente/trás):
-///
-///     x -> `_computeDesiredX` dos vizinhos (média, no modo `balanced`;
-///          ponto médio entre extremos, no modo `centered`)
-///
-/// Finalmente:
-///
-///     projeção sobre as restrições de distância mínima, e (opcional)
-///     compactação.
-///
+/// Cruzamentos (ponderados) se o nó dono de `left` ficar à esquerda do dono
+/// de `right`: um par cruza quando o vizinho da esquerda está mais à direita.
+int _orderedCrossings(List<(int, int)> left, List<(int, int)> right) {
+  var total = 0;
+
+  for (final l in left) {
+    for (final r in right) {
+      if (l.$1 > r.$1) {
+        total += l.$2 * r.$2;
+      }
+    }
+  }
+
+  return total;
+}
+
+// ============================================================================
+// COORDINATE ASSIGNMENT
+// ============================================================================
+//
+// 1. Posição inicial: cada camada centralizada em torno de x = 0.
+// 2. Passadas alternadas (frente: pais -> filhos; trás: filhos -> pais). Em
+//    CADA camada, a posição desejada é projetada (PAVA ponderada) antes de
+//    passar para a próxima, de modo que a camada seguinte se baseie em
+//    posições viáveis.
+// 3. A última passada é sempre para trás: pais centralizados sobre filhos.
+
+double _gapBetween(
+  _GraphModel graph,
+  String a,
+  String b,
+  SugiyamaConfig config,
+) {
+  final aDummy = graph.nodes[a]?.isDummy ?? false;
+  final bDummy = graph.nodes[b]?.isDummy ?? false;
+
+  if (aDummy && bDummy) return config.dummyGap;
+  if (aDummy || bDummy) {
+    return (config.minimumHorizontalGap + config.dummyGap) / 2;
+  }
+  return config.minimumHorizontalGap;
+}
 
 Map<String, Offset> _assignCoordinates({
   required _GraphModel graph,
@@ -1521,185 +1858,139 @@ Map<String, Offset> _assignCoordinates({
     return positions;
   }
 
-  // ==========================================================================
-  // 1. Posição inicial
-  // ==========================================================================
-
+  // 1. Posição inicial, centralizada por camada.
   for (final entry in nodesByLayer.entries) {
     final layer = entry.key;
-
     final nodes = entry.value;
+
+    final xs = <double>[];
+    var offset = 0.0;
+
+    for (var i = 0; i < nodes.length; i++) {
+      if (i > 0) {
+        final gap = _gapBetween(graph, nodes[i - 1], nodes[i], config);
+        final bothReal =
+            !(graph.nodes[nodes[i - 1]]?.isDummy ?? false) &&
+            !(graph.nodes[nodes[i]]?.isDummy ?? false);
+
+        offset += bothReal ? math.max(gap, config.horizontalSpacing) : gap;
+      }
+
+      xs.add(offset);
+    }
 
     for (var i = 0; i < nodes.length; i++) {
       positions[nodes[i]] = Offset(
-        i * config.horizontalSpacing,
+        xs[i] - offset / 2,
         layer * config.verticalSpacing,
       );
     }
   }
 
-  // ==========================================================================
-  // 2. Ajuste iterativo
-  // ==========================================================================
-
-  for (
-    var iteration = 0;
-    iteration < config.coordinateIterations;
-    iteration++
-  ) {
-    final forward = iteration.isEven;
-
-    if (forward) {
-      _coordinateForwardPass(
-        graph: graph,
-        nodesByLayer: nodesByLayer,
-        positions: positions,
-        mode: config.mode,
-      );
-    } else {
-      _coordinateBackwardPass(
-        graph: graph,
-        nodesByLayer: nodesByLayer,
-        positions: positions,
-        mode: config.mode,
-      );
-    }
-
-    _projectLayerPositions(
-      nodesByLayer: nodesByLayer,
-      positions: positions,
-      minimumGap: config.minimumHorizontalGap,
-    );
+  // 2. Ajuste iterativo (número par de passadas: termina "para trás").
+  var iterations = config.coordinateIterations;
+  if (iterations.isOdd) {
+    iterations++;
   }
 
-  // ==========================================================================
-  // 3. Compactação
-  // ==========================================================================
-
-  if (config.compact) {
-    _compactGraph(
+  for (var iteration = 0; iteration < iterations; iteration++) {
+    _coordinatePass(
       graph: graph,
       nodesByLayer: nodesByLayer,
       positions: positions,
-      minimumGap: config.minimumHorizontalGap,
-      mode: config.mode,
+      config: config,
+      forward: iteration.isEven,
     );
   }
 
-  // ==========================================================================
-  // 4. Garantir coordenadas positivas
-  // ==========================================================================
-
+  // 3. Origem em (0, 0).
   _normalizeCoordinates(positions);
 
   return positions;
 }
 
-/// ============================================================================
-/// PASSAGEM PARA FRENTE
-/// ============================================================================
-///
-/// Aproxima cada nó dos seus pais (já posicionados nas camadas
-/// anteriores, processadas antes na mesma varredura).
+List<String> _coordinateNeighbors(
+  _GraphModel graph,
+  String nodeId, {
+  required bool parents,
+}) {
+  final hierarchyNeighbors = parents
+      ? graph.hierarchyParents[nodeId]
+      : graph.hierarchyChildren[nodeId];
 
-void _coordinateForwardPass({
+  if (hierarchyNeighbors != null && hierarchyNeighbors.isNotEmpty) {
+    return hierarchyNeighbors;
+  }
+
+  return parents
+      ? graph.parents[nodeId] ?? const <String>[]
+      : graph.children[nodeId] ?? const <String>[];
+}
+
+void _coordinatePass({
   required _GraphModel graph,
   required Map<int, List<String>> nodesByLayer,
   required Map<String, Offset> positions,
-  required SugiyamaLayoutMode mode,
+  required SugiyamaConfig config,
+  required bool forward,
 }) {
   final maxLayer = _maxLayer(nodesByLayer);
 
-  for (var layer = 1; layer <= maxLayer; layer++) {
-    final current = nodesByLayer[layer];
+  final layerOrder = forward
+      ? [for (var layer = 1; layer <= maxLayer; layer++) layer]
+      : [for (var layer = maxLayer; layer >= 0; layer--) layer];
 
-    if (current == null) {
+  for (final layer in layerOrder) {
+    final nodes = nodesByLayer[layer];
+
+    if (nodes == null || nodes.isEmpty) {
       continue;
     }
 
-    for (final nodeId in current) {
-      final neighbors = graph.parents[nodeId] ?? const [];
+    final desired = <double>[];
 
-      final desired = _computeDesiredX(
+    for (final id in nodes) {
+      final neighbors = _coordinateNeighbors(graph, id, parents: forward);
+
+      final x = _computeDesiredX(
         neighbors: neighbors,
         positions: positions,
-        mode: mode,
+        mode: config.mode,
+        weightOf: (neighbor) =>
+            (forward
+                    ? graph.edgeWeights[(neighbor, id)]
+                    : graph.edgeWeights[(id, neighbor)])
+                ?.toDouble() ??
+            1.0,
       );
 
-      if (desired == null) {
-        continue;
-      }
-
-      final position = positions[nodeId]!;
-
-      positions[nodeId] = Offset(desired, position.dy);
+      // Sem vizinhos nessa direção: o nó funciona como âncora.
+      desired.add(x ?? positions[id]!.dx);
     }
+
+    _projectNodes(
+      graph: graph,
+      nodes: nodes,
+      desired: desired,
+      positions: positions,
+      config: config,
+    );
   }
 }
 
-/// ============================================================================
-/// PASSAGEM PARA TRÁS
-/// ============================================================================
+/// X que um nó "gostaria" de ter.
 ///
-/// Aproxima cada nó dos seus filhos (já posicionados nas camadas
-/// seguintes, processadas antes nesta varredura de baixo para cima).
-
-void _coordinateBackwardPass({
-  required _GraphModel graph,
-  required Map<int, List<String>> nodesByLayer,
-  required Map<String, Offset> positions,
-  required SugiyamaLayoutMode mode,
-}) {
-  final maxLayer = _maxLayer(nodesByLayer);
-
-  for (var layer = maxLayer - 1; layer >= 0; layer--) {
-    final current = nodesByLayer[layer];
-
-    if (current == null) {
-      continue;
-    }
-
-    for (final nodeId in current) {
-      final neighbors = graph.children[nodeId] ?? const [];
-
-      final desired = _computeDesiredX(
-        neighbors: neighbors,
-        positions: positions,
-        mode: mode,
-      );
-
-      if (desired == null) {
-        continue;
-      }
-
-      final position = positions[nodeId]!;
-
-      positions[nodeId] = Offset(desired, position.dy);
-    }
-  }
-}
-
-/// ============================================================================
-/// X DESEJADO
-/// ============================================================================
-///
-/// Calcula a posição X que um nó "gostaria" de ter, dada a posição atual
-/// de um conjunto de vizinhos (pais, na passagem para frente; filhos, na
-/// passagem para trás; pais + filhos, na compactação).
-///
-///   - `SugiyamaLayoutMode.balanced`: média de todos os vizinhos.
-///   - `SugiyamaLayoutMode.centered`: ponto médio entre o vizinho mais à
-///     esquerda e o mais à direita — centraliza o nó exatamente sobre o
-///     intervalo ocupado pelos vizinhos, como numa árvore genealógica.
-///
-
+///   - `balanced`: média ponderada pelo peso das arestas.
+///   - `centered`: ponto médio entre o vizinho mais à esquerda e o mais à
+///     direita.
 double? _computeDesiredX({
   required List<String> neighbors,
   required Map<String, Offset> positions,
   required SugiyamaLayoutMode mode,
+  required double Function(String) weightOf,
 }) {
-  var sum = 0.0;
-  var count = 0;
+  var weightedSum = 0.0;
+  var totalWeight = 0.0;
 
   double? minX;
   double? maxX;
@@ -1711,14 +2002,16 @@ double? _computeDesiredX({
       continue;
     }
 
-    sum += position.dx;
-    count++;
+    final weight = math.max(0.0001, weightOf(neighbor));
+
+    weightedSum += position.dx * weight;
+    totalWeight += weight;
 
     minX = (minX == null) ? position.dx : math.min(minX, position.dx);
     maxX = (maxX == null) ? position.dx : math.max(maxX, position.dx);
   }
 
-  if (count == 0) {
+  if (totalWeight == 0) {
     return null;
   }
 
@@ -1726,86 +2019,58 @@ double? _computeDesiredX({
     return (minX + maxX) / 2;
   }
 
-  return sum / count;
+  return weightedSum / totalWeight;
 }
 
-/// ============================================================================
-/// PROJEÇÃO NAS RESTRIÇÕES DE ORDEM
-/// ============================================================================
-///
-/// Garante:
-///
-///     x[i + 1] >= x[i] + minimumGap
-///
-/// sem alterar a ordem da camada — e o faz da forma matematicamente ótima:
-/// minimizando a soma dos deslocamentos ao quadrado em relação às posições
-/// desejadas (as posições que `_computeDesiredX` acabou de calcular).
-///
-/// Isso importa especialmente no modo `centered`: quando vários irmãos têm
-/// o mesmo pai, todos calculam a mesma posição desejada (a do próprio
-/// pai). Uma projeção ingênua que só empurra para a direita a partir do
-/// nó mais à esquerda deixaria os irmãos "grudados" à esquerda do pai, em
-/// vez de centralizados embaixo dele. A projeção abaixo (regressão
-/// isotônica via PAVA — Pool Adjacent Violators Algorithm) resolve esse
-/// tipo de empate distribuindo os nós SIMETRICAMENTE ao redor da posição
-/// desejada compartilhada, ao custo de ocupar um pouco mais de espaço
-/// quando necessário.
-///
-
-void _projectLayerPositions({
-  required Map<int, List<String>> nodesByLayer,
+/// Projeta as posições desejadas de uma camada nas restrições
+/// `x[i+1] >= x[i] + gap(i, i+1)`, minimizando a soma ponderada dos
+/// quadrados dos deslocamentos.
+void _projectNodes({
+  required _GraphModel graph,
+  required List<String> nodes,
+  required List<double> desired,
   required Map<String, Offset> positions,
-  required double minimumGap,
+  required SugiyamaConfig config,
 }) {
-  for (final nodes in nodesByLayer.values) {
-    if (nodes.length <= 1) {
-      continue;
-    }
+  final count = nodes.length;
 
-    final desired = <double>[
-      for (final nodeId in nodes) positions[nodeId]!.dx,
-    ];
+  if (count == 0) {
+    return;
+  }
 
-    final projected = _isotonicProject(desired, minimumGap);
+  final weights = <double>[
+    for (final id in nodes)
+      (graph.nodes[id]?.isDummy ?? false) ? _dummyPriority : 1.0,
+  ];
 
-    for (var i = 0; i < nodes.length; i++) {
-      final nodeId = nodes[i];
-      final current = positions[nodeId]!;
+  final offsets = List<double>.filled(count, 0);
+  for (var i = 1; i < count; i++) {
+    offsets[i] =
+        offsets[i - 1] + _gapBetween(graph, nodes[i - 1], nodes[i], config);
+  }
 
-      positions[nodeId] = Offset(projected[i], current.dy);
-    }
+  final projected = _isotonicProject(desired, weights, offsets);
+
+  for (var i = 0; i < count; i++) {
+    final current = positions[nodes[i]]!;
+    positions[nodes[i]] = Offset(projected[i], current.dy);
   }
 }
 
-/// ============================================================================
-/// REGRESSÃO ISOTÔNICA (PAVA)
-/// ============================================================================
-///
-/// Dada uma lista de posições desejadas, na ordem em que os nós aparecem
-/// na camada, devolve a lista de posições finais que:
-///
-///   1. respeita a ordem: `x[i + 1] >= x[i] + minimumGap`;
-///   2. entre todas as listas que respeitam (1), é a que minimiza a soma
-///      dos quadrados dos deslocamentos em relação às posições desejadas.
-///
-/// Ideia: substituindo `y[i] = desired[i] - i * minimumGap`, a restrição
-/// vira simplesmente `y[i + 1] >= y[i]` — uma regressão isotônica comum,
-/// resolvida em O(n) com o algoritmo clássico "Pool Adjacent Violators":
-/// percorremos os pontos da esquerda para a direita mantendo uma pilha de
-/// blocos; sempre que um bloco novo violaria a ordem em relação ao
-/// anterior, fundimos os dois na média ponderada, repetindo até a pilha
-/// voltar a ficar em ordem. No fim, cada ponto recebe a média do seu
-/// bloco — por isso o resultado é sempre simétrico quando várias posições
-/// desejadas coincidem (ex.: vários irmãos querendo a posição do pai),
-/// em vez de tendencioso para um lado.
-///
-/// Sempre termina (o laço interno só reduz o tamanho da pilha, nunca
-/// aumenta o trabalho total), então não há risco de loop sem fim.
-///
+// ============================================================================
+// REGRESSÃO ISOTÔNICA PONDERADA (PAVA)
+// ============================================================================
+//
+// Com y[i] = desired[i] - offsets[i], a restrição de distância mínima vira
+// y[i + 1] >= y[i]. O PAVA resolve em O(n) minimizando
+// soma(weights[i] * (y[i] - desired_y[i])²). Quando várias posições
+// desejadas coincidem (irmãos querendo a posição do pai), o resultado é
+// distribuído simetricamente em torno dela.
 
 List<double> _isotonicProject(
   List<double> desired,
-  double minimumGap,
+  List<double> weights,
+  List<double> offsets,
 ) {
   final n = desired.length;
 
@@ -1813,23 +2078,15 @@ List<double> _isotonicProject(
     return const [];
   }
 
-  if (n == 1) {
-    return [desired[0]];
-  }
-
-  final y = <double>[
-    for (var i = 0; i < n; i++) desired[i] - i * minimumGap,
-  ];
-
-  // Pilha de blocos: para cada bloco guardamos a soma dos valores, o
-  // peso (quantidade de pontos) e o tamanho (quantos índices ele cobre).
   final blockSum = <double>[];
-  final blockWeight = <int>[];
+  final blockWeight = <double>[];
   final blockSize = <int>[];
 
   for (var i = 0; i < n; i++) {
-    blockSum.add(y[i]);
-    blockWeight.add(1);
+    final weight = weights[i] > 0 ? weights[i] : 1.0;
+
+    blockSum.add((desired[i] - offsets[i]) * weight);
+    blockWeight.add(weight);
     blockSize.add(1);
 
     while (blockSum.length > 1 &&
@@ -1851,10 +2108,9 @@ List<double> _isotonicProject(
 
   for (var block = 0; block < blockSum.length; block++) {
     final average = blockSum[block] / blockWeight[block];
-    final size = blockSize[block];
 
-    for (var k = 0; k < size; k++) {
-      result[index] = average + index * minimumGap;
+    for (var k = 0; k < blockSize[block]; k++) {
+      result[index] = average + offsets[index];
       index++;
     }
   }
@@ -1862,94 +2118,9 @@ List<double> _isotonicProject(
   return result;
 }
 
-/// ============================================================================
-/// COMPACTAÇÃO
-/// ============================================================================
-///
-/// Remove espaço horizontal desnecessário sem destruir a ordem.
-///
-/// O algoritmo encontra o menor deslocamento global possível para cada
-/// camada enquanto respeita as restrições dos vizinhos (usando a mesma
-/// lógica de `_computeDesiredX`, para ficar consistente com o modo
-/// escolhido).
-///
-
-void _compactGraph({
-  required _GraphModel graph,
-  required Map<int, List<String>> nodesByLayer,
-  required Map<String, Offset> positions,
-  required double minimumGap,
-  required SugiyamaLayoutMode mode,
-}) {
-  final maxLayer = _maxLayer(nodesByLayer);
-
-  for (var layer = 0; layer <= maxLayer; layer++) {
-    final current = nodesByLayer[layer];
-
-    if (current == null || current.isEmpty) {
-      continue;
-    }
-
-    // ------------------------------------------------------------------------
-    // Deslocamento médio recomendado pelos vizinhos.
-    // ------------------------------------------------------------------------
-
-    var totalDesiredShift = 0.0;
-    var desiredCount = 0;
-
-    for (final nodeId in current) {
-      final nodePosition = positions[nodeId]!;
-
-      final neighbors = <String>[
-        ...graph.parents[nodeId] ?? const [],
-        ...graph.children[nodeId] ?? const [],
-      ];
-
-      if (neighbors.isEmpty) {
-        continue;
-      }
-
-      final desiredX = _computeDesiredX(
-        neighbors: neighbors,
-        positions: positions,
-        mode: mode,
-      );
-
-      if (desiredX == null) {
-        continue;
-      }
-
-      totalDesiredShift += desiredX - nodePosition.dx;
-
-      desiredCount++;
-    }
-
-    if (desiredCount == 0) {
-      continue;
-    }
-
-    final shift = totalDesiredShift / desiredCount;
-
-    // Limita a compactação para não destruir uma estrutura boa.
-    final clampedShift = shift.clamp(-minimumGap, minimumGap);
-
-    for (final nodeId in current) {
-      final position = positions[nodeId]!;
-
-      positions[nodeId] = Offset(position.dx + clampedShift, position.dy);
-    }
-
-    _projectLayerPositions(
-      nodesByLayer: nodesByLayer,
-      positions: positions,
-      minimumGap: minimumGap,
-    );
-  }
-}
-
-/// ============================================================================
-/// COUNTING DE CROSSINGS
-/// ============================================================================
+// ============================================================================
+// CONTAGEM DE CRUZAMENTOS
+// ============================================================================
 
 int _countAllCrossings({
   required _GraphModel graph,
@@ -1962,38 +2133,16 @@ int _countAllCrossings({
   for (var layer = 0; layer < maxLayer; layer++) {
     total += _countLayerCrossings(
       graph: graph,
-      upperLayer: nodesByLayer[layer] ?? const [],
-      lowerLayer: nodesByLayer[layer + 1] ?? const [],
+      upperLayer: nodesByLayer[layer] ?? const <String>[],
+      lowerLayer: nodesByLayer[layer + 1] ?? const <String>[],
     );
   }
 
   return total;
 }
 
-/// ============================================================================
-/// COUNT CROSSINGS ENTRE DUAS CAMADAS
-/// ============================================================================
-///
-/// Considere:
-///
-/// camada superior:
-///
-///     A B C D
-///
-/// camada inferior:
-///
-///     X Y Z W
-///
-/// Uma aresta A->Z e outra B->Y cruzam porque:
-///
-///     A < B
-///     Z > Y
-///
-/// Isso é exatamente uma inversão.
-///
-/// O Fenwick Tree conta essas inversões em O(E log V).
-///
-
+/// Conta cruzamentos ponderados entre duas camadas consecutivas usando uma
+/// Fenwick Tree: O(E log V).
 int _countLayerCrossings({
   required _GraphModel graph,
   required List<String> upperLayer,
@@ -2004,15 +2153,14 @@ int _countLayerCrossings({
   }
 
   final upperPosition = _positionMap(upperLayer);
-
   final lowerPosition = _positionMap(lowerLayer);
 
-  final segmentsByUpper = <int, List<int>>{};
+  final segmentsByUpper = <int, List<(int, int)>>{};
 
   for (final source in upperLayer) {
     final sourcePosition = upperPosition[source]!;
 
-    final children = graph.children[source] ?? const [];
+    final children = graph.children[source] ?? const <String>[];
 
     for (final target in children) {
       final targetPosition = lowerPosition[target];
@@ -2021,9 +2169,10 @@ int _countLayerCrossings({
         continue;
       }
 
-      segmentsByUpper
-          .putIfAbsent(sourcePosition, () => <int>[])
-          .add(targetPosition);
+      segmentsByUpper.putIfAbsent(sourcePosition, () => <(int, int)>[]).add((
+        targetPosition,
+        graph.edgeWeights[(source, target)] ?? 1,
+      ));
     }
   }
 
@@ -2033,7 +2182,7 @@ int _countLayerCrossings({
 
   final fenwick = _FenwickTree(lowerLayer.length);
 
-  var seen = 0;
+  var seenWeight = 0;
   var crossings = 0;
 
   final upperPositions = segmentsByUpper.keys.toList()..sort();
@@ -2041,30 +2190,25 @@ int _countLayerCrossings({
   for (final upperPositionValue in upperPositions) {
     final targets = segmentsByUpper[upperPositionValue]!;
 
-    // Primeiro consulta todas.
-    // Depois adiciona todas.
-    //
-    // Assim, arestas que partem do mesmo nó nunca contam
-    // como cruzamento entre si.
-    for (final targetPosition in targets) {
-      final before = fenwick.query(targetPosition);
-
-      crossings += seen - before;
+    // Consulta todas e só depois adiciona: arestas do mesmo nó nunca
+    // contam como cruzamento entre si.
+    for (final (targetPosition, edgeWeight) in targets) {
+      final weightAtOrBefore = fenwick.query(targetPosition);
+      crossings += (seenWeight - weightAtOrBefore) * edgeWeight;
     }
 
-    for (final targetPosition in targets) {
-      fenwick.add(targetPosition, 1);
-
-      seen++;
+    for (final (targetPosition, edgeWeight) in targets) {
+      fenwick.add(targetPosition, edgeWeight);
+      seenWeight += edgeWeight;
     }
   }
 
   return crossings;
 }
 
-/// ============================================================================
-/// UTILITÁRIOS
-/// ============================================================================
+// ============================================================================
+// UTILITÁRIOS
+// ============================================================================
 
 Map<String, int> _positionMap(List<String> nodes) {
   return <String, int>{for (var i = 0; i < nodes.length; i++) nodes[i]: i};
@@ -2085,28 +2229,22 @@ Map<int, List<String>> _cloneLayers(Map<int, List<String>> source) {
   };
 }
 
-/// ============================================================================
-/// NORMALIZAÇÃO
-/// ============================================================================
-
+/// Move o desenho para que o menor X e o menor Y sejam 0.
 void _normalizeCoordinates(Map<String, Offset> positions) {
   if (positions.isEmpty) {
     return;
   }
 
   var minimumX = double.infinity;
-
   var minimumY = double.infinity;
 
   for (final position in positions.values) {
     minimumX = math.min(minimumX, position.dx);
-
     minimumY = math.min(minimumY, position.dy);
   }
 
-  final shiftX = minimumX.isFinite && minimumX < 0 ? -minimumX : 0.0;
-
-  final shiftY = minimumY.isFinite && minimumY < 0 ? -minimumY : 0.0;
+  final shiftX = minimumX.isFinite ? -minimumX : 0.0;
+  final shiftY = minimumY.isFinite ? -minimumY : 0.0;
 
   if (shiftX == 0 && shiftY == 0) {
     return;

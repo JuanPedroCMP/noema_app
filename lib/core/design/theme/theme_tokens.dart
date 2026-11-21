@@ -13,21 +13,15 @@ extension BuildContextThemeExtension on BuildContext {
 
   TextTheme get textTheme => theme.textTheme;
 
-  AppSemanticColors get semanticColors =>
-      theme.extension<AppSemanticColors>()!;
+  AppSemanticColors get semanticColors => theme.extension<AppSemanticColors>()!;
 
-  AppSpacing get spacing =>
-      theme.extension<AppSpacingTheme>()!.spacing;
+  AppSpacing get spacing => theme.extension<AppSpacingTheme>()!.spacing;
 
-  AppRadius get radius =>
-      theme.extension<AppRadiusTheme>()!.radius;
+  AppRadius get radius => theme.extension<AppRadiusTheme>()!.radius;
 
-  AppDurations get durations =>
-      theme.extension<AppDurationsTheme>()!.durations;
+  AppDurations get durations => theme.extension<AppDurationsTheme>()!.durations;
 
-  AppElevation get elevation =>
-      theme.extension<AppElevationTheme>()!.elevation;
+  AppElevation get elevation => theme.extension<AppElevationTheme>()!.elevation;
 
-  AppIconSize get iconSize =>
-      theme.extension<AppIconSizeTheme>()!.iconSize;
+  AppIconSize get iconSize => theme.extension<AppIconSizeTheme>()!.iconSize;
 }

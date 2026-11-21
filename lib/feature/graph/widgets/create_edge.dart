@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
@@ -28,7 +29,7 @@ class CreateEdge extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          RuntimeLocalizedText(
             "Nova aresta",
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -40,7 +41,7 @@ class CreateEdge extends ConsumerWidget {
                   formEdgeNotifier.sourceNodeIdChanged(value);
                 }
               },
-              label: const Text("Nó de origem"),
+              label: const RuntimeLocalizedText("Nó de origem"),
               dropdownMenuEntries: data
                   .map(
                     (node) => DropdownMenuEntry<String>(
@@ -50,8 +51,9 @@ class CreateEdge extends ConsumerWidget {
                   )
                   .toList(),
             ),
-            error: (Object error, StackTrace stackTrace) => Text("Erro"),
-            loading: () => Text("Carregando"),
+            error: (Object error, StackTrace stackTrace) =>
+                RuntimeLocalizedText("Erro"),
+            loading: () => RuntimeLocalizedText("Carregando"),
           ),
           Row(
             children: [
@@ -67,7 +69,7 @@ class CreateEdge extends ConsumerWidget {
                   formEdgeNotifier.targetNodeIdChanged(value);
                 }
               },
-              label: const Text("Nó de destino"),
+              label: const RuntimeLocalizedText("Nó de destino"),
               dropdownMenuEntries: data
                   .map(
                     (node) => DropdownMenuEntry<String>(
@@ -77,8 +79,9 @@ class CreateEdge extends ConsumerWidget {
                   )
                   .toList(),
             ),
-            error: (Object error, StackTrace stackTrace) => Text("Erro"),
-            loading: () => Text("Carregando"),
+            error: (Object error, StackTrace stackTrace) =>
+                RuntimeLocalizedText("Erro"),
+            loading: () => RuntimeLocalizedText("Carregando"),
           ),
 
           DropdownMenu<String>(
@@ -88,7 +91,7 @@ class CreateEdge extends ConsumerWidget {
               }
             },
             expandedInsets: EdgeInsets.zero,
-            label: const Text("Tipo de relação"),
+            label: const RuntimeLocalizedText("Tipo de relação"),
             dropdownMenuEntries: [
               DropdownMenuEntry(
                 value: 'PREREQUISITE',
@@ -135,7 +138,9 @@ class CreateEdge extends ConsumerWidget {
                   if (formEdge.sourceNodeId == formEdge.targetNodeId) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("A origem e o destino devem ser diferentes."),
+                        content: RuntimeLocalizedText(
+                          "A origem e o destino devem ser diferentes.",
+                        ),
                       ),
                     );
                     return;
@@ -153,27 +158,31 @@ class CreateEdge extends ConsumerWidget {
                     if (context.mounted) {
                       graphStatesNotifier.isCreatingEdgeChanged(false);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Aresta adicionada.")),
+                        const SnackBar(
+                          content: RuntimeLocalizedText("Aresta adicionada."),
+                        ),
                       );
                     }
                   } catch (_) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Não foi possível adicionar a aresta."),
+                          content: RuntimeLocalizedText(
+                            "Não foi possível adicionar a aresta.",
+                          ),
                         ),
                       );
                     }
                   }
                 },
-                child: Text("Criar"),
+                child: RuntimeLocalizedText("Criar"),
               ),
 
               OutlinedButton(
                 onPressed: () {
                   graphStatesNotifier.isCreatingEdgeChanged(false);
                 },
-                child: Text("Cancelar"),
+                child: RuntimeLocalizedText("Cancelar"),
               ),
             ],
           ),

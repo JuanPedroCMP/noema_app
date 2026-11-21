@@ -25,18 +25,17 @@ void main() {
         'drive_version': '43',
       },
     );
-    final changedRequestKey =
-        GoogleDriveSyncService.metadataIdempotencyKey(
-          operation: 'backup.update',
-          backupId: 'backup-1',
-          request: {
-            'drive_version': '44',
-            'content_hash': 'sha256:0123456789abcdef',
-            'manifest': {
-              'hashes': {'notes': 'one', 'graphs': 'two'},
-            },
-          },
-        );
+    final changedRequestKey = GoogleDriveSyncService.metadataIdempotencyKey(
+      operation: 'backup.update',
+      backupId: 'backup-1',
+      request: {
+        'drive_version': '44',
+        'content_hash': 'sha256:0123456789abcdef',
+        'manifest': {
+          'hashes': {'notes': 'one', 'graphs': 'two'},
+        },
+      },
+    );
 
     expect(retryKey, firstKey);
     expect(changedRequestKey, isNot(firstKey));
@@ -53,6 +52,7 @@ void main() {
           remoteDataHash: 'remote',
           localInstallationId: 'device-a',
           remoteInstallationId: 'device-b',
+          conflictCount: 1,
         ),
         DriveSyncResolution.keepRemote,
       );
@@ -68,6 +68,7 @@ void main() {
           remoteDataHash: 'base',
           localInstallationId: 'device-a',
           remoteInstallationId: 'device-b',
+          conflictCount: 1,
         ),
         DriveSyncResolution.keepLocal,
       );
@@ -83,6 +84,7 @@ void main() {
           remoteDataHash: 'remote',
           localInstallationId: 'device-a',
           remoteInstallationId: 'device-b',
+          conflictCount: 1,
         ),
         isNull,
       );
@@ -98,6 +100,7 @@ void main() {
           remoteDataHash: 'remote',
           localInstallationId: 'device-a',
           remoteInstallationId: 'device-b',
+          conflictCount: 1,
         ),
         isNull,
       );
@@ -113,6 +116,7 @@ void main() {
           remoteDataHash: 'remote',
           localInstallationId: 'same-device',
           remoteInstallationId: 'same-device',
+          conflictCount: 1,
         ),
         DriveSyncResolution.keepLocal,
       );
@@ -128,6 +132,7 @@ void main() {
           remoteDataHash: 'remote',
           localInstallationId: 'device-a',
           remoteInstallationId: 'device-b',
+          conflictCount: 1,
         ),
         DriveSyncResolution.keepLocal,
       );
@@ -145,11 +150,28 @@ void main() {
             remoteDataHash: 'remote',
             localInstallationId: 'device-a',
             remoteInstallationId: 'device-b',
+            conflictCount: 1,
           ),
           isNull,
-        ),
+        );
       },
     );
+
+    test('merges changes without conflicting records automatically', () {
+      expect(
+        DriveSyncPreview.inferAutomaticResolution(
+          lastSyncedDataHash: null,
+          lastDeviceSyncAt: null,
+          remoteUpdatedAt: null,
+          localDataHash: 'local',
+          remoteDataHash: 'remote',
+          localInstallationId: 'device-a',
+          remoteInstallationId: 'device-b',
+          conflictCount: 0,
+        ),
+        DriveSyncResolution.merge,
+      );
+    });
   });
 
   test('does not treat an unconfirmed backup list as an empty Drive', () {

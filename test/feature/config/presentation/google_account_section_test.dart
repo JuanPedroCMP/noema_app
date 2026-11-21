@@ -191,7 +191,10 @@ class _UnlinkedGoogleDriveService extends Fake
   Future<List<BackupFileOut>> listBackups(String accountId) async => [];
 
   @override
-  Future<List<SyncLogOut>> listSyncHistory(String accountId) async => [];
+  Future<List<SyncLogOut>> listSyncHistory(
+    String accountId, {
+    String? deviceId,
+  }) async => [];
 }
 
 class _ConnectedGoogleDriveService extends Fake
@@ -227,5 +230,8 @@ class _ConnectedGoogleDriveService extends Fake
   Future<List<BackupFileOut>> listBackups(String accountId) async => [];
 
   @override
-  Future<List<SyncLogOut>> listSyncHistory(String accountId) async => [];
+  Future<List<SyncLogOut>> listSyncHistory(
+    String accountId, {
+    String? deviceId,
+  }) async => [];
 }

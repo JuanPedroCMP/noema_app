@@ -2,12 +2,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/review/data/domain_dashboard_service.dart';
 
-final domainDashboardProvider = StreamProvider<DomainDashboardSummary>((ref) async* {
+final domainDashboardProvider = StreamProvider<DomainDashboardSummary>((
+  ref,
+) async* {
   final database = ref.watch(appDatabaseProvider);
   final user = await ref.watch(userProvider.future);
   yield* DomainDashboardService(database).watch(userId: user.id);
@@ -47,7 +50,7 @@ class _DashboardLoading extends StatelessWidget {
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
       SizedBox(width: 12),
-      Text('Carregando seu domínio por conceito...'),
+      RuntimeLocalizedText('Carregando seu domínio por conceito...'),
     ],
   );
 }
@@ -63,7 +66,11 @@ class _DashboardError extends StatelessWidget {
     children: [
       const Icon(Icons.error_outline),
       const SizedBox(width: 12),
-      Expanded(child: Text('Não foi possível carregar o painel: $error')),
+      Expanded(
+        child: RuntimeLocalizedText(
+          'Não foi possível carregar o painel: $error',
+        ),
+      ),
       IconButton(
         tooltip: 'Tentar novamente',
         onPressed: onRetry,
@@ -99,7 +106,7 @@ class _DashboardContent extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => context.go(RoutePaths.graphs),
-              child: const Text('Explorar grafos'),
+              child: const RuntimeLocalizedText('Explorar grafos'),
             ),
           ],
         ),
@@ -135,7 +142,10 @@ class _DashboardContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text('Evolução nos últimos 14 dias', style: theme.textTheme.titleSmall),
+        RuntimeLocalizedText(
+          'Evolução nos últimos 14 dias',
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         SizedBox(
           height: 150,
@@ -154,7 +164,10 @@ class _DashboardContent extends StatelessWidget {
                     maxY: 1,
                     minX: 0,
                     maxX: 13,
-                    gridData: const FlGridData(show: true, drawVerticalLine: false),
+                    gridData: const FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                    ),
                     borderData: FlBorderData(show: false),
                     titlesData: FlTitlesData(
                       topTitles: const AxisTitles(
@@ -196,9 +209,11 @@ class _DashboardContent extends StatelessWidget {
                     lineBarsData: [
                       LineChartBarData(
                         spots: [
-                          for (var index = 0;
-                              index < summary.recentProgress.length;
-                              index++)
+                          for (
+                            var index = 0;
+                            index < summary.recentProgress.length;
+                            index++
+                          )
                             if (summary.recentProgress[index].averageScore
                                 case final score?)
                               FlSpot(index.toDouble(), score),
@@ -233,6 +248,6 @@ class _SummaryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Chip(
     avatar: Icon(icon, size: 18, color: color),
-    label: Text('$label: $count'),
+    label: RuntimeLocalizedText('$label: $count'),
   );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
@@ -10,9 +11,7 @@ final exerciseReviewQueueProvider =
     StreamProvider.autoDispose<List<ExerciseReviewGroup>>((ref) async* {
       final database = ref.watch(appDatabaseProvider);
       final user = await ref.watch(userProvider.future);
-      yield* ExerciseReviewQueueService(
-        database,
-      ).watch(userId: user.id);
+      yield* ExerciseReviewQueueService(database).watch(userId: user.id);
     });
 
 class ExerciseReviewQueuePage extends StatelessWidget {
@@ -52,10 +51,7 @@ class ExerciseReviewQueueSection extends ConsumerWidget {
             error: error,
             onRetry: () => ref.invalidate(exerciseReviewQueueProvider),
           ),
-          data: (groups) => _QueueContent(
-            groups: groups,
-            compact: compact,
-          ),
+          data: (groups) => _QueueContent(groups: groups, compact: compact),
         ),
       ),
     );
@@ -70,20 +66,29 @@ class _QueueContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = groups.fold<int>(0, (count, group) => count + group.items.length);
+    final total = groups.fold<int>(
+      0,
+      (count, group) => count + group.items.length,
+    );
     final visibleGroups = compact ? groups.take(3) : groups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Icon(Icons.quiz_outlined, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.quiz_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Revisão de exercícios', style: Theme.of(context).textTheme.titleLarge),
+                  RuntimeLocalizedText(
+                    'Revisão de exercícios',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     'Revisões espaçadas, agrupadas por grafo e tópico.',
@@ -92,14 +97,15 @@ class _QueueContent extends StatelessWidget {
                 ],
               ),
             ),
-            if (total > 0) Chip(label: Text('$total')),
+            if (total > 0) Chip(label: RuntimeLocalizedText('$total')),
           ],
         ),
         const SizedBox(height: 12),
         if (total == 0)
           const _QueueStatus(
             icon: Icons.check_circle_outline_rounded,
-            message: 'Nenhum exercício vencido. Continue estudando no seu ritmo.',
+            message:
+                'Nenhum exercício vencido. Continue estudando no seu ritmo.',
           )
         else ...[
           for (final group in visibleGroups)
@@ -110,7 +116,7 @@ class _QueueContent extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => context.go(RoutePaths.exerciseReview),
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: const Text('Abrir fila completa'),
+                label: const RuntimeLocalizedText('Abrir fila completa'),
               ),
             ),
         ],
@@ -155,7 +161,11 @@ class _ReviewGroupTile extends StatelessWidget {
                         ? Icons.edit_note_rounded
                         : Icons.checklist_rounded,
                   ),
-                  title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  title: Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   subtitle: Text(
                     item.type.databaseValue == 'OPEN_ENDED'
                         ? 'Questão aberta'
@@ -220,7 +230,7 @@ class _QueueError extends StatelessWidget {
     children: [
       const Icon(Icons.error_outline_rounded),
       const SizedBox(width: 10),
-      Expanded(child: Text('Falha ao carregar a fila: $error')),
+      Expanded(child: RuntimeLocalizedText('Falha ao carregar a fila: $error')),
       IconButton(
         tooltip: 'Tentar novamente',
         onPressed: onRetry,

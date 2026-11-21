@@ -85,14 +85,8 @@ void main() {
     );
 
     expect(path.recommendedNodeIds, ['parent']);
-    expect(
-      path.progressByNodeId['subtopic']!.unmetPrerequisiteIds,
-      ['parent'],
-    );
-    expect(
-      path.progressByNodeId['subtopic']!.parentTopicIds,
-      ['parent'],
-    );
+    expect(path.progressByNodeId['subtopic']!.unmetPrerequisiteIds, ['parent']);
+    expect(path.progressByNodeId['subtopic']!.parentTopicIds, ['parent']);
   });
 
   test('uses the parent as a prerequisite for its subtopic', () {

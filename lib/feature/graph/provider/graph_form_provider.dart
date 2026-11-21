@@ -24,4 +24,6 @@ class GraphFormNotifier extends Notifier<GraphFormState> {
   }
 }
 
-final graphFormProvider = NotifierProvider<GraphFormNotifier, GraphFormState>(GraphFormNotifier.new);
+final graphFormProvider = NotifierProvider<GraphFormNotifier, GraphFormState>(
+  GraphFormNotifier.new,
+);

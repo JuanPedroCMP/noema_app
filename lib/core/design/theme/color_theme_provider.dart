@@ -29,12 +29,15 @@ class SwitchColor extends AsyncNotifier<int> {
         userId: user.id,
         name: "Default",
         seedColor: AppThemeDefaults.seedColor,
+        overridesJson: jsonEncode({'__brightness': 'dark'}),
+        systemDefault: true,
       );
 
       final typographThemeId = await typographyThemeDao.insertTypographyTheme(
         userId: user.id,
         name: "Default",
-        fontScale: 1,
+        fontScale: 100,
+        systemDefault: true,
       );
 
       await configDao.insertConfig(
@@ -122,6 +125,9 @@ class SwitchColor extends AsyncNotifier<int> {
       );
       return;
     }
+    if (theme.systemDefault) {
+      throw StateError('O tema padrão do Noema não pode ser alterado.');
+    }
 
     await colorThemeDao.updateColorTheme(id: theme.id, seedColor: color);
 
@@ -141,6 +147,9 @@ class SwitchColor extends AsyncNotifier<int> {
     final theme = await dao.getColorTheme(id: config.colorThemeId);
     if (theme == null || theme.userId != user.id) {
       throw StateError('Tema de cores ativo não encontrado.');
+    }
+    if (theme.systemDefault) {
+      throw StateError('O tema padrão do Noema não pode ser alterado.');
     }
 
     final overrides = _readThemeOverrides(theme.overridesJson)
@@ -211,7 +220,16 @@ class SwitchColor extends AsyncNotifier<int> {
     required Map<String, int> overrides,
   }) async {
     final db = ref.read(appDatabaseProvider);
-    await ColorThemeDao(db).updateColorTheme(
+    final user = await ref.read(userProvider.notifier).getUser();
+    final dao = ColorThemeDao(db);
+    final theme = await dao.getColorTheme(id: themeId);
+    if (theme == null || theme.userId != user.id) {
+      throw StateError('Tema de cores não encontrado.');
+    }
+    if (theme.systemDefault) {
+      throw StateError('O tema padrão do Noema não pode ser alterado.');
+    }
+    await dao.updateColorTheme(
       id: themeId,
       name: name.trim(),
       seedColor: seedColor,
@@ -249,7 +267,7 @@ final activeColorThemeProvider = StreamProvider.autoDispose<ColorThemeData?>((
 class SwithBrightness extends Notifier<Brightness> {
   @override
   Brightness build() {
-    return WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    return Brightness.dark;
   }
 
   void change({required Brightness brightness}) {

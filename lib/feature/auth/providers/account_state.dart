@@ -1,6 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_provider.dart';
 import 'package:noema/core/design/theme/typography_theme_provider.dart';
+import 'package:noema/core/network/api_client.dart';
+import 'package:noema/feature/auth/providers/auth_state_provider.dart';
+import 'package:noema/feature/auth/services/login_service.dart';
+import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/flashcards/presentation/flashcard.dart';
 import 'package:noema/feature/graph/provider/edge_form_provider.dart';
@@ -32,4 +37,23 @@ void resetAccountScopedState(WidgetRef ref) {
   ref.invalidate(tempJsonGraphProvider);
   ref.invalidate(transformationControllerProvider);
   ref.read(selectedProvider.notifier).clear();
+}
+
+Future<Object?> endAccountSession(WidgetRef ref) async {
+  final storage = ref.read(secureSorageProvider);
+  await storage.delete(key: 'access_token');
+  await storage.delete(key: 'access_token_remote_owner_id');
+  await storage.delete(key: 'access_token_remote_onwer_id');
+  clearApiAccessToken(ref.read(apiClientProvider));
+
+  Object? localCleanupError;
+  try {
+    await AppUserDao(ref.read(appDatabaseProvider)).deactivateAllUsers();
+  } catch (error) {
+    localCleanupError = error;
+  } finally {
+    resetAccountScopedState(ref);
+    ref.invalidate(authStateProvider);
+  }
+  return localCleanupError;
 }

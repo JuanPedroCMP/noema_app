@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
@@ -27,7 +28,7 @@ class CreateNode extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          RuntimeLocalizedText(
             "Novo nó",
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -38,7 +39,7 @@ class CreateNode extends ConsumerWidget {
                 formNodeNotifier.typeChanged(value);
               }
             },
-            label: const Text("Tipo do nó"),
+            label: const RuntimeLocalizedText("Tipo do nó"),
             dropdownMenuEntries: [
               DropdownMenuEntry(value: 'AREA', label: 'AREA'),
               DropdownMenuEntry(value: 'TOPIC', label: 'TOPIC'),
@@ -70,7 +71,9 @@ class CreateNode extends ConsumerWidget {
                   if (formNode.type.isEmpty || formNode.title.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Informe o tipo e o título do nó."),
+                        content: RuntimeLocalizedText(
+                          "Informe o tipo e o título do nó.",
+                        ),
                       ),
                     );
                     return;
@@ -91,27 +94,31 @@ class CreateNode extends ConsumerWidget {
                     if (context.mounted) {
                       graphStatesNotifier.isCreatingNodeChanged(false);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Nó adicionado.")),
+                        const SnackBar(
+                          content: RuntimeLocalizedText("Nó adicionado."),
+                        ),
                       );
                     }
                   } catch (_) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Não foi possível adicionar o nó."),
+                          content: RuntimeLocalizedText(
+                            "Não foi possível adicionar o nó.",
+                          ),
                         ),
                       );
                     }
                   }
                 },
-                child: Text("Criar"),
+                child: RuntimeLocalizedText("Criar"),
               ),
 
               OutlinedButton(
                 onPressed: () {
                   graphStatesNotifier.isCreatingNodeChanged(false);
                 },
-                child: Text("Cancelar"),
+                child: RuntimeLocalizedText("Cancelar"),
               ),
             ],
           ),

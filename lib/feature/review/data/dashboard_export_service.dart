@@ -64,11 +64,7 @@ class DashboardExportService {
         ..add(['Data', 'Revisões', 'Taxa média de acertos']);
       rows.addAll([
         for (final point in summary.reviewFrequency)
-          [
-            _dateKey(point.date),
-            point.reviewCount,
-            point.averageAccuracy,
-          ],
+          [_dateKey(point.date), point.reviewCount, point.averageAccuracy],
       ]);
     }
     if (sections.contains('graphs')) {
@@ -118,10 +114,7 @@ class DashboardExportService {
       rows
         ..add(const [])
         ..add(['Uso de IA'])
-        ..add([
-          'Chamadas',
-          aiUsage == null ? 'Indisponível' : aiUsage.calls,
-        ])
+        ..add(['Chamadas', aiUsage == null ? 'Indisponível' : aiUsage.calls])
         ..add([
           'Tokens de entrada',
           aiUsage == null || aiUsage.callsWithInputTokenData == 0
@@ -244,25 +237,31 @@ class DashboardExportService {
             ['Tempo de revisão', '${summary.reviewMinutes} min'],
           ]),
           if (sections.contains('evolution'))
-            _pdfSection('Evolução do domínio', _pdfRows([
-              for (final point in summary.recentProgress)
-                [
-                  _dateKey(point.date),
-                  _percent(point.averageScore),
-                ],
-            ])),
+            _pdfSection(
+              'Evolução do domínio',
+              _pdfRows([
+                for (final point in summary.recentProgress)
+                  [_dateKey(point.date), _percent(point.averageScore)],
+              ]),
+            ),
           if (sections.contains('reviews'))
-            _pdfSection('Frequência e acertos', _pdfRows([
-              for (final point in summary.reviewFrequency)
-                [
-                  _dateKey(point.date),
-                  '${point.reviewCount} revisões',
-                  'Acertos ${_percent(point.averageAccuracy)}',
-                ],
-            ])),
+            _pdfSection(
+              'Frequência e acertos',
+              _pdfRows([
+                for (final point in summary.reviewFrequency)
+                  [
+                    _dateKey(point.date),
+                    '${point.reviewCount} revisões',
+                    'Acertos ${_percent(point.averageAccuracy)}',
+                  ],
+              ]),
+            ),
           if (sections.contains('fsrs'))
             _pdfSection('Métricas FSRS', [
-              ['Retenção média estimada', _percent(summary.averageRetrievability)],
+              [
+                'Retenção média estimada',
+                _percent(summary.averageRetrievability),
+              ],
               [
                 'Intervalo agendado médio',
                 summary.averageScheduledDays == null
@@ -311,36 +310,42 @@ class DashboardExportService {
           if (sections.contains('graphs'))
             _pdfSection(
               'Desempenho por grafo',
-              _pdfRows(summary.graphPerformance.map((graph) {
-                return [
-                  graph.graphTitle,
-                  '${graph.nodeCount} nós',
-                  _percent(graph.averageMastery),
-                ];
-              }).toList()),
+              _pdfRows(
+                summary.graphPerformance.map((graph) {
+                  return [
+                    graph.graphTitle,
+                    '${graph.nodeCount} nós',
+                    _percent(graph.averageMastery),
+                  ];
+                }).toList(),
+              ),
             ),
           if (sections.contains('nodes'))
             _pdfSection(
               'Desempenho por nó',
-              _pdfRows(summary.nodePerformance.map((node) {
-                return [
-                  node.nodeTitle,
-                  node.graphTitle,
-                  _percent(node.masteryScore),
-                  '${node.reviewCount} revisões',
-                ];
-              }).toList()),
+              _pdfRows(
+                summary.nodePerformance.map((node) {
+                  return [
+                    node.nodeTitle,
+                    node.graphTitle,
+                    _percent(node.masteryScore),
+                    '${node.reviewCount} revisões',
+                  ];
+                }).toList(),
+              ),
             ),
           if (sections.contains('activity'))
             _pdfSection(
               'Atividade recente',
-              _pdfRows(summary.recentActivity.map((activity) {
-                return [
-                  activity.loggedAt.toLocal().toString(),
-                  activity.nodeTitle,
-                  '${activity.graphTitle} · ${_percent(activity.score)}',
-                ];
-              }).toList()),
+              _pdfRows(
+                summary.recentActivity.map((activity) {
+                  return [
+                    activity.loggedAt.toLocal().toString(),
+                    activity.nodeTitle,
+                    '${activity.graphTitle} · ${_percent(activity.score)}',
+                  ];
+                }).toList(),
+              ),
             ),
           pw.SizedBox(height: 8),
           pw.Text(

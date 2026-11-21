@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/network/connetction_checker.dart';
@@ -9,9 +10,9 @@ import 'package:noema/feature/config/data/config_dao.dart';
 import 'package:noema/feature/config/presentation/preference_device_scope_control.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:openapi/openapi.dart';
 
-const _cachedResponseLanguagesKey = '__cachedResponseLanguages';
 const _cachedRemoteResponseLanguageOrderKey =
     '__cachedRemoteResponseLanguageOrder';
 
@@ -75,7 +76,7 @@ class _ResponseLanguagePreferencesSectionState
             ? null
             : readConfigPreference(
                 config.preferences,
-                _cachedResponseLanguagesKey,
+                cachedResponseLanguagesKey,
               ),
       );
 
@@ -154,7 +155,7 @@ class _ResponseLanguagePreferencesSectionState
           const <_ResponseLanguageOption>[];
       if (available.isNotEmpty) {
         await storage.saveLocally(
-          key: _cachedResponseLanguagesKey,
+          key: cachedResponseLanguagesKey,
           value: [
             for (final language in available)
               {'id': language.id, 'name': language.name},
@@ -286,20 +287,23 @@ class _ResponseLanguagePreferencesSectionState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_loading) {
       return const ListTile(
         contentPadding: EdgeInsets.zero,
         leading: Icon(Icons.translate),
-        title: Text('Idiomas de resposta'),
-        subtitle: Text('Carregando preferências locais…'),
+        title: RuntimeLocalizedText('Idiomas de resposta'),
+        subtitle: RuntimeLocalizedText('Carregando preferências locais…'),
       );
     }
     if (_error != null) {
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
-        title: const Text('Não foi possível carregar as preferências'),
-        subtitle: Text('$_error'),
+        title: const RuntimeLocalizedText(
+          'Não foi possível carregar as preferências',
+        ),
+        subtitle: RuntimeLocalizedText('$_error'),
         trailing: IconButton(
           tooltip: 'Tentar novamente',
           onPressed: _load,
@@ -330,11 +334,11 @@ class _ResponseLanguagePreferencesSectionState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Idiomas preferidos para respostas',
+                  RuntimeLocalizedText(
+                    l10n.preferredResponseLanguages,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  Text(
+                  RuntimeLocalizedText(
                     _deviceOnly
                         ? 'Salvo somente neste dispositivo. O primeiro idioma tem prioridade.'
                         : 'Salvo localmente primeiro; será sincronizado com a conta. O primeiro idioma tem prioridade.',
@@ -354,7 +358,7 @@ class _ResponseLanguagePreferencesSectionState
         if (_usingCachedLanguages)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text(
+            child: RuntimeLocalizedText(
               'Usando a lista local. Alterações serão sincronizadas quando a conexão voltar.',
             ),
           ),
@@ -375,7 +379,10 @@ class _ResponseLanguagePreferencesSectionState
               return ListTile(
                 key: ValueKey(language.id),
                 contentPadding: EdgeInsets.zero,
-                leading: CircleAvatar(radius: 14, child: Text('${index + 1}')),
+                leading: CircleAvatar(
+                  radius: 14,
+                  child: RuntimeLocalizedText('${index + 1}'),
+                ),
                 title: Text(language.name),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -397,15 +404,15 @@ class _ResponseLanguagePreferencesSectionState
             },
           ),
         if (_languages.isEmpty)
-          const Text(
+          const RuntimeLocalizedText(
             'Conecte-se uma vez para carregar idiomas; as preferências salvas continuam disponíveis offline.',
           )
         else
           DropdownButtonFormField<String>(
             key: ValueKey(available.map((item) => item.id).join(',')),
             initialValue: null,
-            decoration: const InputDecoration(
-              labelText: 'Adicionar idioma',
+            decoration: InputDecoration(
+              labelText: l10n.addLanguage,
               prefixIcon: Icon(Icons.add),
             ),
             items: available

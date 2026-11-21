@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/router/route_paths.dart';
 
 class ShellPage extends StatelessWidget {
@@ -10,17 +11,17 @@ class ShellPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Noema App")),
+      appBar: AppBar(title: const RuntimeLocalizedText("Noema App")),
 
       drawer: Drawer(
         child: ListView(
           children: [
             ListTile(
-              title: const Text("Home"),
+              title: const RuntimeLocalizedText("Home"),
               onTap: () => context.go(RoutePaths.home),
             ),
             ListTile(
-              title: Text("Notas"),
+              title: RuntimeLocalizedText("Notas"),
               onTap: () => context.go(RoutePaths.notes),
             ),
           ],

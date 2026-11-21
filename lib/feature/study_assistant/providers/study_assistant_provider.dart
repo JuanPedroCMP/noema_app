@@ -37,10 +37,7 @@ class StudyAssistantNotifier extends Notifier<StudyAssistantState> {
     );
   }
 
-  Future<void> send({
-    required String text,
-    required String currentPath,
-  }) async {
+  Future<void> send({required String text, required String currentPath}) async {
     final message = text.trim();
     if (message.isEmpty || state.isSending) return;
     if (message.length > 1000) {

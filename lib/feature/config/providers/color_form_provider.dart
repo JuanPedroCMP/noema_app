@@ -16,4 +16,6 @@ class ColorFormNotifier extends Notifier<ColorUpFormState> {
   }
 }
 
-final colorFormProvider = NotifierProvider<ColorFormNotifier, ColorUpFormState>(ColorFormNotifier.new);
+final colorFormProvider = NotifierProvider<ColorFormNotifier, ColorUpFormState>(
+  ColorFormNotifier.new,
+);

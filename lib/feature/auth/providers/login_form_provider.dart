@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/feature/auth/providers/login_form_state.dart';
 
-class LoginFormNotifier extends Notifier<LoginFormState>{
+class LoginFormNotifier extends Notifier<LoginFormState> {
   @override
   LoginFormState build() {
     return const LoginFormState();
@@ -24,4 +24,6 @@ class LoginFormNotifier extends Notifier<LoginFormState>{
   }
 }
 
-final loginFormProvider = NotifierProvider<LoginFormNotifier, LoginFormState>(LoginFormNotifier.new);
+final loginFormProvider = NotifierProvider<LoginFormNotifier, LoginFormState>(
+  LoginFormNotifier.new,
+);

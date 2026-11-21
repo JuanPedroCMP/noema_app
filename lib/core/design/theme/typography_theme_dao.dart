@@ -48,7 +48,11 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase>
     int? fontScale,
     String? overridesJson,
     bool? systemDefault,
-  }) {
+  }) async {
+    final theme = await getTypographyTheme(id: id);
+    if (theme?.systemDefault == true) {
+      throw StateError('A tipografia padrão do Noema não pode ser alterada.');
+    }
     return (update(
       attachedDatabase.typographyTheme,
     )..where((tbl) => tbl.id.equals(id))).write(
@@ -81,9 +85,7 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase>
     required String name,
     required String userId,
   }) {
-    return (select(
-      attachedDatabase.typographyTheme,
-    )
+    return (select(attachedDatabase.typographyTheme)
           ..where((tbl) => tbl.name.equals(name))
           ..where((tbl) => tbl.userId.equals(userId)))
         .getSingleOrNull();
@@ -97,7 +99,11 @@ class TypographyThemeDao extends DatabaseAccessor<AppDatabase>
     )..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
-  Future<int> deleteTypographyTheme({required String id}) {
+  Future<int> deleteTypographyTheme({required String id}) async {
+    final theme = await getTypographyTheme(id: id);
+    if (theme?.systemDefault == true) {
+      throw StateError('A tipografia padrão do Noema não pode ser excluída.');
+    }
     return (delete(
       attachedDatabase.typographyTheme,
     )..where((tbl) => tbl.id.equals(id))).go();

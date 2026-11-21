@@ -1,21 +1,76 @@
-   import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:noema/core/database/database.dart';
+import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/providers/ai_queue_concurrency_provider.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/services/ai_request_queue.dart';
+import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/graph/data/converter_ai_response.dart';
 
 void main() {
   test('matches the backend task name for the study assistant', () {
     expect(AiAgentTask.studyAssistant.wireName, 'study_assistent');
   });
+
+  test('accepts graphs larger than 30 nodes', () {
+    final response = GraphResponse.fromJson({
+      'graph_title': 'Grafo grande',
+      'graph_description': 'Teste sem limite artificial',
+      'nodes': [
+        for (var index = 1; index <= 31; index++)
+          {'node_id': index, 'title': 'Nó $index', 'type': 'TOPIC'},
+      ],
+      'edges': const [],
+    });
+
+    response.validate();
+
+    expect(response.nodes, hasLength(31));
+  });
+
+  test(
+    'does not wait for remote auth/config loading to resolve response language',
+    () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      await database
+          .into(database.appUser)
+          .insert(
+            AppUserCompanion.insert(
+              id: 'local-user',
+              remoteId: 'remote-user',
+              userName: 'student',
+              displayName: 'Student',
+              primaryEmail: 'student@example.com',
+              lastSeenAt: 0,
+              isActive: const drift.Value(true),
+            ),
+          );
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          userProvider.overrideWith(_UnexpectedUserNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final language = await container.read(
+        aiResponseLanguageResolverProvider,
+      )();
+
+      expect(language, null);
+    },
+  );
 
   test(
     'posts the selected agent and prompt, then waits for the response',
@@ -30,7 +85,13 @@ void main() {
         postStarted: postStarted,
         postResponse: postResponse,
       );
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => 'English',
+          ),
+        ],
+      );
       addTearDown(container.dispose);
 
       final client = container.read(apiClientProvider);
@@ -65,6 +126,7 @@ void main() {
         adapter.postAuthorization,
         ['Bearer', 'test-access-token'].join(' '),
       );
+      expect(adapter.responseLanguageHeader, 'English');
       expect(
         adapter.agentListAuthorization,
         ['Bearer', 'test-access-token'].join(' '),
@@ -107,7 +169,13 @@ void main() {
         postResponse: postResponse,
         rejectAgentList: true,
       );
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
       addTearDown(container.dispose);
 
       final client = container.read(apiClientProvider);
@@ -149,12 +217,84 @@ void main() {
   );
 
   test(
+    'generates a batch with the supplied agent and preserves prompt order',
+    () async {
+      final adapter = _AiBatchAdapter();
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      final results = await container
+          .read(aiContentGenerationServiceProvider)
+          .generateBatch(
+            task: AiAgentTask.createEssayQuestion,
+            agentId: 'essay-agent-id',
+            prompts: const ['first prompt', 'second prompt'],
+          );
+
+      expect(results, hasLength(2));
+      expect(results[0]['prompt'], contains('first prompt'));
+      expect(results[1]['prompt'], contains('second prompt'));
+      expect(adapter.agentIds, ['essay-agent-id', 'essay-agent-id']);
+      expect(adapter.prompts, hasLength(2));
+    },
+  );
+
+  test(
     'generates node descriptions through the background request queue',
     () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      await database
+          .into(database.appUser)
+          .insert(
+            AppUserCompanion.insert(
+              id: 'user-id',
+              remoteId: 'remote-user-id',
+              userName: 'student',
+              displayName: 'Student',
+              primaryEmail: 'student@example.com',
+              lastSeenAt: 0,
+            ),
+          );
+      await database
+          .into(database.knowledgeGraph)
+          .insert(
+            KnowledgeGraphCompanion.insert(
+              id: 'graph-id',
+              userId: 'user-id',
+              title: 'Biologia',
+            ),
+          );
+      await database
+          .into(database.graphNode)
+          .insert(
+            GraphNodeCompanion.insert(
+              id: 'node-id',
+              graphId: 'graph-id',
+              type: 'CONCEPT',
+              title: 'Fotossíntese',
+              positionX: 0,
+              positionY: 0,
+            ),
+          );
       final adapter = _NodeDescriptionAdapter();
       final container = ProviderContainer(
         overrides: [
+          appDatabaseProvider.overrideWithValue(database),
           aiQueueConcurrencyProvider.overrideWith(_TestConcurrencyNotifier.new),
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -181,6 +321,10 @@ void main() {
       expect(adapter.method, 'POST');
       expect(adapter.queryParameters['agent_id'], 'description-agent-id');
       expect(adapter.queryParameters['user_prompt'], contains('Fotossíntese'));
+      expect(
+        adapter.queryParameters['user_prompt'],
+        isNot(contains('português')),
+      );
       expect(adapter.authorization, ['Bearer', 'test-access-token'].join(' '));
       expect(
         container.read(aiRequestQueueProvider).activeBackgroundRequests,
@@ -225,7 +369,13 @@ void main() {
     'extracts JSON from markdown fences and retries on invalid response',
     () async {
       final adapter = _RetryAdapter();
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
       addTearDown(container.dispose);
 
       final client = container.read(apiClientProvider);
@@ -253,6 +403,13 @@ void main() {
   );
 }
 
+class _UnexpectedUserNotifier extends UserNotifier {
+  @override
+  Future<AppUserData> build() async {
+    throw StateError('AI language resolution must not wait for auth state.');
+  }
+}
+
 class _AiApiAdapter implements HttpClientAdapter {
   _AiApiAdapter({
     required this.agentId,
@@ -273,6 +430,7 @@ class _AiApiAdapter implements HttpClientAdapter {
   String? postUri;
   Map<String, dynamic>? postQueryParameters;
   String? postAuthorization;
+  String? responseLanguageHeader;
   String? agentListAuthorization;
   String? globalAgentListAuthorization;
 
@@ -318,6 +476,7 @@ class _AiApiAdapter implements HttpClientAdapter {
     postUri = options.uri.toString();
     postQueryParameters = Map<String, dynamic>.from(options.queryParameters);
     postAuthorization = options.headers['Authorization'] as String?;
+    responseLanguageHeader = options.headers['X-Response-Language'] as String?;
     expect(prompt, options.queryParameters['user_prompt']);
     postStarted.complete();
     return postResponse.future;
@@ -330,6 +489,27 @@ class _AiApiAdapter implements HttpClientAdapter {
 class _TestConcurrencyNotifier extends AiQueueConcurrencyNotifier {
   @override
   Future<int> build() async => 2;
+}
+
+class _AiBatchAdapter implements HttpClientAdapter {
+  final List<String> agentIds = [];
+  final List<String> prompts = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final agentId = options.queryParameters['agent_id'] as String;
+    final prompt = options.queryParameters['user_prompt'] as String;
+    agentIds.add(agentId);
+    prompts.add(prompt);
+    return _jsonResponse({'prompt': prompt});
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
 
 class _NodeDescriptionAdapter implements HttpClientAdapter {

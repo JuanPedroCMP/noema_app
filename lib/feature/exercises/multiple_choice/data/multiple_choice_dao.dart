@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'multiple_choice_dao.g.dart';
 
 @DriftAccessor(tables: [MultipleChoice])
-class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleChoiceDaoMixin {
+class MultipleChoiceDao extends DatabaseAccessor<AppDatabase>
+    with _$MultipleChoiceDaoMixin {
   MultipleChoiceDao(super.db);
 
   Future<String> insertMultipleChoice({
@@ -42,18 +43,23 @@ class MultipleChoiceDao extends DatabaseAccessor<AppDatabase> with _$MultipleCho
         nodeId: nodeId == null ? const Value.absent() : Value(nodeId),
         title: title == null ? const Value.absent() : Value(title),
         statement: statement == null ? const Value.absent() : Value(statement),
-        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
+        isAiGenerated: isAiGenerated == null
+            ? const Value.absent()
+            : Value(isAiGenerated),
         updatedAt: Value(now),
       ),
     );
   }
 
   Future<MultipleChoiceData?> getMultipleChoice({required String id}) {
-    return (select(attachedDatabase.multipleChoice)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.multipleChoice,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-  Future<List<MultipleChoiceData>> getMultipleChoicesByNode({required String nodeId}) {
+  Future<List<MultipleChoiceData>> getMultipleChoicesByNode({
+    required String nodeId,
+  }) {
     return (select(attachedDatabase.multipleChoice)
           ..where((tbl) => tbl.nodeId.equals(nodeId))
           ..where((tbl) => tbl.softDeleted.equals(false))

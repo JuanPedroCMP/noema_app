@@ -8,7 +8,7 @@ final serverConnectionChecker = StreamProvider<bool>((ref) async* {
     requireAllAddressesToRespond: true,
     addresses: [AddressCheckOption(uri: Uri.parse('https://api.tccnoema.me'))],
   );
-  
+
   ref.onDispose(checker.dispose);
 
   yield await checker.hasConnection;

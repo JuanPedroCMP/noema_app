@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 
 class PreferenceDeviceScopeControl extends ConsumerWidget {
@@ -73,7 +74,9 @@ class PreferenceDeviceScopeControl extends ConsumerWidget {
               children: [
                 const Icon(Icons.phone_android_outlined, size: 20),
                 const SizedBox(width: 12),
-                const Expanded(child: Text('Somente neste dispositivo')),
+                const Expanded(
+                  child: RuntimeLocalizedText('Somente neste dispositivo'),
+                ),
                 if (deviceOnly) const Icon(Icons.check, size: 18),
               ],
             ),
@@ -84,7 +87,9 @@ class PreferenceDeviceScopeControl extends ConsumerWidget {
               children: [
                 const Icon(Icons.cloud_outlined, size: 20),
                 const SizedBox(width: 12),
-                const Expanded(child: Text('Sincronizar com a conta')),
+                const Expanded(
+                  child: RuntimeLocalizedText('Sincronizar com a conta'),
+                ),
                 if (!deviceOnly) const Icon(Icons.check, size: 18),
               ],
             ),

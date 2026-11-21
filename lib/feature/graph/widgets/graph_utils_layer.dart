@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
@@ -11,6 +12,7 @@ class GraphUtilsLayer extends ConsumerWidget {
   const GraphUtilsLayer({
     super.key,
     required this.onOrganize,
+    required this.onGraphChanged,
     required this.onCreateNode,
     required this.onCreateEdge,
     required this.canOrganize,
@@ -18,6 +20,7 @@ class GraphUtilsLayer extends ConsumerWidget {
   });
 
   final Future<void> Function() onOrganize;
+  final Future<bool> Function() onGraphChanged;
   final VoidCallback onCreateNode;
   final VoidCallback onCreateEdge;
   final bool canOrganize;
@@ -36,14 +39,14 @@ class GraphUtilsLayer extends ConsumerWidget {
               FilledButton.tonalIcon(
                 onPressed: onCreateNode,
                 icon: const Icon(Icons.add_circle_outline),
-                label: const Text('Adicionar nó'),
+                label: const RuntimeLocalizedText('Adicionar nó'),
                 style: _actionStyle(context, false),
               ),
               const SizedBox(width: 8),
               FilledButton.tonalIcon(
                 onPressed: onCreateEdge,
                 icon: const Icon(Icons.linear_scale),
-                label: const Text('Adicionar relação'),
+                label: const RuntimeLocalizedText('Adicionar relação'),
                 style: _actionStyle(context, graphStates.isCreatingEdge),
               ),
               const SizedBox(width: 8),
@@ -52,20 +55,20 @@ class GraphUtilsLayer extends ConsumerWidget {
                     ? null
                     : () => _deleteSelected(context, ref, selected),
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Excluir selecionado'),
+                label: const RuntimeLocalizedText('Excluir selecionado'),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: () => graphStatesNotifier.isEditingChanged(false),
                 icon: const Icon(Icons.check_rounded),
-                label: const Text('Concluir edição'),
+                label: const RuntimeLocalizedText('Concluir edição'),
               ),
             ]
           : [
               FilledButton.tonalIcon(
                 onPressed: () => graphStatesNotifier.isEditingChanged(true),
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Editar grafo'),
+                label: const RuntimeLocalizedText('Editar grafo'),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
@@ -105,18 +108,18 @@ class GraphUtilsLayer extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir elemento?'),
+        title: const RuntimeLocalizedText('Excluir elemento?'),
         content: const Text(
           'A exclusão removerá o elemento do grafo. Esta ação não pode ser desfeita.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
+            child: const RuntimeLocalizedText('Excluir'),
           ),
         ],
       ),
@@ -138,7 +141,9 @@ class GraphUtilsLayer extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível excluir o elemento: $error'),
+            content: RuntimeLocalizedText(
+              'Não foi possível excluir o elemento: $error',
+            ),
           ),
         );
       }
@@ -146,10 +151,18 @@ class GraphUtilsLayer extends ConsumerWidget {
     }
 
     ref.read(selectedProvider.notifier).clear();
+    final organized = await onGraphChanged();
+    if (!context.mounted) return;
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Elemento excluído.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            organized
+                ? 'Elemento excluído e grafo organizado.'
+                : 'Elemento excluído, mas não foi possível organizar o grafo.',
+          ),
+        ),
+      );
     }
   }
 }

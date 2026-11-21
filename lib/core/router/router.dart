@@ -102,7 +102,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'dashboard',
-                    builder: (_, _) => const DomainDashboardPage(),
+                    builder: (_, state) => DomainDashboardPage(
+                      initialGraphId: state.uri.queryParameters['graphId'],
+                      initialNodeId: state.uri.queryParameters['nodeId'],
+                    ),
                   ),
                   GoRoute(
                     path: 'exercise-review',
@@ -143,7 +146,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         path: 'flashcards/:nodeId',
                         builder: (context, state) {
                           final nodeId = state.pathParameters['nodeId']!;
-                          return FlashcardPage(nodeId: nodeId);
+                          return FlashcardPage(
+                            nodeId: nodeId,
+                            initialHandoff: state.extra is StudyAssistantHandoff
+                                ? state.extra as StudyAssistantHandoff
+                                : null,
+                          );
                         },
                       ),
                       GoRoute(
@@ -173,6 +181,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                               return OpenEnded(
                                 nodeId: nodeId,
                                 defaultMode: 1,
+                                initialType: handoff?.exerciseType == 'feynman'
+                                    ? OpenEndedType.feynman
+                                    : OpenEndedType.essay,
                                 initialAiInstructions: handoff?.prompt,
                                 autoGenerateAi: handoff?.autoGenerate ?? false,
                               );

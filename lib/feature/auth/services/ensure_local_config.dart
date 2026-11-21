@@ -24,7 +24,7 @@ Future<void> ensureLocalConfig({
   final typographyThemeId = await typographyThemeDao.insertTypographyTheme(
     userId: user.id,
     name: 'Default',
-    fontScale: 1,
+    fontScale: 100,
   );
 
   await configDao.insertConfig(

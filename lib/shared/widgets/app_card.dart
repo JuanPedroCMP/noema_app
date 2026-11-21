@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -32,9 +31,12 @@ class AppCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    title!,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      title!,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                 ),
                 ?trailing,
@@ -48,8 +50,8 @@ class AppCard extends StatelessWidget {
                   color: context.colors.onSurfaceVariant,
                 ),
               ),
-              SizedBox(height: context.spacing.md),
             ],
+            SizedBox(height: context.spacing.md),
           ],
           child,
         ],

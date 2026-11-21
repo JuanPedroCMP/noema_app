@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -81,16 +82,16 @@ class _StudySessionDetailPageState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Arquivar sessão?'),
-        content: Text('“${session.title}” sairá da sua lista.'),
+        title: const RuntimeLocalizedText('Arquivar sessão?'),
+        content: RuntimeLocalizedText('“${session.title}” sairá da sua lista.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Arquivar'),
+            child: const RuntimeLocalizedText('Arquivar'),
           ),
         ],
       ),
@@ -104,7 +105,11 @@ class _StudySessionDetailPageState
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível arquivar a sessão: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível arquivar a sessão: $error',
+          ),
+        ),
       );
     }
   }
@@ -148,21 +153,27 @@ class _StudySessionDetailPageState
                         SizedBox(height: context.spacing.sm),
                         Text(session.description!),
                       ],
-                      SizedBox(height: context.spacing.md - context.spacing.xxs),
+                      SizedBox(
+                        height: context.spacing.md - context.spacing.xxs,
+                      ),
                       Wrap(
                         spacing: context.spacing.sm,
                         runSpacing: context.spacing.sm,
                         children: [
                           Chip(
                             avatar: const Icon(Icons.timer_outlined, size: 18),
-                            label: Text('${session.targetDurationMin} min'),
+                            label: RuntimeLocalizedText(
+                              '${session.targetDurationMin} min',
+                            ),
                           ),
                           Chip(
                             avatar: const Icon(
                               Icons.format_list_numbered,
                               size: 18,
                             ),
-                            label: Text('${_questions.length} questões'),
+                            label: RuntimeLocalizedText(
+                              '${_questions.length} questões',
+                            ),
                           ),
                         ],
                       ),
@@ -175,7 +186,9 @@ class _StudySessionDetailPageState
                                   ? null
                                   : _runSession,
                               icon: const Icon(Icons.play_arrow_rounded),
-                              label: const Text('Começar sessão'),
+                              label: const RuntimeLocalizedText(
+                                'Começar sessão',
+                              ),
                             ),
                           ),
                           SizedBox(width: context.spacing.sm),
@@ -241,7 +254,9 @@ class _StudySessionDetailPageState
                 for (var index = 0; index < _questions.length; index++)
                   Card(
                     child: ListTile(
-                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      leading: CircleAvatar(
+                        child: RuntimeLocalizedText('${index + 1}'),
+                      ),
                       title: Text(_questions[index].title),
                       subtitle: Text(
                         '${_questions[index].nodeTitle} · '
@@ -311,7 +326,9 @@ class _StudySessionDetailPageState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Não foi possível carregar as respostas: $error'),
+          content: RuntimeLocalizedText(
+            'Não foi possível carregar as respostas: $error',
+          ),
         ),
       );
       return;
@@ -392,7 +409,9 @@ class _StudySessionDetailPageState
                       if (averageScore != null)
                         Chip(
                           avatar: const Icon(Icons.insights_rounded, size: 18),
-                          label: Text('Média ${(averageScore * 100).round()}%'),
+                          label: RuntimeLocalizedText(
+                            'Média ${(averageScore * 100).round()}%',
+                          ),
                         ),
                     ],
                   ),
@@ -407,9 +426,13 @@ class _StudySessionDetailPageState
                       spacing: 8,
                       children: [
                         if (runSnapshot.interleavingEnabled == true)
-                          const Chip(label: Text('Intercalamento')),
+                          const Chip(
+                            label: RuntimeLocalizedText('Intercalamento'),
+                          ),
                         if (runSnapshot.diagnosticFocus == true)
-                          const Chip(label: Text('Foco diagnóstico')),
+                          const Chip(
+                            label: RuntimeLocalizedText('Foco diagnóstico'),
+                          ),
                       ],
                     ),
                   ],
@@ -426,7 +449,9 @@ class _StudySessionDetailPageState
                         if (decoded.isEmpty)
                           const Card(
                             child: ListTile(
-                              title: Text('Sem snapshot de questões'),
+                              title: RuntimeLocalizedText(
+                                'Sem snapshot de questões',
+                              ),
                             ),
                           ),
                       ],
@@ -455,7 +480,9 @@ class _StudySessionDetailPageState
       if (node == null || node.softDeleted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('O node deste exercício não está disponível.'),
+            content: RuntimeLocalizedText(
+              'O node deste exercício não está disponível.',
+            ),
           ),
         );
         return;
@@ -468,7 +495,11 @@ class _StudySessionDetailPageState
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível abrir o exercício: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível abrir o exercício: $error',
+          ),
+        ),
       );
     }
   }
@@ -582,7 +613,7 @@ class _QuestionRunLogCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
-        leading: CircleAvatar(child: Text('$number')),
+        leading: CircleAvatar(child: RuntimeLocalizedText('$number')),
         title: Text(title),
         subtitle: Text(subtitle),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -599,7 +630,9 @@ class _QuestionRunLogCard extends StatelessWidget {
             const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.hourglass_empty_rounded),
-              title: Text('Nenhuma resposta registrada nesta realização.'),
+              title: RuntimeLocalizedText(
+                'Nenhuma resposta registrada nesta realização.',
+              ),
             )
           else if (isMultipleChoice)
             _multipleChoiceAnswer(context)
@@ -607,13 +640,19 @@ class _QuestionRunLogCard extends StatelessWidget {
             _openEndedAnswer(context),
           if ((answer?.feedback ?? '').trim().isNotEmpty) ...[
             const Divider(height: 24),
-            Text('Feedback', style: Theme.of(context).textTheme.titleSmall),
+            RuntimeLocalizedText(
+              'Feedback',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 4),
             SelectableText(answer!.feedback!),
           ],
           if ((answer?.notes ?? '').trim().isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text('Anotações', style: Theme.of(context).textTheme.titleSmall),
+            RuntimeLocalizedText(
+              'Anotações',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 4),
             SelectableText(answer!.notes!),
           ],
@@ -646,10 +685,16 @@ class _QuestionRunLogCard extends StatelessWidget {
             if (currentAnswer.wrongSelected != null)
               Chip(
                 avatar: const Icon(Icons.close_rounded, size: 18),
-                label: Text('${currentAnswer.wrongSelected} incorretas'),
+                label: RuntimeLocalizedText(
+                  '${currentAnswer.wrongSelected} incorretas',
+                ),
               ),
             if (score != null)
-              Chip(label: Text('Aproveitamento ${(score * 100).round()}%')),
+              Chip(
+                label: RuntimeLocalizedText(
+                  'Aproveitamento ${(score * 100).round()}%',
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),
@@ -671,7 +716,7 @@ class _QuestionRunLogCard extends StatelessWidget {
             ),
             title: Text(choice['statement']?.toString() ?? ''),
             subtitle: selectedIds.contains(choice['id']?.toString())
-                ? const Text('Selecionada')
+                ? const RuntimeLocalizedText('Selecionada')
                 : null,
           ),
       ],
@@ -694,7 +739,7 @@ class _QuestionRunLogCard extends StatelessWidget {
         ),
         if (answer?.score != null) ...[
           const SizedBox(height: 8),
-          Text('Pontuação: ${answer!.score}'),
+          RuntimeLocalizedText('Pontuação: ${answer!.score}'),
         ],
       ],
     );

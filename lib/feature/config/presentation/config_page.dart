@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/network/connetction_checker.dart';
@@ -35,6 +36,7 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
 
   final _searchController = TextEditingController();
   final _contentScrollController = ScrollController();
+  final _sidebarScrollController = ScrollController();
   Timer? _refreshTimer;
   ConfigSections _activeSection = ConfigSections.profile;
   String _searchQuery = '';
@@ -50,6 +52,14 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
         );
       }
     });
+  }
+
+  void _selectSection(ConfigSections section) {
+    if (_searchQuery.isNotEmpty) {
+      _searchController.clear();
+      setState(() => _searchQuery = '');
+    }
+    _scrollTo(section);
   }
 
   void _updateSearch(String query) {
@@ -110,6 +120,7 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
     _refreshTimer?.cancel();
     _searchController.dispose();
     _contentScrollController.dispose();
+    _sidebarScrollController.dispose();
     super.dispose();
   }
 
@@ -118,7 +129,9 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Atualizando informações do servidor…')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Atualizando informações do servidor…'),
+        ),
       );
   }
 
@@ -163,8 +176,6 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
             _ConfigHeader(
               searchController: _searchController,
               searchQuery: _searchQuery,
-              sections: filteredSections,
-              onSelectSection: _scrollTo,
               onSearchChanged: _updateSearch,
               onClearSearch: _clearSearch,
             ),
@@ -195,22 +206,37 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
                 children: [
                   SizedBox(
                     width: 240,
-                    child: SingleChildScrollView(
-                      child: ConfigNavigationSidebar(
-                        sections: filteredSections,
-                        activeSection: _activeSection,
-                        onSelectSection: _scrollTo,
+                    child: Scrollbar(
+                      controller: _sidebarScrollController,
+                      thumbVisibility: true,
+                      trackVisibility: true,
+                      interactive: true,
+                      thickness: 6,
+                      child: SingleChildScrollView(
+                        controller: _sidebarScrollController,
+                        child: ConfigNavigationSidebar(
+                          sections: filteredSections,
+                          activeSection: _activeSection,
+                          onSelectSection: _scrollTo,
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(width: spacing.md),
                   Expanded(
-                    child: SingleChildScrollView(
+                    child: Scrollbar(
                       controller: _contentScrollController,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: spacing.md,
-                        children: [header, sectionsList],
+                      thumbVisibility: true,
+                      trackVisibility: true,
+                      interactive: true,
+                      thickness: 6,
+                      child: SingleChildScrollView(
+                        controller: _contentScrollController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: spacing.md,
+                          children: [header, sectionsList],
+                        ),
                       ),
                     ),
                   ),
@@ -220,15 +246,56 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
           );
         }
 
-        return SingleChildScrollView(
-          controller: _contentScrollController,
-          child: AppResponsiveContent(
-            maxWidth: AppLayoutTokens.widePageContentWidth,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: spacing.md,
-              children: [header, sectionsList],
-            ),
+        return SizedBox(
+          height: constraints.maxHeight,
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppLayoutTokens.pageHorizontalPaddingCompact,
+                  spacing.sm,
+                  AppLayoutTokens.pageHorizontalPaddingCompact,
+                  spacing.xs,
+                ),
+                child: DropdownButtonFormField<ConfigSections>(
+                  initialValue: _activeSection,
+                  decoration: const InputDecoration(
+                    labelText: 'Seção de configuração',
+                    prefixIcon: Icon(Icons.tune),
+                  ),
+                  items: [
+                    for (final section in configSectionCatalog)
+                      DropdownMenuItem(
+                        value: section.section,
+                        child: Text(section.title),
+                      ),
+                  ],
+                  onChanged: (section) {
+                    if (section != null) _selectSection(section);
+                  },
+                ),
+              ),
+              Expanded(
+                child: Scrollbar(
+                  controller: _contentScrollController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
+                  interactive: true,
+                  thickness: 6,
+                  child: SingleChildScrollView(
+                    controller: _contentScrollController,
+                    child: AppResponsiveContent(
+                      maxWidth: AppLayoutTokens.widePageContentWidth,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: spacing.md,
+                        children: [header, sectionsList],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -240,16 +307,12 @@ class _ConfigHeader extends StatelessWidget {
   const _ConfigHeader({
     required this.searchController,
     required this.searchQuery,
-    required this.sections,
-    required this.onSelectSection,
     required this.onSearchChanged,
     required this.onClearSearch,
   });
 
   final TextEditingController searchController;
   final String searchQuery;
-  final List<ConfigSectionMetadata> sections;
-  final ValueChanged<ConfigSections> onSelectSection;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
 
@@ -261,7 +324,10 @@ class _ConfigHeader extends StatelessWidget {
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Configurações', style: theme.textTheme.headlineSmall),
+        RuntimeLocalizedText(
+          'Configurações',
+          style: theme.textTheme.headlineSmall,
+        ),
         SizedBox(height: spacing.xs / 2),
         Text(
           'Gerencie sua conta, aparência, provedores de IA, backups e preferências.',
@@ -298,16 +364,7 @@ class _ConfigHeader extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(child: titleBlock),
-                  IconButton(
-                    tooltip: 'Abrir seções',
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => _showMobileSectionMenu(context),
-                  ),
-                ],
-              ),
+              titleBlock,
               SizedBox(height: spacing.md),
               searchField,
             ],
@@ -322,36 +379,6 @@ class _ConfigHeader extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  void _showMobileSectionMenu(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
-              child: Text(
-                'Seções de configuração',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            for (final section in sections)
-              ListTile(
-                leading: Icon(section.icon),
-                title: Text(section.title),
-                onTap: () {
-                  Navigator.pop(context);
-                  onSelectSection(section.section);
-                },
-              ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -395,7 +422,7 @@ class _EmptySearchState extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onClear,
             icon: const Icon(Icons.clear_all),
-            label: const Text('Limpar filtro'),
+            label: const RuntimeLocalizedText('Limpar filtro'),
           ),
         ],
       ),

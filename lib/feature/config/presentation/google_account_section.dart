@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:built_value/json_object.dart';
@@ -9,8 +10,10 @@ import 'package:noema/feature/config/data/google_drive/google_drive_api.dart';
 import 'package:noema/feature/config/data/google_drive/google_drive_oauth.dart';
 import 'package:noema/feature/config/data/google_drive/google_drive_sync_service.dart';
 import 'package:noema/feature/config/data/google_drive/local_snapshot.dart';
+import 'package:noema/feature/config/data/google_drive/automatic_backup_scheduler.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:openapi/openapi.dart';
 
 class GoogleAccountSection extends ConsumerStatefulWidget {
@@ -32,7 +35,10 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
   List<SyncLogOut> _history = const [];
   bool _backupLoading = false;
   String? _backupError;
-  String _frequency = 'manual';
+  String _frequency = 'never';
+  final TextEditingController _frequencyIntervalController =
+      TextEditingController(text: '1');
+  bool _backupOnExit = false;
   bool _frequencyLoading = true;
   bool _frequencySaving = false;
   String? _frequencyError;
@@ -44,6 +50,12 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
     _loadFrequency();
   }
 
+  @override
+  void dispose() {
+    _frequencyIntervalController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadFrequency() async {
     try {
       final user = await ref.read(userProvider.future);
@@ -53,11 +65,47 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       final stored = config == null
           ? null
           : readConfigPreference(config.preferences, 'backupFrequency');
+      final storedInterval = config == null
+          ? null
+          : readConfigPreference(config.preferences, 'backupFrequencyInterval');
+      final storedSchedule = config == null
+          ? null
+          : readConfigPreference(config.preferences, 'backupSchedule');
+      final storedOnExit = config == null
+          ? null
+          : readConfigPreference(config.preferences, 'backupOnExit');
+      final scheduleUnit = storedSchedule is Map
+          ? storedSchedule['unit']
+          : null;
+      final storedScheduleInterval = storedSchedule is Map
+          ? storedSchedule['interval']
+          : null;
+      final interval = storedScheduleInterval is int
+          ? storedScheduleInterval
+          : switch (stored) {
+              'weekly' => 7,
+              'monthly' => 30,
+              _ => storedInterval is int ? storedInterval : 1,
+            };
+      final frequency = switch (scheduleUnit) {
+        'never' => 'never',
+        'days' when interval == 1 => 'daily',
+        'days' => 'every_days',
+        'hours' => 'every_hours',
+        _ => switch (stored) {
+          'manual' => 'never',
+          'weekly' || 'monthly' => 'every_days',
+          _ =>
+            _backupFrequencies.containsKey(stored)
+                ? stored! as String
+                : 'never',
+        },
+      };
       if (!mounted) return;
       setState(() {
-        _frequency = _backupFrequencies.containsKey(stored)
-            ? stored! as String
-            : 'manual';
+        _frequency = frequency;
+        _frequencyIntervalController.text = '$interval';
+        _backupOnExit = storedOnExit == true;
         _frequencyLoading = false;
       });
     } on Object catch (error) {
@@ -70,19 +118,122 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
   }
 
   Future<void> _saveFrequency(String value) async {
+    final customInterval = value == 'every_days' || value == 'every_hours';
+    final interval = customInterval
+        ? int.tryParse(_frequencyIntervalController.text.trim())
+        : null;
+    final maximum = value == 'every_hours' ? 24 : 365;
+    if (customInterval &&
+        (interval == null || interval < 1 || interval > maximum)) {
+      setState(() {
+        _frequencyError =
+            'Informe um intervalo entre 1 e $maximum '
+            '${value == 'every_hours' ? 'horas' : 'dias'}.';
+      });
+      return;
+    }
+
     setState(() {
       _frequencySaving = true;
       _frequencyError = null;
     });
+    var saved = false;
+    try {
+      final storage = ref.read(preferenceStorageServiceProvider);
+      final scheduleInterval = interval ?? 1;
+      await storage.save(
+        key: 'backupSchedule',
+        value: _backupScheduleFor(value, scheduleInterval),
+      );
+      await storage.save(
+        key: 'backupFrequency',
+        value: _legacyBackupFrequencyFor(value, scheduleInterval),
+      );
+      saved = true;
+      if (!mounted) return;
+      setState(() => _frequency = value);
+      await ref
+          .read(automaticBackupSchedulerProvider)
+          .configureFromPreferences();
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(
+        () => _frequencyError = saved
+            ? 'Preferência salva, mas não foi possível agendar: $error'
+            : 'Não foi possível salvar: $error',
+      );
+    } finally {
+      if (mounted) setState(() => _frequencySaving = false);
+    }
+  }
+
+  Future<void> _saveFrequencyInterval() async {
+    final interval = int.tryParse(_frequencyIntervalController.text.trim());
+    final maximum = _frequency == 'every_hours' ? 24 : 365;
+    if (interval == null || interval < 1 || interval > maximum) {
+      setState(() {
+        _frequencyError =
+            'Informe um intervalo entre 1 e $maximum '
+            '${_frequency == 'every_hours' ? 'horas' : 'dias'}.';
+      });
+      return;
+    }
+
+    setState(() {
+      _frequencySaving = true;
+      _frequencyError = null;
+    });
+    var saved = false;
+    try {
+      final storage = ref.read(preferenceStorageServiceProvider);
+      await storage.save(
+        key: 'backupSchedule',
+        value: _backupScheduleFor(_frequency, interval),
+      );
+      await storage.save(
+        key: 'backupFrequency',
+        value: _legacyBackupFrequencyFor(_frequency, interval),
+      );
+      saved = true;
+      await ref
+          .read(automaticBackupSchedulerProvider)
+          .configureFromPreferences();
+      if (!mounted) return;
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(
+        () => _frequencyError = saved
+            ? 'Intervalo salvo, mas não foi possível agendar: $error'
+            : 'Não foi possível salvar: $error',
+      );
+    } finally {
+      if (mounted) setState(() => _frequencySaving = false);
+    }
+  }
+
+  Future<void> _saveBackupOnExit(bool value) async {
+    setState(() {
+      _frequencySaving = true;
+      _frequencyError = null;
+    });
+    var saved = false;
     try {
       await ref
           .read(preferenceStorageServiceProvider)
-          .save(key: 'backupFrequency', value: value);
+          .save(key: 'backupOnExit', value: value);
+      saved = true;
       if (!mounted) return;
-      setState(() => _frequency = value);
+      setState(() => _backupOnExit = value);
+      await ref
+          .read(automaticBackupSchedulerProvider)
+          .configureFromPreferences();
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _frequencyError = 'Não foi possível salvar: $error');
+      setState(
+        () => _frequencyError = saved
+            ? 'Preferência salva, mas não foi possível agendar: $error'
+            : 'Não foi possível salvar: $error',
+      );
     } finally {
       if (mounted) setState(() => _frequencySaving = false);
     }
@@ -245,7 +396,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
-        title: const Text('Desvincular conta Google?'),
+        title: const RuntimeLocalizedText('Desvincular conta Google?'),
         content: Text(
           'A conta ${status?.googleEmail ?? 'Google'} será removida do Noema. '
           'Os registros de backup serão mantidos no servidor e os arquivos '
@@ -255,12 +406,12 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton.tonalIcon(
             onPressed: () => Navigator.pop(context, true),
             icon: const Icon(Icons.link_off),
-            label: const Text('Desvincular'),
+            label: const RuntimeLocalizedText('Desvincular'),
           ),
         ],
       ),
@@ -377,8 +528,8 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           context: context,
           builder: (context) => AlertDialog(
             scrollable: true,
-            title: const Text('Criar o primeiro backup?'),
-            content: const Text(
+            title: const RuntimeLocalizedText('Criar o primeiro backup?'),
+            content: const RuntimeLocalizedText(
               'O app vai preparar um snapshot dos seus grafos, anotações, '
               'flashcards, exercícios, histórico de estudo e temas locais. '
               'O snapshot será enviado diretamente do dispositivo para a área '
@@ -390,12 +541,12 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Agora não'),
+                child: const RuntimeLocalizedText('Agora não'),
               ),
               FilledButton.icon(
                 onPressed: () => Navigator.pop(context, true),
                 icon: const Icon(Icons.cloud_upload_outlined),
-                label: const Text('Criar backup'),
+                label: const RuntimeLocalizedText('Criar backup'),
               ),
             ],
           ),
@@ -413,13 +564,15 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       builder: (context) {
         final spacing = context.spacing;
         return AlertDialog(
-          title: const Text('Há diferenças entre este dispositivo e o Drive'),
+          title: const RuntimeLocalizedText(
+            'Há diferenças entre este dispositivo e o Drive',
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                const RuntimeLocalizedText(
                   'Revise o resumo antes de escolher. “Somente neste lado” '
                   'significa que o registro está presente em um snapshot e '
                   'ausente no outro; não significa necessariamente que foi '
@@ -446,7 +599,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                     ),
                   ),
                 SizedBox(height: spacing.md),
-                const Text(
+                const RuntimeLocalizedText(
                   'Mesclar mantém os registros locais em conflitos de mesmo '
                   'ID e acrescenta os registros remotos não conflitantes. '
                   'Nenhum lado é escolhido silenciosamente.',
@@ -457,25 +610,25 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: const RuntimeLocalizedText('Cancelar'),
             ),
             OutlinedButton.icon(
               onPressed: () =>
                   Navigator.pop(context, DriveSyncResolution.keepLocal),
               icon: const Icon(Icons.phone_android),
-              label: const Text('Manter local'),
+              label: const RuntimeLocalizedText('Manter local'),
             ),
             OutlinedButton.icon(
               onPressed: () =>
                   Navigator.pop(context, DriveSyncResolution.keepRemote),
               icon: const Icon(Icons.cloud_download_outlined),
-              label: const Text('Usar Drive'),
+              label: const RuntimeLocalizedText('Usar Drive'),
             ),
             FilledButton.icon(
               onPressed: () =>
                   Navigator.pop(context, DriveSyncResolution.merge),
               icon: const Icon(Icons.merge_type),
-              label: const Text('Mesclar'),
+              label: const RuntimeLocalizedText('Mesclar'),
             ),
           ],
         );
@@ -577,33 +730,33 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
               FilledButton.icon(
                 onPressed: _working || _loading ? null : _connect,
                 icon: const Icon(Icons.link),
-                label: const Text('Conectar Google'),
+                label: const RuntimeLocalizedText('Conectar Google'),
               ),
             if (linked)
               FilledButton.tonalIcon(
                 onPressed: _working ? null : _repairAuthorization,
                 icon: Icon(connected ? Icons.refresh : Icons.build_outlined),
-                label: Text(
-                  connected ? 'Renovar autorização' : 'Corrigir autorização',
-                ),
+                label: connected
+                    ? const RuntimeLocalizedText('Renovar autorização')
+                    : const RuntimeLocalizedText('Corrigir autorização'),
               ),
             if (connected)
               FilledButton.icon(
                 onPressed: _working ? null : _startSync,
                 icon: const Icon(Icons.sync),
-                label: const Text('Sincronizar agora'),
+                label: const RuntimeLocalizedText('Sincronizar agora'),
               ),
             if (!connected)
               OutlinedButton.icon(
                 onPressed: _loading || _working ? null : _refreshStatus,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Atualizar status'),
+                label: const RuntimeLocalizedText('Atualizar status'),
               ),
             if (linked)
               OutlinedButton.icon(
                 onPressed: _working ? null : _unlink,
                 icon: const Icon(Icons.link_off),
-                label: const Text('Desvincular'),
+                label: const RuntimeLocalizedText('Desvincular'),
               ),
           ],
         ),
@@ -625,7 +778,10 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Gerenciar backup', style: theme.textTheme.titleLarge),
+        RuntimeLocalizedText(
+          'Gerenciar backup',
+          style: theme.textTheme.titleLarge,
+        ),
         SizedBox(height: spacing.sm),
         Card(
           child: Padding(
@@ -633,14 +789,13 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
+                RuntimeLocalizedText(
                   'Frequência preferida',
                   style: theme.textTheme.titleMedium,
                 ),
                 SizedBox(height: spacing.xs),
                 Text(
-                  'A sincronização é iniciada manualmente. Esta preferência '
-                  'não agenda backups em segundo plano.',
+                  _backupScheduleDescription(defaultTargetPlatform),
                   style: theme.textTheme.bodySmall,
                 ),
                 SizedBox(height: spacing.sm),
@@ -665,6 +820,48 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                 ),
                 if (_frequencyLoading || _frequencySaving)
                   const LinearProgressIndicator(),
+                if (_frequency == 'every_days' ||
+                    _frequency == 'every_hours') ...[
+                  SizedBox(height: spacing.sm),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: TextFormField(
+                          controller: _frequencyIntervalController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'A cada',
+                          ),
+                          onFieldSubmitted: (_) => _saveFrequencyInterval(),
+                        ),
+                      ),
+                      SizedBox(width: spacing.sm),
+                      Text(_frequency == 'every_hours' ? 'horas' : 'dias'),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Salvar intervalo',
+                        onPressed: _frequencyLoading || _frequencySaving
+                            ? null
+                            : _saveFrequencyInterval,
+                        icon: const Icon(Icons.check),
+                      ),
+                    ],
+                  ),
+                ],
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const RuntimeLocalizedText(
+                    'Fazer backup ao sair do app',
+                  ),
+                  subtitle: Text(
+                    _backupOnExitDescription(defaultTargetPlatform),
+                  ),
+                  value: _backupOnExit,
+                  onChanged: _frequencyLoading || _frequencySaving
+                      ? null
+                      : _saveBackupOnExit,
+                ),
                 if (_frequencyError != null)
                   Padding(
                     padding: EdgeInsets.only(top: spacing.xs),
@@ -716,7 +913,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                     ),
                   ),
                 if (!_backupLoading && _backups.isEmpty)
-                  const Text(
+                  const RuntimeLocalizedText(
                     'Nenhum arquivo de backup foi registrado para esta conta.',
                   ),
                 for (final backup in _backups.take(8))
@@ -751,7 +948,9 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                 if (_history.isEmpty && !_backupLoading)
                   const Padding(
                     padding: EdgeInsets.only(top: 8),
-                    child: Text('Ainda não há operações de sincronização.'),
+                    child: RuntimeLocalizedText(
+                      'Ainda não há operações de sincronização.',
+                    ),
                   ),
                 for (final entry in _history.take(10))
                   _SyncHistoryTile(entry: entry),
@@ -804,11 +1003,29 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
   }
 }
 
+Map<String, Object> _backupScheduleFor(String frequency, int interval) =>
+    switch (frequency) {
+      'never' => {'unit': 'never'},
+      'daily' => {'unit': 'days', 'interval': 1},
+      'every_days' => {'unit': 'days', 'interval': interval},
+      'every_hours' => {'unit': 'hours', 'interval': interval},
+      _ => throw ArgumentError.value(frequency, 'frequency'),
+    };
+
+String _legacyBackupFrequencyFor(String frequency, int interval) =>
+    switch (frequency) {
+      'daily' => 'daily',
+      'every_days' when interval == 1 => 'daily',
+      'every_days' when interval == 7 => 'weekly',
+      'every_days' when interval == 30 => 'monthly',
+      _ => 'manual',
+    };
+
 const _backupFrequencies = <String, String>{
-  'manual': 'Somente manual',
+  'never': 'Nunca',
   'daily': 'Diária',
-  'weekly': 'Semanal',
-  'monthly': 'Mensal',
+  'every_days': 'A cada X dias',
+  'every_hours': 'A cada X horas',
 };
 
 class _BackupFileTile extends StatelessWidget {
@@ -842,7 +1059,7 @@ class _BackupFileTile extends StatelessWidget {
         ListTile(
           dense: true,
           contentPadding: EdgeInsets.zero,
-          title: const Text('Arquivo'),
+          title: const RuntimeLocalizedText('Arquivo'),
           subtitle: Text(
             backup.localRef == 'primary-snapshot'
                 ? 'Snapshot local do Noema'
@@ -852,7 +1069,7 @@ class _BackupFileTile extends StatelessWidget {
         ListTile(
           dense: true,
           contentPadding: EdgeInsets.zero,
-          title: const Text('Conteúdo incluído'),
+          title: const RuntimeLocalizedText('Conteúdo incluído'),
           subtitle: Text(
             countSummary.isEmpty
                 ? 'Detalhamento do conteúdo indisponível.'
@@ -863,7 +1080,7 @@ class _BackupFileTile extends StatelessWidget {
           ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            title: const Text('Versão do snapshot'),
+            title: const RuntimeLocalizedText('Versão do snapshot'),
             subtitle: Text(backup.snapshotVersion!),
           ),
       ],
@@ -1040,6 +1257,42 @@ String _oauthConfigurationError(Map<dynamic, dynamic> detail) {
       'Inclua os IDs OAuth do Android, Web e Desktop em '
       'GOOGLE_OAUTH_CLIENT_IDS no servidor.';
 }
+
+String _backupScheduleDescription(
+  TargetPlatform platform,
+) => switch (platform) {
+  TargetPlatform.android =>
+    'O Android agenda os backups e os executa quando houver conexão. '
+        'O sistema pode ajustar o horário exato.',
+  TargetPlatform.linux =>
+    'No Linux, um timer do systemd pode executar mesmo com o app fechado. '
+        'É necessário um sistema com systemd; Snap e Flatpak não são '
+        'compatíveis. O agendador não verifica a rede e tentará novamente '
+        'no próximo horário se houver falha.',
+  TargetPlatform.iOS =>
+    'O backup automático não está disponível no iOS: a conexão Google Drive '
+        'ainda não está configurada para esta plataforma.',
+  TargetPlatform.macOS =>
+    'O backup automático não está disponível no macOS: a conexão Google Drive '
+        'ainda não está configurada para esta plataforma.',
+  TargetPlatform.windows =>
+    'O backup automático em segundo plano ainda não está disponível no Windows.',
+  TargetPlatform.fuchsia =>
+    'O backup automático em segundo plano não está disponível nesta plataforma.',
+};
+
+String _backupOnExitDescription(TargetPlatform platform) => switch (platform) {
+  TargetPlatform.android =>
+    'Agende um backup adicional ao colocar o app em segundo plano.',
+  TargetPlatform.linux =>
+    'Agenda uma tarefa do systemd ao sair. Ela depende da sessão do usuário '
+        'e pode não executar depois do logout.',
+  TargetPlatform.iOS ||
+  TargetPlatform.macOS ||
+  TargetPlatform.windows ||
+  TargetPlatform.fuchsia =>
+    'O backup ao sair não está disponível nesta plataforma.',
+};
 
 class _CategoryDifference extends StatelessWidget {
   const _CategoryDifference({required this.category});

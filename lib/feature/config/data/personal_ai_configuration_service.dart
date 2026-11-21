@@ -47,6 +47,38 @@ class PersonalAiConfigurationService {
     PersonalAiModel.fromJson,
   );
 
+  Future<List<SharedAiApiKey>> listSharedApiKeys() async => _decodeList(
+    await _getList('/api/v1/ai/shared_api_key/list'),
+    SharedAiApiKey.fromJson,
+  );
+
+  Future<SharedAiApiKey> createSharedApiKey({
+    required String providerId,
+    required String name,
+    required String apiKey,
+    required bool isActive,
+  }) => _send(
+    'POST',
+    '/api/v1/ai/shared_api_key/create',
+    data: {
+      'id_ai_provider': providerId,
+      'name': name,
+      'api_key': apiKey,
+      'is_active': isActive,
+    },
+    decode: SharedAiApiKey.fromJson,
+  );
+
+  Future<SharedAiApiKey> updateSharedApiKey(
+    String id,
+    Map<String, Object?> data,
+  ) => _send(
+    'PUT',
+    '/api/v1/ai/shared_api_key/update/$id',
+    data: data,
+    decode: SharedAiApiKey.fromJson,
+  );
+
   Future<PersonalAiConfiguration> load() async {
     final results = await Future.wait<Object>([
       _getList('/api/v1/ai/me/providers'),
@@ -347,6 +379,35 @@ class PersonalAiModel {
         supportsVision: json['supports_vision'] == true,
         isActive: json['is_active'] != false,
       );
+}
+
+class SharedAiApiKey {
+  const SharedAiApiKey({
+    required this.id,
+    required this.providerId,
+    required this.name,
+    required this.isActive,
+  });
+
+  final String id;
+  final String providerId;
+  final String name;
+  final bool isActive;
+
+  factory SharedAiApiKey.fromJson(Map<String, dynamic> json) {
+    final isActive = json['is_active'];
+    if (isActive is! bool) {
+      throw const FormatException(
+        'A API retornou um estado inválido para a chave compartilhada.',
+      );
+    }
+    return SharedAiApiKey(
+      id: _stringField(json, 'id'),
+      providerId: _stringField(json, 'id_ai_provider'),
+      name: _stringField(json, 'name'),
+      isActive: isActive,
+    );
+  }
 }
 
 class PersonalAiAgent {

@@ -32,10 +32,10 @@ class StudyAssistantAction {
     final type = switch (rawType.trim().toLowerCase()) {
       'navigate' => StudyAssistantActionType.navigate,
       'create_graph' => StudyAssistantActionType.createGraph,
-      'create_flashcards' || 'create_flashcard' =>
-        StudyAssistantActionType.createFlashcards,
-      'create_exercise' || 'create_question' =>
-        StudyAssistantActionType.createExercise,
+      'create_flashcards' ||
+      'create_flashcard' => StudyAssistantActionType.createFlashcards,
+      'create_exercise' ||
+      'create_question' => StudyAssistantActionType.createExercise,
       _ => null,
     };
     if (type == null) return null;

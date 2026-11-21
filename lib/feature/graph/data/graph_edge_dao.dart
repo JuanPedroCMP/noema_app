@@ -73,12 +73,10 @@ class GraphEdgeDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> deleteEdgesByNode({required String nodeId}) {
-    return (delete(attachedDatabase.graphEdge)
-      ..where(
-        (tbl) =>
-            tbl.sourceNodeId.equals(nodeId) |
-            tbl.targetNodeId.equals(nodeId),
-      ))
-    .go();
+    return (delete(attachedDatabase.graphEdge)..where(
+          (tbl) =>
+              tbl.sourceNodeId.equals(nodeId) | tbl.targetNodeId.equals(nodeId),
+        ))
+        .go();
   }
 }

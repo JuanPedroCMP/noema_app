@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/core/router/route_paths.dart';
@@ -9,6 +10,7 @@ import 'package:noema/feature/auth/providers/sign_up_form_provider.dart';
 import 'package:noema/feature/auth/providers/sign_up_provider.dart';
 import 'package:noema/feature/auth/services/password_policy.dart';
 import 'package:noema/shared/widgets/async_action_button.dart';
+import 'package:noema/shared/widgets/noema_logo.dart';
 import 'package:noema/shared/widgets/responsive_content.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
@@ -104,7 +106,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     context.go(RoutePaths.withReturnPath(RoutePaths.login, from));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Conta criada. Entre com seu usuário e senha.'),
+        content: RuntimeLocalizedText(
+          'Conta criada. Entre com seu usuário e senha.',
+        ),
       ),
     );
   }
@@ -134,11 +138,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: context.spacing.md,
                 children: [
-                  Icon(
-                    Icons.person_add_alt_1_outlined,
-                    size: 40,
-                    color: context.colors.primary,
-                  ),
+                  Center(child: NoemaLogo(markSize: 34, wordmarkSize: 29)),
                   Text(
                     'Crie sua conta',
                     textAlign: TextAlign.center,
@@ -150,13 +150,19 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     style: context.textTheme.bodyMedium,
                   ),
                   const Divider(),
-                  Text('Seus dados', style: context.textTheme.titleMedium),
+                  RuntimeLocalizedText(
+                    'Seus dados',
+                    style: context.textTheme.titleMedium,
+                  ),
                   TextFormField(
                     textInputAction: TextInputAction.next,
                     textCapitalization: TextCapitalization.none,
                     autocorrect: false,
                     autofillHints: const [AutofillHints.username],
-                    onChanged: formNotifier.userNameChanged,
+                    onChanged: (value) {
+                      formNotifier.userNameChanged(value);
+                      ref.read(signUpControllerProvider.notifier).clearError();
+                    },
                     validator: _validateUsername,
                     decoration: const InputDecoration(
                       labelText: 'Nome de usuário',
@@ -169,7 +175,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   TextFormField(
                     textInputAction: TextInputAction.next,
                     textCapitalization: TextCapitalization.words,
-                    onChanged: formNotifier.displayNameChanged,
+                    onChanged: (value) {
+                      formNotifier.displayNameChanged(value);
+                      ref.read(signUpControllerProvider.notifier).clearError();
+                    },
                     validator: _validateDisplayName,
                     decoration: const InputDecoration(
                       labelText: 'Nome de exibição',
@@ -182,7 +191,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     textInputAction: TextInputAction.next,
                     autocorrect: false,
                     autofillHints: const [AutofillHints.email],
-                    onChanged: formNotifier.emailChanged,
+                    onChanged: (value) {
+                      formNotifier.emailChanged(value);
+                      ref.read(signUpControllerProvider.notifier).clearError();
+                    },
                     validator: _validateEmail,
                     decoration: const InputDecoration(
                       labelText: 'E-mail',
@@ -190,14 +202,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     ),
                   ),
                   const Divider(),
-                  Text('Crie uma senha', style: context.textTheme.titleMedium),
+                  RuntimeLocalizedText(
+                    'Crie uma senha',
+                    style: context.textTheme.titleMedium,
+                  ),
                   TextFormField(
                     textInputAction: TextInputAction.next,
                     obscureText: !_passwordVisible,
                     autocorrect: false,
                     enableSuggestions: false,
                     autofillHints: const [AutofillHints.newPassword],
-                    onChanged: formNotifier.passwordChanged,
+                    onChanged: (value) {
+                      formNotifier.passwordChanged(value);
+                      ref.read(signUpControllerProvider.notifier).clearError();
+                    },
                     validator: PasswordPolicy.validate,
                     decoration: InputDecoration(
                       labelText: 'Senha',
@@ -224,7 +242,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     autocorrect: false,
                     enableSuggestions: false,
                     autofillHints: const [AutofillHints.newPassword],
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      ref.read(signUpControllerProvider.notifier).clearError();
+                      setState(() {});
+                    },
                     validator: (value) =>
                         _validateConfirmation(value, form.password),
                     onFieldSubmitted: (_) =>
@@ -261,7 +282,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     onPressed: signUpState.isLoading
                         ? null
                         : () => context.go(loginPath),
-                    child: const Text('Já tenho uma conta · Entrar'),
+                    child: const RuntimeLocalizedText(
+                      'Já tenho uma conta · Entrar',
+                    ),
                   ),
                 ],
               ),

@@ -7,5 +7,6 @@ class ConfigRefreshNotifier extends Notifier<int> {
   void refresh() => state++;
 }
 
-final configRefreshProvider =
-    NotifierProvider<ConfigRefreshNotifier, int>(ConfigRefreshNotifier.new);
+final configRefreshProvider = NotifierProvider<ConfigRefreshNotifier, int>(
+  ConfigRefreshNotifier.new,
+);

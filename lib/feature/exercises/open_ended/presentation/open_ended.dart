@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
@@ -37,6 +38,7 @@ class OpenEnded extends ConsumerStatefulWidget {
     this.onSave,
     this.initialAiInstructions,
     this.autoGenerateAi = false,
+    this.initialType = OpenEndedType.essay,
     required this.defaultMode,
   });
 
@@ -49,6 +51,7 @@ class OpenEnded extends ConsumerStatefulWidget {
   final VoidCallback? onSave;
   final String? initialAiInstructions;
   final bool autoGenerateAi;
+  final OpenEndedType initialType;
 
   @override
   ConsumerState<OpenEnded> createState() => _OpenEnded();
@@ -86,6 +89,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     super.initState();
 
     mode = widget.defaultMode;
+    type = widget.initialType;
     _answerTimer.start();
 
     titleController = TextEditingController();
@@ -128,7 +132,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         _isLoading = false;
         title = "";
         statement = "";
-        type = OpenEndedType.essay;
+        type = widget.initialType;
         referenceCorrectAnswer = "";
         userAnswer = "";
       });
@@ -236,10 +240,10 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
 
   Future<void> _generateWithAi({bool skipInstructionPrompt = false}) async {
     if (_isGenerating || _isSaving) return;
-    final instructions = skipInstructionPrompt
-        ? widget.initialAiInstructions ?? ''
+    final request = skipInstructionPrompt
+        ? (instructions: widget.initialAiInstructions ?? '', count: 1)
         : await _askAiInstructions();
-    if (instructions == null || !mounted) return;
+    if (request == null || !mounted) return;
 
     setState(() {
       _isGenerating = true;
@@ -267,21 +271,74 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         ..writeln('Nó: ${node.title}')
         ..writeln('Descrição: ${node.description ?? "não informada"}')
         ..writeln(
-          'Instruções adicionais: ${instructions.trim().isEmpty ? "sem instruções adicionais" : instructions.trim()}',
+          'Instruções adicionais: ${request.instructions.trim().isEmpty ? "sem instruções adicionais" : request.instructions.trim()}',
         )
         ..writeln(
           'Retorne título, statement e reference_correct_answer. O enunciado '
           'deve ser claro e a resposta de referência deve ser completa, '
           'correta e útil para revisão.',
         );
-      final response = await ref
-          .read(aiContentGenerationServiceProvider)
-          .generate(task: task, prompt: prompt.toString());
-      final draft = _parseAiQuestion(response);
+      final prompts = List.generate(request.count, (index) {
+        if (request.count == 1) return prompt.toString();
+        return '${prompt.toString()}\n'
+            'Esta é a questão ${index + 1} de ${request.count}. '
+            'Crie uma questão distinta das demais, avaliando outro aspecto '
+            'do nó sem repetir enunciados.';
+      });
+      final ai = ref.read(aiContentGenerationServiceProvider);
+      final responses = request.count == 1
+          ? [await ai.generate(task: task, prompt: prompts.single)]
+          : await ai.generateBatch(
+              task: task,
+              agentId: await ai.resolveAgentId(task),
+              prompts: prompts,
+            );
+      final drafts = responses.map(_parseAiQuestion).toList(growable: false);
       if (!mounted) return;
-      final accepted = await _previewAiQuestion(draft);
+      final accepted = request.count == 1
+          ? await _previewAiQuestion(drafts.single)
+          : await _previewAiQuestions(drafts);
       if (accepted != true || !mounted) return;
 
+      if (request.count > 1) {
+        final db = ref.read(appDatabaseProvider);
+        final dao = OpenEndedDao(db);
+        final savedQuestionIds = await db.transaction(() async {
+          final ids = <String>[];
+          for (final draft in drafts) {
+            ids.add(
+              await dao.insertOpenEnded(
+                nodeId: widget.nodeId,
+                title: draft.title,
+                statement: draft.statement,
+                type: type.name.toUpperCase(),
+                referenceCorrectAnswer: draft.referenceAnswer,
+                isAiGenerated: true,
+              ),
+            );
+          }
+          return ids;
+        });
+        if (!mounted) return;
+        tempId = savedQuestionIds.first;
+        final firstDraft = drafts.first;
+        setState(() {
+          title = firstDraft.title;
+          statement = firstDraft.statement;
+          referenceCorrectAnswer = firstDraft.referenceAnswer;
+          _isAiGenerated = true;
+          titleController.text = title;
+          statementController.text = statement;
+          referenceCorrectAnswerController.text = referenceCorrectAnswer;
+        });
+        widget.onSave?.call();
+        if (mounted) {
+          _showAiMessage('${drafts.length} questões foram geradas e salvas.');
+        }
+        return;
+      }
+
+      final draft = drafts.single;
       setState(() {
         title = draft.title;
         statement = draft.statement;
@@ -310,51 +367,98 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     }
   }
 
-  Future<String?> _askAiInstructions() async {
+  Future<({String instructions, int count})?> _askAiInstructions() async {
     final controller = TextEditingController(
       text: widget.initialAiInstructions ?? '',
     );
+    var count = 1;
     try {
-      return await showDialog<String>(
+      return await showDialog<({String instructions, int count})>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Gerar questão com IA'),
-          content: SizedBox(
-            width: 440,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'A questão será baseada no nó atual e no formato '
-                  '${type == OpenEndedType.feynman ? "Feynman" : "dissertativo"}.',
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const RuntimeLocalizedText('Gerar questão com IA'),
+            content: SizedBox(
+              width: 440,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'A questão será baseada no nó atual e no formato '
+                      '${type == OpenEndedType.feynman ? "Feynman" : "dissertativo"}.',
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      maxLines: 3,
+                      maxLength: 300,
+                      decoration: const InputDecoration(
+                        labelText: 'Orientação adicional (opcional)',
+                        hintText: 'Ex.: nível avançado, foco em comparação',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: count,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantidade de questões',
+                      ),
+                      items: [
+                        for (var amount = 1; amount <= 3; amount++)
+                          DropdownMenuItem(
+                            value: amount,
+                            child: Text(
+                              '$amount ${amount == 1 ? 'questão' : 'questões'}',
+                            ),
+                          ),
+                      ],
+                      onChanged: widget.openEndedId == null
+                          ? (value) {
+                              if (value != null) {
+                                setDialogState(() => count = value);
+                              }
+                            }
+                          : null,
+                    ),
+                    if (count > 1)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Cada questão será gerada em uma solicitação '
+                          'independente à IA.',
+                        ),
+                      ),
+                    if (widget.openEndedId != null)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Para não alterar outras questões, a edição gera '
+                          'uma questão por vez.',
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLines: 3,
-                  maxLength: 300,
-                  decoration: const InputDecoration(
-                    labelText: 'Orientação adicional (opcional)',
-                    hintText: 'Ex.: nível avançado, foco em comparação',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const RuntimeLocalizedText('Cancelar'),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(dialogContext, (
+                  instructions: controller.text,
+                  count: count,
+                )),
+                icon: const Icon(Icons.auto_awesome),
+                label: const RuntimeLocalizedText('Gerar'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(dialogContext, controller.text),
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('Gerar'),
-            ),
-          ],
         ),
       );
     } finally {
@@ -389,7 +493,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Revise a questão gerada'),
+        title: const RuntimeLocalizedText('Revise a questão gerada'),
         content: SizedBox(
           width: 520,
           child: SingleChildScrollView(
@@ -416,12 +520,61 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Descartar'),
+            child: const RuntimeLocalizedText('Descartar'),
           ),
           FilledButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
             icon: const Icon(Icons.check),
-            label: const Text('Aplicar ao editor'),
+            label: const RuntimeLocalizedText('Aplicar ao editor'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _previewAiQuestions(List<_AiOpenEndedDraft> drafts) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: RuntimeLocalizedText('Revise ${drafts.length} questões geradas'),
+        content: SizedBox(
+          width: 560,
+          height: 480,
+          child: ListView.separated(
+            itemCount: drafts.length,
+            separatorBuilder: (_, _) => const Divider(height: 24),
+            itemBuilder: (context, index) {
+              final draft = drafts[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${index + 1}. ${draft.title}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(draft.statement),
+                  const Divider(height: 20),
+                  Text(
+                    'Resposta de referência',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(draft.referenceAnswer),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const RuntimeLocalizedText('Descartar todas'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.save_outlined),
+            label: const RuntimeLocalizedText('Salvar todas'),
           ),
         ],
       ),
@@ -455,13 +608,19 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
     final id = _questionId;
     if (id == null || id.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Esta questão ainda não foi salva.")),
+        const SnackBar(
+          content: RuntimeLocalizedText("Esta questão ainda não foi salva."),
+        ),
       );
       return;
     }
     if (userAnswer.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Escreva uma resposta antes de enviar.")),
+        const SnackBar(
+          content: RuntimeLocalizedText(
+            "Escreva uma resposta antes de enviar.",
+          ),
+        ),
       );
       return;
     }
@@ -477,7 +636,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Esta questão não está mais disponível."),
+              content: RuntimeLocalizedText(
+                "Esta questão não está mais disponível.",
+              ),
             ),
           );
         }
@@ -525,7 +686,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: RuntimeLocalizedText(
             'Resposta registrada.$correctionMessage',
           ),
         ),
@@ -534,7 +695,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Não foi possível registrar a resposta: $error'),
+            content: RuntimeLocalizedText(
+              'Não foi possível registrar a resposta: $error',
+            ),
           ),
         );
       }
@@ -626,7 +789,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
       return Card(
         child: ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const Text('Sem resposta de referência'),
+          title: const RuntimeLocalizedText('Sem resposta de referência'),
           subtitle: const Text(
             'Esta questão ainda não tem uma resposta de referência cadastrada.',
           ),
@@ -730,14 +893,18 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ListTile(
-                                  title: const Text("Dissertativa"),
+                                  title: const RuntimeLocalizedText(
+                                    "Dissertativa",
+                                  ),
                                   onTap: () => Navigator.pop(
                                     context,
                                     OpenEndedType.essay,
                                   ),
                                 ),
                                 ListTile(
-                                  title: const Text("Método Feynman"),
+                                  title: const RuntimeLocalizedText(
+                                    "Método Feynman",
+                                  ),
                                   onTap: () => Navigator.pop(
                                     context,
                                     OpenEndedType.feynman,
@@ -782,19 +949,21 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                               final messenger = ScaffoldMessenger.of(context);
                               try {
                                 final saved = await save();
-                                if (mounted) {
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        saved
-                                            ? "Questão salva."
-                                            : "Não foi possível salvar a questão.",
-                                      ),
+                                if (!context.mounted) return;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      saved
+                                          ? "Questão salva. Voltando à lista."
+                                          : "Não foi possível salvar a questão.",
                                     ),
-                                  );
+                                  ),
+                                );
+                                if (saved && mode == 1) {
+                                  Navigator.of(context).pop(true);
                                 }
                               } catch (_) {
-                                if (mounted) {
+                                if (context.mounted) {
                                   messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -947,7 +1116,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                             });
                           },
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: const Text('Responder questão'),
+                          label: const RuntimeLocalizedText(
+                            'Responder questão',
+                          ),
                         ),
                       )
                     else
@@ -961,7 +1132,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                           });
                         },
                         icon: const Icon(Icons.replay_rounded),
-                        label: const Text('Tentar novamente'),
+                        label: const RuntimeLocalizedText('Tentar novamente'),
                       ),
                   ],
                 )

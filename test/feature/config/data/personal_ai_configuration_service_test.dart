@@ -8,6 +8,25 @@ import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/config/data/personal_ai_configuration_service.dart';
 
 void main() {
+  test('loads shared key metadata without exposing key material', () async {
+    final adapter = _ConfigurationAdapter();
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final client = container.read(apiClientProvider);
+    client.dio.httpClientAdapter = adapter;
+    setApiAccessToken(client, 'test-access-token');
+
+    final keys = await container
+        .read(personalAiConfigurationServiceProvider)
+        .listSharedApiKeys();
+
+    expect(keys, hasLength(1));
+    expect(keys.single.name, 'shared-key');
+    expect(keys.single.isActive, isTrue);
+    expect(adapter.authenticatedPaths, ['/api/v1/ai/shared_api_key/list']);
+    expect(adapter.authorizationHeaders, ['Bearer test-access-token']);
+  });
+
   test(
     'loads visible resources and identifies which ones are personal',
     () async {
@@ -90,6 +109,14 @@ class _ConfigurationAdapter implements HttpClientAdapter {
       '/api/v1/ai/me/agent-models' => [_link()],
       '/api/v1/ai/provider/list' => [_provider('global-provider')],
       '/api/v1/ai/agent/list' => [_agent('global-agent')],
+      '/api/v1/ai/shared_api_key/list' => [
+        {
+          'id': 'shared-key-id',
+          'id_ai_provider': 'global-provider',
+          'name': 'shared-key',
+          'is_active': true,
+        },
+      ],
       _ => throw StateError('Unexpected endpoint: ${options.path}'),
     };
     return ResponseBody.fromString(

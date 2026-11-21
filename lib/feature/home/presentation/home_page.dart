@@ -2,17 +2,14 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
-import 'package:noema/core/network/api_client.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/auth/providers/account_state.dart';
-import 'package:noema/feature/auth/providers/auth_state_provider.dart';
-import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
-import 'package:noema/feature/auth/services/login_service.dart';
 import 'package:noema/feature/graph/service/learning_path.dart';
 import 'package:noema/feature/review/data/domain_dashboard_service.dart';
 import 'package:noema/feature/review/data/exercise_review_queue_service.dart';
@@ -141,7 +138,7 @@ class HomePage extends ConsumerWidget {
                 TextButton.icon(
                   onPressed: () => context.go(RoutePaths.dashboard),
                   icon: const Icon(Icons.insights_outlined),
-                  label: const Text('Meu progresso'),
+                  label: const RuntimeLocalizedText('Meu progresso'),
                 ),
               ],
             ),
@@ -184,7 +181,7 @@ class HomePage extends ConsumerWidget {
                   Icons.playlist_add_check_circle_outlined,
                   color: context.colors.primary,
                 ),
-                title: const Text('Sessões de estudo'),
+                title: const RuntimeLocalizedText('Sessões de estudo'),
                 subtitle: const Text(
                   'Organize atividades e acompanhe cada sessão.',
                 ),
@@ -303,7 +300,9 @@ class _HomeWelcomeCard extends StatelessWidget {
                                     icon: const Icon(
                                       Icons.account_tree_outlined,
                                     ),
-                                    label: const Text('Explorar grafos'),
+                                    label: const RuntimeLocalizedText(
+                                      'Explorar grafos',
+                                    ),
                                   ),
                                   TextButton.icon(
                                     onPressed: onOpenDashboard,
@@ -311,7 +310,9 @@ class _HomeWelcomeCard extends StatelessWidget {
                                       foregroundColor: colors.onPrimary,
                                     ),
                                     icon: const Icon(Icons.insights_outlined),
-                                    label: const Text('Ver progresso'),
+                                    label: const RuntimeLocalizedText(
+                                      'Ver progresso',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -642,7 +643,7 @@ class _HomeReviewError extends StatelessWidget {
         child: TextButton.icon(
           onPressed: onRetry,
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Tentar novamente'),
+          label: const RuntimeLocalizedText('Tentar novamente'),
         ),
       ),
     ],
@@ -677,7 +678,7 @@ class _HomeGraphRecommendations extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () => context.go(RoutePaths.graphs),
-                child: const Text('Ver grafos'),
+                child: const RuntimeLocalizedText('Ver grafos'),
               ),
             ],
           ),
@@ -735,7 +736,7 @@ class _HomeEmptyGraphs extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: onExplore,
           icon: const Icon(Icons.add_rounded),
-          label: const Text('Criar ou importar grafo'),
+          label: const RuntimeLocalizedText('Criar ou importar grafo'),
         ),
       ],
     ),
@@ -943,16 +944,17 @@ class _HomeRecentActivity extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () => context.go(RoutePaths.dashboard),
-                child: const Text('Ver painel'),
+                child: const RuntimeLocalizedText('Ver painel'),
               ),
             ],
           ),
           summary.when(
             loading: () => const LinearProgressIndicator(),
-            error: (error, _) =>
-                Text('Não foi possível carregar o histórico: $error'),
+            error: (error, _) => RuntimeLocalizedText(
+              'Não foi possível carregar o histórico: $error',
+            ),
             data: (data) => data.recentActivity.isEmpty
-                ? const Text('Suas atividades aparecerão aqui.')
+                ? const RuntimeLocalizedText('Suas atividades aparecerão aqui.')
                 : Column(
                     children: [
                       for (final activity in data.recentActivity.take(4))
@@ -966,7 +968,9 @@ class _HomeRecentActivity extends StatelessWidget {
                             '${activity.graphTitle} · '
                             '${activity.activityType.isEmpty ? activity.eventOrigin : activity.activityType}',
                           ),
-                          trailing: Text('${(activity.score * 100).round()}%'),
+                          trailing: RuntimeLocalizedText(
+                            '${(activity.score * 100).round()}%',
+                          ),
                         ),
                     ],
                   ),
@@ -982,7 +986,6 @@ class _AccountActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storage = ref.read(secureSorageProvider);
     return AppCard(
       padding: const EdgeInsets.all(16),
       child: LayoutBuilder(
@@ -990,47 +993,40 @@ class _AccountActions extends ConsumerWidget {
           final logout = OutlinedButton.icon(
             onPressed: () async {
               try {
-                await storage.delete(key: 'access_token');
-                await storage.delete(key: 'access_token_remote_owner_id');
-                await storage.delete(key: 'access_token_remote_onwer_id');
-              } catch (error) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Não foi possível sair: $error')),
-                  );
-                }
-                return;
-              }
-              clearApiAccessToken(ref.read(apiClientProvider));
-              try {
-                await AppUserDao(
-                  ref.read(appDatabaseProvider),
-                ).deactivateAllUsers();
-              } catch (error) {
-                if (context.mounted) {
+                final localCleanupError = await endAccountSession(ref);
+                if (!context.mounted) return;
+                context.go(RoutePaths.login);
+                if (localCleanupError != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
                         'A sessão foi encerrada, mas o estado local '
-                        'não pôde ser atualizado: $error',
+                        'não pôde ser atualizado: $localCleanupError',
                       ),
                     ),
                   );
                 }
-              } finally {
-                resetAccountScopedState(ref);
-                ref.invalidate(authStateProvider);
-                if (context.mounted) context.go(RoutePaths.login);
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: RuntimeLocalizedText(
+                        'Não foi possível sair: $error',
+                      ),
+                    ),
+                  );
+                }
+                return;
               }
             },
             icon: const Icon(Icons.logout),
-            label: const Text('Sair'),
+            label: const RuntimeLocalizedText('Sair'),
           );
           if (constraints.maxWidth < 420) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Sua área de estudos está pronta.'),
+                const RuntimeLocalizedText('Sua área de estudos está pronta.'),
                 const SizedBox(height: 8),
                 Align(alignment: Alignment.centerRight, child: logout),
               ],
@@ -1038,7 +1034,9 @@ class _AccountActions extends ConsumerWidget {
           }
           return Row(
             children: [
-              const Expanded(child: Text('Sua área de estudos está pronta.')),
+              const Expanded(
+                child: RuntimeLocalizedText('Sua área de estudos está pronta.'),
+              ),
               logout,
             ],
           );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' show ChoiceData;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -108,19 +109,25 @@ class _Choise extends ConsumerState<ManipulateChoise> {
   Future<void> save() async {
     if (statement.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Informe o texto da alternativa.")),
+        const SnackBar(
+          content: RuntimeLocalizedText("Informe o texto da alternativa."),
+        ),
       );
       return;
     }
     if (weight != null && weight! < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("O peso não pode ser negativo.")),
+        const SnackBar(
+          content: RuntimeLocalizedText("O peso não pode ser negativo."),
+        ),
       );
       return;
     }
     if (weightController.text.trim().isNotEmpty && weight == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Informe um peso numérico válido.")),
+        const SnackBar(
+          content: RuntimeLocalizedText("Informe um peso numérico válido."),
+        ),
       );
       return;
     }
@@ -158,7 +165,9 @@ class _Choise extends ConsumerState<ManipulateChoise> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Não foi possível salvar a alternativa."),
+            content: RuntimeLocalizedText(
+              "Não foi possível salvar a alternativa.",
+            ),
           ),
         );
       }
@@ -198,7 +207,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
             children: [
               TextButton(
                 onPressed: widget.onCancel,
-                child: const Text('Fechar'),
+                child: const RuntimeLocalizedText('Fechar'),
               ),
               TextButton.icon(
                 onPressed: () {
@@ -209,7 +218,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
                   loadData();
                 },
                 icon: const Icon(Icons.refresh),
-                label: const Text('Tentar novamente'),
+                label: const RuntimeLocalizedText('Tentar novamente'),
               ),
             ],
           ),
@@ -254,7 +263,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Alternativa correta"),
+              title: const RuntimeLocalizedText("Alternativa correta"),
               value: isCorrect,
               onChanged: (value) => setState(() => isCorrect = value ?? false),
             ),
@@ -264,7 +273,7 @@ class _Choise extends ConsumerState<ManipulateChoise> {
               children: [
                 TextButton(
                   onPressed: _isSaving ? null : widget.onCancel,
-                  child: const Text('Cancelar'),
+                  child: const RuntimeLocalizedText('Cancelar'),
                 ),
                 FilledButton(
                   onPressed: _isSaving ? null : save,

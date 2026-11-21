@@ -29,10 +29,7 @@ class LoginService {
 
     final remoteId = decodeJwt(token);
     await storage.write(key: "access_token", value: token);
-    await storage.write(
-      key: 'access_token_remote_owner_id',
-      value: remoteId,
-    );
+    await storage.write(key: 'access_token_remote_owner_id', value: remoteId);
 
     setApiAccessToken(ref.read(apiClientProvider), token);
 

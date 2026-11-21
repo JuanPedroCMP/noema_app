@@ -39,7 +39,11 @@ class ColorThemeDao extends DatabaseAccessor<AppDatabase>
     int? seedColor,
     String? overridesJson,
     bool? systemDefault,
-  }) {
+  }) async {
+    final theme = await getColorTheme(id: id);
+    if (theme?.systemDefault == true) {
+      throw StateError('O tema padrão do Noema não pode ser alterado.');
+    }
     return (update(
       attachedDatabase.colorTheme,
     )..where((tbl) => tbl.id.equals(id))).write(
@@ -67,9 +71,7 @@ class ColorThemeDao extends DatabaseAccessor<AppDatabase>
     required String name,
     required String userId,
   }) {
-    return (select(
-      attachedDatabase.colorTheme,
-    )
+    return (select(attachedDatabase.colorTheme)
           ..where((tbl) => tbl.name.equals(name))
           ..where((tbl) => tbl.userId.equals(userId)))
         .getSingleOrNull();
@@ -81,7 +83,11 @@ class ColorThemeDao extends DatabaseAccessor<AppDatabase>
     )..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
-  Future<int> deleteColorTheme({required String id}) {
+  Future<int> deleteColorTheme({required String id}) async {
+    final theme = await getColorTheme(id: id);
+    if (theme?.systemDefault == true) {
+      throw StateError('O tema padrão do Noema não pode ser excluído.');
+    }
     return (delete(
       attachedDatabase.colorTheme,
     )..where((tbl) => tbl.id.equals(id))).go();

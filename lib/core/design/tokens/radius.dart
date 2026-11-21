@@ -66,24 +66,15 @@ abstract class AppRadius with _$AppRadius {
 class AppRadiusTheme extends ThemeExtension<AppRadiusTheme> {
   final AppRadius radius;
 
-  const AppRadiusTheme({
-    required this.radius,
-  });
+  const AppRadiusTheme({required this.radius});
 
   @override
-  AppRadiusTheme copyWith({
-    AppRadius? radius,
-  }) {
-    return AppRadiusTheme(
-      radius: radius ?? this.radius,
-    );
+  AppRadiusTheme copyWith({AppRadius? radius}) {
+    return AppRadiusTheme(radius: radius ?? this.radius);
   }
 
   @override
-  AppRadiusTheme lerp(
-    ThemeExtension<AppRadiusTheme>? other,
-    double t,
-  ) {
+  AppRadiusTheme lerp(ThemeExtension<AppRadiusTheme>? other, double t) {
     if (other is! AppRadiusTheme) {
       return this;
     }

@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 part 'learning_resource_dao.g.dart';
 
 @DriftAccessor(tables: [LearningResource])
-class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningResourceDaoMixin {
+class LearningResourceDao extends DatabaseAccessor<AppDatabase>
+    with _$LearningResourceDaoMixin {
   LearningResourceDao(super.db);
 
   Future<int> insertLearningResource({
@@ -33,8 +34,12 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
         rationale: rationale,
         relevanceScore: relevanceScore,
         reputationScore: reputationScore,
-        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
-        userEdited: userEdited == null ? const Value.absent() : Value(userEdited),
+        isAiGenerated: isAiGenerated == null
+            ? const Value.absent()
+            : Value(isAiGenerated),
+        userEdited: userEdited == null
+            ? const Value.absent()
+            : Value(userEdited),
       ),
     );
   }
@@ -64,20 +69,31 @@ class LearningResourceDao extends DatabaseAccessor<AppDatabase> with _$LearningR
         url: url == null ? const Value.absent() : Value(url),
         tier: tier == null ? const Value.absent() : Value(tier),
         rationale: rationale == null ? const Value.absent() : Value(rationale),
-        relevanceScore: relevanceScore == null ? const Value.absent() : Value(relevanceScore),
-        reputationScore: reputationScore == null ? const Value.absent() : Value(reputationScore),
-        isAiGenerated: isAiGenerated == null ? const Value.absent() : Value(isAiGenerated),
-        userEdited: userEdited == null ? const Value.absent() : Value(userEdited),
+        relevanceScore: relevanceScore == null
+            ? const Value.absent()
+            : Value(relevanceScore),
+        reputationScore: reputationScore == null
+            ? const Value.absent()
+            : Value(reputationScore),
+        isAiGenerated: isAiGenerated == null
+            ? const Value.absent()
+            : Value(isAiGenerated),
+        userEdited: userEdited == null
+            ? const Value.absent()
+            : Value(userEdited),
       ),
     );
   }
 
   Future<LearningResourceData?> getLearningResource({required String id}) {
-    return (select(attachedDatabase.learningResource)..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    return (select(
+      attachedDatabase.learningResource,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-  Future<List<LearningResourceData>> getLearningResourcesByNode({required String nodeId}) {
+  Future<List<LearningResourceData>> getLearningResourcesByNode({
+    required String nodeId,
+  }) {
     return (select(attachedDatabase.learningResource)
           ..where((tbl) => tbl.nodeId.equals(nodeId))
           ..where((tbl) => tbl.softDeleted.equals(false)))

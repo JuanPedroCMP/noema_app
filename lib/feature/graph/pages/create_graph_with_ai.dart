@@ -4,15 +4,58 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/services/ai_background_work_scheduler.dart';
+import 'package:noema/feature/ai/services/ai_task_notification_service.dart';
+import 'package:noema/feature/ai/services/ai_background_task_runner.dart';
 import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/graph/data/converter_ai_response.dart';
+import 'package:noema/feature/graph/providers/graph_prompt_preferences_provider.dart';
 import 'package:noema/feature/graph/service/import_grap_from_json.dart';
 
-const _graphManipulatorAgentId = 'c85e5671-a9bb-4c68-9734-3b8f492e5aff';
+String graphGenerationApiErrorMessage(DioException error) {
+  final status = error.response?.statusCode;
+  if (error.type == DioExceptionType.receiveTimeout) {
+    return 'A geração demorou mais que o esperado. Tente novamente.';
+  }
+  final responseBody = error.response?.data;
+  final detail = responseBody is Map ? responseBody['detail'] : null;
+  if (status == 422 && detail is String) {
+    final normalizedDetail = detail.toLowerCase();
+    if (normalizedDetail.contains('no active api keys')) {
+      return 'Nenhuma chave de API ativa está disponível para este agente. '
+          'Cadastre ou ative uma chave nas configurações de IA.';
+    }
+    if (normalizedDetail.contains('response language')) {
+      return 'O idioma de resposta solicitado não está disponível. '
+          'Atualize sua preferência de idioma e tente novamente.';
+    }
+  }
+  if (status == 401 || status == 403) {
+    return 'Sua sessão não está autorizada para usar a IA. Entre novamente.';
+  }
+  if (status == 404) {
+    return 'O agente de geração de grafos não está disponível.';
+  }
+  if (status == 429) {
+    return 'Muitas solicitações. Aguarde um pouco e tente novamente.';
+  }
+  if (status == 504) {
+    return 'O serviço de IA excedeu o tempo limite. Tente novamente; '
+        'se persistir, verifique os modelos e provedores configurados.';
+  }
+  if (status != null && status >= 500) {
+    return 'O serviço de IA falhou. Tente novamente mais tarde.';
+  }
+  if (error.response == null) {
+    return 'Não foi possível conectar à IA. Verifique sua internet.';
+  }
+  return 'Não foi possível gerar o grafo (HTTP $status).';
+}
 
 class CreateGraphWithAi extends ConsumerStatefulWidget {
   const CreateGraphWithAi({
@@ -31,9 +74,13 @@ class CreateGraphWithAi extends ConsumerStatefulWidget {
 class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
   final _promptController = TextEditingController();
   bool _isGenerating = false;
+  bool _isImproving = false;
   bool _isSaving = false;
+  bool _promptIsImproved = false;
   GraphResponse? _draft;
   String? _error;
+  String? _promptNotice;
+  String? _previousPrompt;
 
   @override
   void initState() {
@@ -53,13 +100,38 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
   }
 
   Future<void> _generate() async {
-    final prompt = _promptController.text.trim();
+    var prompt = _promptController.text.trim();
     if (prompt.length < 5) {
       setState(() {
         _error = 'Descreva o tema com um pouco mais de detalhe.';
         _draft = null;
       });
       return;
+    }
+
+    final mode = await ref.read(graphPromptEnhancementModeProvider.future);
+    if (!mounted) return;
+    if (mode == GraphPromptEnhancementMode.automatic && !_promptIsImproved) {
+      setState(() {
+        _isImproving = true;
+        _error = null;
+        _promptNotice = null;
+      });
+      try {
+        final improved = await _improvePrompt(prompt);
+        if (!mounted) return;
+        prompt = improved;
+        _promptController.text = improved;
+        _promptIsImproved = true;
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _promptNotice =
+              'Não foi possível aprimorar. O grafo será criado com seu texto original.';
+        });
+      } finally {
+        if (mounted) setState(() => _isImproving = false);
+      }
     }
 
     FocusScope.of(context).unfocus();
@@ -71,10 +143,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
 
     try {
       final ai = ref.read(aiContentGenerationServiceProvider);
+      final agentId = await ai.resolveAgentId(AiAgentTask.manipulateGraph);
       final draft = await ai.generateWithRetry<GraphResponse>(
         task: AiAgentTask.manipulateGraph,
         prompt: prompt,
-        agentId: _graphManipulatorAgentId,
+        agentId: agentId,
         maxAttempts: 2,
         parse: (response) {
           response.putIfAbsent('graph_description', () => prompt);
@@ -102,7 +175,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       setState(() => _draft = draft);
     } on DioException catch (error) {
       if (!mounted) return;
-      setState(() => _error = _apiError(error));
+      setState(() => _error = graphGenerationApiErrorMessage(error));
     } on FormatException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -114,6 +187,94 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     } finally {
       if (mounted) setState(() => _isGenerating = false);
     }
+  }
+
+  Future<void> _enhancePromptManually() async {
+    final prompt = _promptController.text.trim();
+    if (prompt.length < 5) {
+      setState(() {
+        _error = 'Escreva um tema antes de aprimorá-lo com IA.';
+        _draft = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isImproving = true;
+      _error = null;
+      _promptNotice = null;
+      _previousPrompt = null;
+      _draft = null;
+    });
+    try {
+      final improved = await _improvePrompt(prompt);
+      if (!mounted) return;
+      _previousPrompt = prompt;
+      _promptIsImproved = true;
+      _promptController.text = improved;
+      setState(
+        () => _promptNotice =
+            'Prompt aprimorado. Revise ou desfaça antes de gerar.',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error =
+            'Não foi possível aprimorar o prompt. ${_generationError(error)}';
+      });
+    } finally {
+      if (mounted) setState(() => _isImproving = false);
+    }
+  }
+
+  void _restorePreviousPrompt() {
+    final previousPrompt = _previousPrompt;
+    if (previousPrompt == null) return;
+    _promptController.text = previousPrompt;
+    _promptIsImproved = false;
+    setState(() {
+      _previousPrompt = null;
+      _promptNotice = 'Prompt original restaurado.';
+    });
+  }
+
+  Future<String> _improvePrompt(String prompt) async {
+    final ai = ref.read(aiContentGenerationServiceProvider);
+    final payload = await ai.generate(
+      task: AiAgentTask.studyAssistant,
+      prompt:
+          'Melhore o seguinte pedido para gerar um mapa de conhecimento. '
+          'Preserve o tema e não invente requisitos que não foram pedidos. '
+          'Defina objetivo de aprendizagem, público/nível, escopo e granulação adequados. '
+          'Coloque somente o prompt aprimorado no campo feedback do schema de resposta, sem explicações adicionais, títulos ou aspas.\n\n'
+          'Pedido original: $prompt',
+    );
+    for (final key in const [
+      'feedback',
+      'improved_prompt',
+      'prompt',
+      'text',
+      'response',
+    ]) {
+      final value = payload[key];
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+      if (value is Map) {
+        for (final nestedKey in const [
+          'improved_prompt',
+          'prompt',
+          'text',
+          'response',
+        ]) {
+          final nested = value[nestedKey];
+          if (nested is String && nested.trim().isNotEmpty) {
+            return nested.trim();
+          }
+        }
+      }
+    }
+    throw const FormatException(
+      'A IA não retornou o prompt aprimorado em um formato válido.',
+    );
   }
 
   Future<void> _saveDraft() async {
@@ -137,6 +298,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
         isAiGenerated: true,
         queueMissingAiDescriptions: true,
       );
+      await ref
+          .read(aiTaskNotificationServiceProvider)
+          .initialize(requestPermission: true);
+      await scheduleAiBackgroundQueue(taskId: graphId);
+      ref.read(aiBackgroundTaskRunnerProvider).requestPump();
       if (mounted) context.go(RoutePaths.graph(graphId));
     } catch (error) {
       if (mounted) {
@@ -145,29 +311,6 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-
-  String _apiError(DioException error) {
-    final status = error.response?.statusCode;
-    if (error.type == DioExceptionType.receiveTimeout) {
-      return 'A geração demorou mais que o esperado. Tente novamente.';
-    }
-    if (status == 401 || status == 403) {
-      return 'Sua sessão não está autorizada para usar a IA. Entre novamente.';
-    }
-    if (status == 404) {
-      return 'O agente de geração de grafos não está disponível.';
-    }
-    if (status == 429) {
-      return 'Muitas solicitações. Aguarde um pouco e tente novamente.';
-    }
-    if (status != null && status >= 500) {
-      return 'O serviço de IA falhou. Tente novamente mais tarde.';
-    }
-    if (error.response == null) {
-      return 'Não foi possível conectar à IA. Verifique sua internet.';
-    }
-    return 'Não foi possível gerar o grafo (HTTP $status).';
   }
 
   String _generationError(Object error) {
@@ -181,30 +324,95 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Descreva o que você quer aprender. Revise a estrutura e crie o grafo '
-          'sem esperar pelas descrições; elas serão geradas em segundo plano '
-          'e você poderá acompanhar o progresso na fila de IA.',
+        Text(
+          'Diga o que quer estudar. A IA organiza o tema em conceitos conectados.',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _promptController,
-          enabled: !_isGenerating && !_isSaving,
+          enabled: !_isImproving && !_isGenerating && !_isSaving,
+          onChanged: (_) {
+            setState(() {
+              _promptIsImproved = false;
+              _previousPrompt = null;
+              _promptNotice = null;
+              _draft = null;
+              _error = null;
+            });
+          },
           maxLines: 4,
           maxLength: 1000,
           decoration: const InputDecoration(
-            labelText: 'Tema e objetivo de aprendizagem',
-            hintText: 'Ex.: Quero aprender machine learning do zero',
+            labelText: 'O que você quer aprender?',
+            hintText: 'Ex.: Introdução à genética para iniciantes',
             alignLabelWithHint: true,
             prefixIcon: Icon(Icons.auto_awesome),
+            helperText: 'Você pode editar o texto antes de gerar.',
           ),
         ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _isImproving || _isGenerating || _isSaving
+                ? null
+                : _enhancePromptManually,
+            icon: _isImproving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.auto_fix_high_outlined),
+            label: Text(
+              _isImproving ? 'Aprimorando...' : 'Melhorar texto com IA',
+            ),
+          ),
+        ),
+        if (_promptNotice != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.secondaryContainer.withValues(alpha: 0.65),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _promptNotice!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                if (_previousPrompt != null)
+                  TextButton(
+                    onPressed: _restorePreviousPrompt,
+                    child: const RuntimeLocalizedText('Desfazer'),
+                  ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: _isGenerating || _isSaving ? null : _generate,
-            icon: _isGenerating
+            onPressed: _isImproving || _isGenerating || _isSaving
+                ? null
+                : _generate,
+            icon: _isImproving || _isGenerating
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -212,7 +420,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
                   )
                 : const Icon(Icons.auto_awesome),
             label: Text(
-              _isGenerating ? 'Gerando estrutura...' : 'Gerar estrutura',
+              _isImproving
+                  ? 'Melhorando prompt...'
+                  : _isGenerating
+                  ? 'Gerando estrutura...'
+                  : 'Gerar mapa de conhecimento',
             ),
           ),
         ),
@@ -314,7 +526,10 @@ class _GraphDraftPreview extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text('Estrutura inicial', style: theme.textTheme.titleSmall),
+            RuntimeLocalizedText(
+              'Estrutura inicial',
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 4),
             for (final node in graph.nodes.take(12))
               Padding(
@@ -356,7 +571,7 @@ class _CountChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       avatar: const Icon(Icons.check_circle_outline, size: 16),
-      label: Text('$count $label'),
+      label: RuntimeLocalizedText('$count $label'),
       visualDensity: VisualDensity.compact,
     );
   }

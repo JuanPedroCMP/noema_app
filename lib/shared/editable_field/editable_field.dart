@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 
 class EditableField extends StatefulWidget {
   const EditableField({
     super.key,
     required this.inputLabel,
+    this.initialValue = '',
     required this.onChanged,
     required this.onConfirm,
     required this.onCancel,
@@ -15,6 +17,7 @@ class EditableField extends StatefulWidget {
   });
 
   final String inputLabel;
+  final String initialValue;
   final ValueChanged<String> onChanged;
   final FutureOr<void> Function() onConfirm;
   final FutureOr<void> Function() onCancel;
@@ -32,7 +35,15 @@ class _EditableFieldState extends State<EditableField> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant EditableField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!isEditing && oldWidget.initialValue != widget.initialValue) {
+      _controller.text = widget.initialValue;
+    }
   }
 
   @override
@@ -71,9 +82,15 @@ class _EditableFieldState extends State<EditableField> {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: () => setState(() => isEditing = true),
+                onPressed: () => setState(() {
+                  _controller.text = widget.initialValue;
+                  isEditing = true;
+                }),
                 icon: const Icon(Icons.edit),
-                label: Text("Editar", style: context.textTheme.labelMedium),
+                label: RuntimeLocalizedText(
+                  "Editar",
+                  style: context.textTheme.labelMedium,
+                ),
               ),
             ],
           );
@@ -98,15 +115,26 @@ class _EditableFieldState extends State<EditableField> {
                 if (mounted) setState(() => isEditing = false);
               },
               icon: const Icon(Icons.save_rounded),
-              label: Text("Salvar", style: context.textTheme.labelMedium),
+              label: RuntimeLocalizedText(
+                "Salvar",
+                style: context.textTheme.labelMedium,
+              ),
             ),
             OutlinedButton.icon(
               onPressed: () async {
                 await widget.onCancel();
-                if (mounted) setState(() => isEditing = false);
+                if (mounted) {
+                  setState(() {
+                    _controller.text = widget.initialValue;
+                    isEditing = false;
+                  });
+                }
               },
               icon: const Icon(Icons.cancel),
-              label: Text("Cancelar", style: context.textTheme.labelMedium),
+              label: RuntimeLocalizedText(
+                "Cancelar",
+                style: context.textTheme.labelMedium,
+              ),
             ),
           ],
         );

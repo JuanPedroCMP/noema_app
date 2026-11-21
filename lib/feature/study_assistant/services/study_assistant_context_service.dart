@@ -9,9 +9,7 @@ class StudyAssistantContextService {
 
   final Ref _ref;
 
-  Future<Map<String, dynamic>> build({
-    required String currentPath,
-  }) async {
+  Future<Map<String, dynamic>> build({required String currentPath}) async {
     final user = await _ref.read(userProvider.future);
     final settings = await _ref.read(studyAssistantSettingsProvider.future);
     final db = _ref.read(appDatabaseProvider);
@@ -44,10 +42,7 @@ class StudyAssistantContextService {
       for (final node in nodes) {
         final topics = topicsByGraph.putIfAbsent(node.graphId, () => []);
         if (topics.length < 2) {
-          topics.add({
-            'id': node.id,
-            'title': _shorten(node.title, 48),
-          });
+          topics.add({'id': node.id, 'title': _shorten(node.title, 48)});
         }
       }
     }
@@ -66,7 +61,6 @@ class StudyAssistantContextService {
             'topics': topicsByGraph[graph.id] ?? const <String>[],
           },
       ],
-      'language': 'pt-BR',
     };
   }
 
@@ -79,6 +73,4 @@ class StudyAssistantContextService {
 }
 
 final studyAssistantContextServiceProvider =
-    Provider<StudyAssistantContextService>(
-      StudyAssistantContextService.new,
-    );
+    Provider<StudyAssistantContextService>(StudyAssistantContextService.new);

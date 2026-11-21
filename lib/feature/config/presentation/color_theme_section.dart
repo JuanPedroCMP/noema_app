@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/color_theme_dao.dart';
@@ -202,7 +203,7 @@ class _ColorThemeSectionState extends ConsumerState<ColorThemeSection> {
             FilledButton.icon(
               onPressed: _saving ? null : _createTheme,
               icon: const Icon(Icons.add),
-              label: const Text('Novo tema'),
+              label: const RuntimeLocalizedText('Novo tema'),
             ),
           ],
         ),
@@ -212,7 +213,7 @@ class _ColorThemeSectionState extends ConsumerState<ColorThemeSection> {
         ),
         const SizedBox(height: 16),
         if (_themes.isEmpty)
-          const Text('Nenhum tema disponível.')
+          const RuntimeLocalizedText('Nenhum tema disponível.')
         else
           DropdownButtonFormField<String>(
             initialValue: _selectedId,
@@ -245,38 +246,48 @@ class _ColorThemeSectionState extends ConsumerState<ColorThemeSection> {
                       ButtonSegment(
                         value: Brightness.light,
                         icon: Icon(Icons.light_mode_outlined),
-                        label: Text('Claro'),
+                        label: RuntimeLocalizedText('Claro'),
                       ),
                       ButtonSegment(
                         value: Brightness.dark,
                         icon: Icon(Icons.dark_mode_outlined),
-                        label: Text('Escuro'),
+                        label: RuntimeLocalizedText('Escuro'),
                       ),
                     ],
                     selected: {brightness},
-                    onSelectionChanged: (_) => _toggleBrightness(),
+                    onSelectionChanged: theme.systemDefault
+                        ? null
+                        : (_) => _toggleBrightness(),
                   ),
                 ],
               ),
             ),
           ),
+          if (theme.systemDefault)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Tema padrão do Noema · escuro · não pode ser editado nem sincronizado.',
+              ),
+            ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: _saving ? null : () => _editTheme(advanced: false),
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Editar tema'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _saving ? null : () => _editTheme(),
-                icon: const Icon(Icons.tune),
-                label: const Text('Modo avançado'),
-              ),
-            ],
-          ),
+          if (!theme.systemDefault)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _saving ? null : () => _editTheme(advanced: false),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const RuntimeLocalizedText('Editar tema'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _saving ? null : () => _editTheme(),
+                  icon: const Icon(Icons.tune),
+                  label: const RuntimeLocalizedText('Modo avançado'),
+                ),
+              ],
+            ),
         ],
       ],
     );
@@ -426,8 +437,14 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
               const SizedBox(height: 8),
               SegmentedButton<Brightness>(
                 segments: const [
-                  ButtonSegment(value: Brightness.light, label: Text('Claro')),
-                  ButtonSegment(value: Brightness.dark, label: Text('Escuro')),
+                  ButtonSegment(
+                    value: Brightness.light,
+                    label: RuntimeLocalizedText('Claro'),
+                  ),
+                  ButtonSegment(
+                    value: Brightness.dark,
+                    label: RuntimeLocalizedText('Escuro'),
+                  ),
                 ],
                 selected: {_brightness},
                 onSelectionChanged: (value) =>
@@ -446,7 +463,7 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
                     TextButton.icon(
                       onPressed: () => setState(() => _overrides.clear()),
                       icon: const Icon(Icons.restore),
-                      label: const Text('Restaurar originais'),
+                      label: const RuntimeLocalizedText('Restaurar originais'),
                     ),
                   ],
                 ),
@@ -473,9 +490,12 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const RuntimeLocalizedText('Cancelar'),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Salvar')),
+        FilledButton(
+          onPressed: _submit,
+          child: const RuntimeLocalizedText('Salvar'),
+        ),
       ],
     );
   }
@@ -672,11 +692,11 @@ class _ColorFieldState extends State<_ColorField> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext, false),
-                      child: const Text('Cancelar'),
+                      child: const RuntimeLocalizedText('Cancelar'),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(dialogContext, true),
-                      child: const Text('Usar cor'),
+                      child: const RuntimeLocalizedText('Usar cor'),
                     ),
                   ],
                 ),

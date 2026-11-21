@@ -1,19 +1,24 @@
 import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
+import 'package:noema/feature/graph/data/knowledge_graph_dao.dart';
 import 'package:noema/feature/graph/provider/edge_type_provider.dart';
 import 'package:noema/feature/graph/provider/graph_provider.dart';
 import 'package:noema/feature/graph/provider/graph_states_provider.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
 import 'package:noema/feature/graph/provider/transformation_controller_provider.dart';
 import 'package:noema/feature/graph/service/calculate_paths.dart';
+import 'package:noema/feature/graph/service/ai_graph_edit_service.dart';
 import 'package:noema/feature/graph/service/gesture_actions.dart';
+import 'package:noema/feature/graph/service/graph_transfer_service.dart';
 import 'package:noema/feature/graph/service/learning_path.dart';
 import 'package:noema/feature/graph/service/sugiyama.dart';
 import 'package:noema/feature/graph/widgets/graph.dart';
@@ -32,6 +37,7 @@ class GraphPage extends ConsumerStatefulWidget {
 class _GraphPageState extends ConsumerState<GraphPage> {
   bool _initialFitScheduled = false;
   bool _isOrganizing = false;
+  bool _isAiEditing = false;
   String? _edgeSourceNodeId;
   String? _edgeTargetNodeId;
   String? _edgePickEndpoint;
@@ -46,6 +52,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
       ref.read(selectedProvider.notifier).clear();
       ref.read(graphStatesProvider.notifier).closeDialogs();
       ref.read(transformationControllerProvider).value = Matrix4.identity();
+      unawaited(_organizeGraph(showSuccess: false));
     });
   }
 
@@ -53,6 +60,176 @@ class _GraphPageState extends ConsumerState<GraphPage> {
   void dispose() {
     _toolbarScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _editGraph(KnowledgeGraphData graph) async {
+    final titleController = TextEditingController(text: graph.title);
+    final descriptionController = TextEditingController(
+      text: graph.description ?? '',
+    );
+    try {
+      final draft = await showDialog<({String title, String description})>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const RuntimeLocalizedText('Editar grafo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                maxLength: 80,
+                decoration: const InputDecoration(
+                  labelText: 'Título do grafo',
+                  prefixIcon: Icon(Icons.title),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: descriptionController,
+                minLines: 3,
+                maxLines: 5,
+                maxLength: 240,
+                decoration: const InputDecoration(
+                  labelText: 'Descrição',
+                  alignLabelWithHint: true,
+                  prefixIcon: Icon(Icons.notes_outlined),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const RuntimeLocalizedText('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final title = titleController.text.trim();
+                if (title.isEmpty) return;
+                Navigator.pop(context, (
+                  title: title,
+                  description: descriptionController.text.trim(),
+                ));
+              },
+              child: const RuntimeLocalizedText('Salvar'),
+            ),
+          ],
+        ),
+      );
+      if (draft == null) return;
+      await KnowledgeGraphDao(
+        ref.read(appDatabaseProvider),
+      ).updateKnowledgeGraph(
+        id: graph.id,
+        title: draft.title,
+        description: draft.description,
+      );
+      ref.invalidate(knowledgeGraphsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: RuntimeLocalizedText('Grafo atualizado.')),
+        );
+      }
+    } on Object {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: RuntimeLocalizedText(
+              'Não foi possível atualizar o grafo.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      titleController.dispose();
+      descriptionController.dispose();
+    }
+  }
+
+  Future<void> _editGraphWithAi() async {
+    if (_isAiEditing) return;
+    final controller = TextEditingController();
+    try {
+      final instruction = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const RuntimeLocalizedText('Editar grafo com IA'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 5,
+            maxLength: 500,
+            decoration: const InputDecoration(
+              labelText: 'O que deve mudar?',
+              hintText: 'Ex.: Renomeie o nó 2 e adicione dois pré-requisitos.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const RuntimeLocalizedText('Cancelar'),
+            ),
+            FilledButton.icon(
+              onPressed: () {
+                final value = controller.text.trim();
+                if (value.isNotEmpty) Navigator.pop(context, value);
+              },
+              icon: const Icon(Icons.auto_awesome),
+              label: const RuntimeLocalizedText('Preparar alterações'),
+            ),
+          ],
+        ),
+      );
+      if (instruction == null || !mounted) return;
+      setState(() => _isAiEditing = true);
+      final service = AiGraphEditService(ref);
+      final draft = await service.generatePatch(
+        graphId: widget.graphId,
+        instruction: instruction,
+      );
+      if (!mounted) return;
+      final accepted = await showDialog<bool>(
+        context: context,
+        builder: (context) => _AiGraphPatchPreviewDialog(draft: draft),
+      );
+      if (accepted != true || !mounted) return;
+      await service.applyPatch(graphId: widget.graphId, draft: draft);
+      ref.invalidate(nodesProvider(widget.graphId));
+      ref.invalidate(edgesProvider(widget.graphId));
+      ref.read(selectedProvider.notifier).clear();
+      await _organizeGraph(showSuccess: false);
+      if (mounted) _showMessage('Alterações do grafo aplicadas.');
+    } catch (error) {
+      if (mounted) {
+        _showMessage('Não foi possível editar o grafo com IA: $error');
+      }
+    } finally {
+      controller.dispose();
+      if (mounted) setState(() => _isAiEditing = false);
+    }
+  }
+
+  Future<void> _exportGraph({
+    required KnowledgeGraphData graph,
+    required List<GraphNodeData> nodes,
+    required List<GraphEdgeData> edges,
+  }) async {
+    try {
+      await GraphTransferService.exportGraph(
+        db: ref.read(appDatabaseProvider),
+        graph: graph,
+        nodes: nodes,
+        edges: edges,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível exportar o grafo.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -156,6 +333,11 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             description: graph?.description,
             nodeCount: nodes.length,
             edgeCount: edges.length,
+            onEdit: graph == null ? null : () => _editGraph(graph),
+            onAiEdit: graph == null ? null : _editGraphWithAi,
+            onExport: graph == null
+                ? null
+                : () => _exportGraph(graph: graph, nodes: nodes, edges: edges),
           ),
           const SizedBox(height: 4),
           Scrollbar(
@@ -171,6 +353,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     onOrganize: () async {
                       await _organizeGraph();
                     },
+                    onGraphChanged: () => _organizeGraph(showSuccess: false),
                     onCreateNode: _toggleNodeCreation,
                     onCreateEdge: _toggleEdgeCreation,
                     canOrganize: nodes.isNotEmpty,
@@ -197,10 +380,22 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         .read(edgeTypeProvider.notifier)
                         .edgeTypeChanged,
                     itemBuilder: (context) => const [
-                      PopupMenuItem(value: 0, child: Text('Relações curvas')),
-                      PopupMenuItem(value: 1, child: Text('Relações diretas')),
-                      PopupMenuItem(value: 2, child: Text('Ângulos retos')),
-                      PopupMenuItem(value: 3, child: Text('Um vértice')),
+                      PopupMenuItem(
+                        value: 0,
+                        child: RuntimeLocalizedText('Relações curvas'),
+                      ),
+                      PopupMenuItem(
+                        value: 1,
+                        child: RuntimeLocalizedText('Relações diretas'),
+                      ),
+                      PopupMenuItem(
+                        value: 2,
+                        child: RuntimeLocalizedText('Ângulos retos'),
+                      ),
+                      PopupMenuItem(
+                        value: 3,
+                        child: RuntimeLocalizedText('Um vértice'),
+                      ),
                     ],
                     child: Padding(
                       padding: const EdgeInsets.all(8),
@@ -457,7 +652,11 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         child: NodeDetails(
                           key: ValueKey(selectedNode.id),
                           node: selectedNode,
+                          isRecommended: selectedNode.id == recommendedNodeId,
                           onClose: selectedNotifier.clear,
+                          onNodeChanged: () async {
+                            await _organizeGraph(showSuccess: false);
+                          },
                           progress:
                               learningPath.progressByNodeId[selectedNode.id]!,
                           progressByNodeId: learningPath.progressByNodeId,
@@ -544,7 +743,14 @@ class _GraphPageState extends ConsumerState<GraphPage> {
         }
         return false;
       } else {
-        if (showSuccess) _showMessage('Grafo organizado.');
+        if (showSuccess) {
+          _showMessage(
+            result.cyclesBroken == 0
+                ? 'Grafo organizado.'
+                : 'Grafo organizado. ${result.cyclesBroken} relação(ões) '
+                      'cíclica(s) foram mantidas como conexões de retorno.',
+          );
+        }
         return true;
       }
     } catch (error) {
@@ -641,7 +847,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Adicionar nó'),
+            title: const RuntimeLocalizedText('Adicionar nó'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -651,15 +857,21 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     initialValue: nodeType,
                     decoration: const InputDecoration(labelText: 'Tipo'),
                     items: const [
-                      DropdownMenuItem(value: 'AREA', child: Text('Área')),
-                      DropdownMenuItem(value: 'TOPIC', child: Text('Tópico')),
+                      DropdownMenuItem(
+                        value: 'AREA',
+                        child: RuntimeLocalizedText('Área'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'TOPIC',
+                        child: RuntimeLocalizedText('Tópico'),
+                      ),
                       DropdownMenuItem(
                         value: 'CONCEPT',
-                        child: Text('Conceito'),
+                        child: RuntimeLocalizedText('Conceito'),
                       ),
                       DropdownMenuItem(
                         value: 'SUBCONCEPT',
-                        child: Text('Subconceito'),
+                        child: RuntimeLocalizedText('Subconceito'),
                       ),
                     ],
                     onChanged: isSaving
@@ -707,7 +919,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                 onPressed: isSaving
                     ? null
                     : () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancelar'),
+                child: const RuntimeLocalizedText('Cancelar'),
               ),
               FilledButton.icon(
                 onPressed: isSaving
@@ -866,7 +1078,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
               .where((node) => node.id != selectedTargetId)
               .toList();
           return AlertDialog(
-            title: const Text('Criar relação'),
+            title: const RuntimeLocalizedText('Criar relação'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -901,7 +1113,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         ),
                       ),
                       icon: const Icon(Icons.touch_app_outlined),
-                      label: const Text('Escolher origem clicando no nó'),
+                      label: const RuntimeLocalizedText(
+                        'Escolher origem clicando no nó',
+                      ),
                     ),
                   ),
                   const Padding(
@@ -937,7 +1151,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         ),
                       ),
                       icon: const Icon(Icons.touch_app_outlined),
-                      label: const Text('Escolher destino clicando no nó'),
+                      label: const RuntimeLocalizedText(
+                        'Escolher destino clicando no nó',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -949,7 +1165,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     items: const [
                       DropdownMenuItem(
                         value: 'PREREQUISITE',
-                        child: Text('Pré-requisito (origem → destino)'),
+                        child: RuntimeLocalizedText(
+                          'Pré-requisito (origem → destino)',
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'SUBTOPIC',
@@ -996,7 +1214,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancelar'),
+                child: const RuntimeLocalizedText('Cancelar'),
               ),
               FilledButton.icon(
                 onPressed: () {
@@ -1045,7 +1263,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   );
                 },
                 icon: const Icon(Icons.add_link_rounded),
-                label: const Text('Criar relação'),
+                label: const RuntimeLocalizedText('Criar relação'),
               ),
             ],
           );
@@ -1080,7 +1298,14 @@ class _GraphPageState extends ConsumerState<GraphPage> {
         type: dialogResult.type!,
         weight: dialogResult.weight,
       );
-      if (mounted) _showMessage('Relação adicionada ao grafo.');
+      final organized = await _organizeGraph(showSuccess: false);
+      if (mounted) {
+        _showMessage(
+          organized
+              ? 'Relação adicionada e grafo organizado.'
+              : 'Relação adicionada, mas não foi possível organizar o grafo.',
+        );
+      }
     } catch (error) {
       if (mounted) _showMessage('Não foi possível criar a relação: $error');
     }
@@ -1136,10 +1361,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                       (node.description?.toLowerCase().contains(query) ??
                           false),
                 )
-                .take(30)
                 .toList();
             return AlertDialog(
-              title: const Text('Buscar conceito'),
+              title: const RuntimeLocalizedText('Buscar conceito'),
               content: SizedBox(
                 width: 460,
                 height: 420,
@@ -1159,7 +1383,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     Expanded(
                       child: matches.isEmpty
                           ? const Center(
-                              child: Text('Nenhum conceito encontrado.'),
+                              child: RuntimeLocalizedText(
+                                'Nenhum conceito encontrado.',
+                              ),
                             )
                           : ListView.builder(
                               itemCount: matches.length,
@@ -1183,7 +1409,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Fechar'),
+                  child: const RuntimeLocalizedText('Fechar'),
                 ),
               ],
             );
@@ -1260,6 +1486,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
           child: NodeDetails(
             key: ValueKey(node.id),
             node: node,
+            onNodeChanged: () async {
+              await _organizeGraph(showSuccess: false);
+            },
             scrollController: scrollController,
             progress: progress,
             progressByNodeId: learningPath.progressByNodeId,
@@ -1519,7 +1748,7 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                   FilledButton.tonalIcon(
                     onPressed: widget.onOpenRecommended,
                     icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                    label: const Text('Estudar'),
+                    label: const RuntimeLocalizedText('Estudar'),
                   ),
                 IconButton(
                   tooltip: _isExpanded
@@ -1648,18 +1877,105 @@ class _GraphLegendItem extends StatelessWidget {
   }
 }
 
+class _AiGraphPatchPreviewDialog extends StatelessWidget {
+  const _AiGraphPatchPreviewDialog({required this.draft});
+
+  final AiGraphEditDraft draft;
+
+  List<String> _changes() {
+    final snapshot = draft.snapshot;
+    final patch = draft.patch;
+    final changes = <String>[];
+    for (final id in patch.deletedNodeIds) {
+      changes.add('Excluir nó: ${snapshot.nodesByCompactId[id]!.title}');
+    }
+    for (final rename in patch.renamedNodes) {
+      final oldTitle = snapshot.nodesByCompactId[rename.id]!.title;
+      changes.add('Renomear "$oldTitle" para "${rename.title}"');
+    }
+    for (final node in patch.addedNodes) {
+      changes.add('Adicionar nó: ${node.title}');
+    }
+    for (final id in patch.deletedEdgeIds) {
+      final edge = snapshot.edgesByCompactId[id]!;
+      final sourceId = snapshot.nodeCompactIdByLocalId[edge.sourceNodeId]!;
+      final targetId = snapshot.nodeCompactIdByLocalId[edge.targetNodeId]!;
+      changes.add(
+        'Excluir relação: ${snapshot.nodesByCompactId[sourceId]!.title} -> '
+        '${snapshot.nodesByCompactId[targetId]!.title} (${edge.type})',
+      );
+    }
+    final newTitles = {
+      for (final node in patch.addedNodes) node.id: node.title,
+    };
+    String titleFor(Object id) =>
+        id is int ? snapshot.nodesByCompactId[id]!.title : newTitles[id]!;
+    for (final edge in patch.addedEdges) {
+      changes.add(
+        'Adicionar relação: ${titleFor(edge.sourceNode)} -> '
+        '${titleFor(edge.targetNode)} (${edge.type})',
+      );
+    }
+    return changes;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final changes = _changes();
+    return AlertDialog(
+      title: const RuntimeLocalizedText('Revisar alterações do grafo'),
+      content: SizedBox(
+        width: 520,
+        height: 360,
+        child: changes.isEmpty
+            ? const Center(
+                child: RuntimeLocalizedText('A IA não propôs alterações.'),
+              )
+            : ListView.separated(
+                itemCount: changes.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) => ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.edit_note_outlined),
+                  title: Text(changes[index]),
+                ),
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const RuntimeLocalizedText('Descartar'),
+        ),
+        FilledButton.icon(
+          onPressed: changes.isEmpty
+              ? null
+              : () => Navigator.pop(context, true),
+          icon: const Icon(Icons.check),
+          label: const RuntimeLocalizedText('Aplicar'),
+        ),
+      ],
+    );
+  }
+}
+
 class _GraphHeader extends StatelessWidget {
   const _GraphHeader({
     required this.title,
     required this.description,
     required this.nodeCount,
     required this.edgeCount,
+    this.onEdit,
+    this.onAiEdit,
+    this.onExport,
   });
 
   final String title;
   final String? description;
   final int nodeCount;
   final int edgeCount;
+  final VoidCallback? onEdit;
+  final VoidCallback? onAiEdit;
+  final VoidCallback? onExport;
 
   @override
   Widget build(BuildContext context) {
@@ -1699,6 +2015,34 @@ class _GraphHeader extends StatelessWidget {
           message: '$edgeCount relações',
           child: _CountBadge(icon: Icons.hub_outlined, label: '$edgeCount'),
         ),
+        if (onEdit != null || onAiEdit != null || onExport != null) ...[
+          const SizedBox(width: 4),
+          PopupMenuButton<String>(
+            tooltip: 'Opções do grafo',
+            onSelected: (value) {
+              if (value == 'edit') onEdit?.call();
+              if (value == 'ai-edit') onAiEdit?.call();
+              if (value == 'export') onExport?.call();
+            },
+            itemBuilder: (context) => [
+              if (onEdit != null)
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: RuntimeLocalizedText('Editar título e descrição'),
+                ),
+              if (onAiEdit != null)
+                const PopupMenuItem(
+                  value: 'ai-edit',
+                  child: RuntimeLocalizedText('Editar nós e relações com IA'),
+                ),
+              if (onExport != null)
+                const PopupMenuItem(
+                  value: 'export',
+                  child: RuntimeLocalizedText('Exportar grafo JSON'),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -1765,7 +2109,7 @@ class _CanvasControls extends StatelessWidget {
               value: 'in',
               child: ListTile(
                 leading: Icon(Icons.add_rounded),
-                title: Text('Aumentar zoom'),
+                title: RuntimeLocalizedText('Aumentar zoom'),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -1773,7 +2117,7 @@ class _CanvasControls extends StatelessWidget {
               value: 'out',
               child: ListTile(
                 leading: Icon(Icons.remove_rounded),
-                title: Text('Diminuir zoom'),
+                title: RuntimeLocalizedText('Diminuir zoom'),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -1781,7 +2125,7 @@ class _CanvasControls extends StatelessWidget {
               value: 'fit',
               child: ListTile(
                 leading: Icon(Icons.fit_screen_rounded),
-                title: Text('Enquadrar grafo'),
+                title: RuntimeLocalizedText('Enquadrar grafo'),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -1906,7 +2250,9 @@ class _EmptyGraphState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onEdit,
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Adicionar primeiro conceito'),
+                label: const RuntimeLocalizedText(
+                  'Adicionar primeiro conceito',
+                ),
               ),
             ],
           ),
@@ -1935,7 +2281,7 @@ class _GraphLoadError extends StatelessWidget {
               size: 40,
             ),
             const SizedBox(height: 12),
-            Text('Não foi possível carregar o grafo.'),
+            RuntimeLocalizedText('Não foi possível carregar o grafo.'),
             const SizedBox(height: 4),
             Text(
               '$error',

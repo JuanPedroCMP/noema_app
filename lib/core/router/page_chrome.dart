@@ -16,6 +16,14 @@ class PageChrome {
 
 PageChrome chromeForPath(String path) {
   final segments = Uri.parse(path).pathSegments;
+  if (path == '/dashboard') {
+    return PageChrome(
+      title: 'Painel',
+      subtitle: 'Seu domínio e evolução nos estudos',
+      actions: const [],
+      pageItens: const [],
+    );
+  }
   if (segments.isNotEmpty && segments.first == 'study-sessions') {
     final title = segments.length == 1
         ? 'Sessões de estudo'

@@ -5,12 +5,14 @@ import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
+import 'package:noema/feature/exercises/data/ai_exercise_evaluation.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_response_log_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_response_log_dao.dart';
 import 'package:noema/feature/exercises/presentation/exercise_correction_dialog.dart';
@@ -120,7 +122,9 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             const SnackBar(
-              content: Text('Não foi possível atualizar o histórico.'),
+              content: RuntimeLocalizedText(
+                'Não foi possível atualizar o histórico.',
+              ),
             ),
           );
       }
@@ -242,14 +246,18 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Correção salva e próxima revisão agendada.'),
+          content: RuntimeLocalizedText(
+            'Correção salva e próxima revisão agendada.',
+          ),
         ),
       );
       await carregar();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível salvar a correção.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível salvar a correção.'),
+        ),
       );
     }
   }
@@ -321,14 +329,18 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Revisão salva e próxima revisão agendada.'),
+          content: RuntimeLocalizedText(
+            'Revisão salva e próxima revisão agendada.',
+          ),
         ),
       );
       await carregar();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível salvar a revisão.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Não foi possível salvar a revisão.'),
+        ),
       );
     }
   }
@@ -344,29 +356,31 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
       nodeId: nodeId,
       userId: user.id,
     );
-    final prompt =
-        '''
-Avalie esta tentativa de estudo com rigor pedagógico, respeito e foco no aprendizado.
-Tipo de tarefa: ${task.label}.
-Contexto do nó: ${jsonEncode({'title': node.title, 'description': node.description, 'type': node.type})}
-Dados da tentativa: ${jsonEncode(context)}
-
-Considere a resposta de referência e as alternativas corretas quando estiverem
-presentes. Não invente informações ausentes. Em múltipla escolha, explique por
-que a seleção está correta ou incorreta e corrija equívocos conceituais.
-Retorne somente um objeto JSON com:
-{
-  "feedback": "feedback claro e específico em português",
-  "score": 0.0,
-  "is_correct": false,
-  "mastery_demonstrated": "WEAK|PARTIAL|ADEQUATE|STRONG",
-  "weight": 0
-}
-score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
-''';
-    return ref
+    final response = await ref
         .read(aiContentGenerationServiceProvider)
-        .generate(task: task, prompt: prompt);
+        .generate(
+          task: task,
+          prompt: buildAiExerciseEvaluationPrompt(
+            task: task,
+            nodeTitle: node.title,
+            nodeDescription: node.description,
+            nodeType: node.type,
+            context: context,
+          ),
+          context: {
+            'node': {
+              'title': node.title,
+              'description': node.description,
+              'type': node.type,
+            },
+            'attempt': context,
+          },
+        );
+    return normalizeAiExerciseEvaluation(
+      task: task,
+      response: response,
+      context: context,
+    );
   }
 
   Future<ExerciseCorrectionDraft?> _showCorrectionDialog({
@@ -413,7 +427,10 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Enunciado', style: context.textTheme.titleSmall),
+              RuntimeLocalizedText(
+                'Enunciado',
+                style: context.textTheme.titleSmall,
+              ),
               const SizedBox(height: 4),
               Text(snapshot['statement'] as String? ?? question.statement),
               if ((snapshot['referenceCorrectAnswer'] as String?)
@@ -429,12 +446,18 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
                 Text(snapshot['referenceCorrectAnswer'] as String),
               ],
               const SizedBox(height: 16),
-              Text('Sua resposta', style: context.textTheme.titleSmall),
+              RuntimeLocalizedText(
+                'Sua resposta',
+                style: context.textTheme.titleSmall,
+              ),
               const SizedBox(height: 4),
               SelectableText(response.userAnswer ?? 'Resposta não registrada.'),
               if (response.aiFeedback?.isNotEmpty == true) ...[
                 const SizedBox(height: 16),
-                Text('Feedback', style: context.textTheme.titleSmall),
+                RuntimeLocalizedText(
+                  'Feedback',
+                  style: context.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 4),
                 Text(response.aiFeedback!),
               ],
@@ -463,7 +486,7 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            child: const RuntimeLocalizedText('Fechar'),
           ),
         ],
       ),
@@ -502,7 +525,10 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
               ),
               if (response.aiFeedback?.trim().isNotEmpty == true) ...[
                 const SizedBox(height: 12),
-                Text('Feedback', style: context.textTheme.titleSmall),
+                RuntimeLocalizedText(
+                  'Feedback',
+                  style: context.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 4),
                 Text(response.aiFeedback!),
               ],
@@ -516,7 +542,10 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
                 Text(response.userNotes!),
               ],
               const SizedBox(height: 16),
-              Text('Alternativas', style: context.textTheme.titleSmall),
+              RuntimeLocalizedText(
+                'Alternativas',
+                style: context.textTheme.titleSmall,
+              ),
               const SizedBox(height: 4),
               if (choices.isEmpty)
                 const Text(
@@ -573,7 +602,7 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            child: const RuntimeLocalizedText('Fechar'),
           ),
         ],
       ),
@@ -660,7 +689,7 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
             FilledButton.icon(
               onPressed: carregar,
               icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
+              label: const RuntimeLocalizedText('Tentar novamente'),
             ),
           ],
         ),
@@ -831,7 +860,9 @@ score deve ser um número entre 0 e 1; weight, se usado, deve ser de 0 a 100.
                       children: const [
                         SizedBox(height: 40),
                         Center(
-                          child: Text('Nenhuma tentativa corresponde à busca.'),
+                          child: RuntimeLocalizedText(
+                            'Nenhuma tentativa corresponde à busca.',
+                          ),
                         ),
                       ],
                     )

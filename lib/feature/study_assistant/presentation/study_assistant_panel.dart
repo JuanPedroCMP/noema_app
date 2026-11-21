@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/router/route_paths.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_action.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_state.dart';
@@ -8,7 +9,9 @@ import 'package:noema/feature/study_assistant/providers/study_assistant_preferen
 import 'package:noema/feature/study_assistant/providers/study_assistant_provider.dart';
 
 class StudyAssistantPanel extends ConsumerStatefulWidget {
-  const StudyAssistantPanel({super.key});
+  const StudyAssistantPanel({super.key, this.isDocked = false});
+
+  final bool isDocked;
 
   @override
   ConsumerState<StudyAssistantPanel> createState() =>
@@ -30,10 +33,9 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     final text = suggestion ?? _messageController.text;
     if (text.trim().isEmpty) return;
     _messageController.clear();
-    final request = ref.read(studyAssistantProvider.notifier).send(
-      text: text,
-      currentPath: GoRouterState.of(context).uri.path,
-    );
+    final request = ref
+        .read(studyAssistantProvider.notifier)
+        .send(text: text, currentPath: GoRouterState.of(context).uri.path);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _scrollToLatest();
     });
@@ -56,7 +58,7 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     final goal = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Seu objetivo de estudo'),
+        title: const RuntimeLocalizedText('Seu objetivo de estudo'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -70,11 +72,11 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const RuntimeLocalizedText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Salvar objetivo'),
+            child: const RuntimeLocalizedText('Salvar objetivo'),
           ),
         ],
       ),
@@ -88,7 +90,11 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível salvar o objetivo: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível salvar o objetivo: $error',
+          ),
+        ),
       );
     }
   }
@@ -96,7 +102,9 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
   Future<void> _openAction(StudyAssistantAction action) async {
     if (action.type == StudyAssistantActionType.createGraph &&
         action.prompt.trim().length < 5) {
-      _showActionError('A proposta não inclui um tema suficiente para o grafo.');
+      _showActionError(
+        'A proposta não inclui um tema suficiente para o grafo.',
+      );
       return;
     }
     if (action.type == StudyAssistantActionType.createFlashcards &&
@@ -109,7 +117,8 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     try {
       settings = await ref.read(studyAssistantSettingsProvider.future);
     } catch (error) {
-      if (mounted) _showActionError('Não foi possível carregar preferências: $error');
+      if (mounted)
+        _showActionError('Não foi possível carregar preferências: $error');
       return;
     }
     if (!mounted) return;
@@ -172,9 +181,9 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
   };
 
   void _showActionError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _togglePinned(bool isPinned) async {
@@ -193,55 +202,86 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     final state = ref.watch(studyAssistantProvider);
     final preferences = ref.watch(studyAssistantSettingsProvider).asData?.value;
     final theme = Theme.of(context);
+    final shape = widget.isDocked
+        ? const RoundedRectangleBorder()
+        : RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+            ),
+          );
     return Material(
-      elevation: 8,
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(20),
+      elevation: widget.isDocked ? 0 : 2,
+      shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.18),
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: shape,
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-              _buildHeader(
-                state,
-                preferences?.learningGoal ?? '',
-                isPinned: preferences?.pinPanel ?? false,
-              ),
-              if (preferences?.learningGoal.isNotEmpty == true)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  color: theme.colorScheme.secondaryContainer,
-                  child: Text(
-                    'Objetivo: ${preferences!.learningGoal}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium,
+          _buildHeader(
+            state,
+            preferences?.learningGoal ?? '',
+            isPinned: preferences?.pinPanel ?? false,
+          ),
+          if (preferences?.learningGoal.isNotEmpty == true)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer.withValues(
+                  alpha: 0.55,
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.55,
+                    ),
                   ),
                 ),
-              if (state.error != null) _buildError(state.error!),
-              Expanded(
-                child: state.messages.isEmpty
-                    ? _buildWelcome()
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(14),
-                        itemCount: state.messages.length +
-                            (state.isSending ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == state.messages.length) {
-                            return const _TypingIndicator();
-                          }
-                          final message = state.messages[index];
-                          return _MessageBubble(
-                            message: message,
-                            onAction: _openAction,
-                          );
-                        },
-                      ),
               ),
-              _buildComposer(state),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.flag_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      preferences!.learningGoal,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (state.error != null) _buildError(state.error!),
+          Expanded(
+            child: state.messages.isEmpty
+                ? _buildWelcome()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(14),
+                    itemCount:
+                        state.messages.length + (state.isSending ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.messages.length) {
+                        return const _TypingIndicator();
+                      }
+                      final message = state.messages[index];
+                      return _MessageBubble(
+                        message: message,
+                        onAction: _openAction,
+                      );
+                    },
+                  ),
+          ),
+          _buildComposer(state),
         ],
       ),
     );
@@ -252,95 +292,146 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     String goal, {
     required bool isPinned,
   }) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Icon(
-              Icons.auto_awesome,
-              size: 19,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colors.outlineVariant.withValues(alpha: 0.55),
             ),
           ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Assistente de estudos',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text('Planeje, entenda e pratique'),
-              ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 19,
+              backgroundColor: colors.primaryContainer,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 19,
+                color: colors.onPrimaryContainer,
+              ),
             ),
-          ),
-          IconButton(
-            tooltip: 'Definir objetivo de estudo',
-            onPressed: () => _setGoal(goal),
-            icon: const Icon(Icons.flag_outlined),
-          ),
-          if (state.messages.isNotEmpty)
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Assistente de estudos',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Seu apoio para aprender',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             IconButton(
-              tooltip: 'Limpar conversa',
-              onPressed: state.isSending
-                  ? null
-                  : () => ref
-                      .read(studyAssistantProvider.notifier)
-                      .clearConversation(),
-              icon: const Icon(Icons.delete_sweep_outlined),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Definir objetivo de estudo',
+              onPressed: () => _setGoal(goal),
+              icon: const Icon(Icons.flag_outlined),
             ),
-          IconButton(
+            if (state.messages.isNotEmpty)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Limpar conversa',
+                onPressed: state.isSending
+                    ? null
+                    : () => ref
+                          .read(studyAssistantProvider.notifier)
+                          .clearConversation(),
+                icon: const Icon(Icons.delete_sweep_outlined),
+              ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
               tooltip: isPinned
                   ? 'Desafixar painel'
                   : 'Manter painel fixado ao lado',
               onPressed: () => _togglePinned(isPinned),
-              icon: Icon(
-                isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-              ),
+              icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined),
             ),
-          IconButton(
-            tooltip: 'Fechar assistente',
-            onPressed: () =>
-                ref.read(studyAssistantProvider.notifier).close(),
-            icon: const Icon(Icons.close),
-          ),
-        ],
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Fechar assistente',
+              onPressed: () =>
+                  ref.read(studyAssistantProvider.notifier).close(),
+              icon: const Icon(Icons.close),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildWelcome() {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return ListView(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       children: [
-        Text(
-          'Vamos estudar melhor?',
-          style: Theme.of(context).textTheme.titleMedium,
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Icon(Icons.auto_awesome, color: colors.onPrimaryContainer),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Posso explicar conceitos, organizar um plano e preparar atividades. '
-          'Quando uma ação exigir geração, você confirma antes de começar.',
+        const SizedBox(height: 16),
+        RuntimeLocalizedText(
+          'Por onde começamos?',
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Escolha uma ideia ou escreva sua pergunta.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colors.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 18),
-        for (final prompt in const [
-          'Ajude-me a montar um plano de estudo para esta semana.',
-          'Explique o assunto que estou estudando de forma simples.',
-          'Quero praticar: sugira um exercício sobre meu objetivo.',
+        for (final (label, prompt) in const [
+          (
+            'Planejar minha semana',
+            'Ajude-me a montar um plano de estudo para esta semana.',
+          ),
+          (
+            'Explicar um conteúdo',
+            'Explique o assunto que estou estudando de forma simples.',
+          ),
+          (
+            'Praticar meu objetivo',
+            'Sugira um exercício para eu praticar meu objetivo.',
+          ),
         ])
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               onPressed: () => _send(prompt),
-              child: Align(
+              icon: const Icon(Icons.arrow_forward, size: 17),
+              label: Align(alignment: Alignment.centerLeft, child: Text(label)),
+              style: OutlinedButton.styleFrom(
                 alignment: Alignment.centerLeft,
-                child: Text(prompt),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                side: BorderSide(
+                  color: colors.outlineVariant.withValues(alpha: 0.8),
+                ),
               ),
             ),
           ),
@@ -349,15 +440,24 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
   }
 
   Widget _buildError(String error) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      color: Theme.of(context).colorScheme.errorContainer,
+      color: colors.errorContainer,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      child: Text(
-        error,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 18, color: colors.onErrorContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              error,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -392,9 +492,9 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
                     }) => null,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
-                  hintText: 'Pergunte ou descreva seu objetivo...',
+                  hintText: 'Pergunte ao assistente...',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(18)),
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 14,
@@ -431,13 +531,21 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final color = message.isUser ? colors.primaryContainer : colors.surfaceContainerHigh;
+    final color = message.isUser
+        ? colors.primaryContainer
+        : colors.surfaceContainerHigh;
     return Align(
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 310),
         child: Card(
           color: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: colors.outlineVariant.withValues(alpha: 0.55),
+            ),
+          ),
           margin: const EdgeInsets.only(bottom: 10),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -452,7 +560,7 @@ class _MessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 6),
                       child: SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton.icon(
+                        child: FilledButton.tonalIcon(
                           onPressed: () => onAction(action),
                           icon: Icon(_iconFor(action.type), size: 18),
                           label: Text(action.title),
@@ -493,7 +601,7 @@ class _TypingIndicator extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             SizedBox(width: 10),
-            Text('Pensando...'),
+            RuntimeLocalizedText('Pensando...'),
           ],
         ),
       ),

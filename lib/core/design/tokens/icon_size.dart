@@ -54,24 +54,15 @@ abstract class AppIconSize with _$AppIconSize {
 class AppIconSizeTheme extends ThemeExtension<AppIconSizeTheme> {
   final AppIconSize iconSize;
 
-  const AppIconSizeTheme({
-    required this.iconSize,
-  });
+  const AppIconSizeTheme({required this.iconSize});
 
   @override
-  AppIconSizeTheme copyWith({
-    AppIconSize? iconSize,
-  }) {
-    return AppIconSizeTheme(
-      iconSize: iconSize ?? this.iconSize,
-    );
+  AppIconSizeTheme copyWith({AppIconSize? iconSize}) {
+    return AppIconSizeTheme(iconSize: iconSize ?? this.iconSize);
   }
 
   @override
-  AppIconSizeTheme lerp(
-    ThemeExtension<AppIconSizeTheme>? other,
-    double t,
-  ) {
+  AppIconSizeTheme lerp(ThemeExtension<AppIconSizeTheme>? other, double t) {
     if (other is! AppIconSizeTheme) {
       return this;
     }

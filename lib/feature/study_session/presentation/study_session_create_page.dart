@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -195,14 +196,20 @@ class _StudySessionCreatePageState
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível carregar os nodes: $error')),
+        SnackBar(
+          content: RuntimeLocalizedText(
+            'Não foi possível carregar os nodes: $error',
+          ),
+        ),
       );
       return;
     }
     if (!mounted) return;
     if (nodes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Este grafo ainda não tem nodes.')),
+        const SnackBar(
+          content: RuntimeLocalizedText('Este grafo ainda não tem nodes.'),
+        ),
       );
       return;
     }
@@ -214,8 +221,8 @@ class _StudySessionCreatePageState
           shrinkWrap: true,
           children: [
             const ListTile(
-              title: Text('Escolha onde criar o exercício'),
-              subtitle: Text('Selecione um node deste grafo.'),
+              title: RuntimeLocalizedText('Escolha onde criar o exercício'),
+              subtitle: RuntimeLocalizedText('Selecione um node deste grafo.'),
             ),
             for (final node in nodes)
               ListTile(
@@ -235,10 +242,14 @@ class _StudySessionCreatePageState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(title: Text('Que tipo de exercício deseja criar?')),
+            const ListTile(
+              title: RuntimeLocalizedText(
+                'Que tipo de exercício deseja criar?',
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.checklist_rounded),
-              title: const Text('Múltipla escolha'),
+              title: const RuntimeLocalizedText('Múltipla escolha'),
               onTap: () => Navigator.pop(
                 context,
                 StudySessionQuestionType.multipleChoice,
@@ -246,7 +257,7 @@ class _StudySessionCreatePageState
             ),
             ListTile(
               leading: const Icon(Icons.edit_note_rounded),
-              title: const Text('Dissertativa'),
+              title: const RuntimeLocalizedText('Dissertativa'),
               onTap: () =>
                   Navigator.pop(context, StudySessionQuestionType.openEnded),
             ),
@@ -509,7 +520,7 @@ class _StudySessionCreatePageState
                                   dense: true,
                                   leading: CircleAvatar(
                                     radius: 15,
-                                    child: Text('${index + 1}'),
+                                    child: RuntimeLocalizedText('${index + 1}'),
                                   ),
                                   title: Text(
                                     visibleQuestionsByKey[_selectedQuestionKeys
@@ -586,7 +597,7 @@ class _StudySessionCreatePageState
                       items: [
                         const DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('Não selecionar grafo'),
+                          child: RuntimeLocalizedText('Não selecionar grafo'),
                         ),
                         for (final graph in _graphs)
                           DropdownMenuItem<String?>(
@@ -609,20 +620,24 @@ class _StudySessionCreatePageState
                               ? null
                               : _createExercise,
                           icon: const Icon(Icons.add_rounded),
-                          label: const Text('Criar exercício neste grafo'),
+                          label: const RuntimeLocalizedText(
+                            'Criar exercício neste grafo',
+                          ),
                         ),
                       ),
                       Wrap(
                         spacing: 8,
                         children: [
                           FilterChip(
-                            label: const Text('Todos'),
+                            label: const RuntimeLocalizedText('Todos'),
                             selected: _typeFilter == null,
                             onSelected: (_) =>
                                 setState(() => _typeFilter = null),
                           ),
                           FilterChip(
-                            label: const Text('Múltipla escolha'),
+                            label: const RuntimeLocalizedText(
+                              'Múltipla escolha',
+                            ),
                             selected:
                                 _typeFilter ==
                                 StudySessionQuestionType.multipleChoice,
@@ -632,7 +647,7 @@ class _StudySessionCreatePageState
                             ),
                           ),
                           FilterChip(
-                            label: const Text('Dissertativas'),
+                            label: const RuntimeLocalizedText('Dissertativas'),
                             selected:
                                 _typeFilter ==
                                 StudySessionQuestionType.openEnded,
