@@ -194,6 +194,7 @@ class AiContentGenerationService {
     required AiAgentTask task,
     required String prompt,
     required T Function(Map<String, dynamic> payload) parse,
+    String Function(T parsed)? retryFeedback,
     String? agentId,
     Map<String, dynamic>? context,
     AiRequestPriority priority = AiRequestPriority.user,

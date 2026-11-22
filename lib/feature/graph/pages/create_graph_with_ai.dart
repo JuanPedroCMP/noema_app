@@ -146,9 +146,14 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       final agentId = await ai.resolveAgentId(AiAgentTask.manipulateGraph);
       final draft = await ai.generateWithRetry<GraphResponse>(
         task: AiAgentTask.manipulateGraph,
-        prompt: prompt,
+        prompt: 'MODE: CREATE\n$prompt',
         agentId: agentId,
         maxAttempts: 2,
+        retryFeedback: (graph) => graph
+            .validate()
+            .where((problem) => problem.retryable)
+            .map((problem) => '- ${problem.message}')
+            .join('\n'),
         parse: (response) {
           response.putIfAbsent('graph_description', () => prompt);
           final generatedGraph = GraphResponse.fromJson(response).repair();
@@ -162,12 +167,22 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
                     title: node.title,
                     description: '',
                     type: node.type,
+                    level: node.level,
                   ),
                 )
                 .toList(growable: false),
             edges: generatedGraph.edges,
+            problems: generatedGraph.problems,
           );
-          candidate.validate();
+          final fatalProblems = candidate
+              .validate()
+              .where((problem) => problem.fatal)
+              .toList();
+          if (fatalProblems.isNotEmpty) {
+            throw FormatException(
+              fatalProblems.map((problem) => problem.message).join('\n'),
+            );
+          }
           return candidate;
         },
       );
@@ -490,6 +505,7 @@ class _GraphDraftPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final problems = graph.validate();
     return Card(
       color: theme.colorScheme.surfaceContainerLow,
       child: Padding(
@@ -515,6 +531,39 @@ class _GraphDraftPreview extends StatelessWidget {
             if (graph.graphDescription.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(graph.graphDescription),
+            ],
+            if (problems.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Avisos de qualidade',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    for (final problem in problems.take(8))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(
+                          '• ${problem.message}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ],
             const SizedBox(height: 12),
             Wrap(

@@ -391,7 +391,15 @@ void main() {
             maxAttempts: 2,
             parse: (payload) {
               final g = GraphResponse.fromJson(payload).repair();
-              g.validate();
+              final fatalProblems = g
+                  .validate()
+                  .where((problem) => problem.fatal)
+                  .toList();
+              if (fatalProblems.isNotEmpty) {
+                throw FormatException(
+                  fatalProblems.map((problem) => problem.message).join('\n'),
+                );
+              }
               return g;
             },
           );
@@ -401,6 +409,52 @@ void main() {
       expect(graph.nodes, hasLength(1));
     },
   );
+
+  test('retries once with structured graph-quality feedback', () async {
+    final adapter = _GraphFeedbackAdapter();
+    final container = ProviderContainer(
+      overrides: [
+        aiResponseLanguageResolverProvider.overrideWithValue(() async => null),
+      ],
+    );
+    addTearDown(container.dispose);
+    final client = container.read(apiClientProvider);
+    client.dio.httpClientAdapter = adapter;
+    setApiAccessToken(client, 'test-access-token');
+
+    final graph = await container
+        .read(aiContentGenerationServiceProvider)
+        .generateWithRetry<GraphResponse>(
+          task: AiAgentTask.manipulateGraph,
+          prompt: 'MODE: CREATE\nÁlgebra',
+          agentId: 'graph-agent',
+          maxAttempts: 2,
+          parse: (payload) {
+            final result = GraphResponse.fromJson(payload).repair();
+            final fatalProblems = result
+                .validate()
+                .where((problem) => problem.fatal)
+                .toList();
+            if (fatalProblems.isNotEmpty) {
+              throw FormatException(
+                fatalProblems.map((problem) => problem.message).join('\n'),
+              );
+            }
+            return result;
+          },
+          retryFeedback: (result) => result
+              .validate()
+              .where((problem) => problem.retryable)
+              .map((problem) => problem.message)
+              .join('\n'),
+        );
+
+    expect(adapter.prompts, hasLength(2));
+    expect(adapter.prompts.first, 'MODE: CREATE\nÁlgebra');
+    expect(adapter.prompts.last, contains('não é foundation e não tem pré-requisito'));
+    expect(graph.edges.single.sourceNode, 1);
+    expect(graph.edges.single.targetNode, 2);
+  });
 }
 
 class _UnexpectedUserNotifier extends UserNotifier {
@@ -555,6 +609,69 @@ class _RetryAdapter implements HttpClientAdapter {
     return _jsonResponse({
       'response':
           '```json\n{"graph_title":"Biologia","nodes":[{"node_id":1,"title":"Célula","type":"CONCEPT"}],"edges":[]}\n```',
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _GraphFeedbackAdapter implements HttpClientAdapter {
+  final List<String> prompts = [];
+  var attempts = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    prompts.add(options.queryParameters['user_prompt'] as String);
+    attempts++;
+    if (attempts == 1) {
+      return _jsonResponse({
+        'graph_title': 'Álgebra',
+        'nodes': [
+          {
+            'node_id': 1,
+            'title': 'Aritmética',
+            'type': 'CONCEPT',
+            'level': 'foundation',
+          },
+          {
+            'node_id': 2,
+            'title': 'Equações',
+            'type': 'CONCEPT',
+            'level': 'core',
+          },
+        ],
+        'edges': [],
+      });
+    }
+    return _jsonResponse({
+      'graph_title': 'Álgebra',
+      'nodes': [
+        {
+          'node_id': 1,
+          'title': 'Aritmética',
+          'type': 'CONCEPT',
+          'level': 'foundation',
+        },
+        {
+          'node_id': 2,
+          'title': 'Equações',
+          'type': 'CONCEPT',
+          'level': 'core',
+        },
+      ],
+      'edges': [
+        {
+          'source_node': 1,
+          'target_node': 2,
+          'type': 'PREREQUISITE',
+          'weight': 1.0,
+        },
+      ],
     });
   }
 
