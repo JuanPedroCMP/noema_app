@@ -50,3 +50,33 @@ final edgesProvider = StreamProvider.family<List<GraphEdgeData>, String>((
     db.graphEdge,
   )..where((edge) => edge.graphId.equals(graphId))).watch();
 });
+
+final dueReviewNodeIdsProvider = StreamProvider.family<Set<String>, String>((
+  ref,
+  graphId,
+) async* {
+  final db = ref.watch(appDatabaseProvider);
+  final user = await ref.watch(userProvider.future);
+  final graph = await KnowledgeGraphDao(db).getKnowledgeGraph(id: graphId);
+  if (graph == null || graph.softDeleted || graph.userId != user.id) {
+    yield const <String>{};
+    return;
+  }
+
+  final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final query = db.select(db.reviewItemState).join([
+    innerJoin(
+  db.graphNode,
+  db.graphNode.id.equalsExp(db.reviewItemState.nodeId),
+    ),
+  ])..where(
+    db.graphNode.graphId.equals(graphId) &
+    db.graphNode.softDeleted.equals(false) &
+    db.reviewItemState.nextReviewAt.isSmallerOrEqualValue(nowSeconds),
+  );
+  yield* query.watch().map(
+    (rows) => rows
+    .map((row) => row.readTable(db.graphNode).id)
+    .toSet(),
+  );
+});

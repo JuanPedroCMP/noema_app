@@ -1,237 +1,179 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:noema/feature/graph/service/learning_path.dart';
 
+LearningPathNode _node(
+  String id,
+  String title, {
+  double? score,
+  String? type,
+  bool reviewDue = false,
+}) => LearningPathNode(
+  id: id,
+  title: title,
+  masteryScore: score,
+  type: type,
+  reviewDue: reviewDue,
+);
+
+LearningPathRelation _edge(
+  String source,
+  String target, {
+  String type = 'PREREQUISITE',
+  double? weight,
+}) => LearningPathRelation(
+  sourceId: source,
+  targetId: target,
+  type: type,
+  weight: weight,
+);
+
 void main() {
-  const foundations = LearningPathNode(
-    id: 'foundations',
-    title: 'Fundamentos',
-    masteryScore: 0.2,
-  );
-  const advanced = LearningPathNode(
-    id: 'advanced',
-    title: 'Tópico avançado',
-    masteryScore: null,
-  );
-  const subtopic = LearningPathNode(
-    id: 'subtopic',
-    title: 'Subtópico',
-    masteryScore: null,
-  );
-
-  test('recommends an unmet prerequisite before its advanced topic', () {
+  test('SUBTOPIC does not gate a node and containers aggregate leaf scores', () {
     final path = LearningPath.analyze(
-      nodes: [foundations, advanced],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'foundations',
-          targetId: 'advanced',
-          type: 'PREREQUISITE',
-        ),
+      nodes: [
+        _node('container', 'Tópico', score: 0.99, type: 'TOPIC'),
+        _node('mastered', 'Folha dominada', score: 0.8),
+        _node('unknown', 'Folha desconhecida'),
       ],
+      relations: [_edge('mastered', 'container', type: 'SUBTOPIC'), _edge(
+        'unknown',
+        'container',
+        type: 'SUBTOPIC',
+      )],
     );
 
-    expect(path.recommendedNodeIds, ['foundations']);
-    expect(path.progressByNodeId['advanced']!.unmetPrerequisiteIds, [
-      'foundations',
-    ]);
+    expect(path.progressByNodeId['container']!.masteryScore, 0.4);
     expect(
-      path.progressByNodeId['advanced']!.status,
-      LearningProgressStatus.blocked,
-    );
-  });
-
-  test('unlocks and recommends a child after its parent is mastered', () {
-    final masteredParent = const LearningPathNode(
-      id: 'parent',
-      title: 'Tópico superior',
-      masteryScore: 0.8,
-    );
-    final path = LearningPath.analyze(
-      nodes: [masteredParent, subtopic],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'subtopic',
-          targetId: 'parent',
-          type: 'SUBTOPIC',
-        ),
-      ],
-    );
-
-    expect(path.recommendedNodeIds, ['subtopic']);
-    expect(path.progressByNodeId['parent']!.subtopicIds, ['subtopic']);
-    expect(
-      path.progressByNodeId['subtopic']!.status,
+      path.progressByNodeId['container']!.status,
       LearningProgressStatus.ready,
     );
+    expect(path.progressByNodeId['container']!.subtopicIds, [
+      'mastered',
+      'unknown',
+    ]);
+    expect(path.progressByNodeId['unknown']!.status, LearningProgressStatus.ready);
+    expect(path.recommendedNodeIds, ['unknown']);
   });
 
-  test('keeps a subtopic blocked while its superior topic is not mastered', () {
+  test('AREA/TOPIC containers are not recommended even without children', () {
     final path = LearningPath.analyze(
       nodes: [
-        const LearningPathNode(
-          id: 'parent',
-          title: 'Tópico superior',
-          masteryScore: 0.79,
-        ),
-        subtopic,
+        _node('area', 'Área', score: 0.95, type: 'AREA'),
+        _node('topic', 'Tópico', score: 0.95, type: 'TOPIC'),
       ],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'subtopic',
-          targetId: 'parent',
-          type: 'SUBTOPIC',
-        ),
-      ],
+      relations: const [],
     );
 
-    expect(path.recommendedNodeIds, ['parent']);
-    expect(path.progressByNodeId['subtopic']!.unmetPrerequisiteIds, ['parent']);
-    expect(path.progressByNodeId['subtopic']!.parentTopicIds, ['parent']);
+    expect(path.progressByNodeId['area']!.masteryScore, 0);
+    expect(path.progressByNodeId['topic']!.masteryScore, 0);
+    expect(path.recommendedNodeIds, isEmpty);
   });
 
-  test('uses the parent as a prerequisite for its subtopic', () {
-    final path = LearningPath.analyze(
-      nodes: [
-        const LearningPathNode(
-          id: 'parent',
-          title: 'Tópico superior',
-          masteryScore: 0.9,
-        ),
-        const LearningPathNode(
-          id: 'child',
-          title: 'Subtópico',
-          masteryScore: null,
-        ),
-        const LearningPathNode(
-          id: 'child-foundation',
-          title: 'Fundamento do subtópico',
-          masteryScore: 0.4,
-        ),
-      ],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'child',
-          targetId: 'parent',
-          type: 'SUBTOPIC',
-        ),
-        LearningPathRelation(
-          sourceId: 'child-foundation',
-          targetId: 'child',
-          type: 'PREREQUISITE',
-        ),
-      ],
+  test('essential prerequisites use weight and ready thresholds', () {
+    final belowReady = LearningPath.analyze(
+      nodes: [_node('foundation', 'Base', score: 0.59), _node('target', 'Alvo')],
+      relations: [_edge('foundation', 'target', weight: 1.0)],
     );
-
-    expect(path.progressByNodeId['parent']!.subtopicIds, ['child']);
-    expect(path.recommendedNodeIds, ['child-foundation']);
     expect(
-      path.progressByNodeId['child']!.status,
-      LearningProgressStatus.blocked,
+      belowReady.progressByNodeId['target']!.status,
+      LearningProgressStatus.availableWithGaps,
     );
+    expect(belowReady.recommendedNodeIds, ['foundation']);
+
+    final atReadyThreshold = LearningPath.analyze(
+      nodes: [_node('foundation', 'Base', score: 0.6), _node('target', 'Alvo')],
+      relations: [_edge('foundation', 'target', weight: 0.7)],
+    );
+    expect(
+      atReadyThreshold.progressByNodeId['target']!.status,
+      LearningProgressStatus.ready,
+    );
+    expect(atReadyThreshold.recommendedNodeIds, ['foundation', 'target']);
   });
 
-  test('requires every prerequisite to be strongly mastered', () {
+  test('weak prerequisites are suggestions and do not gate recommendation', () {
     final path = LearningPath.analyze(
-      nodes: [
-        const LearningPathNode(
-          id: 'first',
-          title: 'Primeiro',
-          masteryScore: 0.8,
-        ),
-        const LearningPathNode(
-          id: 'second',
-          title: 'Segundo',
-          masteryScore: 0.79,
-        ),
-        advanced,
-      ],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'first',
-          targetId: 'advanced',
-          type: 'PREREQUISITE',
-        ),
-        LearningPathRelation(
-          sourceId: 'second',
-          targetId: 'advanced',
-          type: 'PREREQUISITE',
-        ),
-      ],
+      nodes: [_node('foundation', 'Base', score: 0.2), _node('target', 'Alvo')],
+      relations: [_edge('foundation', 'target', weight: 0.69)],
     );
 
-    expect(path.recommendedNodeIds, ['second']);
-    expect(path.progressByNodeId['advanced']!.unmetPrerequisiteIds, ['second']);
-  });
-
-  test('does not skip an unmet prerequisite further up the learning chain', () {
-    final path = LearningPath.analyze(
-      nodes: [
-        const LearningPathNode(
-          id: 'foundation',
-          title: 'Fundamento',
-          masteryScore: 0.4,
-        ),
-        const LearningPathNode(
-          id: 'middle',
-          title: 'Tópico intermediário',
-          masteryScore: 0.95,
-        ),
-        const LearningPathNode(
-          id: 'advanced',
-          title: 'Tópico avançado',
-          masteryScore: 0.95,
-        ),
-      ],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'foundation',
-          targetId: 'middle',
-          type: 'PREREQUISITE',
-        ),
-        LearningPathRelation(
-          sourceId: 'middle',
-          targetId: 'advanced',
-          type: 'PREREQUISITE',
-        ),
-      ],
+    expect(
+      path.progressByNodeId['target']!.status,
+      LearningProgressStatus.ready,
     );
-
-    expect(path.recommendedNodeIds, ['foundation']);
-    expect(path.masteredCount, 0);
-    expect(path.progressByNodeId['advanced']!.unmetPrerequisiteIds, ['middle']);
-    expect(path.progressByNodeId['middle']!.unmetPrerequisiteIds, [
+    expect(path.progressByNodeId['target']!.unmetPrerequisiteIds, isEmpty);
+    expect(path.progressByNodeId['target']!.suggestedPrerequisiteIds, [
       'foundation',
     ]);
+    expect(path.recommendedNodeIds, containsAll(['foundation', 'target']));
   });
 
-  test('does not make a circular prerequisite chain appear mastered', () {
+  test('an ancestor gap does not invalidate a mastered prerequisite subtree', () {
     final path = LearningPath.analyze(
       nodes: [
-        const LearningPathNode(
-          id: 'first',
-          title: 'Primeiro',
-          masteryScore: 0.95,
-        ),
-        const LearningPathNode(
-          id: 'second',
-          title: 'Segundo',
-          masteryScore: 0.95,
-        ),
+        _node('foundation', 'Base', score: 0.2),
+        _node('middle', 'Intermediário', score: 0.8),
+        _node('advanced', 'Avançado'),
       ],
-      relations: const [
-        LearningPathRelation(
-          sourceId: 'first',
-          targetId: 'second',
-          type: 'PREREQUISITE',
-        ),
-        LearningPathRelation(
-          sourceId: 'second',
-          targetId: 'first',
-          type: 'PREREQUISITE',
-        ),
+      relations: [
+        _edge('foundation', 'middle', weight: 0.5),
+        _edge('middle', 'advanced', weight: 1),
       ],
     );
 
+    expect(
+      path.progressByNodeId['middle']!.status,
+      LearningProgressStatus.mastered,
+    );
+    expect(
+      path.progressByNodeId['advanced']!.status,
+      LearningProgressStatus.ready,
+    );
+    expect(path.recommendedNodeIds, contains('advanced'));
+  });
+
+  test('recommendations sort by due review, layer, downstream impact, title, id', () {
+    final path = LearningPath.analyze(
+      nodes: [
+        _node('root-z', 'Z base'),
+        _node('root-a', 'A base'),
+        _node('second', 'Segundo nível'),
+        _node('due', 'Revisão vencida', reviewDue: true),
+        _node('child-a', 'Mesmo título'),
+        _node('child-b', 'Mesmo título'),
+      ],
+      relations: [
+        _edge('root-z', 'second'),
+        _edge('root-z', 'child-a'),
+        _edge('root-z', 'child-b'),
+        _edge('root-a', 'second'),
+      ],
+    );
+
+    expect(path.recommendedNodeIds.first, 'due');
+    expect(path.recommendedNodeIds.take(2), ['due', 'root-z']);
+    expect(
+      path.recommendedNodeIds.indexOf('root-a'),
+      lessThan(path.recommendedNodeIds.indexOf('second')),
+    );
+    expect(
+      path.recommendedNodeIds.indexOf('child-a'),
+      lessThan(path.recommendedNodeIds.indexOf('child-b')),
+    );
+  });
+
+  test('thresholds are named and unmet cycle prerequisites stay unavailable', () {
+    expect(LearningPath.masteryThreshold, 0.8);
+    expect(LearningPath.readyThreshold, 0.6);
+    expect(LearningPath.essentialWeight, 0.7);
+
+    final path = LearningPath.analyze(
+      nodes: [
+        _node('first', 'Primeiro', score: 0.1),
+        _node('second', 'Segundo', score: 0.1),
+      ],
+      relations: [_edge('first', 'second'), _edge('second', 'first')],
+    );
     expect(path.masteredCount, 0);
     expect(path.recommendedNodeIds, isEmpty);
     expect(path.hasUnresolvedNodes, isTrue);

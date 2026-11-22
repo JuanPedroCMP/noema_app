@@ -3,11 +3,15 @@ class LearningPathNode {
     required this.id,
     required this.title,
     required this.masteryScore,
+    this.type,
+    this.reviewDue = false,
   });
 
   final String id;
   final String title;
   final double? masteryScore;
+  final String? type;
+  final bool reviewDue;
 }
 
 class LearningPathRelation {
@@ -15,29 +19,39 @@ class LearningPathRelation {
     required this.sourceId,
     required this.targetId,
     required this.type,
+    this.weight = 1.0,
   });
 
   final String sourceId;
   final String targetId;
   final String type;
+  final double? weight;
 
-  bool get gatesProgress => type == 'PREREQUISITE' || type == 'SUBTOPIC';
+  bool get isEssential =>
+      type == 'PREREQUISITE' &&
+      (weight ?? 1.0) >= LearningPath.essentialWeight;
 }
 
-enum LearningProgressStatus { mastered, ready, blocked }
+enum LearningProgressStatus { mastered, ready, availableWithGaps }
 
 class LearningNodeProgress {
   const LearningNodeProgress({
     required this.status,
+    required this.masteryScore,
     required this.unmetPrerequisiteIds,
+    required this.suggestedPrerequisiteIds,
     required this.subtopicIds,
     required this.parentTopicIds,
+    required this.isContainer,
   });
 
   final LearningProgressStatus status;
+  final double? masteryScore;
   final List<String> unmetPrerequisiteIds;
+  final List<String> suggestedPrerequisiteIds;
   final List<String> subtopicIds;
   final List<String> parentTopicIds;
+  final bool isContainer;
 }
 
 class LearningPath {
@@ -49,6 +63,8 @@ class LearningPath {
   });
 
   static const masteryThreshold = 0.8;
+  static const readyThreshold = 0.6;
+  static const essentialWeight = 0.7;
 
   final Map<String, LearningNodeProgress> progressByNodeId;
   final List<String> recommendedNodeIds;
@@ -60,96 +76,158 @@ class LearningPath {
     required List<LearningPathRelation> relations,
   }) {
     final nodesById = {for (final node in nodes) node.id: node};
-    final incoming = <String, List<LearningPathRelation>>{};
     final subtopicsByParent = <String, List<String>>{};
     final parentBySubtopic = <String, List<String>>{};
-    final gatingRelations = <LearningPathRelation>[];
+    final prerequisitesByTarget = <String, List<LearningPathRelation>>{};
+
     for (final relation in relations) {
       if (!nodesById.containsKey(relation.sourceId) ||
           !nodesById.containsKey(relation.targetId)) {
         continue;
       }
-      if (relation.type == 'PREREQUISITE') {
-        gatingRelations.add(relation);
-      }
       if (relation.type == 'SUBTOPIC') {
-        gatingRelations.add(
-          LearningPathRelation(
-            sourceId: relation.targetId,
-            targetId: relation.sourceId,
-            type: relation.type,
-          ),
-        );
         subtopicsByParent
             .putIfAbsent(relation.targetId, () => [])
             .add(relation.sourceId);
         parentBySubtopic
             .putIfAbsent(relation.sourceId, () => [])
             .add(relation.targetId);
+      } else if (relation.type == 'PREREQUISITE') {
+        prerequisitesByTarget
+            .putIfAbsent(relation.targetId, () => [])
+            .add(relation);
       }
     }
-    for (final relation in gatingRelations) {
-      incoming.putIfAbsent(relation.targetId, () => []).add(relation);
-    }
 
-    final masteryCache = <String, bool>{};
-    bool isEffectivelyMastered(String nodeId, Set<String> visiting) {
-      final cached = masteryCache[nodeId];
-      if (cached != null) return cached;
-      final node = nodesById[nodeId];
-      if (node == null ||
-          node.masteryScore == null ||
-          !node.masteryScore!.isFinite ||
-          node.masteryScore! < masteryThreshold ||
-          !visiting.add(nodeId)) {
-        return false;
+    final containers = {
+      ...subtopicsByParent.keys,
+      for (final node in nodes)
+        if (node.type?.toUpperCase() == 'AREA' ||
+            node.type?.toUpperCase() == 'TOPIC')
+          node.id,
+    };
+    final descendantsByContainer = <String, List<String>>{};
+    List<String> leafDescendants(String id, Set<String> visiting) {
+      if (!visiting.add(id)) return const [];
+      final children = subtopicsByParent[id] ?? const <String>[];
+      if (children.isEmpty) {
+        return containers.contains(id) ? const [] : [id];
       }
-
-      final mastered = (incoming[nodeId] ?? const <LearningPathRelation>[])
-          .every(
-            (relation) =>
-                isEffectivelyMastered(relation.sourceId, {...visiting}),
-          );
-      visiting.remove(nodeId);
-      masteryCache[nodeId] = mastered;
-      return mastered;
+      return [
+        for (final child in children) ...leafDescendants(child, {...visiting}),
+      ];
     }
 
-    for (final node in nodes) {
-      isEffectivelyMastered(node.id, <String>{});
+    for (final containerId in containers) {
+      descendantsByContainer[containerId] = leafDescendants(
+        containerId,
+        <String>{},
+      );
+    }
+
+    double scoreFor(String id) {
+      final descendants = descendantsByContainer[id];
+      if (descendants != null) {
+        if (descendants.isEmpty) return 0;
+        return descendants
+                .map((leafId) => _normalizedScore(nodesById[leafId]?.masteryScore))
+                .fold<double>(0, (total, score) => total + score) /
+            descendants.length;
+      }
+      return _normalizedScore(nodesById[id]?.masteryScore);
     }
 
     final progressByNodeId = <String, LearningNodeProgress>{};
-    final readyIds = <String>[];
+    final essentialGapsByNodeId = <String, List<String>>{};
     var masteredCount = 0;
+
     for (final node in nodes) {
-      final unmet = (incoming[node.id] ?? const <LearningPathRelation>[])
+      final isContainer = containers.contains(node.id);
+      final prerequisiteRelations = (prerequisitesByTarget[node.id] ??
+              const <LearningPathRelation>[])
           .where(
-            (relation) => !isEffectivelyMastered(relation.sourceId, <String>{}),
+            (relation) =>
+                !containers.contains(relation.sourceId) &&
+                !containers.contains(relation.targetId),
+          )
+          .toList();
+      final gaps = prerequisiteRelations
+          .where(
+            (relation) =>
+                relation.isEssential &&
+                scoreFor(relation.sourceId) < readyThreshold,
           )
           .map((relation) => relation.sourceId)
           .toSet()
           .toList();
-      final mastered = isEffectivelyMastered(node.id, <String>{});
+      final suggestedGaps = prerequisiteRelations
+          .where(
+            (relation) =>
+                !relation.isEssential &&
+                scoreFor(relation.sourceId) < readyThreshold,
+          )
+          .map((relation) => relation.sourceId)
+          .toSet()
+          .toList();
+      essentialGapsByNodeId[node.id] = gaps;
+
+      final score = scoreFor(node.id);
+      final mastered = score >= masteryThreshold;
       final status = mastered
           ? LearningProgressStatus.mastered
-          : unmet.isEmpty
-          ? LearningProgressStatus.ready
-          : LearningProgressStatus.blocked;
+          : gaps.isNotEmpty
+          ? LearningProgressStatus.availableWithGaps
+          : LearningProgressStatus.ready;
       if (mastered) masteredCount++;
-      if (status == LearningProgressStatus.ready) readyIds.add(node.id);
 
       progressByNodeId[node.id] = LearningNodeProgress(
         status: status,
-        unmetPrerequisiteIds: unmet,
-        parentTopicIds: parentBySubtopic[node.id] ?? const <String>[],
-        subtopicIds: mastered
-            ? (subtopicsByParent[node.id] ?? const <String>[])
-                  .where((id) => !isEffectivelyMastered(id, <String>{}))
-                  .toSet()
-                  .toList()
-            : const [],
+        masteryScore: isContainer
+            ? score
+            : _displayScore(nodesById[node.id]?.masteryScore),
+        unmetPrerequisiteIds: gaps,
+        suggestedPrerequisiteIds: suggestedGaps,
+        parentTopicIds: parentBySubtopic[node.id] ?? const [],
+        subtopicIds: subtopicsByParent[node.id] ?? const [],
+        isContainer: isContainer,
       );
+    }
+
+    final essentialPrerequisites = <String, List<String>>{};
+    for (final relation in relations) {
+      if (relation.type != 'PREREQUISITE' ||
+          !relation.isEssential ||
+          !nodesById.containsKey(relation.sourceId) ||
+          !nodesById.containsKey(relation.targetId) ||
+          containers.contains(relation.sourceId) ||
+          containers.contains(relation.targetId)) {
+        continue;
+      }
+      essentialPrerequisites
+          .putIfAbsent(relation.targetId, () => [])
+          .add(relation.sourceId);
+    }
+
+    final depthByNodeId = <String, int>{};
+    int depthFor(String id, Set<String> visiting) {
+      final cached = depthByNodeId[id];
+      if (cached != null) return cached;
+      if (!visiting.add(id)) return 0;
+      final prerequisites = essentialPrerequisites[id] ?? const <String>[];
+      final depth = prerequisites.isEmpty
+          ? 0
+          : prerequisites
+                    .map(
+                      (prerequisiteId) =>
+                          depthFor(prerequisiteId, {...visiting}) + 1,
+                    )
+                    .fold<int>(0, (maximum, value) => value > maximum ? value : maximum);
+      depthByNodeId[id] = depth;
+      return depth;
+    }
+
+    for (final node in nodes) {
+      depthFor(node.id, <String>{});
     }
 
     int downstreamImpact(String nodeId) {
@@ -157,41 +235,60 @@ class LearningPath {
       final pending = <String>[nodeId];
       while (pending.isNotEmpty) {
         final current = pending.removeLast();
-        for (final relation in gatingRelations) {
-          if (relation.sourceId != current ||
-              !relation.gatesProgress ||
-              !nodesById.containsKey(relation.targetId)) {
+        for (final targetId in essentialPrerequisites.keys) {
+          if (!(essentialPrerequisites[targetId] ?? const []).contains(current) ||
+              progressByNodeId[targetId]?.status ==
+                  LearningProgressStatus.mastered) {
             continue;
           }
-          if (visited.add(relation.targetId)) {
-            pending.add(relation.targetId);
-          }
+          if (visited.add(targetId)) pending.add(targetId);
         }
       }
-      return visited
-          .where(
-            (id) =>
-                id != nodeId &&
-                progressByNodeId[id]?.status != LearningProgressStatus.mastered,
-          )
-          .length;
+      return visited.length - 1;
     }
 
-    readyIds.sort((firstId, secondId) {
-      final impact = downstreamImpact(
-        secondId,
-      ).compareTo(downstreamImpact(firstId));
-      if (impact != 0) return impact;
-      return nodesById[firstId]!.title.toLowerCase().compareTo(
-        nodesById[secondId]!.title.toLowerCase(),
+    final recommendedIds = nodes
+        .where(
+          (node) =>
+              !containers.contains(node.id) &&
+              progressByNodeId[node.id]?.status !=
+                  LearningProgressStatus.mastered &&
+              (essentialGapsByNodeId[node.id]?.isEmpty ?? true),
+        )
+        .map((node) => node.id)
+        .toList();
+    recommendedIds.sort((firstId, secondId) {
+      final first = nodesById[firstId]!;
+      final second = nodesById[secondId]!;
+      final byReview = (second.reviewDue ? 1 : 0).compareTo(
+        first.reviewDue ? 1 : 0,
       );
+      if (byReview != 0) return byReview;
+      final byLayer = (depthByNodeId[firstId] ?? 0).compareTo(
+        depthByNodeId[secondId] ?? 0,
+      );
+      if (byLayer != 0) return byLayer;
+      final byImpact = downstreamImpact(secondId).compareTo(
+        downstreamImpact(firstId),
+      );
+      if (byImpact != 0) return byImpact;
+      final byTitle = first.title.toLowerCase().compareTo(
+        second.title.toLowerCase(),
+      );
+      return byTitle != 0 ? byTitle : firstId.compareTo(secondId);
     });
 
     return LearningPath._(
       progressByNodeId: progressByNodeId,
-      recommendedNodeIds: readyIds,
+      recommendedNodeIds: recommendedIds,
       masteredCount: masteredCount,
       hasUnresolvedNodes: masteredCount < nodes.length,
     );
   }
 }
+
+double _normalizedScore(double? score) =>
+    score == null || !score.isFinite ? 0 : score.clamp(0, 1).toDouble();
+
+double? _displayScore(double? score) =>
+    score == null || !score.isFinite ? null : score.clamp(0, 1).toDouble();
