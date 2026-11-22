@@ -204,7 +204,7 @@ void main() {
       ],
       edges: [
         _edge(1, 2, weight: 0.8),
-        _edge(2, 3, weight: 0.2),
+        _edge(2, 3, weight: 0.8),
         _edge(3, 1, weight: 0.2),
         _edge(1, 3, weight: 0.4),
         _edge(1, 4, weight: 0),

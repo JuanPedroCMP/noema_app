@@ -688,15 +688,15 @@ int _learningLevelDistance(GraphEdge edge, Map<int, GraphNode> nodesById) {
 }
 
 bool _similarTitles(String first, String second) {
-  List<int> normalize(String title) => title
+  String normalize(String title) => title
       .toLowerCase()
-      .replaceAll(RegExp(r'\s+'), '')
-      .runes
-      .toList();
-  final a = normalize(first);
-  final b = normalize(second);
+      .replaceAll(RegExp(r'\s+'), '');
+  final normalizedA = normalize(first);
+  final normalizedB = normalize(second);
+  final a = normalizedA.runes.toList();
+  final b = normalizedB.runes.toList();
   if (a.isEmpty || b.isEmpty) return false;
-  if (a == b) return true;
+  if (normalizedA == normalizedB) return true;
   if (a.length < 5 || b.length < 5) return false;
   final previous = List<int>.generate(b.length + 1, (index) => index);
   for (var i = 1; i <= a.length; i++) {

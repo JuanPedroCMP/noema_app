@@ -269,7 +269,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
           graph: graph,
           nodes: nodes,
           edges: edges,
-          dueReviewNodeIds: dueReviewNodeIds.valueOrNull ?? const <String>{},
+          dueReviewNodeIds: dueReviewNodeIds.asData?.value ?? const <String>{},
           selected: selected,
           selectedNotifier: selectedNotifier,
           isCreatingEdge: graphStates.isCreatingEdge,
