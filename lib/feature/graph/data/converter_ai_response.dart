@@ -61,6 +61,7 @@ class GraphResponse {
             code: 'empty_node_removed',
             message: 'Um nó sem título foi removido.',
             nodeIds: [node.nodeId],
+            retryable: true,
           ),
         );
         continue;
@@ -71,6 +72,7 @@ class GraphResponse {
             code: 'duplicate_node_id_removed',
             message: 'Um nó com identificador repetido foi removido.',
             nodeIds: [node.nodeId],
+            retryable: true,
           ),
         );
         continue;
@@ -91,6 +93,18 @@ class GraphResponse {
     final seenEdgePairs = <(int, int)>{};
     final validEdges = <GraphEdge>[];
     for (final edge in edges) {
+      final edgeType = edge.type.toUpperCase();
+      if (edgeType != 'SUBTOPIC' && edgeType != 'PREREQUISITE') {
+        repairs.add(
+          GraphProblem(
+            code: 'invalid_edge_type_removed',
+            message: 'Uma relação com tipo inválido foi removida.',
+            nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
+          ),
+        );
+        continue;
+      }
       if (!validNodeIds.contains(edge.sourceNode) ||
           !validNodeIds.contains(edge.targetNode)) {
         repairs.add(
@@ -98,6 +112,19 @@ class GraphResponse {
             code: 'dangling_edge_removed',
             message: 'Uma relação com nó inexistente foi removida.',
             nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
+          ),
+        );
+        continue;
+      }
+      if (edge.weight != null &&
+          (!edge.weight!.isFinite || edge.weight! < 0 || edge.weight! > 1)) {
+        repairs.add(
+          GraphProblem(
+            code: 'invalid_edge_weight_removed',
+            message: 'Uma relação com peso inválido foi removida.',
+            nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
           ),
         );
         continue;
@@ -108,6 +135,7 @@ class GraphResponse {
             code: 'self_loop_removed',
             message: 'Uma autorrelação foi removida.',
             nodeIds: [edge.sourceNode],
+            retryable: true,
           ),
         );
         continue;
@@ -123,6 +151,7 @@ class GraphResponse {
             message:
                 'Uma relação de pré-requisito ligada a um contêiner foi removida.',
             nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
           ),
         );
         continue;
@@ -134,6 +163,7 @@ class GraphResponse {
             code: 'duplicate_edge_removed',
             message: 'Uma relação duplicada foi removida.',
             nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
           ),
         );
         continue;
@@ -169,6 +199,7 @@ class GraphResponse {
             message:
                 'Uma aresta de ciclo foi removida (menor peso; desempate por níveis).',
             nodeIds: [removed.sourceNode, removed.targetNode],
+            retryable: true,
           ),
         );
       }
@@ -182,6 +213,7 @@ class GraphResponse {
         to: edge.targetNode,
         edges: alternativeEdges,
         type: 'PREREQUISITE',
+        minimumWeight: 0.7,
       )) {
         validEdges.remove(edge);
         repairs.add(
@@ -189,6 +221,7 @@ class GraphResponse {
             code: 'transitive_prerequisite_removed',
             message: 'Um pré-requisito transitivo redundante foi removido.',
             nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
           ),
         );
       }
@@ -258,6 +291,17 @@ class GraphResponse {
           ),
         );
       }
+      if (node.level != null &&
+          !_learningLevelOrder.containsKey(node.level!.toLowerCase())) {
+        issues.add(
+          GraphProblem(
+            code: 'invalid_learning_level',
+            message: 'O nível de aprendizagem do nó ${node.nodeId} é inválido.',
+            nodeIds: [node.nodeId],
+            retryable: true,
+          ),
+        );
+      }
       nodeIds[node.nodeId] = node;
     }
 
@@ -284,6 +328,17 @@ class GraphResponse {
         );
         continue;
       }
+      if (edge.type.toUpperCase() != 'SUBTOPIC' &&
+          edge.type.toUpperCase() != 'PREREQUISITE') {
+        issues.add(
+          GraphProblem(
+            code: 'invalid_edge_type',
+            message: 'A relação tem um tipo não reconhecido.',
+            nodeIds: [edge.sourceNode, edge.targetNode],
+            retryable: true,
+          ),
+        );
+      }
       if (edge.weight == null || !edge.weight!.isFinite ||
           edge.weight! < 0 || edge.weight! > 1) {
         issues.add(
@@ -291,7 +346,7 @@ class GraphResponse {
             code: 'invalid_edge_weight',
             message: 'O peso de uma relação precisa estar entre 0 e 1.',
             nodeIds: [edge.sourceNode, edge.targetNode],
-            fatal: true,
+            retryable: true,
           ),
         );
       }
@@ -349,12 +404,64 @@ class GraphResponse {
       }
     }
 
+    final subtopicEdges = edges
+        .where((edge) => edge.type.toUpperCase() == 'SUBTOPIC')
+        .toList();
+    final parentsByChild = <int, Set<int>>{};
     final childrenByParent = <int, List<int>>{};
-    for (final edge in edges.where(
-      (edge) => edge.type.toUpperCase() == 'SUBTOPIC',
-    )) {
-      childrenByParent.putIfAbsent(edge.sourceNode, () => []).add(edge.targetNode);
+    for (final edge in subtopicEdges) {
+      if (!nodeIds.containsKey(edge.sourceNode) ||
+          !nodeIds.containsKey(edge.targetNode)) {
+        continue;
+      }
+      final parent = nodeIds[edge.sourceNode]!;
+      final child = nodeIds[edge.targetNode]!;
+      if (_hierarchyRank(parent.type) >= _hierarchyRank(child.type)) {
+        issues.add(
+          GraphProblem(
+            code: 'invalid_hierarchy_order',
+            message:
+                '"${parent.title}" não pode conter "${child.title}" nesta ordem.',
+            nodeIds: [parent.nodeId, child.nodeId],
+            retryable: true,
+          ),
+        );
+      }
+      parentsByChild.putIfAbsent(child.nodeId, () => {}).add(parent.nodeId);
+      childrenByParent
+          .putIfAbsent(edge.sourceNode, () => [])
+          .add(edge.targetNode);
     }
+    for (final node in nodes) {
+      final parentCount = parentsByChild[node.nodeId]?.length ?? 0;
+      final invalidParentCount = node.type == GraphNodeType.area
+          ? parentCount > 1
+          : parentCount != 1;
+      if (invalidParentCount) {
+        issues.add(
+          GraphProblem(
+            code: 'invalid_hierarchy_parent_count',
+            message: node.type == GraphNodeType.area
+                ? '"${node.title}" está ligado a mais de um contêiner pai.'
+                : '"${node.title}" precisa ter exatamente um contêiner pai.',
+            nodeIds: [node.nodeId],
+            retryable: true,
+          ),
+        );
+      }
+      if (_isContainer(node) &&
+          (childrenByParent[node.nodeId]?.isEmpty ?? true)) {
+        issues.add(
+          GraphProblem(
+            code: 'empty_container',
+            message: 'O contêiner "${node.title}" não agrupa nenhum nó.',
+            nodeIds: [node.nodeId],
+            retryable: true,
+          ),
+        );
+      }
+    }
+
     final leaves = nodes
         .where(
           (node) =>
@@ -373,6 +480,17 @@ class GraphResponse {
 
     for (final leaf in leaves) {
       final incoming = prereqsByTarget[leaf.nodeId] ?? const <GraphEdge>[];
+      if (leaf.level?.toLowerCase() == 'foundation' && incoming.isNotEmpty) {
+        issues.add(
+          GraphProblem(
+            code: 'foundation_has_prerequisite',
+            message:
+                '"${leaf.title}" está marcado como foundation, mas tem pré-requisitos.',
+            nodeIds: [leaf.nodeId],
+            retryable: true,
+          ),
+        );
+      }
       if (leaf.level?.toLowerCase() != 'foundation' && incoming.isEmpty) {
         issues.add(
           GraphProblem(
@@ -395,18 +513,23 @@ class GraphResponse {
           ),
         );
       }
-      if (leaf.level?.toLowerCase() == 'foundation' &&
-          incoming.any(
-            (edge) => nodeIds[edge.sourceNode]?.level?.toLowerCase() == 'advanced',
-          )) {
-        issues.add(
-          GraphProblem(
-            code: 'foundation_depends_on_advanced',
-            message: '"${leaf.title}" (foundation) depende de um nó advanced.',
-            nodeIds: [leaf.nodeId],
-            retryable: true,
-          ),
-        );
+      for (final edge in incoming) {
+        final sourceLevel =
+            _learningLevelOrder[nodeIds[edge.sourceNode]?.level?.toLowerCase()];
+        final targetLevel = _learningLevelOrder[leaf.level?.toLowerCase()];
+        if (sourceLevel != null &&
+            targetLevel != null &&
+            sourceLevel > targetLevel) {
+          issues.add(
+            GraphProblem(
+              code: 'prerequisite_level_regression',
+              message:
+                  '"${leaf.title}" depende de um conceito de nível superior.',
+              nodeIds: [edge.sourceNode, leaf.nodeId],
+              retryable: true,
+            ),
+          );
+        }
       }
     }
 
@@ -475,6 +598,19 @@ class GraphProblem {
 bool _isContainer(GraphNode node) =>
     node.type == GraphNodeType.area || node.type == GraphNodeType.topic;
 
+int _hierarchyRank(GraphNodeType type) => switch (type) {
+  GraphNodeType.area => 0,
+  GraphNodeType.topic => 1,
+  GraphNodeType.concept => 2,
+  GraphNodeType.subconcept => 3,
+};
+
+const _learningLevelOrder = {
+  'foundation': 0,
+  'core': 1,
+  'advanced': 2,
+};
+
 List<GraphEdge>? _findCycleEdges(List<GraphEdge> edges) {
   final adjacency = <int, List<({int target, GraphEdge edge})>>{};
   for (final edge in edges) {
@@ -523,13 +659,17 @@ bool _hasPath({
   required int to,
   required List<GraphEdge> edges,
   required String type,
+  double minimumWeight = 0,
 }) {
   final pending = <int>[from];
   final visited = <int>{from};
   while (pending.isNotEmpty) {
     final current = pending.removeLast();
     for (final edge in edges.where(
-      (edge) => edge.type.toUpperCase() == type && edge.sourceNode == current,
+      (edge) =>
+          edge.type.toUpperCase() == type &&
+          edge.sourceNode == current &&
+          (edge.weight ?? 1) >= minimumWeight,
     )) {
       if (edge.targetNode == to) return true;
       if (visited.add(edge.targetNode)) pending.add(edge.targetNode);
@@ -539,16 +679,20 @@ bool _hasPath({
 }
 
 int _learningLevelDistance(GraphEdge edge, Map<int, GraphNode> nodesById) {
-  const levelOrder = {'foundation': 0, 'core': 1, 'advanced': 2};
-  final source = levelOrder[nodesById[edge.sourceNode]?.level?.toLowerCase()];
-  final target = levelOrder[nodesById[edge.targetNode]?.level?.toLowerCase()];
+  final source =
+      _learningLevelOrder[nodesById[edge.sourceNode]?.level?.toLowerCase()];
+  final target =
+      _learningLevelOrder[nodesById[edge.targetNode]?.level?.toLowerCase()];
   if (source == null || target == null) return 0;
   return (source - target).abs();
 }
 
 bool _similarTitles(String first, String second) {
-  String normalize(String title) =>
-      title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  List<int> normalize(String title) => title
+      .toLowerCase()
+      .replaceAll(RegExp(r'\s+'), '')
+      .runes
+      .toList();
   final a = normalize(first);
   final b = normalize(second);
   if (a.isEmpty || b.isEmpty) return false;
@@ -574,7 +718,9 @@ bool _similarTitles(String first, String second) {
 
 int _parseNodeId(dynamic value, String fieldName) {
   if (value is int) return value;
-  if (value is num) return value.toInt();
+  if (value is num && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
   if (value is String) {
     final parsed = int.tryParse(value.trim());
     if (parsed != null) return parsed;

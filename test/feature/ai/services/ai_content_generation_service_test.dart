@@ -405,6 +405,14 @@ void main() {
           );
 
       expect(adapter.attempts, 2);
+      expect(
+        adapter.prompts.last,
+        contains('A IA não gerou nenhum nó para o grafo.'),
+      );
+      expect(
+        adapter.prompts.last,
+        contains('Preserve valid content and fix every reported issue.'),
+      );
       expect(graph.graphTitle, 'Biologia');
       expect(graph.nodes, hasLength(1));
     },
@@ -445,15 +453,30 @@ void main() {
           retryFeedback: (result) => result
               .validate()
               .where((problem) => problem.retryable)
-              .map((problem) => problem.message)
+              .map(
+                (problem) =>
+                    '- ${problem.code} [nós: ${problem.nodeIds.join(', ')}]: '
+                    '${problem.message}',
+              )
               .join('\n'),
         );
 
     expect(adapter.prompts, hasLength(2));
     expect(adapter.prompts.first, 'MODE: CREATE\nÁlgebra');
     expect(adapter.prompts.last, contains('não é foundation e não tem pré-requisito'));
-    expect(graph.edges.single.sourceNode, 1);
-    expect(graph.edges.single.targetNode, 2);
+    expect(
+      adapter.prompts.last,
+      contains('leaf_without_prerequisite [nós: 2]'),
+    );
+    final prerequisite = graph.edges.singleWhere(
+      (edge) => edge.type == 'PREREQUISITE',
+    );
+    expect(prerequisite.sourceNode, 1);
+    expect(prerequisite.targetNode, 2);
+    expect(
+      graph.validate().where((problem) => problem.retryable),
+      isEmpty,
+    );
   });
 }
 
@@ -593,6 +616,7 @@ class _NodeDescriptionAdapter implements HttpClientAdapter {
 
 class _RetryAdapter implements HttpClientAdapter {
   int attempts = 0;
+  final List<String> prompts = [];
 
   @override
   Future<ResponseBody> fetch(
@@ -601,6 +625,7 @@ class _RetryAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     attempts++;
+    prompts.add(options.queryParameters['user_prompt'] as String);
     if (attempts == 1) {
       // First attempt returns empty nodes (unrepairable).
       return _jsonResponse({'graph_title': 'Vazio', 'nodes': [], 'edges': []});
@@ -632,6 +657,8 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
       return _jsonResponse({
         'graph_title': 'Álgebra',
         'nodes': [
+          {'node_id': 10, 'title': 'Matemática', 'type': 'AREA'},
+          {'node_id': 11, 'title': 'Álgebra', 'type': 'TOPIC'},
           {
             'node_id': 1,
             'title': 'Aritmética',
@@ -651,6 +678,8 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
     return _jsonResponse({
       'graph_title': 'Álgebra',
       'nodes': [
+        {'node_id': 10, 'title': 'Matemática', 'type': 'AREA'},
+        {'node_id': 11, 'title': 'Álgebra', 'type': 'TOPIC'},
         {
           'node_id': 1,
           'title': 'Aritmética',
@@ -665,6 +694,9 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
         },
       ],
       'edges': [
+        {'source_node': 10, 'target_node': 11, 'type': 'SUBTOPIC'},
+        {'source_node': 11, 'target_node': 1, 'type': 'SUBTOPIC'},
+        {'source_node': 11, 'target_node': 2, 'type': 'SUBTOPIC'},
         {
           'source_node': 1,
           'target_node': 2,

@@ -152,7 +152,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
         retryFeedback: (graph) => graph
             .validate()
             .where((problem) => problem.retryable)
-            .map((problem) => '- ${problem.message}')
+            .map(
+              (problem) =>
+                  '- ${problem.code} [nós: ${problem.nodeIds.join(', ')}]: '
+                  '${problem.message}',
+            )
             .join('\n'),
         parse: (response) {
           response.putIfAbsent('graph_description', () => prompt);

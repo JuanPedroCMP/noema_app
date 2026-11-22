@@ -40,6 +40,19 @@ void main() {
     expect(graph.toJson()['edges'].single['weight'], 1.0);
   });
 
+  test('JSON rejects fractional graph-local identifiers', () {
+    expect(
+      () => GraphResponse.fromJson({
+        'graph_title': 'Grafo inválido',
+        'nodes': [
+          {'node_id': 1.5, 'title': 'Nó', 'type': 'CONCEPT'},
+        ],
+        'edges': const [],
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('repair removes container prerequisites, self-loops and duplicates', () {
     final graph = GraphResponse(
       graphTitle: 'Grafo',
@@ -70,6 +83,113 @@ void main() {
       graph.problems.map((problem) => problem.code),
       contains('duplicate_edge_removed'),
     );
+    expect(graph.problems.every((problem) => problem.retryable), isTrue);
+  });
+
+  test(
+    'repair removes unsupported relation types and requests regeneration',
+    () {
+      final graph = GraphResponse(
+        graphTitle: 'Grafo',
+        graphDescription: '',
+        nodes: [
+          _node(1, 'Área', type: 'AREA'),
+          _node(2, 'Tópico', type: 'TOPIC'),
+          _node(3, 'Fundamento', level: 'foundation'),
+          _node(4, 'Núcleo'),
+        ],
+        edges: [
+          _edge(1, 2, type: 'SUBTOPIC'),
+          _edge(2, 3, type: 'SUBTOPIC'),
+          _edge(3, 4, type: 'RELATED'),
+          _edge(3, 4, weight: 1.5),
+        ],
+      ).repair();
+
+      expect(graph.edges, hasLength(2));
+      expect(
+        graph.problems.map((problem) => problem.code),
+        contains('invalid_edge_type_removed'),
+      );
+      expect(
+        graph.problems.map((problem) => problem.code),
+        contains('invalid_edge_weight_removed'),
+      );
+      expect(graph.problems.last.retryable, isTrue);
+    },
+  );
+
+  test('legacy relation types remain non-fatal during graph transfer', () {
+    final graph = GraphResponse(
+      graphTitle: 'Legado',
+      graphDescription: '',
+      nodes: [_node(1, 'Questão'), _node(2, 'Conceito')],
+      edges: [_edge(1, 2, type: 'CHECK')],
+    );
+
+    final issue = graph
+        .validate()
+        .singleWhere((problem) => problem.code == 'invalid_edge_type');
+    expect(issue.fatal, isFalse);
+    expect(issue.retryable, isTrue);
+  });
+
+  test(
+    'validation requires one hierarchy parent and progression by node type',
+    () {
+      final graph = GraphResponse(
+        graphTitle: 'Progressão',
+        graphDescription: '',
+        nodes: [
+          _node(1, 'Área', type: 'AREA'),
+          _node(2, 'Tópico', type: 'TOPIC'),
+          _node(3, 'Folha', level: 'foundation'),
+          _node(4, 'Avançado', level: 'advanced'),
+        ],
+        edges: [
+          _edge(1, 2, type: 'SUBTOPIC'),
+          _edge(2, 3, type: 'SUBTOPIC'),
+          _edge(2, 4, type: 'SUBTOPIC'),
+          _edge(4, 3),
+        ],
+      );
+
+      final codes = graph.validate().map((problem) => problem.code).toSet();
+      expect(codes, contains('foundation_has_prerequisite'));
+      expect(codes, contains('prerequisite_level_regression'));
+      expect(codes, isNot(contains('invalid_hierarchy_parent_count')));
+      expect(codes, isNot(contains('empty_container')));
+    },
+  );
+
+  test('validation rejects orphan nodes and shared hierarchy children', () {
+    final graph = GraphResponse(
+      graphTitle: 'Hierarquia inválida',
+      graphDescription: '',
+      nodes: [
+        _node(1, 'Área', type: 'AREA'),
+        _node(2, 'Tópico A', type: 'TOPIC'),
+        _node(3, 'Tópico B', type: 'TOPIC'),
+        _node(4, 'Folha', level: 'foundation'),
+        _node(5, 'Tópico vazio', type: 'TOPIC'),
+      ],
+      edges: [
+        _edge(1, 2, type: 'SUBTOPIC'),
+        _edge(1, 3, type: 'SUBTOPIC'),
+        _edge(1, 5, type: 'SUBTOPIC'),
+        _edge(2, 4, type: 'SUBTOPIC'),
+        _edge(3, 4, type: 'SUBTOPIC'),
+      ],
+    );
+
+    final issues = graph.validate();
+    expect(
+      issues.where(
+        (problem) => problem.code == 'invalid_hierarchy_parent_count',
+      ),
+      hasLength(1),
+    );
+    expect(issues.any((problem) => problem.code == 'empty_container'), isTrue);
   });
 
   test('repair removes the lowest-weight cycle edge and reduces transitivity', () {
@@ -109,6 +229,29 @@ void main() {
     );
   });
 
+  test('transitive reduction preserves essential edges over weak paths', () {
+    final graph = GraphResponse(
+      graphTitle: 'Pré-requisitos opcionais',
+      graphDescription: '',
+      nodes: [
+        _node(1, 'Base'),
+        _node(2, 'Ideia intermediária'),
+        _node(3, 'Alvo'),
+      ],
+      edges: [
+        _edge(1, 2, weight: 0.5),
+        _edge(2, 3, weight: 0.5),
+        _edge(1, 3, weight: 1.0),
+      ],
+    ).repair();
+
+    expect(graph.edges, hasLength(3));
+    expect(
+      graph.problems.map((problem) => problem.code),
+      isNot(contains('transitive_prerequisite_removed')),
+    );
+  });
+
   test('validate returns structured retry feedback for generation gaps', () {
     final graph = GraphResponse(
       graphTitle: 'Base',
@@ -127,6 +270,23 @@ void main() {
         'leaf_unreachable_from_foundation',
         'duplicate_or_similar_titles',
       ]),
+    );
+  });
+
+  test('similar-title validation preserves non-Latin titles', () {
+    final graph = GraphResponse(
+      graphTitle: '数学',
+      graphDescription: '',
+      nodes: [
+        _node(1, '数学'),
+        _node(2, '数学'),
+      ],
+      edges: const [],
+    );
+
+    expect(
+      graph.validate().map((problem) => problem.code),
+      contains('duplicate_or_similar_titles'),
     );
   });
 }

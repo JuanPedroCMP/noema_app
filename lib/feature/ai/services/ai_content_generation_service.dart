@@ -204,18 +204,37 @@ class AiContentGenerationService {
       throw ArgumentError.value(maxAttempts, 'maxAttempts', 'must be >= 1');
     }
     FormatException? lastFormatError;
+    var attemptPrompt = prompt;
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         final payload = await generate(
           task: task,
-          prompt: prompt,
+          prompt: attemptPrompt,
           agentId: agentId,
           context: context,
           priority: priority,
         );
-        return parse(payload);
+        final parsed = parse(payload);
+        if (attempt < maxAttempts && retryFeedback != null) {
+          final feedback = retryFeedback(parsed).trim();
+          if (feedback.isNotEmpty) {
+            attemptPrompt =
+                '$prompt\n\nValidation feedback for this response:\n$feedback\n'
+                'Return a corrected response. Preserve valid content and fix '
+                'every reported issue.';
+            continue;
+          }
+        }
+        return parsed;
       } on FormatException catch (error) {
         lastFormatError = error;
+        if (attempt < maxAttempts) {
+          attemptPrompt =
+              '$prompt\n\nThe previous response was rejected:\n'
+              '${error.message}\n'
+              'Return a complete corrected response. Preserve valid content '
+              'and fix every reported issue.';
+        }
         if (kDebugMode) {
           developer.log(
             'Resposta de IA inválida na tentativa $attempt/$maxAttempts '
