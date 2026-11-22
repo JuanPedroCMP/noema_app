@@ -34,6 +34,8 @@ class AiGraphEditService {
     required Map<String, Object?> graph,
   }) =>
       '''
+MODE: EDIT
+
 Altere o grafo de conhecimento exclusivamente conforme a solicitação.
 Retorne somente um objeto JSON de alterações, nunca o grafo completo, sem markdown.
 Use apenas IDs numéricos existentes para alterar/excluir itens. Para cada nó novo,

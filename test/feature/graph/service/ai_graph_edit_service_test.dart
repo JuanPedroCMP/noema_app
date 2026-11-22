@@ -25,6 +25,7 @@ void main() {
         },
       );
 
+      expect(prompt, startsWith('MODE: EDIT'));
       expect(prompt, contains('"delete_nodes":[]'));
       expect(prompt, contains('"new_1"'));
       expect(prompt, contains('"source_node":1'));
