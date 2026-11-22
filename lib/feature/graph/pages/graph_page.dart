@@ -236,6 +236,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
   Widget build(BuildContext context) {
     final nodesAsync = ref.watch(nodesProvider(widget.graphId));
     final edgesAsync = ref.watch(edgesProvider(widget.graphId));
+    final dueReviewNodeIds = ref.watch(dueReviewNodeIdsProvider(widget.graphId));
     final graphsAsync = ref.watch(knowledgeGraphsProvider);
     final selected = ref.watch(selectedProvider);
     final selectedNotifier = ref.watch(selectedProvider.notifier);
@@ -268,6 +269,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
           graph: graph,
           nodes: nodes,
           edges: edges,
+          dueReviewNodeIds: dueReviewNodeIds.valueOrNull ?? const <String>{},
           selected: selected,
           selectedNotifier: selectedNotifier,
           isCreatingEdge: graphStates.isCreatingEdge,
@@ -284,6 +286,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
     required KnowledgeGraphData? graph,
     required List<GraphNodeData> nodes,
     required List<GraphEdgeData> edges,
+    required Set<String> dueReviewNodeIds,
     required String selected,
     required SelectedNotifier selectedNotifier,
     required bool isCreatingEdge,
@@ -300,6 +303,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             id: node.id,
             title: node.title,
             masteryScore: node.masteryScore,
+            type: node.type,
+            reviewDue: dueReviewNodeIds.contains(node.id),
           ),
       ],
       relations: [
@@ -308,6 +313,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             sourceId: edge.sourceNodeId,
             targetId: edge.targetNodeId,
             type: edge.type,
+            weight: edge.weight ?? 1.0,
           ),
       ],
     );

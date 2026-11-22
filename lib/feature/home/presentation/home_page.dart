@@ -44,6 +44,15 @@ final _homeGraphRecommendationsProvider =
         final edges = await (database.select(
           database.graphEdge,
         )..where((edge) => edge.graphId.equals(graph.id))).get();
+        final dueReviewNodeIds = (await (database.select(
+          database.reviewItemState,
+        )..where(
+          (state) =>
+              state.nodeId.isIn(nodes.map((node) => node.id)) &
+              state.nextReviewAt.isSmallerOrEqualValue(
+                DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              ),
+        )).get()).map((state) => state.nodeId).toSet();
         final path = LearningPath.analyze(
           nodes: [
             for (final node in nodes)
@@ -51,6 +60,8 @@ final _homeGraphRecommendationsProvider =
                 id: node.id,
                 title: node.title,
                 masteryScore: node.masteryScore,
+                type: node.type,
+                reviewDue: dueReviewNodeIds.contains(node.id),
               ),
           ],
           relations: [
@@ -59,6 +70,7 @@ final _homeGraphRecommendationsProvider =
                 sourceId: edge.sourceNodeId,
                 targetId: edge.targetNodeId,
                 type: edge.type,
+                weight: edge.weight ?? 1.0,
               ),
           ],
         );

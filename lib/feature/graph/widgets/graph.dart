@@ -117,7 +117,7 @@ class GraphPainter extends CustomPainter {
       final stateColor = switch (progress?.status) {
         LearningProgressStatus.mastered => colors.tertiary,
         LearningProgressStatus.ready => colors.primary,
-        LearningProgressStatus.blocked => colors.outlineVariant,
+        LearningProgressStatus.availableWithGaps => colors.tertiary,
         null => colors.outlineVariant,
       };
       final fillPaint = isSelected ? nodeSelectedPaint : nodeFillPaint;
