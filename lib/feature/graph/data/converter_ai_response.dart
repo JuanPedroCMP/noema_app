@@ -81,7 +81,7 @@ class GraphResponse {
     final validNodeIds = repairedNodes.map((node) => node.nodeId).toSet();
     final nodesById = {for (final node in repairedNodes) node.nodeId: node};
     final containerIds = <int>{
-      for (final node in nodes.values)
+      for (final node in nodes)
         if (_isContainer(node)) node.nodeId,
       for (final edge in edges.where(
         (edge) => edge.type.toUpperCase() == 'SUBTOPIC',
