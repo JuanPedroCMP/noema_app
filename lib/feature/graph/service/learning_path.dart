@@ -251,8 +251,9 @@ class LearningPath {
         .where(
           (node) =>
               !containers.contains(node.id) &&
-              progressByNodeId[node.id]?.status !=
-                  LearningProgressStatus.mastered &&
+              (progressByNodeId[node.id]?.status !=
+                      LearningProgressStatus.mastered ||
+                  node.reviewDue) &&
               (essentialGapsByNodeId[node.id]?.isEmpty ?? true),
         )
         .map((node) => node.id)

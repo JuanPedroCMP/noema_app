@@ -135,9 +135,15 @@ void main() {
   test('recommendations sort by due review, layer, downstream impact, title, id', () {
     final path = LearningPath.analyze(
       nodes: [
-        _node('root-z', 'Z base'),
-        _node('root-a', 'A base'),
+        _node('root-z', 'Z base', score: 0.6),
+        _node('root-a', 'A base', score: 0.6),
         _node('second', 'Segundo nível'),
+        _node(
+          'due-mastered',
+          'Revisão dominada vencida',
+          score: 0.9,
+          reviewDue: true,
+        ),
         _node('due', 'Revisão vencida', reviewDue: true),
         _node('child-a', 'Mesmo título'),
         _node('child-b', 'Mesmo título'),
@@ -150,8 +156,9 @@ void main() {
       ],
     );
 
-    expect(path.recommendedNodeIds.first, 'due');
-    expect(path.recommendedNodeIds.take(2), ['due', 'root-z']);
+    expect(path.recommendedNodeIds.first, 'due-mastered');
+    expect(path.recommendedNodeIds[1], 'due');
+    expect(path.recommendedNodeIds[2], 'root-z');
     expect(
       path.recommendedNodeIds.indexOf('root-a'),
       lessThan(path.recommendedNodeIds.indexOf('second')),
