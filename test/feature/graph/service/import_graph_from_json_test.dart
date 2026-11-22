@@ -39,8 +39,8 @@ void main() {
           {'node_id': 2, 'title': 'Biologia básica', 'type': 'TOPIC'},
         ],
         'edges': [
-          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
-          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
+          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
         ],
       }),
       isAiGenerated: true,
@@ -56,6 +56,7 @@ void main() {
       isNot(savedEdges.single.targetNodeId),
     );
     expect(savedEdges.single.type, 'SUBTOPIC');
+    expect(savedEdges.single.weight, 1.0);
     final nodes = await (database.select(
       database.graphNode,
     )..where((node) => node.graphId.equals(graphId))).get();
@@ -64,6 +65,44 @@ void main() {
     expect(savedEdges.single.sourceNodeId, child.id);
     expect(savedEdges.single.targetNodeId, parent.id);
     expect(parent.positionY, lessThan(child.positionY));
+  });
+
+  test('imports generated prerequisite weights and defaults legacy weights', () async {
+    final graphId = await importGraphFromJson(
+      db: database,
+      userId: 'user-id',
+      jsonString: jsonEncode({
+        'graph_title': 'Matemática',
+        'nodes': [
+          {
+            'node_id': 1,
+            'title': 'Álgebra',
+            'type': 'CONCEPT',
+            'level': 'foundation',
+          },
+          {
+            'node_id': 2,
+            'title': 'Equações',
+            'type': 'CONCEPT',
+            'level': 'core',
+          },
+        ],
+        'edges': [
+          {
+            'source_node': 1,
+            'target_node': 2,
+            'type': 'PREREQUISITE',
+            'weight': 0.5,
+          },
+        ],
+      }),
+      isAiGenerated: true,
+    );
+    final savedEdges = await (database.select(
+      database.graphEdge,
+    )..where((edge) => edge.graphId.equals(graphId))).get();
+
+    expect(savedEdges.single.weight, 0.5);
   });
 
   test('queues only missing descriptions with the graph import', () async {
@@ -82,7 +121,7 @@ void main() {
           },
         ],
         'edges': [
-          {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
+          {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
         ],
       }),
       isAiGenerated: true,
@@ -116,10 +155,10 @@ void main() {
             {'node_id': 3, 'title': 'Mendel', 'type': 'CONCEPT'},
           ],
           'edges': [
-            {'source_node': 2, 'target_node': 1, 'type': 'SUBTOPIC'},
-            {'source_node': 3, 'target_node': 2, 'type': 'SUBTOPIC'},
+            {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+            {'source_node': 2, 'target_node': 3, 'type': 'SUBTOPIC'},
             // Cycle: 1 is SUBTOPIC of 3
-            {'source_node': 1, 'target_node': 3, 'type': 'SUBTOPIC'},
+            {'source_node': 3, 'target_node': 1, 'type': 'SUBTOPIC'},
             // Self loop
             {'source_node': 2, 'target_node': 2, 'type': 'SUBTOPIC'},
           ],

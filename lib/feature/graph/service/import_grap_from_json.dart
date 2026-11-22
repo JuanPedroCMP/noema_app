@@ -34,7 +34,14 @@ Future<String> importGraphFromJson({
 }) async {
   final rawGraph = ai.GraphResponse.fromJsonString(jsonString);
   final graph = isAiGenerated ? rawGraph.repair() : rawGraph;
-  graph.validate();
+  final fatalProblems = graph.validate()
+      .where((problem) => problem.fatal)
+      .toList();
+  if (fatalProblems.isNotEmpty) {
+    throw FormatException(
+      fatalProblems.map((problem) => problem.message).join('\n'),
+    );
+  }
   final graphId = const Uuid().v4();
 
   final nodeIdMap = <int, String>{};
@@ -52,9 +59,12 @@ Future<String> importGraphFromJson({
     return type == 'SUBTOPIC' || type == 'PREREQUISITE';
   }).toList();
   final layoutEdges = hierarchicalEdges.map((edge) {
-    return edge.type.toUpperCase() == 'SUBTOPIC'
-        ? (source: edge.targetNode, target: edge.sourceNode)
-        : (source: edge.sourceNode, target: edge.targetNode);
+    if (edge.type.toUpperCase() != 'SUBTOPIC') {
+      return (source: edge.sourceNode, target: edge.targetNode);
+    }
+    return isAiGenerated
+        ? (source: edge.sourceNode, target: edge.targetNode)
+        : (source: edge.targetNode, target: edge.sourceNode);
   }).toList();
 
   for (final edge in layoutEdges) {
@@ -173,8 +183,16 @@ Future<String> importGraphFromJson({
           continue;
         }
 
-        final sourceId = nodeIdMap[edge.sourceNode];
-        final targetId = nodeIdMap[edge.targetNode];
+        final databaseSourceNode = isAiGenerated &&
+                edge.type.toUpperCase() == 'SUBTOPIC'
+            ? edge.targetNode
+            : edge.sourceNode;
+        final databaseTargetNode = isAiGenerated &&
+                edge.type.toUpperCase() == 'SUBTOPIC'
+            ? edge.sourceNode
+            : edge.targetNode;
+        final sourceId = nodeIdMap[databaseSourceNode];
+        final targetId = nodeIdMap[databaseTargetNode];
 
         if (sourceId == null || targetId == null) {
           continue;
@@ -188,7 +206,7 @@ Future<String> importGraphFromJson({
             sourceNodeId: sourceId,
             targetNodeId: targetId,
             type: _mapEdgeTypeToDb(edge.type),
-            weight: const Value.absent(),
+            weight: Value(edge.weight ?? 1.0),
           ),
         );
       }
