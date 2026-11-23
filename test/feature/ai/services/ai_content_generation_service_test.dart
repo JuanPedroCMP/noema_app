@@ -323,6 +323,10 @@ void main() {
       expect(adapter.queryParameters['user_prompt'], contains('Fotossíntese'));
       expect(
         adapter.queryParameters['user_prompt'],
+        contains('não a preserve nem apenas a parafraseie'),
+      );
+      expect(
+        adapter.queryParameters['user_prompt'],
         isNot(contains('português')),
       );
       expect(adapter.authorization, ['Bearer', 'test-access-token'].join(' '));
@@ -463,21 +467,179 @@ void main() {
 
     expect(adapter.prompts, hasLength(2));
     expect(adapter.prompts.first, 'MODE: CREATE\nÁlgebra');
-    expect(adapter.prompts.last, contains('não é foundation e não tem pré-requisito'));
+    expect(
+      adapter.prompts.last,
+      contains('não é foundation e não tem pré-requisito'),
+    );
     expect(
       adapter.prompts.last,
       contains('leaf_without_prerequisite [nós: 2]'),
     );
+    expect(adapter.prompts.last, contains('missing_scope_plan'));
+    expect(adapter.prompts.last, contains('missing_coverage_map'));
     final prerequisite = graph.edges.singleWhere(
       (edge) => edge.type == 'PREREQUISITE',
     );
     expect(prerequisite.sourceNode, 1);
     expect(prerequisite.targetNode, 2);
-    expect(
-      graph.validate().where((problem) => problem.retryable),
-      isEmpty,
+    expect(graph.validate().where((problem) => problem.retryable), isEmpty);
+  });
+
+  test(
+    'generates the graph through one server-side pipeline request',
+    () async {
+      final adapter = _ServerGraphPipelineAdapter();
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      final service = container.read(aiContentGenerationServiceProvider);
+      final graph = await service.generateGraphWithServerPipeline(
+        prompt: 'Aprender a treinar e avaliar modelos',
+        agentId: 'graph-agent',
+      );
+
+      expect(adapter.prompts, hasLength(1));
+      expect(adapter.prompts.single, startsWith('MODE: SERVER_CREATE\n'));
+      expect(adapter.prompts.single, contains('Aprender a treinar'));
+      expect(graph.blueprint?.outcomes, hasLength(2));
+      expect(graph.toJson().containsKey('blueprint'), isFalse);
+      expect(graph.validate().where((problem) => problem.retryable), isEmpty);
+    },
+  );
+
+  test(
+    'accepts the server-approved single foundation prerequisite warning',
+    () async {
+      final adapter = _ServerGraphPipelineAdapter(
+        includeFoundationPrerequisiteWarning: true,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      final graph = await container
+          .read(aiContentGenerationServiceProvider)
+          .generateGraphWithServerPipeline(
+            prompt: 'Aprender a treinar e avaliar modelos',
+            agentId: 'graph-agent',
+          );
+
+      expect(
+        graph.validate().map((problem) => problem.code),
+        ['foundation_has_prerequisite'],
+      );
+      expect(graph.hasCoverageAuditProblems, isFalse);
+    },
+  );
+
+  test(
+    'accepts a marked server fallback with non-fatal coverage warnings',
+    () async {
+      final adapter = _ServerGraphPipelineAdapter(
+        qualityFallback: true,
+        omitCoverageMap: true,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      final graph = await container
+          .read(aiContentGenerationServiceProvider)
+          .generateGraphWithServerPipeline(
+            prompt: 'Aprender a treinar e avaliar modelos',
+            agentId: 'graph-agent',
+          );
+
+      expect(graph.qualityFallback, isTrue);
+      expect(graph.hasCoverageAuditProblems, isTrue);
+      expect(graph.blocksSaveForCoverage, isFalse);
+      expect(graph.toJson().containsKey('quality_fallback'), isFalse);
+    },
+  );
+
+  test('rejects a marked fallback that cannot produce a usable graph', () async {
+    final adapter = _ServerGraphPipelineAdapter(
+      qualityFallback: true,
+      emptyNodes: true,
+    );
+    final container = ProviderContainer(
+      overrides: [
+        aiResponseLanguageResolverProvider.overrideWithValue(
+          () async => null,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final client = container.read(apiClientProvider);
+    client.dio.httpClientAdapter = adapter;
+    setApiAccessToken(client, 'test-access-token');
+
+    await expectLater(
+      container
+          .read(aiContentGenerationServiceProvider)
+          .generateGraphWithServerPipeline(
+            prompt: 'Aprender a treinar e avaliar modelos',
+            agentId: 'graph-agent',
+          ),
+      throwsA(isA<FormatException>()),
     );
   });
+
+  test(
+    'still rejects a server response with another quality warning',
+    () async {
+      final adapter = _ServerGraphPipelineAdapter(
+        includeFoundationPrerequisiteWarning: true,
+        omitDependentObjective: true,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          aiResponseLanguageResolverProvider.overrideWithValue(
+            () async => null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final client = container.read(apiClientProvider);
+      client.dio.httpClientAdapter = adapter;
+      setApiAccessToken(client, 'test-access-token');
+
+      await expectLater(
+        container
+            .read(aiContentGenerationServiceProvider)
+            .generateGraphWithServerPipeline(
+              prompt: 'Aprender a treinar e avaliar modelos',
+              agentId: 'graph-agent',
+            ),
+        throwsA(isA<FormatException>()),
+      );
+    },
+  );
 }
 
 class _UnexpectedUserNotifier extends UserNotifier {
@@ -664,12 +826,14 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
             'title': 'Aritmética',
             'type': 'CONCEPT',
             'level': 'foundation',
+            'description': 'Resolver operações aritméticas básicas.',
           },
           {
             'node_id': 2,
             'title': 'Equações',
             'type': 'CONCEPT',
             'level': 'core',
+            'description': 'Resolver equações algébricas simples.',
           },
         ],
         'edges': [],
@@ -677,6 +841,19 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
     }
     return _jsonResponse({
       'graph_title': 'Álgebra',
+      'plan':
+          'Ensinar operações aritméticas e resolver equações simples, '
+          'partindo de fundamentos de aritmética.',
+      'coverage': [
+        {
+          'outcome': 'Resolver operações aritméticas básicas.',
+          'node_ids': [1],
+        },
+        {
+          'outcome': 'Resolver equações algébricas simples.',
+          'node_ids': [2],
+        },
+      ],
       'nodes': [
         {'node_id': 10, 'title': 'Matemática', 'type': 'AREA'},
         {'node_id': 11, 'title': 'Álgebra', 'type': 'TOPIC'},
@@ -685,12 +862,14 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
           'title': 'Aritmética',
           'type': 'CONCEPT',
           'level': 'foundation',
+          'description': 'Resolver operações aritméticas básicas.',
         },
         {
           'node_id': 2,
           'title': 'Equações',
           'type': 'CONCEPT',
           'level': 'core',
+          'description': 'Resolver equações algébricas simples.',
         },
       ],
       'edges': [
@@ -700,6 +879,108 @@ class _GraphFeedbackAdapter implements HttpClientAdapter {
         {
           'source_node': 1,
           'target_node': 2,
+          'type': 'PREREQUISITE',
+          'weight': 1.0,
+        },
+      ],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _ServerGraphPipelineAdapter implements HttpClientAdapter {
+  _ServerGraphPipelineAdapter({
+    this.includeFoundationPrerequisiteWarning = false,
+    this.omitDependentObjective = false,
+    this.qualityFallback = false,
+    this.omitCoverageMap = false,
+    this.emptyNodes = false,
+  });
+
+  final bool includeFoundationPrerequisiteWarning;
+  final bool omitDependentObjective;
+  final bool qualityFallback;
+  final bool omitCoverageMap;
+  final bool emptyNodes;
+  final List<String> prompts = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final prompt = options.queryParameters['user_prompt'] as String;
+    prompts.add(prompt);
+    return _jsonResponse({
+      'graph_description': 'Treino e avaliação de modelos.',
+      'graph_title': 'Treino e avaliação',
+      'plan': 'Preparar entradas e avaliar as previsões.',
+      if (qualityFallback) 'quality_fallback': true,
+      'blueprint': {
+        'scope': 'Treinar um modelo e avaliar suas previsões.',
+        'assumptions': [],
+        'prior_knowledge': [],
+        'outcomes': [
+          {
+            'id': 'outcome_1',
+            'outcome': 'Prepare model inputs.',
+            'evidence': 'Transformar um conjunto pequeno em atributos.',
+            'prerequisite_ids': [],
+          },
+          {
+            'id': 'outcome_2',
+            'outcome': 'Evaluate model predictions.',
+            'evidence': 'Comparar previsões com uma linha de base.',
+            'prerequisite_ids': ['outcome_1'],
+          },
+        ],
+      },
+      if (!omitCoverageMap)
+        'coverage': [
+          {
+            'outcome_id': 'outcome_1',
+            'outcome': 'Prepare model inputs.',
+            'node_ids': [3],
+          },
+          {
+            'outcome_id': 'outcome_2',
+            'outcome': 'Evaluate model predictions.',
+            'node_ids': [4],
+          },
+        ],
+      'nodes': [
+        if (!emptyNodes) ...[
+          {'node_id': 1, 'title': 'Modelagem', 'type': 'AREA'},
+          {'node_id': 2, 'title': 'Fundamentos', 'type': 'TOPIC'},
+          {
+            'node_id': 3,
+            'title': 'Preparação de dados',
+            'description': 'Transformar dados em atributos de entrada.',
+            'type': 'CONCEPT',
+            'level': 'foundation',
+          },
+          {
+            'node_id': 4,
+            'title': 'Avaliação de modelos',
+            if (!omitDependentObjective)
+              'description': 'Comparar previsões com uma linha de base.',
+            'type': 'CONCEPT',
+            'level': includeFoundationPrerequisiteWarning
+                ? 'foundation'
+                : 'core',
+          },
+        ],
+      ],
+      'edges': [
+        {'source_node': 1, 'target_node': 2, 'type': 'SUBTOPIC'},
+        {'source_node': 2, 'target_node': 3, 'type': 'SUBTOPIC'},
+        {'source_node': 2, 'target_node': 4, 'type': 'SUBTOPIC'},
+        {
+          'source_node': 3,
+          'target_node': 4,
           'type': 'PREREQUISITE',
           'weight': 1.0,
         },

@@ -39,6 +39,13 @@ void main() {
       find.text('Ainda não há exportações ou importações manuais.'),
       findsOneWidget,
     );
+    await tester.ensureVisible(find.text('Criptografar o arquivo'));
+    await tester.tap(find.text('Criptografar o arquivo'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Usar uma chave personalizada'));
+    await tester.tap(find.text('Usar uma chave personalizada'));
+    await tester.pumpAndSettle();
+    expect(find.text('Chave (mínimo de 12 caracteres)'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

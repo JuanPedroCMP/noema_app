@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' show ChoiceData;
@@ -234,27 +235,27 @@ class _Choise extends ConsumerState<ManipulateChoise> {
               onChanged: sChanged,
               controller: statementController,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: "Alternativa",
+                labelText: AppLocalizations.of(context)!.deleteAlternative,
               ),
             ),
             TextField(
               onChanged: eChanged,
               controller: explanationController,
               maxLines: 2,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: "Explicação (opcional)",
+                labelText: AppLocalizations.of(context)!.alternative,
               ),
             ),
             TextField(
               onChanged: wChanged,
               controller: weightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: "Peso (opcional)",
+                labelText: AppLocalizations.of(context)!.weight,
               ),
             ),
             Text(

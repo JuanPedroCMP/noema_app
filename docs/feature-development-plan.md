@@ -2,9 +2,10 @@
 
 ## Estado encontrado
 
-- O logotipo dentro do app já acompanha o tema. O Android já tem ícone
-  adaptativo e camada monocromática; os ativos instaláveis de desktop são
-  estáticos por natureza.
+- O logotipo dentro do app acompanha o tema. O Android tem ícone adaptativo e
+  camada monocromática, cuja tonalização é controlada pelo launcher. A janela
+  Linux atualiza seu ícone de acordo com o ColorScheme ativo; ativos de
+  launcher/instalação de desktop permanecem estáticos.
 - O grafo agora aceita patches de IA com prévia, validação de IDs/endpoints,
   checagem de concorrência e aplicação transacional; descrições de nós novos ou
   renomeados voltam para a fila local.
@@ -15,19 +16,23 @@
 - A pontuação já soma o peso das alternativas corretas selecionadas, subtrai o
   das incorretas e mostra os pontos líquidos; a escala de revisão continua
   limitada a 0..1 por contrato.
-- Abrir o nó recomendado agora cria uma tarefa persistida para as categorias
-  ausentes (múltipla escolha, dissertativa e flashcards); o worker Android/Linux
-  gera e salva o pacote e impede duplicação quando uma tarefa é repetida.
+- A geração automática para o nó recomendado é uma preferência persistida,
+  desativada por padrão e configurável por tipo de questão. Quando ativada, o
+  app gera sem interromper se o nó estiver vazio; se já houver exercícios,
+  flashcards ou recursos vinculados, pede confirmação antes de acrescentar o
+  pacote configurado. Recursos existentes são incluídos no contexto da IA.
 - Descrições, correções e pacotes enfileirados são processados por tarefas
-  one-off do WorkManager no Android e systemd no Linux. Conclusões importantes
-  usam notificação local e o shell também mostra SnackBars.
+  persistentes do WorkManager: one-off no Android, `BGProcessingTask` no iOS e
+  systemd no Linux. Conclusões importantes usam notificação local em Android,
+  iOS e Linux, além de SnackBars enquanto o shell está aberto.
 - Pacotes manuais oferecem prévia ou enfileiramento persistente em segundo plano.
   Se a tela for fechada durante a prévia, o resultado é salvo/notificado
   enquanto o processo continua vivo; para sobreviver ao encerramento, deve-se
   escolher o enfileiramento.
-- Ícones de desktop estão em fundo neutro e consistentes com a marca, mas
-  arquivos de launcher permanecem estáticos. O logotipo dentro do app acompanha
-  o tema e o launcher Android oferece a camada monocromática tematizável.
+- O ícone da janela Linux é renderizado do ColorScheme ativo, sobre fundo
+  neutro e dentro de forma arredondada. O app Android mantém a camada
+  monocromática adaptativa; quem define sua cor é o launcher, não o tema interno
+  do Noema. Ícones de instalação/launcher Windows e macOS permanecem estáticos.
 
 ## Entregas desta rodada
 
@@ -37,25 +42,25 @@
 - Adicionada edição de grafo por IA e geração de pacote misto, sem alterações na
   API.
 - O ícone Android preserva o fundo neutro, a camada monocromática tematizável e
-  uma margem maior para máscaras adaptativas. A logo dentro do app já acompanha
-  as cores do tema; ícones de desktop continuam estáticos.
+  uma margem maior para máscaras adaptativas. A logo interna e o ícone de janela
+  Linux acompanham a paleta do app; os ícones de instalação Windows/macOS não.
 - Corrigida a permissão `INTERNET` no manifesto principal Android, necessária
   para builds release e tarefas de IA fora do modo debug.
 - O plugin de notificações foi fixado em `flutter_local_notifications 22.3.3`,
   compatível com o Android SDK 36 do projeto, e o core library desugaring foi
   habilitado.
-- Verificações finais: APK Android release e bundle Linux debug compilam; 208
-  testes passam. Há uma falha isolada no teste de largura de camadas de
-  `sugiyama_test.dart`, sem relação com os arquivos de IA/filas alterados.
+- Verificações finais desta revisão: `flutter analyze` sem issues, 212 testes
+  passam e o bundle Linux debug compila. O build Android release havia passado
+  na rodada anterior.
 
 ## Plano e critérios de aceite
 
 1. **Marca adaptável**
-   - Revisar os ativos nativos Android e desktop para fundo neutro, formas
-     seguras e consistência com a marca existente.
-   - Preservar a camada monocromática Android para lançadores com ícones
-     temáticos. Ícones instaláveis de desktop não acompanham em tempo real o
-     tema Flutter sem integração específica de cada sistema.
+   - Logo dentro do app e ícone de janela Linux acompanham a paleta ativa.
+   - Preservar a camada monocromática Android para lançadores que aplicam
+     tonalização temática; o app não pode impor a cor interna do tema ao launcher.
+   - Ícones de instalação Windows/macOS e atalhos de launcher Android são
+     controlados pelo sistema e permanecem estáticos/tonalizados pelo sistema.
 
 2. **Edição de grafo com IA**
    - Enviar somente títulos de nós e relações completas, usando IDs numéricos
@@ -79,10 +84,13 @@
    - Validar cada resultado, apresentar prévia e salvar o pacote de modo atômico.
 
 5. **Conteúdo automático do próximo nó**
-   - Ao abrir o próximo nó recomendado, enfileirar conteúdo somente para
-     categorias ausentes e deduplicar tarefas ativas por nó.
-   - Criar questões e flashcards vinculados ao nó; exibir o estado na fila e
-     emitir notificação quando o pacote terminar.
+   - Manter configuração persistida, desativada por padrão, com quantidades
+     ajustáveis para múltipla escolha, dissertativas, Feynman e flashcards.
+   - Quando ativada, gerar em segundo plano sem confirmação se o nó não tiver
+     material de estudo existente; caso já tenha, pedir confirmação antes de
+     acrescentar o pacote.
+   - Usar recursos de estudo vinculados como contexto, deduplicar tarefas
+     ativas, exibir estado na fila e notificar ao concluir.
 
 6. **Pontuação de múltipla escolha (implementada)**
    - Somar o peso de cada alternativa correta selecionada e subtrair o peso de
@@ -91,18 +99,24 @@
      comportamento padrão para alternativas sem peso e persistindo os pontos
      líquidos para auditoria/apresentação.
 
-7. **Execução fora da página e avisos (parcial)**
+7. **Execução fora da página e avisos (implementado com limites do SO)**
    - Manter tarefas independentes da tela que as iniciou, com fila persistente,
-     recuperação após interrupção, retries limitados e prevenção de duplicatas.
-   - Tarefas persistidas continuam após navegação e são agendadas no Android e
-     Linux; retries e IDs estáveis evitam perder ou duplicar pacotes.
-   - Notificações de sistema estão integradas para conclusões importantes. A
-     geração manual com prévia não é retomável após morte do processo; a opção
-     explícita de enfileiramento persiste o pedido e usa o worker.
-   - WorkManager pode adiar jobs e não executa durante force-stop. No Linux, o
-     worker experimental requer sessão systemd do usuário; sandbox Flatpak/Snap
-     não é suportado e restrições de rede/backoff são ignoradas pelo plugin.
-     Nenhum app local pode garantir execução após force-stop.
+     recuperação de tarefas interrompidas por lease/heartbeat, retries
+     limitados e prevenção de duplicatas.
+   - As tarefas persistidas são agendadas pelo WorkManager Android, por
+     `BGProcessingTask` no iOS e pelo worker systemd experimental no Linux. No
+     iOS, o identificador permitido é declarado no `Info.plist` e seus handlers
+     são registrados no `AppDelegate` para suportar relançamento do app.
+   - Notificações de sistema estão integradas para conclusões importantes em
+     Android, iOS e Linux; a permissão de notificações iOS/Android é solicitada
+     quando o usuário enfileira uma tarefa.
+   - A geração manual com prévia não é retomável após morte do processo; a
+     opção explícita de enfileiramento persiste o pedido e usa o worker.
+   - WorkManager pode adiar jobs e não executa durante force-stop; o iOS decide
+     quando executar `BGProcessingTask` e pode cancelá-la; no Linux, o worker
+     experimental requer sessão systemd do usuário. Nenhum app local pode
+     garantir execução após force-stop, encerramento forçado ou restrições do
+     sistema.
    - O fluxo manual de pacote oferece prévia e continua após fechar a tela se o
      processo permanecer vivo; sua geração não é retomável após encerramento do
      processo. A geração automática do nó recomendado é enfileirada e retomável.

@@ -10,10 +10,12 @@ import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/providers/ai_queue_concurrency_provider.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/services/ai_request_queue.dart';
 import 'package:noema/feature/ai/services/ai_task_notification_service.dart';
 import 'package:noema/feature/config/providers/user_provider.dart';
 import 'package:noema/feature/exercises/data/queued_exercise_correction_service.dart';
 import 'package:noema/feature/exercises/data/study_pack_service.dart';
+import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 
 const maximumAiBackgroundAttempts = aiTaskMaximumAttempts;
 
@@ -47,7 +49,12 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
     _starting = true;
     try {
       final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
-      await dao.recoverInterruptedTasks(userId: userId);
+      await dao.recoverInterruptedTasks(
+        userId: userId,
+        updatedBefore: DateTime.now()
+            .subtract(aiTaskExecutionLease)
+            .millisecondsSinceEpoch,
+      );
       _subscription = dao
           .watchQueueItems(userId: userId)
           .listen(
@@ -81,6 +88,7 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
     final userId = _userId;
     if (userId == null) return false;
     final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
+    await _recoverExpiredTasks(userId, dao);
     final ready = await dao.getReadyTasks(
       userId: userId,
       now: DateTime.now().millisecondsSinceEpoch,
@@ -132,6 +140,7 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
     _pumping = true;
     try {
       final dao = AiBackgroundTaskDao(_ref.read(appDatabaseProvider));
+      await _recoverExpiredTasks(userId, dao);
       while (!_paused) {
         final ready = await dao.getReadyTasks(
           userId: userId,
@@ -173,6 +182,33 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
     AiBackgroundTaskData task,
     AiBackgroundTaskDao dao,
   ) async {
+    final heartbeat = Timer.periodic(const Duration(seconds: 30), (_) {
+      unawaited(
+        dao.touchRunningTask(task.id).catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          developer.log(
+            'Não foi possível renovar o lease da tarefa ${task.id}.',
+            name: 'noema.ai.queue',
+            error: error,
+            stackTrace: stackTrace,
+          );
+          return 0;
+        }),
+      );
+    });
+    try {
+      await _executeTask(task, dao);
+    } finally {
+      heartbeat.cancel();
+    }
+  }
+
+  Future<void> _executeTask(
+    AiBackgroundTaskData task,
+    AiBackgroundTaskDao dao,
+  ) async {
     try {
       final node = await dao.getNode(task.nodeId);
       if (node == null || node.softDeleted) {
@@ -185,7 +221,27 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
         return;
       }
       if (task.taskType == aiNodeDescriptionTaskType) {
-        if (node.description?.trim().isNotEmpty == true) {
+        final payload = jsonDecode(task.payloadJson);
+        if (payload is! Map<String, dynamic>) {
+          throw const FormatException('A tarefa de descrição está inválida.');
+        }
+        final replaceExistingDescription =
+            payload['replace_existing_description'] == true;
+        final rawExpectedDescription = payload['expected_description'];
+        if (rawExpectedDescription != null &&
+            rawExpectedDescription is! String) {
+          throw const FormatException(
+            'A descrição original da tarefa está inválida.',
+          );
+        }
+        final expectedNodeDescription = rawExpectedDescription as String?;
+        if (replaceExistingDescription &&
+            node.description != expectedNodeDescription) {
+          await dao.complete(task.id);
+          return;
+        }
+        if (!replaceExistingDescription &&
+            node.description?.trim().isNotEmpty == true) {
           await dao.complete(task.id);
           return;
         }
@@ -202,6 +258,8 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
           task.id,
           description: description,
           expectedNodeTitle: node.title,
+          replaceExistingDescription: replaceExistingDescription,
+          expectedNodeDescription: expectedNodeDescription,
         );
       } else if (task.taskType == aiStudyPackTaskType) {
         final payload = jsonDecode(task.payloadJson);
@@ -214,10 +272,15 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
           ai: _ref.read(aiContentGenerationServiceProvider),
           database: _ref.read(appDatabaseProvider),
         );
+        final resources = await LearningResourceDao(
+          _ref.read(appDatabaseProvider),
+        ).getLearningResourcesByNode(nodeId: node.id);
         final draft = await service.generate(
           nodeTitle: node.title,
           nodeDescription: node.description,
           request: request,
+          studyMaterials: StudyPackService.studyMaterialContext(resources),
+          priority: AiRequestPriority.background,
         );
         await service.save(
           nodeId: node.id,
@@ -270,6 +333,15 @@ class AiBackgroundTaskRunner extends ChangeNotifier {
         );
       }
     }
+  }
+
+  Future<void> _recoverExpiredTasks(String userId, AiBackgroundTaskDao dao) {
+    return dao.recoverInterruptedTasks(
+      userId: userId,
+      updatedBefore: DateTime.now()
+          .subtract(aiTaskExecutionLease)
+          .millisecondsSinceEpoch,
+    );
   }
 
   void _notifyIfAlive() {

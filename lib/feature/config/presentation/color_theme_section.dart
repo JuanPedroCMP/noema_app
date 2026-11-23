@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -217,8 +218,8 @@ class _ColorThemeSectionState extends ConsumerState<ColorThemeSection> {
         else
           DropdownButtonFormField<String>(
             initialValue: _selectedId,
-            decoration: const InputDecoration(
-              labelText: 'Tema ativo',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.currentColor,
               prefixIcon: Icon(Icons.palette_outlined),
             ),
             items: _themes
@@ -418,7 +419,7 @@ class _ThemeEditorDialogState extends State<_ThemeEditorDialog> {
               TextField(
                 controller: _name,
                 maxLength: 40,
-                decoration: const InputDecoration(labelText: 'Nome do tema'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.activeTheme),
               ),
               _ColorField(
                 label: 'Seed color',
@@ -645,14 +646,14 @@ class _ColorFieldState extends State<_ColorField> {
                   radius: 12,
                 ),
                 suffixIcon: IconButton(
-                  tooltip: 'Copiar cor',
+                  tooltip: AppLocalizations.of(context)!.themeName,
                   icon: const Icon(Icons.copy),
                   onPressed: () => Clipboard.setData(
                     ClipboardData(text: '#${_hex(widget.color.toARGB32())}'),
                   ),
                 ),
                 suffix: IconButton(
-                  tooltip: 'Colar cor',
+                  tooltip: AppLocalizations.of(context)!.pasteColor,
                   icon: const Icon(Icons.content_paste),
                   onPressed: () async {
                     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -668,7 +669,7 @@ class _ColorFieldState extends State<_ColorField> {
             ),
           ),
           IconButton(
-            tooltip: 'Escolher cor',
+            tooltip: AppLocalizations.of(context)!.chooseColor,
             icon: const Icon(Icons.colorize),
             onPressed: () async {
               var selected = widget.color;
@@ -706,7 +707,7 @@ class _ColorFieldState extends State<_ColorField> {
           ),
           if (widget.changed)
             IconButton(
-              tooltip: 'Restaurar cor original',
+              tooltip: AppLocalizations.of(context)!.restoreOriginalColor,
               onPressed: widget.onRestore,
               icon: const Icon(Icons.restore),
             ),

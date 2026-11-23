@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -64,8 +65,8 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
           autofocus: true,
           maxLength: 160,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Ex.: Aprender cálculo para a prova de dezembro',
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.exLearningCalculusDecemberTest,
             border: OutlineInputBorder(),
           ),
         ),
@@ -117,8 +118,9 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
     try {
       settings = await ref.read(studyAssistantSettingsProvider.future);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         _showActionError('Não foi possível carregar preferências: $error');
+      }
       return;
     }
     if (!mounted) return;
@@ -339,14 +341,14 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              tooltip: 'Definir objetivo de estudo',
+              tooltip: AppLocalizations.of(context)!.defineStudyObjective,
               onPressed: () => _setGoal(goal),
               icon: const Icon(Icons.flag_outlined),
             ),
             if (state.messages.isNotEmpty)
               IconButton(
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Limpar conversa',
+                tooltip: AppLocalizations.of(context)!.clearConversation,
                 onPressed: state.isSending
                     ? null
                     : () => ref
@@ -364,7 +366,7 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              tooltip: 'Fechar assistente',
+              tooltip: AppLocalizations.of(context)!.closeWizard,
               onPressed: () =>
                   ref.read(studyAssistantProvider.notifier).close(),
               icon: const Icon(Icons.close),
@@ -491,8 +493,8 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
                       maxLength,
                     }) => null,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  hintText: 'Pergunte ao assistente...',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.askAssistant,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
@@ -506,7 +508,7 @@ class _StudyAssistantPanelState extends ConsumerState<StudyAssistantPanel> {
             ),
             const SizedBox(width: 8),
             IconButton.filled(
-              tooltip: 'Enviar mensagem',
+              tooltip: AppLocalizations.of(context)!.sendMessage,
               onPressed: state.isSending ? null : _send,
               icon: state.isSending
                   ? const SizedBox.square(

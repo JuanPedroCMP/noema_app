@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -34,6 +35,7 @@ String graphGenerationApiErrorMessage(DioException error) {
       return 'O idioma de resposta solicitado não está disponível. '
           'Atualize sua preferência de idioma e tente novamente.';
     }
+    return 'A API rejeitou o grafo gerado: $detail';
   }
   if (status == 401 || status == 403) {
     return 'Sua sessão não está autorizada para usar a IA. Entre novamente.';
@@ -47,6 +49,17 @@ String graphGenerationApiErrorMessage(DioException error) {
   if (status == 504) {
     return 'O serviço de IA excedeu o tempo limite. Tente novamente; '
         'se persistir, verifique os modelos e provedores configurados.';
+  }
+  if (status == 502 && detail is String) {
+    final normalizedDetail = detail.toLowerCase();
+    if (normalizedDetail.contains('graph planning stage failed')) {
+      return 'O provedor de IA falhou durante o planejamento do grafo. '
+          'Verifique os modelos e as chaves configurados e tente novamente.';
+    }
+    if (normalizedDetail.contains('graph creation stage failed')) {
+      return 'O provedor de IA falhou durante a construção do grafo. '
+          'Verifique os modelos e as chaves configurados e tente novamente.';
+    }
   }
   if (status != null && status >= 500) {
     return 'O serviço de IA falhou. Tente novamente mais tarde.';
@@ -77,6 +90,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
   bool _isImproving = false;
   bool _isSaving = false;
   bool _promptIsImproved = false;
+  String? _generationStatus;
   GraphResponse? _draft;
   String? _error;
   String? _promptNotice;
@@ -137,6 +151,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     FocusScope.of(context).unfocus();
     setState(() {
       _isGenerating = true;
+      _generationStatus = 'Planejando e construindo a trilha no servidor...';
       _error = null;
       _draft = null;
     });
@@ -144,54 +159,12 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     try {
       final ai = ref.read(aiContentGenerationServiceProvider);
       final agentId = await ai.resolveAgentId(AiAgentTask.manipulateGraph);
-      final draft = await ai.generateWithRetry<GraphResponse>(
-        task: AiAgentTask.manipulateGraph,
-        prompt: 'MODE: CREATE\n$prompt',
+      final graph = await ai.generateGraphWithServerPipeline(
+        prompt: prompt,
         agentId: agentId,
-        maxAttempts: 2,
-        retryFeedback: (graph) => graph
-            .validate()
-            .where((problem) => problem.retryable)
-            .map(
-              (problem) =>
-                  '- ${problem.code} [nós: ${problem.nodeIds.join(', ')}]: '
-                  '${problem.message}',
-            )
-            .join('\n'),
-        parse: (response) {
-          response.putIfAbsent('graph_description', () => prompt);
-          final generatedGraph = GraphResponse.fromJson(response).repair();
-          final candidate = GraphResponse(
-            graphTitle: generatedGraph.graphTitle,
-            graphDescription: generatedGraph.graphDescription,
-            nodes: generatedGraph.nodes
-                .map(
-                  (node) => GraphNode(
-                    nodeId: node.nodeId,
-                    title: node.title,
-                    description: '',
-                    type: node.type,
-                    level: node.level,
-                  ),
-                )
-                .toList(growable: false),
-            edges: generatedGraph.edges,
-            problems: generatedGraph.problems,
-          );
-          final fatalProblems = candidate
-              .validate()
-              .where((problem) => problem.fatal)
-              .toList();
-          if (fatalProblems.isNotEmpty) {
-            throw FormatException(
-              fatalProblems.map((problem) => problem.message).join('\n'),
-            );
-          }
-          return candidate;
-        },
       );
       if (!mounted) return;
-      setState(() => _draft = draft);
+      setState(() => _draft = graph);
     } on DioException catch (error) {
       if (!mounted) return;
       setState(() => _error = graphGenerationApiErrorMessage(error));
@@ -204,7 +177,12 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       if (!mounted) return;
       setState(() => _error = _generationError(error));
     } finally {
-      if (mounted) setState(() => _isGenerating = false);
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+          _generationStatus = null;
+        });
+      }
     }
   }
 
@@ -254,6 +232,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
     setState(() {
       _previousPrompt = null;
       _promptNotice = 'Prompt original restaurado.';
+      _draft = null;
     });
   }
 
@@ -264,7 +243,10 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       prompt:
           'Melhore o seguinte pedido para gerar um mapa de conhecimento. '
           'Preserve o tema e não invente requisitos que não foram pedidos. '
-          'Defina objetivo de aprendizagem, público/nível, escopo e granulação adequados. '
+          'Defina resultado de aprendizagem, público/nível, conhecimento prévio '
+          'explicitamente informado, escopo e granulação adequados. Identifique '
+          'o que precisa ser aprendido para alcançar o resultado e preserve '
+          'subtemas necessários sem ampliar para tópicos apenas relacionados. '
           'Coloque somente o prompt aprimorado no campo feedback do schema de resposta, sem explicações adicionais, títulos ou aspas.\n\n'
           'Pedido original: $prompt',
     );
@@ -315,7 +297,7 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
         userId: user.id,
         jsonString: jsonEncode(draft.toJson()),
         isAiGenerated: true,
-        queueMissingAiDescriptions: true,
+        regenerateAiDescriptions: true,
       );
       await ref
           .read(aiTaskNotificationServiceProvider)
@@ -344,7 +326,9 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Diga o que quer estudar. A IA organiza o tema em conceitos conectados.',
+          'Descreva o que quer aprender e o que já sabe. O servidor planeja '
+          'os resultados e constrói o grafo automaticamente antes de mostrar '
+          'a prévia.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
@@ -358,16 +342,19 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
               _promptNotice = null;
               _draft = null;
               _error = null;
+              _generationStatus = null;
             });
           },
           maxLines: 4,
           maxLength: 1000,
-          decoration: const InputDecoration(
-            labelText: 'O que você quer aprender?',
-            hintText: 'Ex.: Introdução à genética para iniciantes',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.wantLearn,
+            hintText: AppLocalizations.of(
+              context,
+            )!.exIntroductionGeneticsBeginners,
             alignLabelWithHint: true,
             prefixIcon: Icon(Icons.auto_awesome),
-            helperText: 'Você pode editar o texto antes de gerar.',
+            helperText: AppLocalizations.of(context)!.editTextGenerating,
           ),
         ),
         Align(
@@ -442,8 +429,8 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
               _isImproving
                   ? 'Melhorando prompt...'
                   : _isGenerating
-                  ? 'Gerando estrutura...'
-                  : 'Gerar mapa de conhecimento',
+                  ? 'Planejando e gerando grafo...'
+                  : 'Gerar trilha de estudo',
             ),
           ),
         ),
@@ -452,7 +439,9 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
           const LinearProgressIndicator(),
           const SizedBox(height: 8),
           Text(
-            'A IA está organizando os conceitos e suas relações.',
+            _generationStatus ??
+                'A IA está planejando o escopo, cobrindo os resultados e '
+                    'conferindo pré-requisitos.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -480,7 +469,10 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _isSaving ? null : _saveDraft,
+              onPressed:
+                  _isSaving || draft.blocksSaveForCoverage
+                  ? null
+                  : _saveDraft,
               icon: _isSaving
                   ? const SizedBox(
                       width: 18,
@@ -491,7 +483,11 @@ class _CreateGraphWithAiState extends ConsumerState<CreateGraphWithAi> {
               label: Text(
                 _isSaving
                     ? 'Criando grafo...'
-                    : 'Criar grafo e gerar descrições em segundo plano',
+                    : draft.blocksSaveForCoverage
+                    ? 'Complete a cobertura antes de criar'
+                    : draft.qualityFallback
+                    ? 'Salvar grafo com avisos e refinar as descrições em segundo plano'
+                    : 'Criar grafo e refinar todas as descrições em segundo plano',
               ),
             ),
           ),
@@ -506,10 +502,38 @@ class _GraphDraftPreview extends StatelessWidget {
 
   final GraphResponse graph;
 
+  String _coverageNodeTitles(
+    GraphCoverageItem item,
+    Map<int, GraphNode> nodesById,
+  ) {
+    final titles = item.nodeIds
+        .map((id) => nodesById[id]?.title)
+        .whereType<String>()
+        .toList();
+    return titles.isEmpty ? 'Conceitos não identificados' : titles.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final problems = graph.validate();
+    final blueprint = graph.blueprint;
+    final coverageProblems = problems
+        .where(
+          (problem) =>
+              problem.code == 'missing_scope_plan' ||
+              problem.code.startsWith('coverage_') ||
+              problem.code.startsWith('blueprint_') ||
+              problem.code == 'leaf_without_coverage',
+        )
+        .toList();
+    final displayedCoverageProblems = coverageProblems.take(8).toList();
+    final otherProblems = problems
+        .where((problem) => !coverageProblems.contains(problem))
+        .take(8 - displayedCoverageProblems.length)
+        .toList();
+    final displayedProblems = [...displayedCoverageProblems, ...otherProblems];
+    final nodesById = {for (final node in graph.nodes) node.nodeId: node};
     return Card(
       color: theme.colorScheme.surfaceContainerLow,
       child: Padding(
@@ -536,6 +560,156 @@ class _GraphDraftPreview extends StatelessWidget {
               const SizedBox(height: 8),
               Text(graph.graphDescription),
             ],
+            if (graph.qualityFallback) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Após três tentativas, o servidor enviou a melhor versão '
+                  'compatível que conseguiu montar. Revise os avisos antes '
+                  'de salvar; você ainda pode editá-la depois.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onTertiaryContainer,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              'As descrições dos nós são provisórias. Depois de criar o grafo, '
+              'cada uma será gerada novamente considerando os conceitos e '
+              'pré-requisitos próximos.',
+              style: theme.textTheme.bodySmall,
+            ),
+            if (graph.plan.trim().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Plano e limites do escopo',
+                style: theme.textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(graph.plan),
+            ],
+            if (blueprint != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Blueprint pedagógico (etapa de planejamento)',
+                style: theme.textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(blueprint.scope),
+              if (blueprint.priorKnowledge.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Conhecimento prévio informado: '
+                  '${blueprint.priorKnowledge.join('; ')}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+              if (blueprint.assumptions.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Pressupostos: ${blueprint.assumptions.join('; ')}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+              const SizedBox(height: 6),
+              Text(
+                'Pontos de partida: ${blueprint.startingOutcomes.map((item) => item.outcome).join(' · ')}',
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 6),
+              for (final outcome in blueprint.outcomes.take(12))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Text(
+                    '• ${outcome.outcome}\n'
+                    '  Evidência: ${outcome.evidence}'
+                    '${outcome.prerequisiteIds.isEmpty ? '' : '\n  Pré-requisitos: ${outcome.prerequisiteIds.map((id) => blueprint.outcomes.where((item) => item.id == id).firstOrNull?.outcome ?? id).join('; ')}'}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+              if (blueprint.outcomes.length > 12)
+                Text(
+                  'e mais ${blueprint.outcomes.length - 12} resultados…',
+                  style: theme.textTheme.bodySmall,
+                ),
+            ],
+            if (coverageProblems.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  graph.qualityFallback
+                      ? 'A cobertura está incompleta ou inconsistente. '
+                            'O servidor enviou um fallback; confira os '
+                            'resultados e os conceitos antes de salvar.'
+                      : 'A cobertura está incompleta ou inconsistente. '
+                            'Revise os avisos e gere novamente; o grafo não '
+                            'pode ser salvo sem um plano e um vínculo '
+                            'verificável entre cada resultado e seus conceitos.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ],
+            if (graph.coverage.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Resultados cobertos pelo grafo',
+                style: theme.textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Compare esta lista com o que você quer aprender. A checagem '
+                'confirma os vínculos entre resultados e conceitos, mas não '
+                'substitui sua revisão do escopo.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 4),
+              for (final item in graph.coverage)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.outcome),
+                            Text(
+                              _coverageNodeTitles(item, nodesById),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
             if (problems.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
@@ -555,7 +729,7 @@ class _GraphDraftPreview extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    for (final problem in problems.take(8))
+                    for (final problem in displayedProblems)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
@@ -596,7 +770,21 @@ class _GraphDraftPreview extends StatelessWidget {
                       color: theme.colorScheme.outline,
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(node.title)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(node.title),
+                          if (node.description.trim().isNotEmpty)
+                            Text(
+                              node.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Text(node.type.value, style: theme.textTheme.labelSmall),
                   ],

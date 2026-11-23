@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -186,7 +187,7 @@ class _StudySessionDetailPageState
                                   ? null
                                   : _runSession,
                               icon: const Icon(Icons.play_arrow_rounded),
-                              label: const RuntimeLocalizedText(
+                              label: RuntimeLocalizedText(
                                 'Começar sessão',
                               ),
                             ),
@@ -208,7 +209,7 @@ class _StudySessionDetailPageState
                             icon: const Icon(Icons.edit_outlined),
                           ),
                           IconButton(
-                            tooltip: 'Arquivar sessão',
+                            tooltip: AppLocalizations.of(context)!.archiveSession,
                             onPressed: _archiveSession,
                             icon: const Icon(Icons.archive_outlined),
                           ),
@@ -263,7 +264,7 @@ class _StudySessionDetailPageState
                         '${_questionTypeLabel(_questions[index].type)}',
                       ),
                       trailing: IconButton(
-                        tooltip: 'Editar exercício',
+                        tooltip: AppLocalizations.of(context)!.editExercise,
                         onPressed: () => _editQuestion(_questions[index]),
                         icon: const Icon(Icons.edit_outlined),
                       ),

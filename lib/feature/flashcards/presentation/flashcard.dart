@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/tokens/layout.dart';
@@ -115,8 +115,8 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   ) {
     if (cards.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText('Este deck ainda não tem flashcards.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.flashcardDeckEmpty),
         ),
       );
       return;
@@ -180,17 +180,17 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
         ..showSnackBar(
           SnackBar(
             content: Text(
-              'Próxima revisão: ${DateFormat('dd/MM/yyyy HH:mm').format(result.dueAt.toLocal())}.',
+              AppLocalizations.of(context)!.nextReviewDate(
+                DateFormat('dd/MM/yyyy HH:mm').format(result.dueAt.toLocal()),
+              ),
             ),
           ),
         );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Não foi possível registrar a revisão.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.reviewRecordFailed),
         ),
       );
     } finally {
@@ -204,10 +204,8 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
   }) async {
     if (nodes.isEmpty && card == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Crie um nó antes de adicionar cartões.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.createNodeBeforeCards),
         ),
       );
       return;
@@ -239,22 +237,24 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
           statement: draft.statement,
           targetSkill: draft.targetSkill,
         );
-        if (!changed) throw StateError('Flashcard não encontrado.');
+        if (!changed) throw StateError('Flashcard not found.');
       }
       if (!mounted) return;
       ref.invalidate(flashcardsProvider(widget.nodeId));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            card == null ? 'Flashcard criado.' : 'Flashcard salvo.',
+            card == null
+                ? AppLocalizations.of(context)!.flashcardCreated
+                : AppLocalizations.of(context)!.flashcardSaved,
           ),
         ),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText('Não foi possível salvar o flashcard.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.flashcardSaveFailed),
         ),
       );
     }
@@ -288,15 +288,17 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       ref.invalidate(flashcardsProvider(widget.nodeId));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(entry == null ? 'Deck criado.' : 'Deck atualizado.'),
+          content: Text(
+            entry == null
+                ? AppLocalizations.of(context)!.deckCreated
+                : AppLocalizations.of(context)!.deckUpdated,
+          ),
         ),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText('Não foi possível salvar o deck.'),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context)!.deckSaveFailed)),
       );
     }
   }
@@ -305,18 +307,18 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const RuntimeLocalizedText('Excluir flashcard?'),
-        content: RuntimeLocalizedText(
-          '“${card.title}” será removido dos decks que o contêm.',
+        title: Text(AppLocalizations.of(context)!.deleteFlashcardTitle),
+        content: Text(
+          AppLocalizations.of(context)!.cardRemovedFromDecks(card.title),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const RuntimeLocalizedText('Cancelar'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const RuntimeLocalizedText('Excluir'),
+            child: Text(AppLocalizations.of(context)!.deleteFlashcard),
           ),
         ],
       ),
@@ -326,16 +328,14 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       final deleted = await FlashcardDao(
         ref.read(appDatabaseProvider),
       ).deleteCard(card.id);
-      if (!deleted) throw StateError('Flashcard não encontrado.');
+      if (!deleted) throw StateError('Flashcard not found.');
       if (!mounted) return;
       ref.invalidate(flashcardsProvider(widget.nodeId));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Não foi possível excluir o flashcard.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.deleteFlashcardFailed),
         ),
       );
     }
@@ -345,18 +345,18 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const RuntimeLocalizedText('Excluir deck?'),
+        title: Text(AppLocalizations.of(context)!.deleteDeckTitle),
         content: Text(
-          'O deck “${deck.name}” será removido. Os flashcards continuarão disponíveis.',
+          AppLocalizations.of(context)!.deckRemovedCardsRemain(deck.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const RuntimeLocalizedText('Cancelar'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const RuntimeLocalizedText('Excluir deck'),
+            child: Text(AppLocalizations.of(context)!.deleteFlashcard),
           ),
         ],
       ),
@@ -367,15 +367,13 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
       final deleted = await FlashcardDao(
         ref.read(appDatabaseProvider),
       ).deleteCustomDeck(deckId: deck.id, userId: user.id);
-      if (!deleted) throw StateError('Deck não encontrado.');
+      if (!deleted) throw StateError('Deck not found.');
       if (!mounted) return;
       ref.invalidate(flashcardsProvider(widget.nodeId));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText('Não foi possível excluir o deck.'),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context)!.deleteDeckFailed)),
       );
     }
   }
@@ -386,10 +384,8 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final nodeId = _assistantNodeId;
     if (prompt.isEmpty || nodeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Informe o tema e escolha um nó para gerar cartões.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.topicAndNodeRequired),
         ),
       );
       return;
@@ -397,10 +393,8 @@ class _FlashcardPageState extends ConsumerState<FlashcardPage> {
     final matchingNodes = data.nodes.where((item) => item.id == nodeId);
     if (matchingNodes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Escolha um nó disponível no seu grafo.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.chooseAvailableNode),
         ),
       );
       return;
@@ -428,7 +422,9 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
       final accepted = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: RuntimeLocalizedText('${cards.length} flashcards sugeridos'),
+          title: Text(
+            AppLocalizations.of(context)!.suggestedFlashcards(cards.length),
+          ),
           content: SizedBox(
             width: 520,
             height: 420,
@@ -452,12 +448,12 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const RuntimeLocalizedText('Descartar'),
+              child: Text(AppLocalizations.of(context)!.dismiss),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, true),
               icon: const Icon(Icons.save_outlined),
-              label: const RuntimeLocalizedText('Salvar cartões'),
+              label: Text(AppLocalizations.of(context)!.saveCard),
             ),
           ],
         ),
@@ -489,15 +485,17 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
       _assistantPromptController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: RuntimeLocalizedText('${cards.length} flashcards salvos.'),
+          content: Text(
+            AppLocalizations.of(context)!.savedFlashcards(cards.length),
+          ),
         ),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: RuntimeLocalizedText(
-            'Não foi possível gerar os flashcards: $error',
+          content: Text(
+            AppLocalizations.of(context)!.generateFlashcardsFailed('$error'),
           ),
         ),
       );
@@ -550,10 +548,8 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
   void _openAiGeneration(FlashcardPageData data) {
     if (data.nodes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: RuntimeLocalizedText(
-            'Crie um nó antes de gerar flashcards.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.createNodeBeforeGenerate),
         ),
       );
       return;
@@ -604,13 +600,11 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
       });
     }
     if (data.nodes.isEmpty) {
-      return const Card(
+      return Card(
         child: ListTile(
           leading: Icon(Icons.info_outline),
-          title: RuntimeLocalizedText('Crie um nó antes de gerar flashcards'),
-          subtitle: Text(
-            'Os cartões precisam estar vinculados a um conceito do seu grafo.',
-          ),
+          title: Text(AppLocalizations.of(context)!.noNodeCardsTitle),
+          subtitle: Text(AppLocalizations.of(context)!.noNodeCardsMessage),
         ),
       );
     }
@@ -624,37 +618,36 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
               children: [
                 Expanded(
                   child: Text(
-                    'Criar flashcards com IA',
+                    AppLocalizations.of(context)!.createFlashcardsWithAi,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Fechar geração',
+                  tooltip: AppLocalizations.of(context)!.closeGeneration,
                   onPressed: _closeAiGeneration,
                   icon: const Icon(Icons.close),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Revise o tema e escolha o nó. A geração cria uma prévia; '
-              'nada será salvo sem sua confirmação.',
-            ),
+            Text(AppLocalizations.of(context)!.reviewThemeBeforeGenerate),
             const SizedBox(height: 12),
             TextField(
               controller: _assistantPromptController,
               enabled: !_isGeneratingAssistantCards,
               maxLines: 2,
               maxLength: 1000,
-              decoration: const InputDecoration(
-                labelText: 'Tema e instruções',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.themeInstructions,
                 border: OutlineInputBorder(),
               ),
             ),
             DropdownButtonFormField<String>(
               initialValue: _assistantNodeId,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Vincular ao nó'),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.linkNode,
+              ),
               items: [
                 for (final node in data.nodes)
                   DropdownMenuItem(
@@ -668,8 +661,8 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
             DropdownButtonFormField<int>(
               initialValue: _assistantCardCount,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Quantidade de flashcards',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.numberFlashcards,
               ),
               items: [
                 for (var count = 1; count <= 8; count++)
@@ -703,8 +696,8 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                     : const Icon(Icons.auto_awesome),
                 label: Text(
                   _isGeneratingAssistantCards
-                      ? 'Gerando prévia...'
-                      : 'Gerar prévia',
+                      ? AppLocalizations.of(context)!.generatingPreview
+                      : AppLocalizations.of(context)!.generatePreview,
                 ),
               ),
             ),
@@ -728,7 +721,7 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
             ? null
             : () => _openAiGeneration(data),
         icon: const Icon(Icons.auto_awesome_rounded),
-        label: const RuntimeLocalizedText('Criar com IA'),
+        label: Text(AppLocalizations.of(context)!.createWithAi),
       ),
     );
   }
@@ -740,10 +733,11 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
       child: ref
           .watch(flashcardsProvider(widget.nodeId))
           .when(
-            loading: () =>
-                const AppLoadingView(label: 'Carregando flashcards...'),
+            loading: () => AppLoadingView(
+              label: AppLocalizations.of(context)!.flashcardsLoading,
+            ),
             error: (error, stack) => AppErrorView(
-              message: 'Não foi possível carregar seus flashcards.',
+              message: AppLocalizations.of(context)!.flashcardsLoadFailed,
               onRetry: () => ref.invalidate(flashcardsProvider(widget.nodeId)),
             ),
             data: (data) => _activeDeckName == null
@@ -776,7 +770,9 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
     }).toList();
 
     if (widget.nodeId != null) {
-      final nodeName = nodeNames[widget.nodeId] ?? 'este nó';
+      final nodeName =
+          nodeNames[widget.nodeId] ??
+          AppLocalizations.of(context)!.nodeUnavailable;
       return _buildNodeDeck(context, data, nodeName, cardsByNode);
     }
 
@@ -799,12 +795,13 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
         spacing: 20,
         children: [
           AppPageHeader(
-            title: 'Flashcards',
-            subtitle:
-                '${data.cards.length} ${data.cards.length == 1 ? 'cartão' : 'cartões'} · ${data.dueCards.length} para revisar agora',
+            title: AppLocalizations.of(context)!.flashcardsTitle,
+            subtitle: AppLocalizations.of(
+              context,
+            )!.flashcardLibrarySummary(data.cards.length, data.dueCards.length),
             actions: [
               IconButton(
-                tooltip: 'Atualizar decks',
+                tooltip: AppLocalizations.of(context)!.updateDecks,
                 onPressed: () =>
                     ref.invalidate(flashcardsProvider(widget.nodeId)),
                 icon: const Icon(Icons.refresh),
@@ -812,7 +809,7 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
               OutlinedButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Novo cartão'),
+                label: Text(AppLocalizations.of(context)!.newCard),
               ),
               FilledButton.icon(
                 onPressed: data.cards.isEmpty
@@ -823,7 +820,7 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                         graphs: data.graphs,
                       ),
                 icon: const Icon(Icons.library_add_outlined),
-                label: const RuntimeLocalizedText('Criar deck'),
+                label: Text(AppLocalizations.of(context)!.createDeck),
               ),
             ],
           ),
@@ -831,13 +828,14 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
           if (data.cards.isEmpty)
             AppEmptyView(
               icon: Icons.style_outlined,
-              title: 'Sua biblioteca está vazia',
-              message:
-                  'Crie flashcards nos detalhes de um nó ou adicione o primeiro cartão aqui.',
+              title: AppLocalizations.of(context)!.emptyFlashcardLibrary,
+              message: AppLocalizations.of(
+                context,
+              )!.emptyFlashcardLibraryMessage,
               action: FilledButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Criar primeiro cartão'),
+                label: Text(AppLocalizations.of(context)!.createFirstCard),
               ),
             )
           else ...[
@@ -845,23 +843,27 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
               _ReviewOverview(
                 dueCount: data.dueCards.length,
                 totalCount: data.cards.length,
-                onReview: () =>
-                    _startDeck('Revisão pendente', data.cards, data.dueCards),
+                onReview: () => _startDeck(
+                  AppLocalizations.of(context)!.reviewNow,
+                  data.cards,
+                  data.dueCards,
+                ),
               ),
             _SectionHeader(
-              title: 'Decks automáticos',
-              subtitle: 'Gerados a partir dos seus grafos e nós.',
+              title: AppLocalizations.of(context)!.automaticDecks,
+              subtitle: AppLocalizations.of(context)!.generatedFromGraphs,
             ),
             if (graphDecks.isNotEmpty) ...[
-              RuntimeLocalizedText(
-                'Por grafo',
+              Text(
+                AppLocalizations.of(context)!.byGraph,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               for (final entry in graphDecks)
                 _DeckTile(
                   title: entry.graph.title,
-                  subtitle:
-                      '${entry.cards.length} cartões · deck automático do grafo',
+                  subtitle: AppLocalizations.of(
+                    context,
+                  )!.automaticGraphDeck(entry.cards.length),
                   icon: Icons.account_tree_outlined,
                   onTap: () => _startDeck(
                     entry.graph.title,
@@ -876,16 +878,19 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
             if (data.nodes.any(
               (node) => cardsByNode[node.id]?.isNotEmpty == true,
             )) ...[
-              RuntimeLocalizedText(
-                'Por nó',
+              Text(
+                AppLocalizations.of(context)!.byNode,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               for (final node in data.nodes)
                 if (cardsByNode[node.id]?.isNotEmpty == true)
                   _DeckTile(
                     title: node.title,
-                    subtitle:
-                        '${cardsByNode[node.id]!.length} cartões · ${graphNames[node.graphId] ?? 'Grafo'}',
+                    subtitle: AppLocalizations.of(context)!.cardCountInDeck(
+                      cardsByNode[node.id]!.length,
+                      graphNames[node.graphId] ??
+                          AppLocalizations.of(context)!.graphFallback,
+                    ),
                     icon: Icons.account_tree_outlined,
                     onTap: () => _startDeck(
                       node.title,
@@ -901,8 +906,8 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                   ),
             ],
             _SectionHeader(
-              title: 'Meus decks',
-              subtitle: 'Combinações personalizadas de cartões.',
+              title: AppLocalizations.of(context)!.myDecks,
+              subtitle: AppLocalizations.of(context)!.customDecksDescription,
               trailing: TextButton.icon(
                 onPressed: () => _openCustomDeckEditor(
                   cards: data.cards,
@@ -910,20 +915,21 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                   graphs: data.graphs,
                 ),
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Novo'),
+                label: Text(AppLocalizations.of(context)!.newCard),
               ),
             ),
             if (data.customDecks.isEmpty)
-              const _HintCard(
-                text:
-                    'Crie um deck personalizado e escolha cartões de qualquer um dos seus grafos.',
+              _HintCard(
+                text: AppLocalizations.of(context)!.customDecksDescription,
               )
             else
               for (final entry in data.customDecks)
                 _DeckTile(
                   title: entry.deck.name,
-                  subtitle:
-                      '${entry.cards.length} cartões · deck personalizado',
+                  subtitle: AppLocalizations.of(context)!.cardCountInDeck(
+                    entry.cards.length,
+                    AppLocalizations.of(context)!.customDeckKind,
+                  ),
                   icon: Icons.style_outlined,
                   onTap: () => _startDeck(
                     entry.deck.name,
@@ -943,20 +949,20 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                 ),
             const Divider(),
             ExpansionTile(
-              title: RuntimeLocalizedText(
-                'Todos os cartões (${data.cards.length})',
+              title: Text(
+                AppLocalizations.of(context)!.allCards(data.cards.length),
               ),
-              subtitle: const RuntimeLocalizedText(
-                'Pesquisar, editar ou remover cartões',
+              subtitle: Text(
+                AppLocalizations.of(context)!.searchEditRemoveCards,
               ),
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TextField(
                     onChanged: (value) => setState(() => _search = value),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       prefixIcon: Icon(Icons.search),
-                      hintText: 'Buscar cartão ou nó',
+                      hintText: AppLocalizations.of(context)!.searchCardNode,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -965,10 +971,12 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                   AppCard(
                     title: card.title,
                     subtitle:
-                        card.targetSkill ?? nodeNames[card.nodeId] ?? 'Cartão',
+                        card.targetSkill ??
+                        nodeNames[card.nodeId] ??
+                        AppLocalizations.of(context)!.flashcard,
                     onTap: () => _openCardEditor(card: card, nodes: data.nodes),
                     trailing: IconButton(
-                      tooltip: 'Excluir flashcard',
+                      tooltip: AppLocalizations.of(context)!.deleteFlashcard,
                       onPressed: () => _deleteCard(card),
                       icon: const Icon(Icons.delete_outline),
                     ),
@@ -979,10 +987,10 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                     ),
                   ),
                 if (visibleCards.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(20),
-                    child: RuntimeLocalizedText(
-                      'Nenhum cartão corresponde à busca.',
+                    child: Text(
+                      AppLocalizations.of(context)!.noCardsMatchSearch,
                     ),
                   ),
               ],
@@ -1008,20 +1016,21 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
         children: [
           AppPageHeader(
             title: nodeName,
-            subtitle:
-                '${cards.length} ${cards.length == 1 ? 'cartão' : 'cartões'} neste deck automático · ${dueCards.length} para revisar',
+            subtitle: AppLocalizations.of(
+              context,
+            )!.flashcardLibrarySummary(cards.length, dueCards.length),
             actions: [
               OutlinedButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Novo cartão'),
+                label: Text(AppLocalizations.of(context)!.newCard),
               ),
               FilledButton.icon(
                 onPressed: cards.isEmpty
                     ? null
                     : () => _startDeck(nodeName, cards, dueCards),
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: const RuntimeLocalizedText('Estudar deck'),
+                label: Text(AppLocalizations.of(context)!.studyDeck),
               ),
             ],
           ),
@@ -1029,21 +1038,17 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
           if (cards.isEmpty)
             AppEmptyView(
               icon: Icons.style_outlined,
-              title: 'Este nó ainda não tem flashcards',
-              message:
-                  'Crie um cartão; ele será incluído automaticamente neste deck.',
+              title: AppLocalizations.of(context)!.nodeNoCardsTitle,
+              message: AppLocalizations.of(context)!.nodeNoCardsMessage,
               action: FilledButton.icon(
                 onPressed: () => _openCardEditor(nodes: data.nodes),
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Criar flashcard'),
+                label: Text(AppLocalizations.of(context)!.newFlashcard),
               ),
             )
           else ...[
             if (dueCards.isEmpty)
-              const _HintCard(
-                text:
-                    'Tudo em dia. Os cartões já revisados voltarão na data programada.',
-              ),
+              _HintCard(text: AppLocalizations.of(context)!.allCardsUpToDate),
             if (dueCards.isNotEmpty)
               _ReviewOverview(
                 dueCount: dueCards.length,
@@ -1051,16 +1056,17 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                 onReview: () => _startDeck(nodeName, cards, dueCards),
               ),
             Text(
-              'Cartões do nó',
+              AppLocalizations.of(context)!.nodeCards,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             for (final card in cards)
               AppCard(
                 title: card.title,
-                subtitle: card.targetSkill ?? 'Flashcard',
+                subtitle:
+                    card.targetSkill ?? AppLocalizations.of(context)!.flashcard,
                 onTap: () => _openCardEditor(card: card, nodes: data.nodes),
                 trailing: IconButton(
-                  tooltip: 'Excluir flashcard',
+                  tooltip: AppLocalizations.of(context)!.deleteFlashcard,
                   onPressed: () => _deleteCard(card),
                   icon: const Icon(Icons.delete_outline),
                 ),
@@ -1131,7 +1137,7 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Voltar aos decks (Esc)',
+                  tooltip: AppLocalizations.of(context)!.returnDecksEsc,
                   onPressed: _stopStudy,
                   icon: const Icon(Icons.arrow_back),
                 ),
@@ -1146,8 +1152,11 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
-                        'Cartão ${_studyIndex + 1} de ${_studyCards.length} · '
-                        '$completed revisados',
+                        AppLocalizations.of(context)!.cardProgress(
+                          _studyIndex + 1,
+                          _studyCards.length,
+                          completed,
+                        ),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
@@ -1157,7 +1166,7 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
             ),
             const SizedBox(height: 8),
             Semantics(
-              label: 'Progresso da revisão',
+              label: AppLocalizations.of(context)!.reviewProgress,
               value: '${(progress * 100).round()} por cento',
               child: LinearProgressIndicator(value: progress),
             ),
@@ -1178,9 +1187,9 @@ Retorne exatamente $cardCount item(ns) na lista. Cada cartão deve testar uma id
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () => setState(() => _showAnswer = true),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(14),
-                    child: RuntimeLocalizedText('Mostrar resposta · Espaço'),
+                    child: Text(AppLocalizations.of(context)!.showAnswerSpace),
                   ),
                 ),
               )
@@ -1268,21 +1277,23 @@ class _DeckTile extends StatelessWidget {
             trailing,
             if (onEdit != null || onDelete != null)
               PopupMenuButton<String>(
-                tooltip: 'Opções do deck',
+                tooltip: AppLocalizations.of(context)!.deckOptions,
                 onSelected: (value) {
                   if (value == 'edit') onEdit?.call();
                   if (value == 'delete') onDelete?.call();
                 },
                 itemBuilder: (context) => [
                   if (onEdit != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'edit',
-                      child: RuntimeLocalizedText('Editar deck'),
+                      child: Text(AppLocalizations.of(context)!.edit),
                     ),
                   if (onDelete != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
-                      child: RuntimeLocalizedText('Excluir deck'),
+                      child: Text(
+                        AppLocalizations.of(context)!.deleteFlashcard,
+                      ),
                     ),
                 ],
               ),
@@ -1301,10 +1312,10 @@ class _StudyCount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '$count para revisar agora',
+      message: AppLocalizations.of(context)!.dueCardsNow(count),
       child: Chip(
         avatar: const Icon(Icons.schedule, size: 16),
-        label: RuntimeLocalizedText('$count'),
+        label: Text('$count'),
         visualDensity: VisualDensity.compact,
       ),
     );
@@ -1364,13 +1375,18 @@ class _ReviewOverview extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$dueCount ${dueCount == 1 ? 'cartão vencido' : 'cartões vencidos'}',
+                    AppLocalizations.of(context)!.cardCountInDeck(
+                      dueCount,
+                      AppLocalizations.of(context)!.flashcard,
+                    ),
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
                   ),
                   Text(
-                    'Revise em um único fluxo · $totalCount no total',
+                    AppLocalizations.of(
+                      context,
+                    )!.reviewedCardsSummary(totalCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
@@ -1382,7 +1398,7 @@ class _ReviewOverview extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: onReview,
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const RuntimeLocalizedText('Revisar agora'),
+              label: Text(AppLocalizations.of(context)!.reviewNow),
             ),
           ],
         ),
@@ -1408,8 +1424,10 @@ class _StudyCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
-      label: showAnswer ? 'Resposta do flashcard' : 'Pergunta do flashcard',
-      hint: 'Toque, pressione espaço ou deslize para revelar',
+      label: showAnswer
+          ? AppLocalizations.of(context)!.flashcardAnswer
+          : AppLocalizations.of(context)!.flashcardQuestion,
+      hint: AppLocalizations.of(context)!.revealCardHint,
       onTap: onFlip,
       child: GestureDetector(
         onTap: onFlip,
@@ -1438,7 +1456,9 @@ class _StudyCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        showAnswer ? 'RESPOSTA' : 'PERGUNTA',
+                        showAnswer
+                            ? AppLocalizations.of(context)!.answerLabel
+                            : AppLocalizations.of(context)!.questionLabel,
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
                       const SizedBox(height: 24),
@@ -1450,8 +1470,8 @@ class _StudyCard extends StatelessWidget {
                       const SizedBox(height: 24),
                       Text(
                         showAnswer
-                            ? 'Toque para voltar à pergunta'
-                            : 'Toque ou deslize para cima para revelar',
+                            ? AppLocalizations.of(context)!.tapToQuestion
+                            : AppLocalizations.of(context)!.tapToReveal,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -1475,10 +1495,30 @@ class _RatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ratings = [
-      ('Não lembrei', 'again', '1', Theme.of(context).colorScheme.error),
-      ('Difícil', 'hard', '2', Theme.of(context).colorScheme.tertiary),
-      ('Lembrei', 'good', '3', Theme.of(context).colorScheme.primary),
-      ('Fácil', 'easy', '4', Theme.of(context).colorScheme.secondary),
+      (
+        AppLocalizations.of(context)!.ratingAgain,
+        'again',
+        '1',
+        Theme.of(context).colorScheme.error,
+      ),
+      (
+        AppLocalizations.of(context)!.ratingHard,
+        'hard',
+        '2',
+        Theme.of(context).colorScheme.tertiary,
+      ),
+      (
+        AppLocalizations.of(context)!.ratingGood,
+        'good',
+        '3',
+        Theme.of(context).colorScheme.primary,
+      ),
+      (
+        AppLocalizations.of(context)!.ratingEasy,
+        'easy',
+        '4',
+        Theme.of(context).colorScheme.secondary,
+      ),
     ];
     return Wrap(
       alignment: WrapAlignment.center,
@@ -1498,7 +1538,7 @@ class _RatingBar extends StatelessWidget {
                 Text(rating.$1),
                 const SizedBox(height: 2),
                 Text(
-                  'Tecla ${rating.$3}',
+                  AppLocalizations.of(context)!.keyboardKey(rating.$3),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ],
@@ -1546,14 +1586,18 @@ class _StudyCompleteView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              hasCards ? 'Revisão concluída' : 'Tudo em dia',
+              hasCards
+                  ? AppLocalizations.of(context)!.reviewComplete
+                  : AppLocalizations.of(context)!.allCaughtUp,
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             if (hasCards) ...[
               const SizedBox(height: 8),
               Text(
-                'Tempo de revisão: ${_formatReviewDuration(totalReviewSeconds)}',
+                AppLocalizations.of(
+                  context,
+                )!.reviewTime(_formatReviewDuration(totalReviewSeconds)),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -1561,8 +1605,10 @@ class _StudyCompleteView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               hasCards
-                  ? '$reviewedCount cartões revisados em “$deckName”.'
-                  : 'Não há cartões pendentes neste deck agora.',
+                  ? AppLocalizations.of(
+                      context,
+                    )!.cardsReviewed(reviewedCount, deckName)
+                  : AppLocalizations.of(context)!.noPendingCards,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -1572,14 +1618,12 @@ class _StudyCompleteView extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: onBack,
-                  child: const RuntimeLocalizedText('Voltar aos decks'),
+                  child: Text(AppLocalizations.of(context)!.backToDecks),
                 ),
                 if (!hasCards)
                   FilledButton(
                     onPressed: onStudyAll,
-                    child: const RuntimeLocalizedText(
-                      'Estudar todos mesmo assim',
-                    ),
+                    child: Text(AppLocalizations.of(context)!.studyAllAnyway),
                   ),
               ],
             ),
@@ -1656,7 +1700,11 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.card == null ? 'Novo flashcard' : 'Editar flashcard'),
+      title: Text(
+        widget.card == null
+            ? AppLocalizations.of(context)!.newFlashcard
+            : AppLocalizations.of(context)!.editFlashcard,
+      ),
       content: SizedBox(
         width: 460,
         child: Form(
@@ -1670,8 +1718,8 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
                   DropdownButtonFormField<String>(
                     initialValue: _nodeId,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Nó relacionado',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.relatedNode,
                       border: OutlineInputBorder(),
                     ),
                     items: [
@@ -1685,20 +1733,21 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
                         ),
                     ],
                     onChanged: (value) => setState(() => _nodeId = value),
-                    validator: (value) =>
-                        value == null ? 'Selecione um nó.' : null,
+                    validator: (value) => value == null
+                        ? AppLocalizations.of(context)!.selectNode
+                        : null,
                   ),
                 TextFormField(
                   controller: _title,
                   textCapitalization: TextCapitalization.sentences,
                   maxLength: 120,
-                  decoration: const InputDecoration(
-                    labelText: 'Frente do cartão',
-                    hintText: 'Pergunta, conceito ou termo',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.frontCard,
+                    hintText: AppLocalizations.of(context)!.questionConceptTerm,
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) => value?.trim().isEmpty == true
-                      ? 'Informe a frente do cartão.'
+                      ? AppLocalizations.of(context)!.frontRequired
                       : null,
                 ),
                 TextFormField(
@@ -1706,21 +1755,21 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
                   textCapitalization: TextCapitalization.sentences,
                   minLines: 3,
                   maxLines: 7,
-                  decoration: const InputDecoration(
-                    labelText: 'Verso do cartão',
-                    hintText: 'Resposta ou explicação',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.backCard,
+                    hintText: AppLocalizations.of(context)!.answerExplanation,
                     border: OutlineInputBorder(),
                     alignLabelWithHint: true,
                   ),
                   validator: (value) => value?.trim().isEmpty == true
-                      ? 'Informe a resposta.'
+                      ? AppLocalizations.of(context)!.answerRequired
                       : null,
                 ),
                 TextFormField(
                   controller: _skill,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Habilidade (opcional)',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.skill,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -1732,7 +1781,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const RuntimeLocalizedText('Cancelar'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -1752,7 +1801,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
               ),
             );
           },
-          child: const RuntimeLocalizedText('Salvar cartão'),
+          child: Text(AppLocalizations.of(context)!.saveCard),
         ),
       ],
     );
@@ -1820,7 +1869,11 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
     });
 
     return AlertDialog(
-      title: Text(widget.initialDeck == null ? 'Criar deck' : 'Editar deck'),
+      title: Text(
+        widget.initialDeck == null
+            ? AppLocalizations.of(context)!.createDeckTitle
+            : AppLocalizations.of(context)!.editDeckTitle,
+      ),
       content: SizedBox(
         width: 560,
         height: MediaQuery.sizeOf(context).height * .65,
@@ -1830,17 +1883,17 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
               controller: _name,
               textCapitalization: TextCapitalization.sentences,
               maxLength: 80,
-              decoration: const InputDecoration(
-                labelText: 'Nome do deck',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.deckName,
                 border: OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() => _validationError = null),
             ),
             TextField(
               onChanged: (value) => setState(() => _search = value),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search),
-                hintText: 'Buscar cartões de qualquer grafo',
+                hintText: AppLocalizations.of(context)!.searchCardsAnyGraph,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -1848,15 +1901,17 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
             Row(
               children: [
                 Expanded(
-                  child: RuntimeLocalizedText(
-                    '${_selectedIds.length} selecionados',
+                  child: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.selectedCards(_selectedIds.length),
                   ),
                 ),
                 TextButton(
                   onPressed: () => setState(() {
                     _selectedIds.addAll(cards.map((card) => card.id));
                   }),
-                  child: const RuntimeLocalizedText('Selecionar visíveis'),
+                  child: Text(AppLocalizations.of(context)!.selectVisible),
                 ),
                 TextButton(
                   onPressed: () => setState(() {
@@ -1864,7 +1919,7 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
                       _selectedIds.remove(card.id);
                     }
                   }),
-                  child: const RuntimeLocalizedText('Limpar visíveis'),
+                  child: Text(AppLocalizations.of(context)!.clearVisible),
                 ),
               ],
             ),
@@ -1891,17 +1946,17 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
                       }),
                       title: Text(card.title),
                       subtitle: Text(
-                        '${nodeNames[card.nodeId] ?? 'Nó indisponível'} · ${graphNames[nodeGraphIds[card.nodeId]] ?? 'Grafo'}',
+                        '${nodeNames[card.nodeId] ?? AppLocalizations.of(context)!.nodeUnavailable} · ${graphNames[nodeGraphIds[card.nodeId]] ?? AppLocalizations.of(context)!.graphFallback}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
                   if (cards.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.all(20),
-                      child: RuntimeLocalizedText(
-                        'Nenhum cartão corresponde à busca.',
+                      child: Text(
+                        AppLocalizations.of(context)!.noCardsMatchSearch,
                       ),
                     ),
                 ],
@@ -1913,17 +1968,23 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const RuntimeLocalizedText('Cancelar'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         FilledButton(
           onPressed: () {
             if (_name.text.trim().isEmpty) {
-              setState(() => _validationError = 'Informe um nome para o deck.');
+              setState(
+                () => _validationError = AppLocalizations.of(
+                  context,
+                )!.deckNameRequired,
+              );
               return;
             }
             if (_selectedIds.isEmpty) {
               setState(
-                () => _validationError = 'Selecione pelo menos um cartão.',
+                () => _validationError = AppLocalizations.of(
+                  context,
+                )!.atLeastOneCard,
               );
               return;
             }
@@ -1935,7 +1996,7 @@ class _CustomDeckDialogState extends State<_CustomDeckDialog> {
               ),
             );
           },
-          child: const RuntimeLocalizedText('Salvar deck'),
+          child: Text(AppLocalizations.of(context)!.saveDeck),
         ),
       ],
     );

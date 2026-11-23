@@ -4,7 +4,6 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/network/api_client.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
@@ -15,6 +14,7 @@ import 'package:noema/feature/config/data/user_dao.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
 import 'package:noema/feature/graph/data/graph_edge_dao.dart';
 import 'package:noema/feature/graph/data/graph_node_dao.dart';
+import 'package:noema/feature/graph/data/converter_ai_response.dart';
 import 'package:noema/feature/graph/service/compact_graph_context.dart';
 
 final aiResponseLanguageResolverProvider = Provider<Future<String?> Function()>(
@@ -248,6 +248,52 @@ class AiContentGenerationService {
     throw lastFormatError!;
   }
 
+  Future<GraphResponse> generateGraphWithServerPipeline({
+    required String prompt,
+    required String agentId,
+  }) async {
+    final normalizedPrompt = _validatedGraphPrompt(prompt);
+    return generateWithRetry<GraphResponse>(
+      task: AiAgentTask.manipulateGraph,
+      prompt: 'MODE: SERVER_CREATE\nLearner request:\n$normalizedPrompt',
+      agentId: agentId,
+      maxAttempts: 1,
+      parse: (response) {
+        final graph = GraphResponse.fromJson(response).repair();
+        final problems = graph.validate();
+        final hasOnlyFoundationPrerequisiteWarning =
+            problems.length == 1 &&
+            problems.single.code == 'foundation_has_prerequisite' &&
+            !problems.single.fatal;
+        final hasFatalFallbackProblem =
+            graph.qualityFallback && problems.any((problem) => problem.fatal);
+        final hasRejectedQualityProblems =
+            !graph.qualityFallback &&
+            problems.isNotEmpty &&
+            !hasOnlyFoundationPrerequisiteWarning;
+        if (hasFatalFallbackProblem || hasRejectedQualityProblems) {
+          throw FormatException(
+            'O servidor retornou um grafo que não passou na validação: '
+            '${problems.map((problem) => '${problem.code}: ${problem.message}').join('\n')}',
+          );
+        }
+        return graph;
+      },
+    );
+  }
+
+  String _validatedGraphPrompt(String prompt) {
+    final normalizedPrompt = prompt.trim();
+    if (normalizedPrompt.length < 5) {
+      throw ArgumentError.value(
+        prompt,
+        'prompt',
+        'must contain at least five characters',
+      );
+    }
+    return normalizedPrompt;
+  }
+
   Future<String> resolveAgentId(AiAgentTask task) async {
     final matchingAgents = await listAgents(task: task);
     if (matchingAgents.isEmpty) {
@@ -267,9 +313,7 @@ class AiContentGenerationService {
     required String agentId,
   }) async {
     final database = _ref.read(appDatabaseProvider);
-    final node = await GraphNodeDao(
-      database,
-    ).getGraphNode(id: nodeId);
+    final node = await GraphNodeDao(database).getGraphNode(id: nodeId);
     if (node == null || node.softDeleted) {
       throw StateError('O nó $nodeId não existe mais.');
     }
@@ -286,17 +330,21 @@ class AiContentGenerationService {
 
     final prompt =
         '''
-Gere uma descrição curta, correta e didática para o nó de estudo abaixo.
+Reescreva a descrição deste nó após analisar o grafo completo.
 Retorne somente um objeto JSON com a chave "description" contendo a descrição.
 Não inclua título, identificadores, markdown ou texto fora do JSON.
 
 Nó: $title
 Tipo: $type
-Descrição atual (se houver): ${existingDescription?.trim().isNotEmpty == true ? existingDescription : "não informada"}
+Descrição provisória criada junto com o grafo (não a preserve nem apenas a parafraseie): ${existingDescription?.trim().isNotEmpty == true ? existingDescription : "não informada"}
 
-Use o mapa de conhecimento completo no contexto para delimitar o assunto,
-diferenciar este nó dos conceitos próximos e respeitar pré-requisitos e
-subtópicos. Descreva somente o nó alvo.
+Use o mapa completo para delimitar o assunto, diferenciar este nó dos conceitos
+próximos e respeitar pré-requisitos e subtópicos. Para CONCEPT/SUBCONCEPT,
+escreva 1-3 frases específicas sobre o que o estudante deverá compreender ou
+conseguir fazer neste único conceito; não transforme a descrição em um resumo
+abrangente do tópico ou em uma lista de assuntos. Para AREA/TOPIC, descreva
+somente o escopo que agrupa seus filhos, sem repetir ou substituir as descrições
+deles. Descreva somente o nó alvo.
 ''';
     final response = await generate(
       task: AiAgentTask.generateNodeDescription,

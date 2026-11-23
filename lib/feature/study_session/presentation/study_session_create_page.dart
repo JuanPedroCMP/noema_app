@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -445,9 +446,11 @@ class _StudySessionCreatePageState
                       controller: _titleController,
                       autofocus: widget.sessionId == null,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        labelText: 'Título da sessão',
-                        hintText: 'Ex.: Revisão de fisiologia',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.title,
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.exPhysiologyReview,
                         prefixIcon: Icon(Icons.title),
                         border: OutlineInputBorder(),
                       ),
@@ -461,8 +464,10 @@ class _StudySessionCreatePageState
                       minLines: 2,
                       maxLines: 4,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        labelText: 'Descrição (opcional)',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.optionalDescription,
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -470,8 +475,10 @@ class _StudySessionCreatePageState
                     TextFormField(
                       controller: _durationController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Duração planejada',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.plannedDuration,
                         suffixText: 'min',
                         prefixIcon: Icon(Icons.timer_outlined),
                         border: OutlineInputBorder(),
@@ -538,7 +545,9 @@ class _StudySessionCreatePageState
                                     spacing: 0,
                                     children: [
                                       IconButton(
-                                        tooltip: 'Mover para cima',
+                                        tooltip: AppLocalizations.of(
+                                          context,
+                                        )!.moveUp,
                                         visualDensity: VisualDensity.compact,
                                         onPressed: index == 0
                                             ? null
@@ -551,7 +560,9 @@ class _StudySessionCreatePageState
                                         icon: const Icon(Icons.arrow_upward),
                                       ),
                                       IconButton(
-                                        tooltip: 'Mover para baixo',
+                                        tooltip: AppLocalizations.of(
+                                          context,
+                                        )!.moveDown,
                                         visualDensity: VisualDensity.compact,
                                         onPressed:
                                             index ==
@@ -566,7 +577,9 @@ class _StudySessionCreatePageState
                                         icon: const Icon(Icons.arrow_downward),
                                       ),
                                       IconButton(
-                                        tooltip: 'Remover da sessão',
+                                        tooltip: AppLocalizations.of(
+                                          context,
+                                        )!.removeSession,
                                         visualDensity: VisualDensity.compact,
                                         onPressed: () => setState(
                                           () => _selectedQuestionKeys.remove(
@@ -589,8 +602,8 @@ class _StudySessionCreatePageState
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String?>(
                       initialValue: _graphId,
-                      decoration: const InputDecoration(
-                        labelText: 'Grafo de origem (opcional)',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.sourceGraph,
                         prefixIcon: Icon(Icons.account_tree_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -620,7 +633,7 @@ class _StudySessionCreatePageState
                               ? null
                               : _createExercise,
                           icon: const Icon(Icons.add_rounded),
-                          label: const RuntimeLocalizedText(
+                          label: RuntimeLocalizedText(
                             'Criar exercício neste grafo',
                           ),
                         ),
@@ -635,9 +648,7 @@ class _StudySessionCreatePageState
                                 setState(() => _typeFilter = null),
                           ),
                           FilterChip(
-                            label: const RuntimeLocalizedText(
-                              'Múltipla escolha',
-                            ),
+                            label: RuntimeLocalizedText('Múltipla escolha'),
                             selected:
                                 _typeFilter ==
                                 StudySessionQuestionType.multipleChoice,
@@ -665,12 +676,16 @@ class _StudySessionCreatePageState
                         controller: _searchController,
                         onChanged: (value) => setState(() => _search = value),
                         decoration: InputDecoration(
-                          labelText: 'Buscar questões em $graphName',
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.searchQuestions(graphName),
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _search.isEmpty
                               ? null
                               : IconButton(
-                                  tooltip: 'Limpar busca',
+                                  tooltip: AppLocalizations.of(
+                                    context,
+                                  )!.textClearSearch,
                                   onPressed: () {
                                     _searchController.clear();
                                     setState(() => _search = '');

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:file_picker/file_picker.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -194,12 +195,12 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: 'Personalizar layout',
+                      tooltip: AppLocalizations.of(context)!.customizeLayout,
                       onPressed: () => _showSectionPicker(context),
                       icon: const Icon(Icons.tune_rounded),
                     ),
                     PopupMenuButton<DashboardExportFormat>(
-                      tooltip: 'Exportar painel',
+                      tooltip: AppLocalizations.of(context)!.exportDashboard,
                       onSelected: (format) => _export(
                         context,
                         format,
@@ -302,7 +303,7 @@ class _DomainDashboardPageState extends ConsumerState<DomainDashboardPage> {
                                 )
                                 ? _selectedGraphId
                                 : null,
-                            hint: const RuntimeLocalizedText(
+                            hint: RuntimeLocalizedText(
                               'Selecione um grafo',
                             ),
                             items: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/tokens/layout.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -40,7 +41,7 @@ class AppSection extends StatelessWidget {
                 ),
                 if (description != null)
                   IconButton(
-                    tooltip: 'Mais informações',
+                    tooltip: AppLocalizations.of(context)!.moreInformation,
                     visualDensity: VisualDensity.compact,
                     onPressed: () => showDialog<void>(
                       context: context,

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -164,12 +165,11 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       ref.read(signUpControllerProvider.notifier).clearError();
                     },
                     validator: _validateUsername,
-                    decoration: const InputDecoration(
-                      labelText: 'Nome de usuário',
-                      hintText: 'ex.: maria.silva',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.username,
+                      hintText: AppLocalizations.of(context)!.mariaSilva,
                       prefixIcon: Icon(Icons.alternate_email),
-                      helperText:
-                          'De 3 a 32 caracteres; pode ser alterado depois.',
+                      helperText: AppLocalizations.of(context)!.text332Characterschangedlater,
                     ),
                   ),
                   TextFormField(
@@ -180,9 +180,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       ref.read(signUpControllerProvider.notifier).clearError();
                     },
                     validator: _validateDisplayName,
-                    decoration: const InputDecoration(
-                      labelText: 'Nome de exibição',
-                      hintText: 'Como gostaria de ser chamada(o)',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.textDisplayName,
+                      hintText: AppLocalizations.of(context)!.wouldLikeAddressed,
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                   ),
@@ -196,8 +196,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       ref.read(signUpControllerProvider.notifier).clearError();
                     },
                     validator: _validateEmail,
-                    decoration: const InputDecoration(
-                      labelText: 'E-mail',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.email,
                       prefixIcon: Icon(Icons.mail_outline),
                     ),
                   ),
@@ -218,7 +218,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     },
                     validator: PasswordPolicy.validate,
                     decoration: InputDecoration(
-                      labelText: 'Senha',
+                      labelText: AppLocalizations.of(context)!.password,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         tooltip: _passwordVisible
@@ -251,7 +251,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     onFieldSubmitted: (_) =>
                         signUpState.isLoading ? null : _submit(),
                     decoration: InputDecoration(
-                      labelText: 'Confirme a senha',
+                      labelText: AppLocalizations.of(context)!.confirmPassword,
                       prefixIcon: const Icon(Icons.lock_reset_outlined),
                       suffixIcon: IconButton(
                         tooltip: _confirmationVisible
@@ -282,7 +282,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     onPressed: signUpState.isLoading
                         ? null
                         : () => context.go(loginPath),
-                    child: const RuntimeLocalizedText(
+                    child: RuntimeLocalizedText(
                       'Já tenho uma conta · Entrar',
                     ),
                   ),

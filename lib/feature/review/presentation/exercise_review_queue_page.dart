@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -232,7 +233,7 @@ class _QueueError extends StatelessWidget {
       const SizedBox(width: 10),
       Expanded(child: RuntimeLocalizedText('Falha ao carregar a fila: $error')),
       IconButton(
-        tooltip: 'Tentar novamente',
+        tooltip: AppLocalizations.of(context)!.tryAgain,
         onPressed: onRetry,
         icon: const Icon(Icons.refresh_rounded),
       ),

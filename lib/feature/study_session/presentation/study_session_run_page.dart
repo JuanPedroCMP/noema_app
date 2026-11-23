@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -276,7 +277,7 @@ class _StudySessionRunPageState extends ConsumerState<StudySessionRunPage> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            tooltip: 'Sair da sessão',
+            tooltip: AppLocalizations.of(context)!.leaveSession,
             onPressed: _isAdvancing ? null : _leaveSession,
             icon: const Icon(Icons.close),
           ),

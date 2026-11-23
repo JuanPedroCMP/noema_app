@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -52,14 +53,14 @@ class CreateNode extends ConsumerWidget {
             onChanged: formNodeNotifier.titleChanged,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: "Título",
+              labelText: AppLocalizations.of(context)!.title,
             ),
           ),
           TextField(
             onChanged: formNodeNotifier.descriptionChanged,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: "Descrição",
+              labelText: AppLocalizations.of(context)!.description,
             ),
           ),
 
@@ -111,14 +112,14 @@ class CreateNode extends ConsumerWidget {
                     }
                   }
                 },
-                child: RuntimeLocalizedText("Criar"),
+                child: const RuntimeLocalizedText("Criar"),
               ),
 
               OutlinedButton(
                 onPressed: () {
                   graphStatesNotifier.isCreatingNodeChanged(false);
                 },
-                child: RuntimeLocalizedText("Cancelar"),
+                child: const RuntimeLocalizedText("Cancelar"),
               ),
             ],
           ),

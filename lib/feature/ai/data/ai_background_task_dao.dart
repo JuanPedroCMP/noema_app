@@ -17,6 +17,7 @@ const aiTaskFailed = 'FAILED';
 const aiTaskCompleted = 'COMPLETED';
 const aiTaskCanceled = 'CANCELED';
 const aiTaskMaximumAttempts = 3;
+const aiTaskExecutionLease = Duration(minutes: 2);
 
 class AiQueueItem {
   const AiQueueItem({
@@ -210,14 +211,18 @@ class AiBackgroundTaskDao extends DatabaseAccessor<AppDatabase>
     )..where((row) => row.id.equals(id))).getSingleOrNull();
   }
 
-  Future<void> recoverInterruptedTasks({required String userId}) async {
+  Future<void> recoverInterruptedTasks({
+    required String userId,
+    required int updatedBefore,
+  }) async {
     final rows =
         await (select(_tasks).join([
               innerJoin(_nodes, _nodes.id.equalsExp(_tasks.nodeId)),
               innerJoin(_graphs, _graphs.id.equalsExp(_nodes.graphId)),
             ])..where(
               _graphs.userId.equals(userId) &
-                  _tasks.status.equals(aiTaskRunning),
+                  _tasks.status.equals(aiTaskRunning) &
+                  _tasks.updatedAt.isSmallerThanValue(updatedBefore),
             ))
             .get();
     for (final row in rows) {
@@ -226,7 +231,8 @@ class AiBackgroundTaskDao extends DatabaseAccessor<AppDatabase>
       await (update(_tasks)..where(
             (current) =>
                 current.id.equals(task.id) &
-                current.status.equals(aiTaskRunning),
+                current.status.equals(aiTaskRunning) &
+                current.updatedAt.isSmallerThanValue(updatedBefore),
           ))
           .write(
             AiBackgroundTaskCompanion(
@@ -241,6 +247,17 @@ class AiBackgroundTaskDao extends DatabaseAccessor<AppDatabase>
             ),
           );
     }
+  }
+
+  Future<int> touchRunningTask(String taskId) {
+    return (update(_tasks)
+          ..where((task) => task.id.equals(taskId))
+          ..where((task) => task.status.equals(aiTaskRunning)))
+        .write(
+          AiBackgroundTaskCompanion(
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
   }
 
   Future<GraphNodeData?> getNode(String id) {
@@ -265,6 +282,8 @@ class AiBackgroundTaskDao extends DatabaseAccessor<AppDatabase>
     String taskId, {
     String? description,
     String? expectedNodeTitle,
+    bool replaceExistingDescription = false,
+    String? expectedNodeDescription,
   }) async {
     await transaction(() async {
       if (description != null) {
@@ -273,10 +292,20 @@ class AiBackgroundTaskDao extends DatabaseAccessor<AppDatabase>
         )..where((row) => row.id.equals(taskId))).getSingleOrNull();
         if (task != null) {
           final nodeUpdate = update(_nodes)
-            ..where((node) => node.id.equals(task.nodeId))
-            ..where(
+            ..where((node) => node.id.equals(task.nodeId));
+          if (replaceExistingDescription) {
+            if (expectedNodeDescription == null) {
+              nodeUpdate.where((node) => node.description.isNull());
+            } else {
+              nodeUpdate.where(
+                (node) => node.description.equals(expectedNodeDescription),
+              );
+            }
+          } else {
+            nodeUpdate.where(
               (node) => node.description.isNull() | node.description.equals(''),
             );
+          }
           if (expectedNodeTitle != null) {
             nodeUpdate.where((node) => node.title.equals(expectedNodeTitle));
           }

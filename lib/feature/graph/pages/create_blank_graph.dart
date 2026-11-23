@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -121,9 +122,9 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
           onChanged: formNotifier.titleChagend,
           textInputAction: TextInputAction.next,
           maxLength: 80,
-          decoration: const InputDecoration(
-            labelText: 'Título do grafo',
-            hintText: 'Ex.: Trilha de aprendizado em Flutter',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.graphTitle,
+            hintText: AppLocalizations.of(context)!.exFlutterLearningTrail,
             prefixIcon: Icon(Icons.title),
           ),
         ),
@@ -132,9 +133,9 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
           onChanged: formNotifier.descriptionChagend,
           maxLines: 3,
           maxLength: 240,
-          decoration: const InputDecoration(
-            labelText: 'Descrição (opcional)',
-            hintText: 'Explique o objetivo deste mapa de conhecimento.',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.optionalDescription,
+            hintText: AppLocalizations.of(context)!.explainPurposeKnowledgeMap,
             prefixIcon: Icon(Icons.notes_outlined),
           ),
         ),
@@ -175,7 +176,7 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
               setState(() => _showAdvancedImport = value),
           tilePadding: EdgeInsets.zero,
           title: const RuntimeLocalizedText('Importar estrutura JSON'),
-          subtitle: const RuntimeLocalizedText(
+          subtitle: RuntimeLocalizedText(
             'Opção avançada para dados já estruturados',
           ),
           children: [
@@ -183,8 +184,8 @@ class _CreateBlankGraphState extends ConsumerState<CreateBlankGraph> {
               onChanged: jsonNotifier.jsonChanged,
               minLines: 4,
               maxLines: 8,
-              decoration: const InputDecoration(
-                labelText: 'JSON do grafo',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.graphJSON,
                 alignLabelWithHint: true,
                 hintText: '{"graphTitle": "...", "nodes": [...]}',
               ),

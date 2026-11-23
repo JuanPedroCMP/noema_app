@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show OrderingTerm, innerJoin;
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart' hide OpenEnded;
@@ -788,7 +789,7 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
                 ),
               ),
               IconButton(
-                tooltip: 'Atualizar histórico',
+                tooltip: AppLocalizations.of(context)!.updateHistory,
                 onPressed: _isRefreshing ? null : carregar,
                 icon: _isRefreshing
                     ? const SizedBox.square(
@@ -804,12 +805,12 @@ class _ExercicesAnswerList extends ConsumerState<ExercicesAnswerList> {
             onChanged: (value) => setState(() => _search = value),
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
-              hintText: 'Buscar no histórico',
+              hintText: AppLocalizations.of(context)!.searchHistory,
               border: const OutlineInputBorder(),
               suffixIcon: _search.isEmpty
                   ? null
                   : IconButton(
-                      tooltip: 'Limpar busca',
+                      tooltip: AppLocalizations.of(context)!.textClearSearch,
                       onPressed: () => setState(() => _search = ''),
                       icon: const Icon(Icons.clear),
                     ),

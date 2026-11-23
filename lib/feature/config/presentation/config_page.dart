@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -259,8 +260,8 @@ class _ConfigPageState extends ConsumerState<ConfigPage> {
                 ),
                 child: DropdownButtonFormField<ConfigSections>(
                   initialValue: _activeSection,
-                  decoration: const InputDecoration(
-                    labelText: 'Seção de configuração',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.configurationSection,
                     prefixIcon: Icon(Icons.tune),
                   ),
                   items: [
@@ -344,11 +345,11 @@ class _ConfigHeader extends StatelessWidget {
         controller: searchController,
         onChanged: onSearchChanged,
         decoration: InputDecoration(
-          hintText: 'Filtrar configurações…',
+          hintText: AppLocalizations.of(context)!.filterSettings,
           prefixIcon: const Icon(Icons.search, size: 20),
           suffixIcon: searchQuery.isNotEmpty
               ? IconButton(
-                  tooltip: 'Limpar filtro',
+                  tooltip: AppLocalizations.of(context)!.cleanFilter,
                   icon: const Icon(Icons.close, size: 18),
                   onPressed: onClearSearch,
                 )

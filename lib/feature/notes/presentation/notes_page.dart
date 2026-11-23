@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
@@ -100,15 +101,15 @@ class NotesPageState extends ConsumerState<NotesPage> {
     final title = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const RuntimeLocalizedText('Criar anotação'),
+        title: RuntimeLocalizedText(AppLocalizations.of(context)!.createNote),
         content: TextField(
           controller: titleController,
           autofocus: true,
           maxLength: 160,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Título',
-            hintText: 'Ex.: Resumo de biologia celular',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.title,
+            hintText: AppLocalizations.of(context)!.exCellBiologySummary,
             border: OutlineInputBorder(),
           ),
           onSubmitted: (value) {
@@ -196,8 +197,8 @@ class NotesPageState extends ConsumerState<NotesPage> {
                 controller: titleController,
                 autofocus: true,
                 maxLength: 160,
-                decoration: const InputDecoration(
-                  labelText: 'Título da anotação',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.title,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -523,7 +524,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
             ),
             if (!_showTrash) ...[
               IconButton(
-                tooltip: 'Importar anotação',
+                tooltip: AppLocalizations.of(context)!.importAnnotation,
                 onPressed: _isImporting ? null : () => _importNote(userId),
                 icon: _isImporting
                     ? const SizedBox.square(
@@ -573,7 +574,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
             suffixIcon: _search.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: 'Limpar busca',
+                    tooltip: AppLocalizations.of(context)!.textClearSearch,
                     onPressed: () {
                       _searchController.clear();
                       _updateSearch('');
@@ -640,7 +641,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
                           children: [
                             if (!note.softDeleted)
                               PopupMenuButton<NoteExportFormat>(
-                                tooltip: 'Exportar anotação',
+                                tooltip: AppLocalizations.of(context)!.exportAnnotation,
                                 icon: const Icon(Icons.file_download_outlined),
                                 onSelected: (format) =>
                                     _exportNote(note, format),
@@ -653,7 +654,7 @@ class NotesPageState extends ConsumerState<NotesPage> {
                                 ],
                               ),
                             PopupMenuButton<String>(
-                              tooltip: 'Opções da anotação',
+                              tooltip: AppLocalizations.of(context)!.annotationOptions,
                               onSelected: (action) {
                                 if (action == 'delete') {
                                   _deleteNote(note, userId);
@@ -843,7 +844,7 @@ class _NotesEmptyState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onCreate,
                 icon: const Icon(Icons.add),
-                label: const RuntimeLocalizedText('Criar anotação'),
+                label: RuntimeLocalizedText(AppLocalizations.of(context)!.createNote),
               ),
             ],
           ],

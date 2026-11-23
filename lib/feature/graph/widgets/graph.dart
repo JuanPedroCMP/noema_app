@@ -21,10 +21,9 @@ class GraphPainter extends CustomPainter {
     required this.selected,
     required this.option,
     required this.origin,
-    required Map<String, LearningNodeProgress> progressByNodeId,
-    required List<String> recommendedNodeIds,
-  }) : progressByNodeId = progressByNodeId,
-       recommendedNodeIds = recommendedNodeIds;
+    required Map<String, LearningNodeProgress> this.progressByNodeId,
+    required List<String> this.recommendedNodeIds,
+  });
 
   final BuildContext context;
   final List<GraphNodeData> nodes;
@@ -52,14 +51,14 @@ class GraphPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     final prerequisitePaint = Paint()
-      ..color = colors.primary.withOpacity(0.75)
+      ..color = colors.primary.withValues(alpha: 0.75)
       ..strokeWidth = 2.2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true;
 
     final subtopicPaint = Paint()
-      ..color = colors.tertiary.withOpacity(0.75)
+      ..color = colors.tertiary.withValues(alpha: 0.75)
       ..strokeWidth = 2.2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -121,8 +120,9 @@ class GraphPainter extends CustomPainter {
         null => colors.outlineVariant,
       };
       final fillPaint = isSelected ? nodeSelectedPaint : nodeFillPaint;
-      if (isSelected)
+      if (isSelected) {
         canvas.drawShadow(Path()..addRRect(rrect), colors.shadow, 5, true);
+      }
       canvas.drawRRect(rrect, fillPaint);
       final statusBorderPaint = Paint()
         ..color = isSelected ? colors.primary : stateColor

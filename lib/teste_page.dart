@@ -14,6 +14,7 @@ import 'package:noema/shared/localization/runtime_localization.dart';
 // into your own project.
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 
 void main() {
   runApp(const M3ShowcaseApp());
@@ -175,7 +176,7 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
         title: const RuntimeLocalizedText('Material 3 Showcase'),
         actions: [
           IconButton(
-            tooltip: 'Toggle light / dark',
+            tooltip: AppLocalizations.of(context)!.toggleLightDark,
             onPressed: widget.onToggleTheme,
             icon: Icon(
               widget.themeMode == ThemeMode.dark
@@ -685,8 +686,8 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
             SizedBox(
               width: 260,
               child: TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Filled',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.filled,
                   filled: true,
                   border: OutlineInputBorder(borderSide: BorderSide.none),
                 ),
@@ -695,9 +696,9 @@ class _M3ShowcasePageState extends State<M3ShowcasePage> {
             SizedBox(
               width: 260,
               child: TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Outlined',
-                  helperText: 'Helper text',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.outlined,
+                  helperText: AppLocalizations.of(context)!.helpText,
                   border: OutlineInputBorder(),
                 ),
               ),

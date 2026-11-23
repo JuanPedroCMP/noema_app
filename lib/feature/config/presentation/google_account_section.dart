@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:built_value/json_object.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -529,7 +530,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
           builder: (context) => AlertDialog(
             scrollable: true,
             title: const RuntimeLocalizedText('Criar o primeiro backup?'),
-            content: const RuntimeLocalizedText(
+            content: RuntimeLocalizedText(
               'O app vai preparar um snapshot dos seus grafos, anotações, '
               'flashcards, exercícios, histórico de estudo e temas locais. '
               'O snapshot será enviado diretamente do dispositivo para a área '
@@ -564,7 +565,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
       builder: (context) {
         final spacing = context.spacing;
         return AlertDialog(
-          title: const RuntimeLocalizedText(
+          title: RuntimeLocalizedText(
             'Há diferenças entre este dispositivo e o Drive',
           ),
           content: SingleChildScrollView(
@@ -572,7 +573,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const RuntimeLocalizedText(
+                RuntimeLocalizedText(
                   'Revise o resumo antes de escolher. “Somente neste lado” '
                   'significa que o registro está presente em um snapshot e '
                   'ausente no outro; não significa necessariamente que foi '
@@ -599,7 +600,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                     ),
                   ),
                 SizedBox(height: spacing.md),
-                const RuntimeLocalizedText(
+                RuntimeLocalizedText(
                   'Mesclar mantém os registros locais em conflitos de mesmo '
                   'ID e acrescenta os registros remotos não conflitantes. '
                   'Nenhum lado é escolhido silenciosamente.',
@@ -687,7 +688,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                   : _stateDescription(status),
             ),
             trailing: IconButton(
-              tooltip: 'Atualizar status',
+              tooltip: AppLocalizations.of(context)!.updateStatus,
               onPressed: _loading || _working ? null : _refreshStatus,
               icon: const Icon(Icons.refresh),
             ),
@@ -801,8 +802,8 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                 SizedBox(height: spacing.sm),
                 DropdownButtonFormField<String>(
                   initialValue: _frequency,
-                  decoration: const InputDecoration(
-                    labelText: 'Frequência',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.frequency,
                     prefixIcon: Icon(Icons.schedule_outlined),
                   ),
                   items: [
@@ -830,8 +831,8 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                         child: TextFormField(
                           controller: _frequencyIntervalController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'A cada',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.every,
                           ),
                           onFieldSubmitted: (_) => _saveFrequencyInterval(),
                         ),
@@ -840,7 +841,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                       Text(_frequency == 'every_hours' ? 'horas' : 'dias'),
                       const Spacer(),
                       IconButton(
-                        tooltip: 'Salvar intervalo',
+                        tooltip: AppLocalizations.of(context)!.saveRange,
                         onPressed: _frequencyLoading || _frequencySaving
                             ? null
                             : _saveFrequencyInterval,
@@ -851,7 +852,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                 ],
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const RuntimeLocalizedText(
+                  title: RuntimeLocalizedText(
                     'Fazer backup ao sair do app',
                   ),
                   subtitle: Text(
@@ -890,7 +891,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Atualizar arquivos e histórico',
+                      tooltip: AppLocalizations.of(context)!.updateFilesHistory,
                       onPressed: _backupLoading
                           ? null
                           : () {
@@ -913,7 +914,7 @@ class _GoogleAccountSectionState extends ConsumerState<GoogleAccountSection> {
                     ),
                   ),
                 if (!_backupLoading && _backups.isEmpty)
-                  const RuntimeLocalizedText(
+                  RuntimeLocalizedText(
                     'Nenhum arquivo de backup foi registrado para esta conta.',
                   ),
                 for (final backup in _backups.take(8))

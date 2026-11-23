@@ -190,7 +190,9 @@ Future<bool> _runAutomaticBackupTask(
   String task, [
   Map<String, dynamic>? _,
 ]) async {
-  if (task == aiBackgroundQueueTask) return _runAiBackgroundQueueTask();
+  if (isAiBackgroundQueueWork(task)) {
+    return _runAiBackgroundQueueTask();
+  }
   if (task != automaticBackupPeriodicTask &&
       task != automaticBackupOnExitTask) {
     return true;
@@ -309,7 +311,7 @@ Future<bool> _runAiBackgroundQueueTask() async {
           ),
         );
         await scheduleAiBackgroundQueue(
-          taskId: 'retry-${retryAt}',
+          taskId: 'retry-$retryAt',
           initialDelay: delay,
         );
       }

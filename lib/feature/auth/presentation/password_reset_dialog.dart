@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/network/api_client.dart';
@@ -208,8 +209,8 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                     enabled: !_busy,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _requestCode(),
-                    decoration: const InputDecoration(
-                      labelText: 'Usuário ou e-mail',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.usernameEmail,
                       prefixIcon: Icon(Icons.person_outline),
                       border: OutlineInputBorder(),
                     ),
@@ -228,8 +229,8 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                     enabled: !_busy,
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.oneTimeCode],
-                    decoration: const InputDecoration(
-                      labelText: 'Código de recuperação',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.recoveryCode,
                       prefixIcon: Icon(Icons.mark_email_read_outlined),
                       border: OutlineInputBorder(),
                     ),
@@ -246,7 +247,7 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                     autofillHints: const [AutofillHints.newPassword],
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      labelText: 'Nova senha',
+                      labelText: AppLocalizations.of(context)!.newPassword,
                       prefixIcon: const Icon(Icons.lock_outline),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -276,7 +277,7 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                     onChanged: (_) => setState(() {}),
                     onFieldSubmitted: (_) => _confirmReset(),
                     decoration: InputDecoration(
-                      labelText: 'Confirme a nova senha',
+                      labelText: AppLocalizations.of(context)!.confirmNewPassword,
                       prefixIcon: const Icon(Icons.lock_reset_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -315,7 +316,7 @@ class _PasswordResetDialogState extends ConsumerState<_PasswordResetDialog> {
                               });
                             },
                       icon: const Icon(Icons.edit_outlined),
-                      label: const RuntimeLocalizedText(
+                      label: RuntimeLocalizedText(
                         'Alterar usuário ou e-mail',
                       ),
                     ),

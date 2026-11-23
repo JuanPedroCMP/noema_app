@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -192,7 +193,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  tooltip: 'Mais opções',
+                  tooltip: AppLocalizations.of(context)!.textMoreOptions,
                   onSelected: (action) {
                     if (action == 'edit') {
                       _navigate('$currentUri/$route/$id/edit');
@@ -279,7 +280,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const AppLoadingView(label: 'Carregando questões...');
+      return AppLoadingView(label: 'Carregando questões...');
     }
     if (_error != null) {
       return AppErrorView(message: _error!, onRetry: carregar);
@@ -341,7 +342,7 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
                 ),
               ),
               IconButton(
-                tooltip: 'Atualizar lista',
+                tooltip: AppLocalizations.of(context)!.updateList,
                 onPressed: _isRefreshing ? null : carregar,
                 icon: _isRefreshing
                     ? const SizedBox.square(
@@ -416,12 +417,12 @@ class _ExercicesList extends ConsumerState<ExercicesList> {
             onChanged: (value) => setState(() => _search = value),
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
-              hintText: 'Buscar por título ou enunciado',
+              hintText: AppLocalizations.of(context)!.searchTitleStatement,
               border: const OutlineInputBorder(),
               suffixIcon: _search.isEmpty
                   ? null
                   : IconButton(
-                      tooltip: 'Limpar busca',
+                      tooltip: AppLocalizations.of(context)!.textClearSearch,
                       onPressed: () => setState(() => _search = ''),
                       icon: const Icon(Icons.clear),
                     ),

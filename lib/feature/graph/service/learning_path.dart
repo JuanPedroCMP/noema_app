@@ -28,8 +28,7 @@ class LearningPathRelation {
   final double? weight;
 
   bool get isEssential =>
-      type == 'PREREQUISITE' &&
-      (weight ?? 1.0) >= LearningPath.essentialWeight;
+      type == 'PREREQUISITE' && (weight ?? 1.0) >= LearningPath.essentialWeight;
 }
 
 enum LearningProgressStatus { mastered, ready, availableWithGaps }
@@ -40,6 +39,7 @@ class LearningNodeProgress {
     required this.masteryScore,
     required this.unmetPrerequisiteIds,
     required this.suggestedPrerequisiteIds,
+    this.prerequisitePathNodeIds = const [],
     required this.subtopicIds,
     required this.parentTopicIds,
     required this.isContainer,
@@ -49,6 +49,7 @@ class LearningNodeProgress {
   final double? masteryScore;
   final List<String> unmetPrerequisiteIds;
   final List<String> suggestedPrerequisiteIds;
+  final List<String> prerequisitePathNodeIds;
   final List<String> subtopicIds;
   final List<String> parentTopicIds;
   final bool isContainer;
@@ -130,11 +131,116 @@ class LearningPath {
       if (descendants != null) {
         if (descendants.isEmpty) return 0;
         return descendants
-                .map((leafId) => _normalizedScore(nodesById[leafId]?.masteryScore))
+                .map(
+                  (leafId) => _normalizedScore(nodesById[leafId]?.masteryScore),
+                )
                 .fold<double>(0, (total, score) => total + score) /
             descendants.length;
       }
       return _normalizedScore(nodesById[id]?.masteryScore);
+    }
+
+    final essentialPrerequisites = <String, List<String>>{};
+    for (final relation in relations) {
+      if (relation.type != 'PREREQUISITE' ||
+          !relation.isEssential ||
+          !nodesById.containsKey(relation.sourceId) ||
+          !nodesById.containsKey(relation.targetId) ||
+          containers.contains(relation.sourceId) ||
+          containers.contains(relation.targetId)) {
+        continue;
+      }
+      essentialPrerequisites
+          .putIfAbsent(relation.targetId, () => [])
+          .add(relation.sourceId);
+    }
+
+    List<String> prerequisitePathFor(String targetId) {
+      final required = <String>{};
+      final pending = <String>[targetId];
+      var touchesCycle = false;
+      while (pending.isNotEmpty) {
+        final current = pending.removeLast();
+        for (final sourceId
+            in essentialPrerequisites[current] ?? const <String>[]) {
+          if (sourceId == targetId) {
+            touchesCycle = true;
+            continue;
+          }
+          if (scoreFor(sourceId) < readyThreshold && required.add(sourceId)) {
+            pending.add(sourceId);
+          }
+        }
+      }
+      if (required.isEmpty || touchesCycle) return const [];
+
+      final dependents = <String, Set<String>>{
+        for (final id in required) id: <String>{},
+      };
+      final indegree = <String, int>{for (final id in required) id: 0};
+      final routeDepth = <String, int>{for (final id in required) id: 0};
+      for (final target in required) {
+        for (final source
+            in essentialPrerequisites[target] ?? const <String>[]) {
+          if (required.contains(source) && dependents[source]!.add(target)) {
+            indegree[target] = indegree[target]! + 1;
+          }
+        }
+      }
+
+      int impactWithinRoute(String source) {
+        final visited = <String>{source};
+        final routePending = <String>[source];
+        while (routePending.isNotEmpty) {
+          final current = routePending.removeLast();
+          for (final dependent in dependents[current] ?? const <String>{}) {
+            if (visited.add(dependent)) routePending.add(dependent);
+          }
+        }
+        return visited.length - 1;
+      }
+
+      final impactByNodeId = {
+        for (final id in required) id: impactWithinRoute(id),
+      };
+
+      int compareRoutePriority(String firstId, String secondId) {
+        final byLayer = routeDepth[firstId]!.compareTo(routeDepth[secondId]!);
+        if (byLayer != 0) return byLayer;
+        final byImpact = impactByNodeId[secondId]!.compareTo(
+          impactByNodeId[firstId]!,
+        );
+        if (byImpact != 0) return byImpact;
+        final byTitle = nodesById[firstId]!.title.toLowerCase().compareTo(
+          nodesById[secondId]!.title.toLowerCase(),
+        );
+        return byTitle != 0 ? byTitle : firstId.compareTo(secondId);
+      }
+
+      final ready =
+          indegree.entries
+              .where((entry) => entry.value == 0)
+              .map((entry) => entry.key)
+              .toList()
+            ..sort(compareRoutePriority);
+      final ordered = <String>[];
+      while (ready.isNotEmpty) {
+        final current = ready.removeAt(0);
+        ordered.add(current);
+        for (final target in dependents[current] ?? const <String>{}) {
+          final targetDepth = routeDepth[current]! + 1;
+          if (routeDepth[target]! < targetDepth) {
+            routeDepth[target] = targetDepth;
+          }
+          indegree[target] = indegree[target]! - 1;
+          if (indegree[target] == 0) {
+            ready.add(target);
+            ready.sort(compareRoutePriority);
+          }
+        }
+      }
+      if (ordered.length != required.length) return const [];
+      return ordered;
     }
 
     final progressByNodeId = <String, LearningNodeProgress>{};
@@ -143,14 +249,14 @@ class LearningPath {
 
     for (final node in nodes) {
       final isContainer = containers.contains(node.id);
-      final prerequisiteRelations = (prerequisitesByTarget[node.id] ??
-              const <LearningPathRelation>[])
-          .where(
-            (relation) =>
-                !containers.contains(relation.sourceId) &&
-                !containers.contains(relation.targetId),
-          )
-          .toList();
+      final prerequisiteRelations =
+          (prerequisitesByTarget[node.id] ?? const <LearningPathRelation>[])
+              .where(
+                (relation) =>
+                    !containers.contains(relation.sourceId) &&
+                    !containers.contains(relation.targetId),
+              )
+              .toList();
       final gaps = prerequisiteRelations
           .where(
             (relation) =>
@@ -187,25 +293,11 @@ class LearningPath {
             : _displayScore(nodesById[node.id]?.masteryScore),
         unmetPrerequisiteIds: gaps,
         suggestedPrerequisiteIds: suggestedGaps,
+        prerequisitePathNodeIds: prerequisitePathFor(node.id),
         parentTopicIds: parentBySubtopic[node.id] ?? const [],
         subtopicIds: subtopicsByParent[node.id] ?? const [],
         isContainer: isContainer,
       );
-    }
-
-    final essentialPrerequisites = <String, List<String>>{};
-    for (final relation in relations) {
-      if (relation.type != 'PREREQUISITE' ||
-          !relation.isEssential ||
-          !nodesById.containsKey(relation.sourceId) ||
-          !nodesById.containsKey(relation.targetId) ||
-          containers.contains(relation.sourceId) ||
-          containers.contains(relation.targetId)) {
-        continue;
-      }
-      essentialPrerequisites
-          .putIfAbsent(relation.targetId, () => [])
-          .add(relation.sourceId);
     }
 
     final depthByNodeId = <String, int>{};
@@ -217,11 +309,14 @@ class LearningPath {
       final depth = prerequisites.isEmpty
           ? 0
           : prerequisites
-                    .map(
-                      (prerequisiteId) =>
-                          depthFor(prerequisiteId, {...visiting}) + 1,
-                    )
-                    .fold<int>(0, (maximum, value) => value > maximum ? value : maximum);
+                .map(
+                  (prerequisiteId) =>
+                      depthFor(prerequisiteId, {...visiting}) + 1,
+                )
+                .fold<int>(
+                  0,
+                  (maximum, value) => value > maximum ? value : maximum,
+                );
       depthByNodeId[id] = depth;
       return depth;
     }
@@ -236,7 +331,9 @@ class LearningPath {
       while (pending.isNotEmpty) {
         final current = pending.removeLast();
         for (final targetId in essentialPrerequisites.keys) {
-          if (!(essentialPrerequisites[targetId] ?? const []).contains(current) ||
+          if (!(essentialPrerequisites[targetId] ?? const []).contains(
+                current,
+              ) ||
               progressByNodeId[targetId]?.status ==
                   LearningProgressStatus.mastered) {
             continue;
@@ -269,9 +366,9 @@ class LearningPath {
         depthByNodeId[secondId] ?? 0,
       );
       if (byLayer != 0) return byLayer;
-      final byImpact = downstreamImpact(secondId).compareTo(
-        downstreamImpact(firstId),
-      );
+      final byImpact = downstreamImpact(
+        secondId,
+      ).compareTo(downstreamImpact(firstId));
       if (byImpact != 0) return byImpact;
       final byTitle = first.title.toLowerCase().compareTo(
         second.title.toLowerCase(),

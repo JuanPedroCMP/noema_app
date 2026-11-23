@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
@@ -395,17 +396,21 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       autofocus: true,
                       maxLines: 3,
                       maxLength: 300,
-                      decoration: const InputDecoration(
-                        labelText: 'Orientação adicional (opcional)',
-                        hintText: 'Ex.: nível avançado, foco em comparação',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.additionalGuidance,
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.exAdvancedLevelFocusComparison,
                         border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       initialValue: count,
-                      decoration: const InputDecoration(
-                        labelText: 'Quantidade de questões',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.quantity,
                       ),
                       items: [
                         for (var amount = 1; amount <= 3; amount++)
@@ -844,7 +849,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       controller: titleController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: "Título",
+                        labelText: AppLocalizations.of(context)!.title,
                       ),
                     ),
                     TextField(
@@ -852,7 +857,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       controller: statementController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: "Enunciado",
+                        labelText: AppLocalizations.of(context)!.statement,
                       ),
                     ),
                     Align(
@@ -873,7 +878,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                         label: Text(
                           _isGenerating
                               ? 'Gerando questão...'
-                              : 'Gerar questão com IA',
+                              : AppLocalizations.of(
+                                  context,
+                                )!.generateQuestionWithAi,
                         ),
                       ),
                     ),
@@ -881,9 +888,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       onChanged: typeChanged,
                       controller: typeController,
                       readOnly: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: "Tipo de questão",
+                        labelText: AppLocalizations.of(context)!.typeQuestion,
                       ),
                       onTap: () async {
                         final value = await showModalBottomSheet<OpenEndedType>(
@@ -893,18 +900,14 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ListTile(
-                                  title: const RuntimeLocalizedText(
-                                    "Dissertativa",
-                                  ),
+                                  title: RuntimeLocalizedText("Dissertativa"),
                                   onTap: () => Navigator.pop(
                                     context,
                                     OpenEndedType.essay,
                                   ),
                                 ),
                                 ListTile(
-                                  title: const RuntimeLocalizedText(
-                                    "Método Feynman",
-                                  ),
+                                  title: RuntimeLocalizedText("Método Feynman"),
                                   onTap: () => Navigator.pop(
                                     context,
                                     OpenEndedType.feynman,
@@ -927,7 +930,9 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                       controller: referenceCorrectAnswerController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: "Resposta de referência",
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.referenceAnswer,
                       ),
                     ),
                     FilledButton(
@@ -1018,14 +1023,16 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                         controller: userAnswerController,
                         textCapitalization: TextCapitalization.sentences,
                         textInputAction: TextInputAction.newline,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           alignLabelWithHint: true,
                           border: OutlineInputBorder(),
-                          labelText: "Sua resposta",
-                          hintText:
-                              "Explique seu raciocínio. Você pode usar várias linhas.",
-                          helperText:
-                              "Sua tentativa ficará disponível no Histórico.",
+                          labelText: AppLocalizations.of(context)!.answer,
+                          hintText: AppLocalizations.of(
+                            context,
+                          )!.explainReasoning,
+                          helperText: AppLocalizations.of(
+                            context,
+                          )!.useMultipleLines,
                         ),
                       ),
                       Align(
@@ -1116,9 +1123,7 @@ class _OpenEnded extends ConsumerState<OpenEnded> {
                             });
                           },
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: const RuntimeLocalizedText(
-                            'Responder questão',
-                          ),
+                          label: RuntimeLocalizedText('Responder questão'),
                         ),
                       )
                     else

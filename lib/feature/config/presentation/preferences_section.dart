@@ -8,6 +8,8 @@ import 'package:noema/feature/config/providers/preference_storage_provider.dart'
 import 'package:noema/feature/config/presentation/preference_device_scope_control.dart';
 import 'package:noema/feature/config/presentation/response_language_preferences_section.dart';
 import 'package:noema/feature/graph/providers/graph_prompt_preferences_provider.dart';
+import 'package:noema/feature/graph/providers/recommended_study_content_provider.dart';
+import 'package:noema/feature/exercises/data/study_pack_service.dart';
 import 'package:noema/feature/study_assistant/models/study_assistant_state.dart';
 import 'package:noema/feature/study_assistant/providers/study_assistant_preferences_provider.dart';
 import 'package:noema/l10n/app_localizations.dart';
@@ -44,12 +46,12 @@ class PreferencesSection extends ConsumerWidget {
                 ),
                 error: (error, _) => ListTile(
                   leading: const Icon(Icons.error_outline),
-                  title: const RuntimeLocalizedText(
+                  title: RuntimeLocalizedText(
                     'Sincronização de preferências',
                   ),
-                  subtitle: RuntimeLocalizedText('Não foi possível carregar'),
+                  subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
                   trailing: IconButton(
-                    tooltip: 'Tentar novamente',
+                    tooltip: AppLocalizations.of(context)!.tryAgain,
                     onPressed: () =>
                         ref.invalidate(automaticConfigSyncProvider),
                     icon: const Icon(Icons.refresh),
@@ -86,10 +88,10 @@ class PreferencesSection extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (error, _) => ListTile(
                   leading: const Icon(Icons.error_outline),
-                  title: const RuntimeLocalizedText(
+                  title: RuntimeLocalizedText(
                     'Alterações aguardando sincronização',
                   ),
-                  subtitle: RuntimeLocalizedText('Não foi possível verificar'),
+                  subtitle: const RuntimeLocalizedText('Não foi possível verificar'),
                 ),
                 data: (count) => count == 0
                     ? const SizedBox.shrink()
@@ -98,7 +100,7 @@ class PreferencesSection extends ConsumerWidget {
                         title: Text(
                           '$count ${count == 1 ? 'alteração pendente' : 'alterações pendentes'}',
                         ),
-                        subtitle: const RuntimeLocalizedText(
+                        subtitle: RuntimeLocalizedText(
                           'Envia quando a conexão estiver disponível.',
                         ),
                         trailing: FilledButton.tonalIcon(
@@ -188,11 +190,157 @@ class PreferencesSection extends ConsumerWidget {
         SizedBox(height: context.spacing.lg - context.spacing.xs),
         const _StudyAssistantGenerationSetting(),
         SizedBox(height: context.spacing.lg - context.spacing.xs),
+        const _RecommendedStudyContentSetting(),
+        SizedBox(height: context.spacing.lg - context.spacing.xs),
         const _GraphPromptSetting(),
       ],
     );
   }
 }
+
+class _RecommendedStudyContentSetting extends ConsumerWidget {
+  const _RecommendedStudyContentSetting();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(recommendedStudyContentSettingsProvider);
+    return settings.when(
+      loading: () => const ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.auto_awesome_outlined),
+        title: RuntimeLocalizedText('Preparar estudo do próximo nó'),
+        subtitle: RuntimeLocalizedText('Carregando configuração...'),
+      ),
+      error: (error, _) => ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.error_outline),
+        title: const RuntimeLocalizedText('Preparar estudo do próximo nó'),
+        subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
+        trailing: IconButton(
+          tooltip: AppLocalizations.of(context)!.tryAgain,
+          onPressed: () =>
+              ref.invalidate(recommendedStudyContentSettingsProvider),
+          icon: const Icon(Icons.refresh),
+        ),
+      ),
+      data: (value) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.auto_awesome_outlined),
+            title: RuntimeLocalizedText(
+              'Gerar material para o próximo nó',
+            ),
+            subtitle: RuntimeLocalizedText(
+              'Ao abrir o nó recomendado, prepara exercícios e flashcards em segundo plano. Desativado por padrão.',
+            ),
+            value: value.enabled,
+            onChanged: (enabled) => _saveAssistantPreference(
+              context,
+              () => ref
+                  .read(recommendedStudyContentSettingsProvider.notifier)
+                  .setEnabled(enabled),
+            ),
+          ),
+          if (value.enabled) ...[
+            SizedBox(height: context.spacing.sm),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                _StudyPackCountSetting(
+                  label: 'Múltipla escolha',
+                  value: value.counts.multipleChoice,
+                  onChanged: (count) => _saveStudyPackCounts(
+                    context,
+                    ref,
+                    value,
+                    value.counts.copyWith(multipleChoice: count),
+                  ),
+                ),
+                _StudyPackCountSetting(
+                  label: 'Dissertativas',
+                  value: value.counts.essay,
+                  onChanged: (count) => _saveStudyPackCounts(
+                    context,
+                    ref,
+                    value,
+                    value.counts.copyWith(essay: count),
+                  ),
+                ),
+                _StudyPackCountSetting(
+                  label: 'Feynman',
+                  value: value.counts.feynman,
+                  onChanged: (count) => _saveStudyPackCounts(
+                    context,
+                    ref,
+                    value,
+                    value.counts.copyWith(feynman: count),
+                  ),
+                ),
+                _StudyPackCountSetting(
+                  label: 'Flashcards',
+                  value: value.counts.flashcards,
+                  onChanged: (count) => _saveStudyPackCounts(
+                    context,
+                    ref,
+                    value,
+                    value.counts.copyWith(flashcards: count),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: context.spacing.xs),
+            RuntimeLocalizedText(
+              'Se o nó já tiver exercícios, flashcards ou materiais vinculados, você confirma antes de gerar conteúdo adicional.',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StudyPackCountSetting extends StatelessWidget {
+  const _StudyPackCountSetting({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 168,
+    child: DropdownButtonFormField<int>(
+      initialValue: value,
+      decoration: InputDecoration(labelText: label),
+      items: [
+        for (var count = 0; count <= 10; count++)
+          DropdownMenuItem(value: count, child: Text('$count')),
+      ],
+      onChanged: (count) {
+        if (count != null) onChanged(count);
+      },
+    ),
+  );
+}
+
+Future<void> _saveStudyPackCounts(
+  BuildContext context,
+  WidgetRef ref,
+  RecommendedStudyContentSettings value,
+  StudyPackCounts counts,
+) => _saveAssistantPreference(
+  context,
+  () => ref
+      .read(recommendedStudyContentSettingsProvider.notifier)
+      .setCounts(counts),
+);
 
 class _StudyAssistantGenerationSetting extends ConsumerWidget {
   const _StudyAssistantGenerationSetting();
@@ -211,9 +359,9 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
         title: const RuntimeLocalizedText('Assistente de estudos'),
-        subtitle: RuntimeLocalizedText('Não foi possível carregar'),
+        subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: () => ref.invalidate(studyAssistantSettingsProvider),
           icon: const Icon(Icons.refresh),
         ),
@@ -226,7 +374,7 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
               Expanded(
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const RuntimeLocalizedText(
+                  title: RuntimeLocalizedText(
                     'Fixar assistente em telas largas',
                   ),
                   value: value.pinPanel,
@@ -258,8 +406,8 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
               Expanded(
                 child: DropdownButtonFormField<StudyAssistantResponseStyle>(
                   initialValue: value.responseStyle,
-                  decoration: const InputDecoration(
-                    labelText: 'Nível de detalhe das respostas',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.responseDetailLevel,
                     prefixIcon: Icon(Icons.notes_outlined),
                   ),
                   items: const [
@@ -309,7 +457,7 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const RuntimeLocalizedText('Enter para enviar'),
-                  subtitle: const RuntimeLocalizedText(
+                  subtitle: RuntimeLocalizedText(
                     'Shift+Enter cria uma nova linha.',
                   ),
                   value: value.sendOnEnter,
@@ -335,10 +483,10 @@ class _StudyAssistantGenerationSetting extends ConsumerWidget {
               Expanded(
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const RuntimeLocalizedText(
+                  title: RuntimeLocalizedText(
                     'Gerar ações automaticamente',
                   ),
-                  subtitle: const RuntimeLocalizedText(
+                  subtitle: RuntimeLocalizedText(
                     'Executa automaticamente ações propostas.',
                   ),
                   value: value.autoGenerateActions,
@@ -387,9 +535,9 @@ class _GraphPromptSetting extends ConsumerWidget {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
         title: const RuntimeLocalizedText('Melhorar prompts de grafos'),
-        subtitle: RuntimeLocalizedText('Não foi possível carregar'),
+        subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: () => ref.invalidate(graphPromptEnhancementModeProvider),
           icon: const Icon(Icons.refresh),
         ),
@@ -399,8 +547,8 @@ class _GraphPromptSetting extends ConsumerWidget {
           Expanded(
             child: DropdownButtonFormField<GraphPromptEnhancementMode>(
               initialValue: mode,
-              decoration: const InputDecoration(
-                labelText: 'Melhorar prompt ao criar grafos',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.improvePromptsWhenCreatingGraphs,
                 prefixIcon: Icon(Icons.auto_fix_high_outlined),
               ),
               items: GraphPromptEnhancementMode.values
@@ -519,9 +667,9 @@ class _ExerciseCorrectionModeSetting extends ConsumerWidget {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
         title: const RuntimeLocalizedText('Correção de exercícios'),
-        subtitle: RuntimeLocalizedText('Não foi possível carregar'),
+        subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: () => ref.invalidate(exerciseCorrectionModeProvider),
           icon: const Icon(Icons.refresh),
         ),
@@ -531,8 +679,8 @@ class _ExerciseCorrectionModeSetting extends ConsumerWidget {
           Expanded(
             child: DropdownButtonFormField<ExerciseCorrectionMode>(
               initialValue: value,
-              decoration: const InputDecoration(
-                labelText: 'Modo de correção das tarefas',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.taskCorrectionMode,
                 prefixIcon: Icon(Icons.fact_check_outlined),
               ),
               items: const [
@@ -597,9 +745,9 @@ class _AiQueueConcurrencySetting extends ConsumerWidget {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
         title: const RuntimeLocalizedText('Fila de tarefas de IA'),
-        subtitle: RuntimeLocalizedText('Não foi possível carregar'),
+        subtitle: const RuntimeLocalizedText('Não foi possível carregar'),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: () => ref.invalidate(aiQueueConcurrencyProvider),
           icon: const Icon(Icons.refresh),
         ),
@@ -609,8 +757,8 @@ class _AiQueueConcurrencySetting extends ConsumerWidget {
           Expanded(
             child: DropdownButtonFormField<int>(
               initialValue: value,
-              decoration: const InputDecoration(
-                labelText: 'Gerações automáticas simultâneas',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.concurrentAutomaticGenerations,
                 prefixIcon: Icon(Icons.queue),
               ),
               items: const [
@@ -690,7 +838,7 @@ class _PreferenceInfoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: 'Mais informações',
+      tooltip: AppLocalizations.of(context)!.moreInformation,
       visualDensity: VisualDensity.compact,
       onPressed: () => showDialog<void>(
         context: context,

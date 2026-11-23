@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -72,7 +73,7 @@ class _DashboardError extends StatelessWidget {
         ),
       ),
       IconButton(
-        tooltip: 'Tentar novamente',
+        tooltip: AppLocalizations.of(context)!.tryAgain,
         onPressed: onRetry,
         icon: const Icon(Icons.refresh),
       ),

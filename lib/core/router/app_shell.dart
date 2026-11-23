@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -265,7 +266,7 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(aiBackgroundTaskRunnerProvider);
-    final chrome = chromeForPath(currentPath);
+    final chrome = chromeForPath(currentPath, AppLocalizations.of(context)!);
     final width = MediaQuery.sizeOf(context).width;
     final displaySize = spacingFor(width);
     final paths = buildCumulativePaths(context);
@@ -322,7 +323,7 @@ class AppShell extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              RuntimeLocalizedText(
                 chrome.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -338,7 +339,7 @@ class AppShell extends ConsumerWidget {
                 )
               else if (displaySize != DisplaySize.mobile &&
                   chrome.subtitle != null)
-                Text(
+                RuntimeLocalizedText(
                   chrome.subtitle!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -503,7 +504,7 @@ class AppShell extends ConsumerWidget {
                                         message: item.label,
                                         child: Icon(item.selectedIcon),
                                       ),
-                                      label: Text(item.label),
+                                      label: RuntimeLocalizedText(item.label),
                                     ),
                                 ],
                               ),
@@ -570,7 +571,7 @@ class AppShell extends ConsumerWidget {
         selected: isSelected,
         child: ListTile(
           leading: Icon(isSelected ? item.selectedIcon : item.icon),
-          title: Text(item.label),
+          title: RuntimeLocalizedText(item.label),
           selected: isSelected,
           trailing: isSelected ? const Icon(Icons.check_circle_outline) : null,
           minTileHeight: AppLayoutTokens.minimumControlHeight,
@@ -769,7 +770,7 @@ class _ProfileMenuButton extends ConsumerWidget {
     final email = profile?.primaryEmail.trim() ?? '';
 
     return PopupMenuButton<_ProfileMenuAction>(
-      tooltip: 'Abrir menu de $displayName',
+      tooltip: AppLocalizations.of(context)!.openMenu(displayName),
       position: PopupMenuPosition.under,
       menuPadding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),

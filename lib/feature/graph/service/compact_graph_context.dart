@@ -27,7 +27,7 @@ class CompactGraphSnapshot {
     }
 
     return {
-      if (targetCompactId != null) 'target_node': targetCompactId,
+      'target_node': ?targetCompactId,
       'nodes': [
         for (final entry in nodesByCompactId.entries)
           {

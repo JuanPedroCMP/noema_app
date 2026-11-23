@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -29,12 +30,12 @@ class AiQueuePage extends ConsumerWidget {
               subtitle: 'Acompanhe tarefas automáticas, retentativas e falhas.',
               actions: [
                 IconButton(
-                  tooltip: 'Limpar tarefas concluídas',
+                  tooltip: AppLocalizations.of(context)!.clearCompletedTasks,
                   onPressed: () => _clearFinished(context, ref),
                   icon: const Icon(Icons.cleaning_services_outlined),
                 ),
                 IconButton(
-                  tooltip: 'Atualizar fila',
+                  tooltip: AppLocalizations.of(context)!.updateQueue,
                   onPressed: () =>
                       ref.invalidate(aiBackgroundTaskItemsProvider),
                   icon: const Icon(Icons.refresh),
@@ -388,7 +389,7 @@ class _TaskActions extends ConsumerWidget {
       children: [
         if (canRetry)
           IconButton(
-            tooltip: 'Reenfileirar tarefa',
+            tooltip: AppLocalizations.of(context)!.requeueTask,
             onPressed: () async {
               try {
                 await AiBackgroundTaskDao(
@@ -403,7 +404,7 @@ class _TaskActions extends ConsumerWidget {
           ),
         if (canCancel)
           IconButton(
-            tooltip: 'Cancelar tarefa',
+            tooltip: AppLocalizations.of(context)!.cancelTask,
             onPressed: () async {
               try {
                 await AiBackgroundTaskDao(

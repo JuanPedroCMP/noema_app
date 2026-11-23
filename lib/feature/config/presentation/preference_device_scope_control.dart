@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/config/providers/preference_storage_provider.dart';
@@ -30,7 +31,9 @@ class PreferenceDeviceScopeControl extends ConsumerWidget {
         ),
       ),
       error: (error, _) => IconButton(
-        tooltip: 'Não foi possível carregar o destino: $error',
+        tooltip: AppLocalizations.of(context)!.couldNotLoadDestination(
+          error.toString(),
+        ),
         onPressed: () =>
             ref.invalidate(preferenceDeviceOnlyProvider(preferenceKey)),
         icon: const Icon(Icons.error_outline),

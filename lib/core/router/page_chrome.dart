@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 
 class PageChrome {
   final String title;
@@ -14,29 +15,27 @@ class PageChrome {
   });
 }
 
-PageChrome chromeForPath(String path) {
+PageChrome chromeForPath(String path, AppLocalizations l10n) {
   final segments = Uri.parse(path).pathSegments;
   if (path == '/dashboard') {
     return PageChrome(
-      title: 'Painel',
-      subtitle: 'Seu domínio e evolução nos estudos',
+      title: l10n.dashboardTitle,
+      subtitle: l10n.dashboardSubtitle,
       actions: const [],
       pageItens: const [],
     );
   }
   if (segments.isNotEmpty && segments.first == 'study-sessions') {
     final title = segments.length == 1
-        ? 'Sessões de estudo'
+        ? l10n.studySessions
         : segments.last == 'create'
-        ? 'Criar sessão'
+        ? l10n.createSessionTitle
         : segments.last == 'run'
-        ? 'Sessão em andamento'
-        : 'Sessão de estudo';
+        ? l10n.activeStudySessionTitle
+        : l10n.studySession;
     return PageChrome(
       title: title,
-      subtitle: segments.length == 1
-          ? 'Planeje e acompanhe seu progresso'
-          : null,
+      subtitle: segments.length == 1 ? l10n.studySessionsSubtitle : null,
       actions: const [],
       pageItens: const [],
     );
@@ -44,7 +43,7 @@ PageChrome chromeForPath(String path) {
   if (segments.isNotEmpty && segments.first == 'graphs') {
     if (segments.contains('flashcards')) {
       return PageChrome(
-        title: 'Flashcards do nó',
+        title: l10n.nodeFlashcardsTitle,
         actions: const [],
         pageItens: const [],
       );
@@ -52,20 +51,20 @@ PageChrome chromeForPath(String path) {
     if (segments.contains('exercises')) {
       if (segments.last == 'responses') {
         return PageChrome(
-          title: 'Histórico de respostas',
+          title: l10n.answerHistoryTitle,
           actions: const [],
           pageItens: const [],
         );
       }
       return PageChrome(
-        title: 'Exercícios',
+        title: l10n.exercisesTitle,
         actions: const [],
         pageItens: const [],
       );
     }
     return PageChrome(
-      title: 'Grafos',
-      subtitle: 'Conecte ideias e explore conceitos',
+      title: l10n.graphsTitle,
+      subtitle: l10n.graphsSubtitle,
       actions: const [],
       pageItens: const [],
     );
@@ -73,8 +72,8 @@ PageChrome chromeForPath(String path) {
 
   if (path.startsWith('/notes')) {
     return PageChrome(
-      title: 'Notas',
-      subtitle: 'Organize suas ideias e materiais',
+      title: l10n.notesTitle,
+      subtitle: l10n.notesSubtitle,
       actions: const [],
       pageItens: const [],
     );
@@ -82,8 +81,8 @@ PageChrome chromeForPath(String path) {
 
   if (path.startsWith('/config')) {
     return PageChrome(
-      title: 'Configuração',
-      subtitle: 'Personalize sua experiência no Noema',
+      title: l10n.settingsTitle,
+      subtitle: l10n.settingsSubtitle,
       actions: const [],
       pageItens: const [],
     );
@@ -91,7 +90,7 @@ PageChrome chromeForPath(String path) {
 
   if (path == '/flashcards') {
     return PageChrome(
-      title: 'Flashcards',
+      title: l10n.flashcardsTitle,
       subtitle: 'Revise conceitos no seu ritmo',
       actions: const [],
       pageItens: const [],
@@ -100,16 +99,16 @@ PageChrome chromeForPath(String path) {
 
   if (path == '/ai-queue') {
     return PageChrome(
-      title: 'Fila de IA',
-      subtitle: 'Acompanhe tarefas em segundo plano',
+      title: l10n.aiTaskQueue,
+      subtitle: l10n.aiQueueSubtitle,
       actions: const [],
       pageItens: const [],
     );
   }
 
   return PageChrome(
-    title: 'Início',
-    subtitle: 'Seu espaço de aprendizagem',
+    title: l10n.homeTitle,
+    subtitle: l10n.homeSubtitle,
     actions: const [],
     pageItens: const [],
   );

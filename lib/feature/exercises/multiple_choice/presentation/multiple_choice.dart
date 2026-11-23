@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
@@ -407,17 +408,17 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                       autofocus: true,
                       maxLines: 3,
                       maxLength: 300,
-                      decoration: const InputDecoration(
-                        labelText: 'Orientação adicional (opcional)',
-                        hintText: 'Ex.: nível intermediário, foco em aplicação',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.additionalGuidance,
+                        hintText: AppLocalizations.of(context)!.attemptWillAvailableHistory,
                         border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       initialValue: count,
-                      decoration: const InputDecoration(
-                        labelText: 'Quantidade de questões',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.quantity,
                       ),
                       items: [
                         for (var amount = 1; amount <= 3; amount++)
@@ -958,9 +959,9 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                             onChanged: titleChanged,
                             controller: titleController,
                             maxLines: 3,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               border: OutlineInputBorder(),
-                              labelText: "Título",
+                              labelText: AppLocalizations.of(context)!.title,
                             ),
                           ),
                           TextField(
@@ -968,7 +969,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                             controller: statementController,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(),
-                              labelText: "Enunciado",
+                              labelText: AppLocalizations.of(context)!.statement,
                             ),
                           ),
                           Align(
@@ -989,7 +990,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                               label: Text(
                                 _isGenerating
                                     ? 'Gerando questão...'
-                                    : 'Gerar questão com IA',
+                                    : AppLocalizations.of(context)!.generateQuestionWithAi,
                               ),
                             ),
                           ),
@@ -1015,7 +1016,7 @@ class _MultipleChoise extends ConsumerState<MultipleChoise> {
                                   icon: Icon(Icons.edit),
                                 ),
                                 IconButton(
-                                  tooltip: "Excluir alternativa",
+                                  tooltip: AppLocalizations.of(context)!.exIntermediateLevelFocusApplication,
                                   onPressed: () => _deleteChoice(choise),
                                   icon: const Icon(Icons.delete_outline),
                                 ),

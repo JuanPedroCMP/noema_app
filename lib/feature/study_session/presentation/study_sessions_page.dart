@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -173,7 +174,7 @@ class _StudySessionsPageState extends ConsumerState<StudySessionsPage> {
                           ),
                         ),
                         trailing: PopupMenuButton<String>(
-                          tooltip: 'Ações da sessão',
+                          tooltip: AppLocalizations.of(context)!.textSessionActions,
                           onSelected: (action) {
                             if (action == 'archive') _deleteSession(session);
                           },

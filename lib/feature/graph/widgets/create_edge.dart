@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -52,8 +53,8 @@ class CreateEdge extends ConsumerWidget {
                   .toList(),
             ),
             error: (Object error, StackTrace stackTrace) =>
-                RuntimeLocalizedText("Erro"),
-            loading: () => RuntimeLocalizedText("Carregando"),
+                const RuntimeLocalizedText("Erro"),
+            loading: () => const RuntimeLocalizedText("Carregando"),
           ),
           Row(
             children: [
@@ -80,8 +81,8 @@ class CreateEdge extends ConsumerWidget {
                   .toList(),
             ),
             error: (Object error, StackTrace stackTrace) =>
-                RuntimeLocalizedText("Erro"),
-            loading: () => RuntimeLocalizedText("Carregando"),
+                const RuntimeLocalizedText("Erro"),
+            loading: () => const RuntimeLocalizedText("Carregando"),
           ),
 
           DropdownMenu<String>(
@@ -91,7 +92,7 @@ class CreateEdge extends ConsumerWidget {
               }
             },
             expandedInsets: EdgeInsets.zero,
-            label: const RuntimeLocalizedText("Tipo de relação"),
+            label: RuntimeLocalizedText(AppLocalizations.of(context)!.relationType),
             dropdownMenuEntries: [
               DropdownMenuEntry(
                 value: 'PREREQUISITE',
@@ -114,7 +115,7 @@ class CreateEdge extends ConsumerWidget {
             },
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: "Peso",
+              labelText: AppLocalizations.of(context)!.textWeight,
             ),
           ),
           Row(
@@ -175,14 +176,14 @@ class CreateEdge extends ConsumerWidget {
                     }
                   }
                 },
-                child: RuntimeLocalizedText("Criar"),
+                child: const RuntimeLocalizedText("Criar"),
               ),
 
               OutlinedButton(
                 onPressed: () {
                   graphStatesNotifier.isCreatingEdgeChanged(false);
                 },
-                child: RuntimeLocalizedText("Cancelar"),
+                child: const RuntimeLocalizedText("Cancelar"),
               ),
             ],
           ),

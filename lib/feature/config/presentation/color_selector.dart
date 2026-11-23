@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/config/providers/color_form_provider.dart';
@@ -76,9 +77,9 @@ class _ColorSelectorState extends ConsumerState<ColorSelector> {
                       formNotifier.colorChanged(color.toString());
                     }
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Cor Atual',
+                    labelText: AppLocalizations.of(context)!.displayName,
                   ),
                 ),
               ),

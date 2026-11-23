@@ -300,12 +300,12 @@ class _ResponseLanguagePreferencesSectionState
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
-        title: const RuntimeLocalizedText(
+        title: RuntimeLocalizedText(
           'Não foi possível carregar as preferências',
         ),
         subtitle: RuntimeLocalizedText('$_error'),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: _load,
           icon: const Icon(Icons.refresh),
         ),
@@ -404,7 +404,7 @@ class _ResponseLanguagePreferencesSectionState
             },
           ),
         if (_languages.isEmpty)
-          const RuntimeLocalizedText(
+          RuntimeLocalizedText(
             'Conecte-se uma vez para carregar idiomas; as preferências salvas continuam disponíveis offline.',
           )
         else

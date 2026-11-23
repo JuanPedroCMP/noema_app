@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -78,8 +79,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
               TextField(
                 controller: titleController,
                 maxLength: 80,
-                decoration: const InputDecoration(
-                  labelText: 'Título do grafo',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.graphTitle,
                   prefixIcon: Icon(Icons.title),
                 ),
               ),
@@ -89,8 +90,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                 minLines: 3,
                 maxLines: 5,
                 maxLength: 240,
-                decoration: const InputDecoration(
-                  labelText: 'Descrição',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.description,
                   alignLabelWithHint: true,
                   prefixIcon: Icon(Icons.notes_outlined),
                 ),
@@ -160,9 +161,11 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             minLines: 2,
             maxLines: 5,
             maxLength: 500,
-            decoration: const InputDecoration(
-              labelText: 'O que deve mudar?',
-              hintText: 'Ex.: Renomeie o nó 2 e adicione dois pré-requisitos.',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.shouldChange,
+              hintText: AppLocalizations.of(
+                context,
+              )!.exRenameNode2AddTwoPrerequisites,
             ),
           ),
           actions: [
@@ -236,7 +239,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
   Widget build(BuildContext context) {
     final nodesAsync = ref.watch(nodesProvider(widget.graphId));
     final edgesAsync = ref.watch(edgesProvider(widget.graphId));
-    final dueReviewNodeIds = ref.watch(dueReviewNodeIdsProvider(widget.graphId));
+    final dueReviewNodeIds = ref.watch(
+      dueReviewNodeIdsProvider(widget.graphId),
+    );
     final graphsAsync = ref.watch(knowledgeGraphsProvider);
     final selected = ref.watch(selectedProvider);
     final selectedNotifier = ref.watch(selectedProvider.notifier);
@@ -320,9 +325,23 @@ class _GraphPageState extends ConsumerState<GraphPage> {
     final selectedNode = nodesById[selected];
     final selectedEdge = edgesById[selected];
     final recommendedNodeId = learningPath.recommendedNodeIds.firstOrNull;
-    final recommendedNode = recommendedNodeId == null
-        ? null
-        : nodesById[recommendedNodeId];
+    final recommendedNodes = [
+      for (final id in learningPath.recommendedNodeIds)
+        if (nodesById[id] != null) nodesById[id]!,
+    ];
+    final learnableNodes = nodes
+        .where(
+          (node) =>
+              !(learningPath.progressByNodeId[node.id]?.isContainer ?? true),
+        )
+        .toList(growable: false);
+    final masteredLearnableCount = learnableNodes
+        .where(
+          (node) =>
+              learningPath.progressByNodeId[node.id]?.status ==
+              LearningProgressStatus.mastered,
+        )
+        .length;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -367,7 +386,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    tooltip: 'Buscar conceito',
+                    tooltip: AppLocalizations.of(context)!.searchConcept,
                     onPressed: nodes.isEmpty
                         ? null
                         : () => _showNodeSearch(
@@ -380,7 +399,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     visualDensity: VisualDensity.compact,
                   ),
                   PopupMenuButton<int>(
-                    tooltip: 'Estilo das relações',
+                    tooltip: AppLocalizations.of(context)!.relationshipStyle,
                     initialValue: edgeType,
                     onSelected: ref
                         .read(edgeTypeProvider.notifier)
@@ -442,28 +461,28 @@ class _GraphPageState extends ConsumerState<GraphPage> {
           if (nodes.isNotEmpty && !isCreatingEdge) ...[
             const SizedBox(height: 8),
             _LearningPathBanner(
-              recommendedNode: recommendedNode,
-              masteredCount: learningPath.masteredCount,
-              totalCount: nodes.length,
+              recommendedNodes: recommendedNodes,
+              progressByNodeId: learningPath.progressByNodeId,
+              reviewDueNodeIds: dueReviewNodeIds,
+              masteredCount: masteredLearnableCount,
+              totalCount: learnableNodes.length,
               hasUnresolvedNodes: learningPath.hasUnresolvedNodes,
-              onOpenRecommended: recommendedNode == null
-                  ? null
-                  : () {
-                      final viewport = _lastViewport;
-                      final origin = _currentOrigin(nodes);
-                      _selectNode(
-                        context,
-                        recommendedNode,
-                        origin,
-                        viewport,
-                        controllerNotifier,
-                        selectedNotifier,
-                        showSheet: MediaQuery.sizeOf(context).width < 900,
-                        nodes: nodes,
-                        edges: edges,
-                        learningPath: learningPath,
-                      );
-                    },
+              onOpenNode: (node) {
+                final viewport = _lastViewport;
+                final origin = _currentOrigin(nodes);
+                _selectNode(
+                  context,
+                  node,
+                  origin,
+                  viewport,
+                  controllerNotifier,
+                  selectedNotifier,
+                  showSheet: MediaQuery.sizeOf(context).width < 900,
+                  nodes: nodes,
+                  edges: edges,
+                  learningPath: learningPath,
+                );
+              },
             ),
           ],
           if (selectedEdge != null) ...[
@@ -666,6 +685,13 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                           progress:
                               learningPath.progressByNodeId[selectedNode.id]!,
                           progressByNodeId: learningPath.progressByNodeId,
+                          prerequisitePathNodes: [
+                            for (final id
+                                in learningPath
+                                    .progressByNodeId[selectedNode.id]!
+                                    .prerequisitePathNodeIds)
+                              if (nodesById[id] != null) nodesById[id]!,
+                          ],
                           prerequisiteNodes: [
                             for (final edge in edges.where(
                               (edge) =>
@@ -861,7 +887,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                 children: [
                   DropdownButtonFormField<String>(
                     initialValue: nodeType,
-                    decoration: const InputDecoration(labelText: 'Tipo'),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.type,
+                    ),
                     items: const [
                       DropdownMenuItem(
                         value: 'AREA',
@@ -893,8 +921,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     controller: titleController,
                     autofocus: true,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Título',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.title,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -904,8 +932,10 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                     minLines: 2,
                     maxLines: 4,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Descrição (opcional)',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      )!.optionalDescription,
                       border: OutlineInputBorder(),
                       alignLabelWithHint: true,
                     ),
@@ -1084,7 +1114,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
               .where((node) => node.id != selectedTargetId)
               .toList();
           return AlertDialog(
-            title: const RuntimeLocalizedText('Criar relação'),
+            title: RuntimeLocalizedText(
+              AppLocalizations.of(context)!.createRelation,
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1093,7 +1125,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   DropdownButtonFormField<String>(
                     initialValue: selectedSourceId,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Origem'),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.origin,
+                    ),
                     items: [
                       for (final node in availableSources)
                         DropdownMenuItem(
@@ -1119,7 +1153,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         ),
                       ),
                       icon: const Icon(Icons.touch_app_outlined),
-                      label: const RuntimeLocalizedText(
+                      label: RuntimeLocalizedText(
                         'Escolher origem clicando no nó',
                       ),
                     ),
@@ -1131,7 +1165,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   DropdownButtonFormField<String>(
                     initialValue: selectedTargetId,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Destino'),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.destiny,
+                    ),
                     items: [
                       for (final node in availableTargets)
                         DropdownMenuItem(
@@ -1157,7 +1193,7 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                         ),
                       ),
                       icon: const Icon(Icons.touch_app_outlined),
-                      label: const RuntimeLocalizedText(
+                      label: RuntimeLocalizedText(
                         'Escolher destino clicando no nó',
                       ),
                     ),
@@ -1165,8 +1201,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: relationType,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de relação',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.relationType,
                     ),
                     items: const [
                       DropdownMenuItem(
@@ -1202,8 +1238,8 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                       signed: true,
                     ),
                     onChanged: (value) => weightValue = value.trim(),
-                    decoration: const InputDecoration(
-                      labelText: 'Peso (opcional)',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.weight,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -1269,7 +1305,9 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                   );
                 },
                 icon: const Icon(Icons.add_link_rounded),
-                label: const RuntimeLocalizedText('Criar relação'),
+                label: RuntimeLocalizedText(
+                  AppLocalizations.of(context)!.createRelation,
+                ),
               ),
             ],
           );
@@ -1379,8 +1417,10 @@ class _GraphPageState extends ConsumerState<GraphPage> {
                       controller: controller,
                       autofocus: true,
                       onChanged: (_) => setDialogState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Digite o nome de um conceito',
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.enterNameConcept,
                         prefixIcon: Icon(Icons.search_rounded),
                         border: OutlineInputBorder(),
                       ),
@@ -1498,6 +1538,10 @@ class _GraphPageState extends ConsumerState<GraphPage> {
             scrollController: scrollController,
             progress: progress,
             progressByNodeId: learningPath.progressByNodeId,
+            prerequisitePathNodes: [
+              for (final id in progress.prerequisitePathNodeIds)
+                if (nodesById[id] != null) nodesById[id]!,
+            ],
             prerequisiteNodes: [
               for (final edge in edges.where(
                 (edge) =>
@@ -1601,7 +1645,7 @@ class _CanvasCreationPrompt extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Cancelar criação',
+                tooltip: AppLocalizations.of(context)!.cancelCreation,
                 visualDensity: VisualDensity.compact,
                 onPressed: onCancel,
                 icon: Icon(
@@ -1672,18 +1716,22 @@ class _EdgeDialogResult {
 
 class _LearningPathBanner extends StatefulWidget {
   const _LearningPathBanner({
-    required this.recommendedNode,
+    required this.recommendedNodes,
+    required this.progressByNodeId,
+    required this.reviewDueNodeIds,
     required this.masteredCount,
     required this.totalCount,
     required this.hasUnresolvedNodes,
-    required this.onOpenRecommended,
+    required this.onOpenNode,
   });
 
-  final GraphNodeData? recommendedNode;
+  final List<GraphNodeData> recommendedNodes;
+  final Map<String, LearningNodeProgress> progressByNodeId;
+  final Set<String> reviewDueNodeIds;
   final int masteredCount;
   final int totalCount;
   final bool hasUnresolvedNodes;
-  final VoidCallback? onOpenRecommended;
+  final ValueChanged<GraphNodeData> onOpenNode;
 
   @override
   State<_LearningPathBanner> createState() => _LearningPathBannerState();
@@ -1692,22 +1740,51 @@ class _LearningPathBanner extends StatefulWidget {
 class _LearningPathBannerState extends State<_LearningPathBanner> {
   bool _isExpanded = false;
 
+  String _recommendationReason(GraphNodeData node) {
+    if (widget.reviewDueNodeIds.contains(node.id)) {
+      return 'Revisão recomendada agora.';
+    }
+
+    final progress = widget.progressByNodeId[node.id];
+    if (progress?.masteryScore == null) {
+      return 'Pronto para começar; ainda não há domínio registrado.';
+    }
+
+    final score = (progress!.masteryScore! * 100).round();
+    return 'Domínio atual: $score%. Estude até alcançar 80%.';
+  }
+
+  String _stepDescription(GraphNodeData node) {
+    final objective = node.description?.trim();
+    final progress = widget.progressByNodeId[node.id];
+    final mastery = progress?.masteryScore;
+    final masteryText = widget.reviewDueNodeIds.contains(node.id)
+        ? 'Revisão vencida'
+        : mastery == null
+        ? 'Pré-requisitos em dia; sem domínio registrado'
+        : 'Domínio ${(mastery * 100).round()}% · meta 80%';
+    final objectiveText = objective == null || objective.isEmpty
+        ? 'Objetivo ainda não descrito'
+        : objective;
+    return '$masteryText · $objectiveText';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textTheme = context.textTheme;
-    final node = widget.recommendedNode;
+    final node = widget.recommendedNodes.firstOrNull;
     final title = node != null
-        ? 'Próximo passo recomendado'
+        ? '${widget.recommendedNodes.length} próximos passos prontos'
         : widget.hasUnresolvedNodes
-        ? 'Seu percurso está bloqueado'
-        : 'Todos os tópicos estão dominados';
-    final message = node != null
-        ? node.title
-        : widget.hasUnresolvedNodes
-        ? 'Não há um tópico liberado. Revise as relações: pode haver um ciclo '
-              'de pré-requisitos impedindo o avanço.'
-        : 'Parabéns! Continue revisando para manter seu domínio.';
+        ? 'Sem sugestão automática de sequência'
+        : 'Todos os conceitos estão dominados';
+    final message = widget.hasUnresolvedNodes && node == null
+        ? 'Nenhum nó está bloqueado. Você pode abrir qualquer nó; revise os '
+              'pré-requisitos se quiser uma ordem sugerida.'
+        : node == null
+        ? 'Parabéns! Continue revisando no seu ritmo.'
+        : 'Comece por: ${node.title}';
 
     return Card(
       color: colors.surfaceContainerLow,
@@ -1721,7 +1798,7 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                   node != null
                       ? Icons.route_rounded
                       : widget.hasUnresolvedNodes
-                      ? Icons.warning_amber_rounded
+                      ? Icons.info_outline_rounded
                       : Icons.emoji_events_outlined,
                   color: colors.primary,
                 ),
@@ -1730,7 +1807,7 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      RuntimeLocalizedText(
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1739,20 +1816,30 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Text(
-                        message,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
+                      if (node != null)
+                        Text(
+                          message,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        )
+                      else
+                        RuntimeLocalizedText(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
                 if (node != null)
                   FilledButton.tonalIcon(
-                    onPressed: widget.onOpenRecommended,
+                    onPressed: () => widget.onOpenNode(node),
                     icon: const Icon(Icons.play_arrow_rounded, size: 18),
                     label: const RuntimeLocalizedText('Estudar'),
                   ),
@@ -1772,6 +1859,58 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
               ],
             ),
           ),
+          if (node != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  RuntimeLocalizedText(
+                    'Revisões vencidas vêm primeiro; depois, fundamentos e '
+                    'conceitos com pré-requisitos em dia. A ordem se atualiza '
+                    'com seu progresso — e você pode abrir qualquer nó.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _recommendationReason(node),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final entry
+                            in widget.recommendedNodes.asMap().entries.take(3))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              avatar: CircleAvatar(
+                                radius: 10,
+                                child: Text('${entry.key + 1}'),
+                              ),
+                              label: SizedBox(
+                                width: 150,
+                                child: Text(
+                                  entry.value.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              onPressed: () => widget.onOpenNode(entry.value),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           AnimatedSize(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeInOut,
@@ -1789,8 +1928,8 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                                 : (widget.masteredCount / widget.totalCount)
                                       .clamp(0.0, 1.0),
                             minHeight: 5,
-                            backgroundColor: colors.outlineVariant.withOpacity(
-                              0.35,
+                            backgroundColor: colors.outlineVariant.withValues(
+                              alpha: 0.35,
                             ),
                             color: colors.tertiary,
                             semanticsLabel:
@@ -1803,11 +1942,60 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                         const SizedBox(height: 6),
                         Text(
                           '${widget.masteredCount} de ${widget.totalCount} '
-                          'tópicos dominados · domínio a partir de 80%',
+                          'unidades de estudo dominadas · meta 80%',
                           style: textTheme.labelSmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
                         ),
+                        if (widget.recommendedNodes.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Prontos para estudar agora '
+                            '(${widget.recommendedNodes.length})',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colors.onSurface,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: (widget.recommendedNodes.length * 52.0)
+                                .clamp(52.0, 260.0)
+                                .toDouble(),
+                            child: ListView.separated(
+                              itemCount: widget.recommendedNodes.length,
+                              separatorBuilder: (_, _) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final recommended =
+                                    widget.recommendedNodes[index];
+                                return ListTile(
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: CircleAvatar(
+                                    radius: 14,
+                                    child: Text('${index + 1}'),
+                                  ),
+                                  title: Text(
+                                    recommended.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    _stepDescription(recommended),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 18,
+                                  ),
+                                  onTap: () => widget.onOpenNode(recommended),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 12,
@@ -1819,11 +2007,11 @@ class _LearningPathBannerState extends State<_LearningPathBanner> {
                             ),
                             _GraphLegendItem(
                               color: colors.primary,
-                              label: 'Liberado / próximo',
+                              label: 'Pronto para estudar',
                             ),
                             _GraphLegendItem(
                               color: colors.outlineVariant,
-                              label: 'Aguardando pré-requisitos',
+                              label: 'Com lacunas — pode estudar',
                             ),
                             _GraphLegendItem(
                               color: colors.primary,
@@ -2024,7 +2212,7 @@ class _GraphHeader extends StatelessWidget {
         if (onEdit != null || onAiEdit != null || onExport != null) ...[
           const SizedBox(width: 4),
           PopupMenuButton<String>(
-            tooltip: 'Opções do grafo',
+            tooltip: AppLocalizations.of(context)!.graphOptions,
             onSelected: (value) {
               if (value == 'edit') onEdit?.call();
               if (value == 'ai-edit') onAiEdit?.call();
@@ -2099,7 +2287,7 @@ class _CanvasControls extends StatelessWidget {
           ),
         ),
         PopupMenuButton<String>(
-          tooltip: 'Zoom e enquadramento',
+          tooltip: AppLocalizations.of(context)!.zoomFraming,
           onSelected: (action) {
             switch (action) {
               case 'in':
@@ -2212,7 +2400,7 @@ class _EdgeInfoCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Fechar detalhes da relação',
+              tooltip: AppLocalizations.of(context)!.closeRelationshipDetails,
               onPressed: onClose,
               icon: const Icon(Icons.close_rounded),
             ),
@@ -2256,9 +2444,7 @@ class _EmptyGraphState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onEdit,
                 icon: const Icon(Icons.add_rounded),
-                label: const RuntimeLocalizedText(
-                  'Adicionar primeiro conceito',
-                ),
+                label: RuntimeLocalizedText('Adicionar primeiro conceito'),
               ),
             ],
           ),
@@ -2287,7 +2473,7 @@ class _GraphLoadError extends StatelessWidget {
               size: 40,
             ),
             const SizedBox(height: 12),
-            RuntimeLocalizedText('Não foi possível carregar o grafo.'),
+            const RuntimeLocalizedText('Não foi possível carregar o grafo.'),
             const SizedBox(height: 4),
             Text(
               '$error',

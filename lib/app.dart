@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/core/design/theme/app_theme.dart' show AppTheme;
+import 'package:noema/core/design/theme/desktop_window_icon.dart';
 import 'package:noema/core/design/theme/theme_defaults.dart';
 import 'package:noema/core/design/theme/color_theme_provider.dart'
     show activeColorThemeProvider, brightnessProvider, colorProvider;
@@ -39,6 +42,37 @@ class App extends ConsumerWidget {
         colorAsync.maybeWhen(data: (color) => color, orElse: () => null) ??
         AppThemeDefaults.seedColor;
     final width = MediaQuery.sizeOf(context).width;
+    final theme = AppTheme.create(
+      seedColor: colorApp,
+      brightness: brightnessApp,
+      displayWidth: width,
+      overridesJson: activeTheme.maybeWhen(
+        data: (theme) => theme?.overridesJson,
+        orElse: () => null,
+      ),
+      displayFont: activeTypography.maybeWhen(
+        data: (theme) => theme?.displayFont,
+        orElse: () => null,
+      ),
+      bodyFont: activeTypography.maybeWhen(
+        data: (theme) => theme?.bodyFont,
+        orElse: () => null,
+      ),
+      monoFont: activeTypography.maybeWhen(
+        data: (theme) => theme?.monoFont,
+        orElse: () => null,
+      ),
+    );
+    final iconScheme = theme.colorScheme;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        updateDesktopWindowIcon(
+          accent: iconScheme.primary,
+          ink: iconScheme.onSurface,
+          dark: brightnessApp == Brightness.dark,
+        ),
+      );
+    });
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -70,27 +104,7 @@ class App extends ConsumerWidget {
 
       routerConfig: ref.watch(goRouterProvider),
 
-      theme: AppTheme.create(
-        seedColor: colorApp,
-        brightness: brightnessApp,
-        displayWidth: width,
-        overridesJson: activeTheme.maybeWhen(
-          data: (theme) => theme?.overridesJson,
-          orElse: () => null,
-        ),
-        displayFont: activeTypography.maybeWhen(
-          data: (theme) => theme?.displayFont,
-          orElse: () => null,
-        ),
-        bodyFont: activeTypography.maybeWhen(
-          data: (theme) => theme?.bodyFont,
-          orElse: () => null,
-        ),
-        monoFont: activeTypography.maybeWhen(
-          data: (theme) => theme?.monoFont,
-          orElse: () => null,
-        ),
-      ),
+      theme: theme,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/feature/config/data/personal_ai_configuration_service.dart';
@@ -164,8 +165,8 @@ class _SharedAiApiKeysSectionState
                     if (key == null)
                       DropdownButtonFormField<String>(
                         initialValue: providerId,
-                        decoration: const InputDecoration(
-                          labelText: 'Provedor',
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.nameIdentifier,
                         ),
                         items: providers
                             .map(
@@ -197,8 +198,8 @@ class _SharedAiApiKeysSectionState
                     TextFormField(
                       controller: nameController,
                       maxLength: 128,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome para identificar a chave',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.nameIdentifyKey,
                       ),
                       validator: (value) => value?.trim().isNotEmpty == true
                           ? null
@@ -210,7 +211,7 @@ class _SharedAiApiKeysSectionState
                       enableSuggestions: false,
                       autocorrect: false,
                       decoration: InputDecoration(
-                        labelText: 'Chave de API',
+                        labelText: AppLocalizations.of(context)!.apiKey,
                         helperText: key == null
                             ? 'A chave será criptografada e nunca será exibida novamente.'
                             : 'Deixe em branco para manter a chave atual.',
@@ -222,7 +223,7 @@ class _SharedAiApiKeysSectionState
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const RuntimeLocalizedText(
+                      title: RuntimeLocalizedText(
                         'Disponível como fallback',
                       ),
                       value: isActive,
@@ -284,12 +285,12 @@ class _SharedAiApiKeysSectionState
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.error_outline),
-        title: const RuntimeLocalizedText(
+        title: RuntimeLocalizedText(
           'Não foi possível carregar as chaves compartilhadas',
         ),
         subtitle: Text(_error!),
         trailing: IconButton(
-          tooltip: 'Tentar novamente',
+          tooltip: AppLocalizations.of(context)!.tryAgain,
           onPressed: _load,
           icon: const Icon(Icons.refresh),
         ),

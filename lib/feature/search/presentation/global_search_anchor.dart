@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/database/database_provider.dart';
@@ -24,7 +24,7 @@ class GlobalSearchAnchor extends ConsumerWidget {
         .toDouble();
     return SearchAnchor(
       isFullScreen: !isDesktop,
-      viewHintText: 'Grafos, tópicos, tarefas, flashcards…',
+      viewHintText: AppLocalizations.of(context)!.graphsTopicsTasksFlashcards,
       viewBackgroundColor: context.colors.surfaceContainerLow,
       viewElevation: 4,
       viewShape: RoundedRectangleBorder(
@@ -34,7 +34,7 @@ class GlobalSearchAnchor extends ConsumerWidget {
       builder: (context, controller) {
         if (!isDesktop) {
           return IconButton(
-            tooltip: 'Buscar no Noema',
+            tooltip: AppLocalizations.of(context)!.searchNoema,
             onPressed: controller.openView,
             style: IconButton.styleFrom(
               backgroundColor: context.colors.surfaceContainerHighest,
@@ -51,7 +51,7 @@ class GlobalSearchAnchor extends ConsumerWidget {
           width: searchWidth,
           child: SearchBar(
             controller: controller,
-            hintText: 'Buscar no Noema',
+            hintText: AppLocalizations.of(context)!.searchNoema,
             constraints: const BoxConstraints(minHeight: 48, maxHeight: 48),
             elevation: const WidgetStatePropertyAll(0),
             backgroundColor: WidgetStatePropertyAll(
@@ -94,26 +94,30 @@ class GlobalSearchAnchor extends ConsumerWidget {
                 Icons.tips_and_updates_outlined,
                 color: context.colors.primary,
               ),
-              title: const RuntimeLocalizedText(
+              title: RuntimeLocalizedText(
                 'Encontre conteúdos em todo o Noema',
               ),
-              subtitle: const RuntimeLocalizedText(
+              subtitle: RuntimeLocalizedText(
                 'Digite ao menos 2 caracteres para buscar.',
               ),
             ),
           ];
         }
 
+        final userFuture = ref.read(userProvider.future);
+        final database = ref.read(appDatabaseProvider);
         try {
-          final user = await ref.read(userProvider.future);
+          final user = await userFuture;
+          if (!context.mounted) return [];
           final results = await GlobalSearchService(
-            ref.read(appDatabaseProvider),
+            database,
           ).search(userId: user.id, query: query);
+          if (!context.mounted) return [];
           if (results.isEmpty) {
             return [
               ListTile(
                 leading: const Icon(Icons.search_off_rounded),
-                title: const RuntimeLocalizedText(
+                title: RuntimeLocalizedText(
                   'Nenhum resultado encontrado',
                 ),
                 subtitle: RuntimeLocalizedText(
@@ -151,16 +155,17 @@ class GlobalSearchAnchor extends ConsumerWidget {
         } catch (error, stackTrace) {
           debugPrint('Falha ao pesquisar conteúdos: $error');
           debugPrintStack(stackTrace: stackTrace);
+          if (!context.mounted) return [];
           return [
             ListTile(
               leading: Icon(
                 Icons.error_outline_rounded,
                 color: context.colors.error,
               ),
-              title: const RuntimeLocalizedText(
+              title: RuntimeLocalizedText(
                 'Não foi possível concluir a busca',
               ),
-              subtitle: const RuntimeLocalizedText(
+              subtitle: RuntimeLocalizedText(
                 'Feche a busca e tente novamente.',
               ),
             ),

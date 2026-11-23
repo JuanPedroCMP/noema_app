@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:collection';
+
 import 'package:drift/drift.dart';
 import 'package:noema/core/database/database.dart';
 import 'package:noema/feature/ai/models/ai_agent_task.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
+import 'package:noema/feature/ai/services/ai_request_queue.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/choice_dao.dart';
 import 'package:noema/feature/exercises/multiple_choice/data/multiple_choice_dao.dart';
 import 'package:noema/feature/exercises/open_ended/data/open_ended_dao.dart';
@@ -21,6 +25,18 @@ class StudyPackCounts {
   final int flashcards;
 
   int get total => multipleChoice + essay + feynman + flashcards;
+
+  StudyPackCounts copyWith({
+    int? multipleChoice,
+    int? essay,
+    int? feynman,
+    int? flashcards,
+  }) => StudyPackCounts(
+    multipleChoice: multipleChoice ?? this.multipleChoice,
+    essay: essay ?? this.essay,
+    feynman: feynman ?? this.feynman,
+    flashcards: flashcards ?? this.flashcards,
+  );
 
   factory StudyPackCounts.fromJson(Map<String, dynamic> json) {
     final counts = StudyPackCounts(
@@ -140,23 +156,41 @@ class StudyPackDraft {
 }
 
 class StudyPackService {
+  static const _maxConcurrentGenerationRequests = 4;
+
   StudyPackService({required this.ai, required this.database});
 
   final AiContentGenerationService ai;
   final AppDatabase database;
 
+  static List<String> studyMaterialContext(
+    Iterable<LearningResourceData> resources,
+  ) => [
+    for (final resource in resources.take(8))
+      '${resource.category}: ${_truncate(resource.title, 120)}. '
+          '${_truncate(resource.rationale, 240)}',
+  ];
+
   Future<StudyPackDraft> generate({
     required String nodeTitle,
     required String? nodeDescription,
     required StudyPackRequest request,
+    List<String> studyMaterials = const [],
+    AiRequestPriority priority = AiRequestPriority.user,
   }) async {
     request.counts.validate();
+    final generationGate = _StudyPackGenerationGate(
+      _maxConcurrentGenerationRequests,
+    );
     final multipleChoiceFuture = _generateMany(
       task: AiAgentTask.createMultipleChoiceQuestion,
       count: request.counts.multipleChoice,
+      generationGate: generationGate,
+      priority: priority,
       nodeTitle: nodeTitle,
       nodeDescription: nodeDescription,
       instructions: request.instructions,
+      studyMaterials: studyMaterials,
       typeInstructions:
           'Crie uma questão objetiva com título, statement e exatamente 4 '
           'choices. Cada choice deve ter statement, is_correct, explanation '
@@ -166,9 +200,12 @@ class StudyPackService {
     final essayFuture = _generateMany(
       task: AiAgentTask.createEssayQuestion,
       count: request.counts.essay,
+      generationGate: generationGate,
+      priority: priority,
       nodeTitle: nodeTitle,
       nodeDescription: nodeDescription,
       instructions: request.instructions,
+      studyMaterials: studyMaterials,
       typeInstructions:
           'Crie uma questão dissertativa com title, statement e '
           'reference_correct_answer.',
@@ -177,43 +214,85 @@ class StudyPackService {
     final feynmanFuture = _generateMany(
       task: AiAgentTask.createFeynman,
       count: request.counts.feynman,
+      generationGate: generationGate,
+      priority: priority,
       nodeTitle: nodeTitle,
       nodeDescription: nodeDescription,
       instructions: request.instructions,
+      studyMaterials: studyMaterials,
       typeInstructions:
           'Crie uma questão pelo método Feynman com title, statement e '
           'reference_correct_answer.',
       parse: (json) => _parseOpenEnded(json, 'FEYNMAN'),
     );
-    final flashcardsFuture = _generateMany(
-      task: AiAgentTask.createFlashcards,
+    final flashcardsFuture = _generateFlashcards(
       count: request.counts.flashcards,
+      generationGate: generationGate,
+      priority: priority,
       nodeTitle: nodeTitle,
       nodeDescription: nodeDescription,
       instructions: request.instructions,
-      typeInstructions:
-          'Crie um flashcard com title como pergunta, statement como resposta '
-          'e target_skill opcional.',
-      parse: _parseFlashcard,
+      studyMaterials: studyMaterials,
     );
 
-    final multipleChoice = await multipleChoiceFuture;
-    final essays = await essayFuture;
-    final feynman = await feynmanFuture;
-    final flashcards = await flashcardsFuture;
+    final generated = await Future.wait<Object>([
+      multipleChoiceFuture,
+      essayFuture,
+      feynmanFuture,
+      flashcardsFuture,
+    ]);
     return StudyPackDraft(
-      multipleChoice: multipleChoice,
-      openEnded: [...essays, ...feynman],
-      flashcards: flashcards,
+      multipleChoice: generated[0] as List<StudyPackMultipleChoice>,
+      openEnded: [
+        ...generated[1] as List<StudyPackOpenEnded>,
+        ...generated[2] as List<StudyPackOpenEnded>,
+      ],
+      flashcards: generated[3] as List<StudyPackFlashcard>,
+    );
+  }
+
+  Future<List<StudyPackFlashcard>> _generateFlashcards({
+    required int count,
+    required _StudyPackGenerationGate generationGate,
+    required AiRequestPriority priority,
+    required String nodeTitle,
+    required String? nodeDescription,
+    required String instructions,
+    required List<String> studyMaterials,
+  }) async {
+    if (count == 0) return const [];
+    final task = AiAgentTask.createFlashcards;
+    final agentId = await ai.resolveAgentId(task);
+    final prompt =
+        '''
+Crie exatamente $count flashcard(s) de estudo sobre "$nodeTitle".
+Descrição do nó: ${nodeDescription?.trim().isNotEmpty == true ? nodeDescription : 'não informada'}
+Materiais de estudo já vinculados:
+${studyMaterials.isEmpty ? 'nenhum' : studyMaterials.map((material) => '- $material').join('\n')}
+Instruções adicionais: ${instructions.trim().isEmpty ? 'nenhuma' : instructions.trim()}
+Retorne somente um objeto JSON no formato {"flashcards":[{"title":"pergunta","statement":"resposta","target_skill":"habilidade avaliada"}]}.
+A lista deve conter exatamente $count itens distintos. Use title como pergunta, statement como resposta e target_skill opcional. Não inclua texto fora do JSON.
+''';
+    return generationGate.run(
+      () => ai.generateWithRetry(
+        task: task,
+        agentId: agentId,
+        prompt: prompt,
+        priority: priority,
+        parse: (json) => _parseFlashcards(json, expectedCount: count),
+      ),
     );
   }
 
   Future<List<T>> _generateMany<T>({
     required AiAgentTask task,
     required int count,
+    required _StudyPackGenerationGate generationGate,
+    required AiRequestPriority priority,
     required String nodeTitle,
     required String? nodeDescription,
     required String instructions,
+    required List<String> studyMaterials,
     required String typeInstructions,
     required T Function(Map<String, dynamic>) parse,
   }) async {
@@ -223,18 +302,27 @@ class StudyPackService {
       return '''
 Crie uma questão para um pacote de estudo sobre "$nodeTitle".
 Descrição do nó: ${nodeDescription?.trim().isNotEmpty == true ? nodeDescription : 'não informada'}
+Materiais de estudo já vinculados:
+${studyMaterials.isEmpty ? 'nenhum' : studyMaterials.map((material) => '- $material').join('\n')}
 Instruções adicionais: ${instructions.trim().isEmpty ? 'nenhuma' : instructions.trim()}
 $typeInstructions
 Retorne somente um objeto JSON válido, sem markdown ou texto adicional.
 Esta é a questão ${index + 1} de $count. Faça cada item distinto.
 ''';
     });
-    final responses = await ai.generateBatch(
-      task: task,
-      agentId: agentId,
-      prompts: prompts,
+    return Future.wait<T>(
+      prompts.map(
+        (prompt) => generationGate.run(
+          () => ai.generateWithRetry<T>(
+            task: task,
+            agentId: agentId,
+            prompt: prompt,
+            priority: priority,
+            parse: parse,
+          ),
+        ),
+      ),
     );
-    return responses.map(parse).toList(growable: false);
   }
 
   Future<void> save({
@@ -373,7 +461,9 @@ Esta é a questão ${index + 1} de $count. Faça cada item distinto.
             .into(database.flashcardBelongsGroup)
             .insert(
               FlashcardBelongsGroupCompanion.insert(
-                id: const Uuid().v4(),
+                id: idempotencyKey == null
+                    ? const Uuid().v4()
+                    : '${idempotencyKey}_card_link_$index',
                 flashcardId: cardId,
                 flashcardGroupId: deckId,
               ),
@@ -420,10 +510,11 @@ Esta é a questão ${index + 1} de $count. Faça cada item distinto.
           );
         })
         .toList(growable: false);
-    if (choices.length < 2 ||
+    if (choices.length != 4 ||
         choices.where((choice) => choice.isCorrect).length != 1) {
       throw const FormatException(
-        'A questão deve ter exatamente uma resposta correta.',
+        'A questão deve ter exatamente quatro alternativas e uma resposta '
+        'correta.',
       );
     }
     return StudyPackMultipleChoice(
@@ -446,6 +537,26 @@ Esta é a questão ${index + 1} de $count. Faça cada item distinto.
     ),
     type: type,
   );
+
+  static List<StudyPackFlashcard> _parseFlashcards(
+    Map<String, dynamic> json, {
+    required int expectedCount,
+  }) {
+    final rawFlashcards = json['flashcards'];
+    if (rawFlashcards is! List || rawFlashcards.length != expectedCount) {
+      throw const FormatException(
+        'A quantidade de flashcards retornada não corresponde à solicitada.',
+      );
+    }
+    return rawFlashcards
+        .map((raw) {
+          if (raw is! Map) {
+            throw const FormatException('Um flashcard retornado é inválido.');
+          }
+          return _parseFlashcard(Map<String, dynamic>.from(raw));
+        })
+        .toList(growable: false);
+  }
 
   static StudyPackFlashcard _parseFlashcard(Map<String, dynamic> json) {
     final targetSkill = json['target_skill'];
@@ -470,8 +581,42 @@ Esta é a questão ${index + 1} de $count. Faça cada item distinto.
   }
 }
 
+class _StudyPackGenerationGate {
+  _StudyPackGenerationGate(this._maxConcurrentRequests);
+
+  final int _maxConcurrentRequests;
+  final Queue<Completer<void>> _waitingRequests = Queue();
+  int _activeRequests = 0;
+
+  Future<T> run<T>(Future<T> Function() action) async {
+    if (_activeRequests >= _maxConcurrentRequests) {
+      final turn = Completer<void>();
+      _waitingRequests.addLast(turn);
+      await turn.future;
+    } else {
+      _activeRequests++;
+    }
+
+    try {
+      return await action();
+    } finally {
+      if (_waitingRequests.isEmpty) {
+        _activeRequests--;
+      } else {
+        _waitingRequests.removeFirst().complete();
+      }
+    }
+  }
+}
+
 int _readCount(Map<String, dynamic> json, String key) {
   final value = json[key];
   if (value is! int) throw FormatException('Quantidade "$key" inválida.');
   return value;
+}
+
+String _truncate(String value, int maximumLength) {
+  final normalized = value.trim();
+  if (normalized.length <= maximumLength) return normalized;
+  return '${normalized.substring(0, maximumLength - 1)}…';
 }

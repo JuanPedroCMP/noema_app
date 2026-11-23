@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -156,8 +157,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               textInputAction: TextInputAction.next,
               autocorrect: false,
               autofillHints: const [AutofillHints.username],
-              decoration: const InputDecoration(
-                labelText: 'Usuário',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.user,
                 prefixIcon: Icon(Icons.person_outline),
               ),
             ),
@@ -168,7 +169,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               autofillHints: const [AutofillHints.password],
               obscureText: !_passwordVisible,
               decoration: InputDecoration(
-                labelText: 'Senha',
+                labelText: AppLocalizations.of(context)!.password,
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
                   tooltip: _passwordVisible ? 'Ocultar senha' : 'Mostrar senha',
@@ -211,7 +212,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           returnPath,
                         ),
                       ),
-                child: const RuntimeLocalizedText(
+                child: RuntimeLocalizedText(
                   'Ainda não tem uma conta? Cadastre-se',
                 ),
               ),

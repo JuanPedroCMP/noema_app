@@ -2,6 +2,7 @@ import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:dio/dio.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 
 class ExerciseCorrectionDraft {
   const ExerciseCorrectionDraft({
@@ -196,9 +197,9 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                   onChanged: (_) => setState(() {}),
                   minLines: 4,
                   maxLines: 8,
-                  decoration: const InputDecoration(
-                    labelText: 'Feedback da correção',
-                    hintText: 'Explique acertos, lacunas e próximos passos.',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.fixFeedback,
+                    hintText: AppLocalizations.of(context)!.explainSuccessesGapsNextSteps,
                     border: OutlineInputBorder(),
                     alignLabelWithHint: true,
                   ),
@@ -217,8 +218,8 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _mastery,
-                  decoration: const InputDecoration(
-                    labelText: 'Domínio demonstrado',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.demonstratedDominance,
                     border: OutlineInputBorder(),
                   ),
                   items: const [
@@ -245,10 +246,9 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                 ),
                 DropdownButtonFormField<fsrs.Rating>(
                   initialValue: _rating,
-                  decoration: const InputDecoration(
-                    labelText: 'Agendamento FSRS',
-                    helperText:
-                        'Escolha como foi a recordação para calcular o próximo intervalo.',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.fsrsScheduling,
+                    helperText: AppLocalizations.of(context)!.chooseRecallWasCalculateNextInterval,
                     border: OutlineInputBorder(),
                   ),
                   items: const [
@@ -279,8 +279,8 @@ class _ExerciseCorrectionDialogState extends State<ExerciseCorrectionDialog> {
                   controller: _notes,
                   minLines: 2,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Anotações pessoais (opcional)',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.personalNotes,
                     border: OutlineInputBorder(),
                     alignLabelWithHint: true,
                   ),

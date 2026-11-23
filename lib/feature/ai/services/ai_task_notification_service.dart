@@ -33,12 +33,17 @@ class AiTaskNotificationService {
   bool _permissionRequested = false;
 
   Future<void> initialize({bool requestPermission = false}) async {
-    if (!Platform.isAndroid && !Platform.isLinux) return;
+    if (!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) return;
     try {
       if (!_initialized) {
         await _plugin.initialize(
           settings: const InitializationSettings(
             android: AndroidInitializationSettings('noema_icon_monochrome'),
+            iOS: DarwinInitializationSettings(
+              requestAlertPermission: false,
+              requestBadgePermission: false,
+              requestSoundPermission: false,
+            ),
             linux: LinuxInitializationSettings(
               defaultActionName: 'Abrir Noema',
             ),
@@ -53,6 +58,13 @@ class AiTaskNotificationService {
               AndroidFlutterLocalNotificationsPlugin
             >()
             ?.requestNotificationsPermission();
+      } else if (requestPermission && Platform.isIOS && !_permissionRequested) {
+        _permissionRequested = true;
+        await _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >()
+            ?.requestPermissions(alert: true, badge: true, sound: true);
       }
     } on Object catch (error, stackTrace) {
       debugPrint('Não foi possível inicializar notificações de IA: $error');
@@ -65,7 +77,7 @@ class AiTaskNotificationService {
     required String taskType,
     required String nodeTitle,
   }) async {
-    if (!Platform.isAndroid && !Platform.isLinux) return;
+    if (!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) return;
     final content = aiTaskNotificationContent(
       taskType: taskType,
       nodeTitle: nodeTitle,
@@ -87,6 +99,7 @@ class AiTaskNotificationService {
             priority: Priority.defaultPriority,
           ),
           linux: LinuxNotificationDetails(defaultActionName: 'Abrir Noema'),
+          iOS: DarwinNotificationDetails(),
         ),
       );
     } on Object catch (error, stackTrace) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -107,11 +108,11 @@ class _GraphListState extends ConsumerState<GraphList> {
   Widget build(BuildContext context) {
     final graphsAsync = ref.watch(knowledgeGraphsProvider);
     if (_user == null || _dao == null) {
-      return const AppLoadingView(label: 'Carregando seus grafos...');
+      return AppLoadingView(label: 'Carregando seus grafos...');
     }
 
     return graphsAsync.when(
-      loading: () => const AppLoadingView(label: 'Carregando seus grafos...'),
+      loading: () => AppLoadingView(label: 'Carregando seus grafos...'),
       error: (error, _) => AppErrorView(
         message: 'Não foi possível carregar seus grafos.',
         onRetry: () => ref.invalidate(knowledgeGraphsProvider),
@@ -154,7 +155,7 @@ class _GraphListState extends ConsumerState<GraphList> {
                       child: Card(
                         child: ListTile(
                           leading: const Icon(Icons.quiz_outlined),
-                          title: const RuntimeLocalizedText(
+                          title: RuntimeLocalizedText(
                             'Escolha onde criar o exercício',
                           ),
                           subtitle: Text(
@@ -162,7 +163,7 @@ class _GraphListState extends ConsumerState<GraphList> {
                             'Abra um grafo e escolha o nó que deseja praticar.',
                           ),
                           trailing: IconButton(
-                            tooltip: 'Dispensar',
+                            tooltip: AppLocalizations.of(context)!.dismiss,
                             onPressed: () =>
                                 setState(() => _showActionNotice = false),
                             icon: const Icon(Icons.close),
@@ -434,7 +435,7 @@ class _CreationPanel extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Fechar',
+                  tooltip: AppLocalizations.of(context)!.close,
                   onPressed: () => onSelect(0),
                   icon: const Icon(Icons.close),
                 ),
@@ -512,7 +513,7 @@ class _GraphCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   PopupMenuButton<String>(
-                    tooltip: 'Ações do grafo',
+                    tooltip: AppLocalizations.of(context)!.graphActions,
                     onSelected: (value) {
                       if (value == 'open') onOpen();
                       if (value == 'delete') onDelete();

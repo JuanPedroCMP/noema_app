@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/network/connetction_checker.dart';
@@ -366,7 +367,7 @@ class _ApiKeysSectionState extends ConsumerState<ApiKeysSection> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: 'Modelos permitidos',
+                      tooltip: AppLocalizations.of(context)!.explanation,
                       onPressed: _saving ? null : () => _manageModels(key),
                       icon: const Icon(Icons.tune_rounded),
                     ),
@@ -673,7 +674,7 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                 ],
               )
             : _models.isEmpty
-            ? const RuntimeLocalizedText(
+            ? RuntimeLocalizedText(
                 'Nenhum modelo foi cadastrado para este provedor.',
               )
             : Column(
@@ -699,13 +700,13 @@ class _ModelAccessDialogState extends ConsumerState<_ModelAccessDialog> {
                     controller: _searchController,
                     onChanged: (value) => setState(() => _searchQuery = value),
                     decoration: InputDecoration(
-                      labelText: 'Buscar modelo',
-                      hintText: 'Nome ou identificador',
+                      labelText: AppLocalizations.of(context)!.allowedModels,
+                      hintText: AppLocalizations.of(context)!.searchModel,
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: _searchQuery.isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Limpar busca',
+                              tooltip: AppLocalizations.of(context)!.textClearSearch,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -895,14 +896,14 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
             children: [
               DropdownButtonFormField<String>(
                 initialValue: _providerId,
-                decoration: const InputDecoration(labelText: 'Provedor'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.nameIdentifier),
                 items: [
                   if (!widget.providers.any(
                     (provider) => provider.id == _providerId,
                   ))
                     DropdownMenuItem(
                       value: _providerId,
-                      child: const RuntimeLocalizedText(
+                      child: RuntimeLocalizedText(
                         'Provedor atual (indisponível)',
                       ),
                     ),
@@ -920,8 +921,8 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome para exibir',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.provider,
                 ),
                 textCapitalization: TextCapitalization.sentences,
                 validator: (value) => value == null || value.trim().isEmpty

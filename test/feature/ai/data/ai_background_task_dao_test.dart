@@ -58,7 +58,24 @@ void main() {
     () async {
       final task = await dao.markRunning(id: taskId, userId: 'user-id');
       expect(task?.attemptCount, 1);
-      await dao.recoverInterruptedTasks(userId: 'user-id');
+      await (database.update(
+        database.aiBackgroundTask,
+      )..where((row) => row.id.equals(taskId))).write(
+        AiBackgroundTaskCompanion(
+          updatedAt: Value(
+            DateTime.now()
+                .subtract(aiTaskExecutionLease)
+                .subtract(const Duration(seconds: 1))
+                .millisecondsSinceEpoch,
+          ),
+        ),
+      );
+      await dao.recoverInterruptedTasks(
+        userId: 'user-id',
+        updatedBefore: DateTime.now()
+            .subtract(aiTaskExecutionLease)
+            .millisecondsSinceEpoch,
+      );
 
       final recoveredTask = await (database.select(
         database.aiBackgroundTask,
@@ -209,6 +226,67 @@ void main() {
     },
   );
 
+  test(
+    'replaces the graph draft only if it has not changed during generation',
+    () async {
+      await (database.update(
+        database.graphNode,
+      )..where((node) => node.id.equals(nodeId))).write(
+        const GraphNodeCompanion(
+          description: Value('Descrição provisória do grafo'),
+        ),
+      );
+      await dao.markRunning(id: taskId, userId: 'user-id');
+
+      await dao.complete(
+        taskId,
+        description: 'Descrição específica do conceito.',
+        expectedNodeTitle: 'Célula',
+        replaceExistingDescription: true,
+        expectedNodeDescription: 'Descrição provisória do grafo',
+      );
+
+      expect(
+        (await dao.getNode(nodeId))?.description,
+        'Descrição específica do conceito.',
+      );
+    },
+  );
+
+  test(
+    'preserves an edit made while a graph description is regenerating',
+    () async {
+      await (database.update(
+        database.graphNode,
+      )..where((node) => node.id.equals(nodeId))).write(
+        const GraphNodeCompanion(
+          description: Value('Descrição provisória do grafo'),
+        ),
+      );
+      await dao.markRunning(id: taskId, userId: 'user-id');
+      await (database.update(
+        database.graphNode,
+      )..where((node) => node.id.equals(nodeId))).write(
+        const GraphNodeCompanion(
+          description: Value('Descrição editada pela pessoa'),
+        ),
+      );
+
+      await dao.complete(
+        taskId,
+        description: 'Descrição nova da IA.',
+        expectedNodeTitle: 'Célula',
+        replaceExistingDescription: true,
+        expectedNodeDescription: 'Descrição provisória do grafo',
+      );
+
+      expect(
+        (await dao.getNode(nodeId))?.description,
+        'Descrição editada pela pessoa',
+      );
+    },
+  );
+
   test('schedules a retry and allows a user to retry it immediately', () async {
     await dao.markRunning(id: taskId, userId: 'user-id');
     await dao.scheduleRetry(
@@ -253,12 +331,43 @@ void main() {
     final lastAttempt = await dao.markRunning(id: taskId, userId: 'user-id');
     expect(lastAttempt?.attemptCount, aiTaskMaximumAttempts);
 
-    await dao.recoverInterruptedTasks(userId: 'user-id');
+    await (database.update(
+      database.aiBackgroundTask,
+    )..where((row) => row.id.equals(taskId))).write(
+      AiBackgroundTaskCompanion(
+        updatedAt: Value(
+          DateTime.now()
+              .subtract(aiTaskExecutionLease)
+              .subtract(const Duration(seconds: 1))
+              .millisecondsSinceEpoch,
+        ),
+      ),
+    );
+    await dao.recoverInterruptedTasks(
+      userId: 'user-id',
+      updatedBefore: DateTime.now()
+          .subtract(aiTaskExecutionLease)
+          .millisecondsSinceEpoch,
+    );
 
     final savedTask = await (database.select(
       database.aiBackgroundTask,
     )..where((row) => row.id.equals(taskId))).getSingle();
     expect(savedTask.status, aiTaskFailed);
     expect(savedTask.attemptCount, aiTaskMaximumAttempts);
+  });
+
+  test('does not recover a task whose lease is still active', () async {
+    await dao.markRunning(id: taskId, userId: 'user-id');
+
+    await dao.recoverInterruptedTasks(
+      userId: 'user-id',
+      updatedBefore: DateTime.now()
+          .subtract(aiTaskExecutionLease)
+          .millisecondsSinceEpoch,
+    );
+
+    final runningTask = await dao.getTask(taskId);
+    expect(runningTask?.status, aiTaskRunning);
   });
 }

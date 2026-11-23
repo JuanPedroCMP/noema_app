@@ -145,8 +145,9 @@ class DashboardAiUsageService {
 
   bool _matchesPeriod(AiUsageLogOut log, DomainDashboardQuery query) {
     final createdAt = log.createdAt;
-    if (createdAt == null)
+    if (createdAt == null) {
       return query.startAt == null && query.endBefore == null;
+    }
     if (query.startAt != null && createdAt.isBefore(query.startAt!)) {
       return false;
     }

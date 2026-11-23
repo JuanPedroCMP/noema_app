@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
       )) {
     return;
   }
-  if (Platform.isAndroid) {
+  if (Platform.isAndroid || Platform.isIOS) {
     await Workmanager().initialize(automaticBackupTaskDispatcher);
   } else if (Platform.isLinux) {
     await Workmanager().initialize(automaticBackupLinuxTaskDispatcher);

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -230,9 +231,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
           autofocus: true,
           maxLength: 160,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Descrição da versão (opcional)',
-            hintText: 'Ex.: Revisão antes da prova',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.versionDescription,
+            hintText: AppLocalizations.of(context)!.reviewTest,
             border: OutlineInputBorder(),
           ),
         ),
@@ -432,7 +433,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                           final shouldRestore = await showDialog<bool>(
                             context: this.context,
                             builder: (context) => AlertDialog(
-                              title: const RuntimeLocalizedText(
+                              title: RuntimeLocalizedText(
                                 'Restaurar versão?',
                               ),
                               content: Text(
@@ -448,7 +449,7 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
                                 ),
                                 FilledButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: const RuntimeLocalizedText(
+                                  child: RuntimeLocalizedText(
                                     'Restaurar',
                                   ),
                                 ),
@@ -504,9 +505,9 @@ class NoteEditorPanelState extends ConsumerState<NoteEditorPanel>
           autofocus: true,
           minLines: 2,
           maxLines: 5,
-          decoration: const InputDecoration(
-            labelText: 'O que deseja fazer?',
-            hintText: 'Ex.: organize em tópicos e destaque os conceitos-chave',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.want,
+            hintText: AppLocalizations.of(context)!.organizeTopicsHighlightKeyConcepts,
             border: OutlineInputBorder(),
           ),
         ),
@@ -684,7 +685,7 @@ $noteContent
           children: [
             if (compact)
               IconButton(
-                tooltip: 'Voltar para notas',
+                tooltip: AppLocalizations.of(context)!.backNotes,
                 onPressed: widget.onBack,
                 icon: const Icon(Icons.arrow_back),
               ),
@@ -695,8 +696,8 @@ $noteContent
                 maxLength: 160,
                 textCapitalization: TextCapitalization.sentences,
                 style: Theme.of(context).textTheme.headlineSmall,
-                decoration: const InputDecoration(
-                  hintText: 'Título da nota',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.noteTitle,
                   counterText: '',
                   border: InputBorder.none,
                 ),
@@ -704,7 +705,7 @@ $noteContent
             ),
             if (useOverflowActions)
               PopupMenuButton<String>(
-                tooltip: 'Ações da anotação',
+                tooltip: AppLocalizations.of(context)!.annotationActions,
                 onSelected: (action) {
                   switch (action) {
                     case 'version':
@@ -743,22 +744,22 @@ $noteContent
               )
             else ...[
               IconButton(
-                tooltip: 'Criar versão',
+                tooltip: AppLocalizations.of(context)!.createVersion,
                 onPressed: _isSaving ? null : _createVersion,
                 icon: const Icon(Icons.bookmark_add_outlined),
               ),
               IconButton(
-                tooltip: 'Versões anteriores',
+                tooltip: AppLocalizations.of(context)!.previousVersions,
                 onPressed: _showHistory,
                 icon: const Icon(Icons.history),
               ),
               IconButton(
-                tooltip: 'Relacionar conceitos',
+                tooltip: AppLocalizations.of(context)!.relateConcepts,
                 onPressed: _editNodeLinks,
                 icon: const Icon(Icons.account_tree_outlined),
               ),
               IconButton(
-                tooltip: 'Aprimorar com IA',
+                tooltip: AppLocalizations.of(context)!.improveAI,
                 onPressed: _isAiWorking || _isSaving ? null : _editWithAi,
                 icon: _isAiWorking
                     ? const SizedBox.square(
@@ -781,7 +782,7 @@ $noteContent
               )
             else
               IconButton(
-                tooltip: 'Salvar nota',
+                tooltip: AppLocalizations.of(context)!.saveNote,
                 onPressed: !_isDirty || _isSaving ? null : _save,
                 icon: const Icon(Icons.save_outlined),
               ),
@@ -1055,9 +1056,9 @@ class _NodeLinkDialogState extends State<_NodeLinkDialog> {
           children: [
             TextField(
               onChanged: (value) => setState(() => _query = value),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search),
-                hintText: 'Buscar conceito',
+                hintText: AppLocalizations.of(context)!.searchConcept,
                 border: OutlineInputBorder(),
               ),
             ),

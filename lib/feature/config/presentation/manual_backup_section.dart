@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -91,7 +92,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
       );
       final extension = exported.encrypted ? 'noema' : 'zip';
       final uri = await FilePicker.saveFile(
-        fileName: 'noema-backup-${_fileTimestamp()}.${extension}',
+        fileName: 'noema-backup-${_fileTimestamp()}.$extension',
         bytes: exported.bytes,
         mimeType: exported.encrypted
             ? 'application/octet-stream'
@@ -273,7 +274,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
           controller: controller,
           autofocus: true,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Chave personalizada'),
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.customKey),
         ),
         actions: [
           TextButton(
@@ -378,7 +379,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const RuntimeLocalizedText(
+          title: RuntimeLocalizedText(
             'Substituir dados deste dispositivo?',
           ),
           content: const Text(
@@ -439,36 +440,42 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
           ),
         ),
         if (_encrypt) ...[
-          RadioListTile<ManualBackupKeyMode>(
-            contentPadding: EdgeInsets.zero,
-            value: ManualBackupKeyMode.accountId,
+          RadioGroup<ManualBackupKeyMode>(
             groupValue: _keyMode,
-            onChanged: _working
-                ? null
-                : (value) => setState(() {
-                    if (value != null) _keyMode = value;
-                    _error = null;
-                  }),
-            title: const RuntimeLocalizedText('Usar meu ID Noema (padrão)'),
-            subtitle: const Text(
-              'Conveniente, mas menos seguro: quem souber seu ID poderá '
-              'derivar a chave.',
-            ),
-          ),
-          RadioListTile<ManualBackupKeyMode>(
-            contentPadding: EdgeInsets.zero,
-            value: ManualBackupKeyMode.custom,
-            groupValue: _keyMode,
-            onChanged: _working
-                ? null
-                : (value) => setState(() {
-                    if (value != null) _keyMode = value;
-                    _error = null;
-                  }),
-            title: const RuntimeLocalizedText('Usar uma chave personalizada'),
-            subtitle: const Text(
-              'Mais segura. Guarde-a separadamente: o Noema não consegue '
-              'recuperá-la.',
+            onChanged: (value) {
+              if (value == null || _working) return;
+              setState(() {
+                _keyMode = value;
+                _error = null;
+              });
+            },
+            child: Column(
+              children: [
+                RadioListTile<ManualBackupKeyMode>(
+                  contentPadding: EdgeInsets.zero,
+                  enabled: !_working,
+                  value: ManualBackupKeyMode.accountId,
+                  title: RuntimeLocalizedText(
+                    'Usar meu ID Noema (padrão)',
+                  ),
+                  subtitle: const Text(
+                    'Conveniente, mas menos seguro: quem souber seu ID poderá '
+                    'derivar a chave.',
+                  ),
+                ),
+                RadioListTile<ManualBackupKeyMode>(
+                  contentPadding: EdgeInsets.zero,
+                  enabled: !_working,
+                  value: ManualBackupKeyMode.custom,
+                  title: RuntimeLocalizedText(
+                    'Usar uma chave personalizada',
+                  ),
+                  subtitle: const Text(
+                    'Mais segura. Guarde-a separadamente: o Noema não consegue '
+                    'recuperá-la.',
+                  ),
+                ),
+              ],
             ),
           ),
           if (_keyMode == ManualBackupKeyMode.custom) ...[
@@ -478,7 +485,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
               obscureText: !_showCustomKey,
               autofillHints: const [AutofillHints.newPassword],
               decoration: InputDecoration(
-                labelText: 'Chave (mínimo de 12 caracteres)',
+                labelText: AppLocalizations.of(context)!.keyMinimum12Characters,
                 suffixIcon: IconButton(
                   tooltip: _showCustomKey ? 'Ocultar chave' : 'Mostrar chave',
                   onPressed: () =>
@@ -494,7 +501,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
               controller: _confirmKeyController,
               enabled: !_working,
               obscureText: !_showCustomKey,
-              decoration: const InputDecoration(labelText: 'Confirme a chave'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.confirmKey),
             ),
           ],
         ],
@@ -533,7 +540,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
               ),
             ),
             IconButton(
-              tooltip: 'Atualizar histórico',
+              tooltip: AppLocalizations.of(context)!.updateHistory,
               onPressed: _historyLoading ? null : _loadHistory,
               icon: const Icon(Icons.refresh),
             ),
@@ -544,7 +551,7 @@ class _ManualBackupSectionState extends ConsumerState<ManualBackupSection> {
         else if (_historyError != null)
           Text(_historyError!, style: TextStyle(color: theme.colorScheme.error))
         else if (_history.isEmpty)
-          const RuntimeLocalizedText(
+          RuntimeLocalizedText(
             'Ainda não há exportações ou importações manuais.',
           )
         else

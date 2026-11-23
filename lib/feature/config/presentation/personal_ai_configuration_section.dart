@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
 import 'package:noema/core/design/theme/theme_tokens.dart';
@@ -114,7 +115,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.slug,
           required: true,
           maxLength: 64,
-          helperText: 'Ex.: lm-studio, ollama ou meu-servidor',
+          helperText: AppLocalizations.of(context)!.exLmStudioOllamaMyServer,
         ),
         _EditorField(
           key: 'base_url',
@@ -122,8 +123,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.url,
           required: true,
           maxLength: 2048,
-          helperText:
-              'Informe a URL completa da API, normalmente terminada em /v1.',
+          helperText: AppLocalizations.of(context)!.enterFullAPIURLNormallyEndingV1,
         ),
       ],
       note:
@@ -168,7 +168,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.url,
           required: true,
           maxLength: 2048,
-          helperText: 'Informe a URL completa, normalmente terminada em /v1.',
+          helperText: AppLocalizations.of(context)!.enterFullURLNormallyEndingV1,
         ),
         _EditorField(
           key: 'is_active',
@@ -218,29 +218,28 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.text,
           required: true,
           maxLength: 64,
-          helperText:
-              'Use o ID exato do endpoint; barras e tags como :14b são válidas.',
+          helperText: AppLocalizations.of(context)!.useExactEndpointIDSlashesTagsLike14bValid,
         ),
         _EditorField(
           key: 'context_window',
           label: 'Janela de contexto (tokens)',
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Capacidade total de contexto informada pelo provedor.',
+          helperText: AppLocalizations.of(context)!.totalContextCapacityReportedProvider,
         ),
         _EditorField(
           key: 'input_token_limit',
           label: 'Limite de tokens de entrada',
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Máximo de tokens que o modelo aceita como entrada.',
+          helperText: AppLocalizations.of(context)!.fullContextCapabilityReportedProvider,
         ),
         _EditorField(
           key: 'output_token_limit',
           label: 'Limite de tokens de saída',
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Máximo de tokens que o modelo gera como resposta.',
+          helperText: AppLocalizations.of(context)!.maximumTokensModelGeneratesResponse,
         ),
         _EditorField(
           key: 'supports_vision',
@@ -289,8 +288,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.text,
           required: true,
           maxLength: 64,
-          helperText:
-              'Use o ID exato do endpoint; barras e tags como :14b são válidas.',
+          helperText: AppLocalizations.of(context)!.useExactEndpointIDSlashesTagsLike14bValid,
         ),
         _EditorField(
           key: 'context_window',
@@ -298,7 +296,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.contextWindow?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Capacidade total de contexto informada pelo provedor.',
+          helperText: AppLocalizations.of(context)!.totalContextCapacityReportedProvider,
         ),
         _EditorField(
           key: 'input_token_limit',
@@ -306,7 +304,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.inputTokenLimit?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Máximo de tokens que o modelo aceita como entrada.',
+          helperText: AppLocalizations.of(context)!.fullContextCapabilityReportedProvider,
         ),
         _EditorField(
           key: 'output_token_limit',
@@ -314,7 +312,7 @@ class _PersonalAiConfigurationSectionState
           initialValue: model.outputTokenLimit?.toString(),
           kind: _FieldKind.positiveInteger,
           required: true,
-          helperText: 'Máximo de tokens que o modelo gera como resposta.',
+          helperText: AppLocalizations.of(context)!.maximumTokensModelGeneratesResponse,
         ),
         _EditorField(
           key: 'supports_vision',
@@ -358,7 +356,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.choice,
           choices: _taskChoices,
           required: true,
-          helperText: 'Define o tipo de trabalho que este agente executa.',
+          helperText: AppLocalizations.of(context)!.definesTypeWorkAgentPerforms,
         ),
         _EditorField(
           key: 'base_system_prompt',
@@ -370,7 +368,7 @@ class _PersonalAiConfigurationSectionState
           key: 'temperature',
           label: 'Temperatura (opcional)',
           kind: _FieldKind.temperature,
-          helperText: 'Valor entre 0 e 2; deixe vazio para usar o padrão.',
+          helperText: AppLocalizations.of(context)!.valueBetween02LeaveEmptyUseDefault,
         ),
       ],
       note:
@@ -403,7 +401,7 @@ class _PersonalAiConfigurationSectionState
           kind: _FieldKind.choice,
           choices: _taskChoices,
           required: true,
-          helperText: 'Define o tipo de trabalho que este agente executa.',
+          helperText: AppLocalizations.of(context)!.definesTypeWorkAgentPerforms,
         ),
         _EditorField(
           key: 'base_system_prompt',
@@ -417,7 +415,7 @@ class _PersonalAiConfigurationSectionState
           label: 'Temperatura (opcional)',
           initialValue: agent.temperature?.toString(),
           kind: _FieldKind.temperature,
-          helperText: 'Valor entre 0 e 2.',
+          helperText: AppLocalizations.of(context)!.valueBetween02,
         ),
         _EditorField(
           key: 'is_active',
@@ -484,7 +482,7 @@ class _PersonalAiConfigurationSectionState
           key: 'temperature',
           label: 'Temperatura (opcional)',
           kind: _FieldKind.temperature,
-          helperText: 'Valor entre 0 e 2; deixe vazio para usar o padrão.',
+          helperText: AppLocalizations.of(context)!.valueBetween02LeaveEmptyUseDefault,
         ),
       ],
     );
@@ -551,7 +549,7 @@ class _PersonalAiConfigurationSectionState
           label: 'Temperatura personalizada (opcional)',
           initialValue: link.temperature?.toString(),
           kind: _FieldKind.temperature,
-          helperText: 'Valor entre 0 e 2.',
+          helperText: AppLocalizations.of(context)!.valueBetween02,
         ),
         _EditorField(
           key: 'is_active',
@@ -1371,7 +1369,7 @@ class _ErrorBanner extends StatelessWidget {
         children: [
           Expanded(child: Text(message)),
           IconButton(
-            tooltip: 'Tentar novamente',
+            tooltip: AppLocalizations.of(context)!.tryAgain,
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
           ),

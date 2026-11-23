@@ -21,7 +21,7 @@ class ShellPage extends StatelessWidget {
               onTap: () => context.go(RoutePaths.home),
             ),
             ListTile(
-              title: RuntimeLocalizedText("Notas"),
+              title: const RuntimeLocalizedText("Notas"),
               onTap: () => context.go(RoutePaths.notes),
             ),
           ],

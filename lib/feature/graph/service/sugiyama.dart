@@ -520,8 +520,11 @@ SugiyamaLayoutResult _runSugiyama({
   required Map<String, double> previousX,
   required SugiyamaConfig config,
 }) {
-  // 1. Cada componente conexo é diagramado de forma independente.
-  final components = _splitComponents(nodes: nodes, edges: edges);
+  // 1. Cada componente conexo é diagramado de forma independente, exceto
+  // quando o limite de largura precisa ser aplicado ao grafo inteiro.
+  final components = config.maxNodesPerLayer == null
+      ? _splitComponents(nodes: nodes, edges: edges)
+      : [_Component(nodes: nodes, edges: edges)];
 
   final layouts = <_ComponentLayout>[
     for (final component in components)
@@ -772,9 +775,7 @@ _InputEdge _normalizeEdgeDirection(
   final sourceLevel = _hierarchyLevel(nodeTypes[edge.source] ?? '');
   final targetLevel = _hierarchyLevel(nodeTypes[edge.target] ?? '');
 
-  if (sourceLevel != null &&
-      targetLevel != null &&
-      sourceLevel < targetLevel) {
+  if (sourceLevel != null && targetLevel != null && sourceLevel < targetLevel) {
     return edge;
   }
 
@@ -1178,11 +1179,7 @@ void _tightenLayers(
   }
 }
 
-void _enforceLayerWidth(
-  _GraphModel graph,
-  Map<String, int> layers,
-  int cap,
-) {
+void _enforceLayerWidth(_GraphModel graph, Map<String, int> layers, int cap) {
   var layer = 0;
 
   while (layer <= layers.values.fold<int>(0, math.max)) {
@@ -1199,9 +1196,7 @@ void _enforceLayerWidth(
         final byChildren = (graph.children[b]?.length ?? 0).compareTo(
           graph.children[a]?.length ?? 0,
         );
-        return byChildren != 0
-            ? byChildren
-            : index[a]!.compareTo(index[b]!);
+        return byChildren != 0 ? byChildren : index[a]!.compareTo(index[b]!);
       });
 
       for (final id in inLayer.skip(cap)) {
@@ -1734,9 +1729,7 @@ Map<int, List<String>> _transposeLayers({
       final upperPosition = layer > 0
           ? _positionMap(result[layer - 1] ?? const <String>[])
           : const <String, int>{};
-      final lowerPosition = _positionMap(
-        result[layer + 1] ?? const <String>[],
-      );
+      final lowerPosition = _positionMap(result[layer + 1] ?? const <String>[]);
 
       for (var i = 0; i < nodes.length - 1; i++) {
         final left = nodes[i];

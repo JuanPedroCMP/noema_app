@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -16,6 +17,7 @@ import 'package:noema/feature/graph/data/learning_resource_dao.dart';
 import 'package:noema/feature/graph/provider/selected_provider.dart';
 import 'package:noema/feature/graph/service/learning_path.dart';
 import 'package:noema/feature/graph/service/study_resource_recommendation_service.dart';
+import 'package:noema/feature/graph/providers/recommended_study_content_provider.dart';
 import 'package:noema/feature/exercises/data/study_pack_service.dart';
 import 'package:noema/feature/ai/services/ai_content_generation_service.dart';
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
@@ -34,6 +36,7 @@ class NodeDetails extends ConsumerStatefulWidget {
     required this.progressByNodeId,
     this.isRecommended = false,
     this.prerequisiteNodes = const [],
+    this.prerequisitePathNodes = const [],
     this.subtopics = const [],
     this.onSelectRelatedNode,
     this.onNodeChanged,
@@ -46,6 +49,7 @@ class NodeDetails extends ConsumerStatefulWidget {
   final Map<String, LearningNodeProgress> progressByNodeId;
   final bool isRecommended;
   final List<GraphNodeData> prerequisiteNodes;
+  final List<GraphNodeData> prerequisitePathNodes;
   final List<GraphNodeData> subtopics;
   final ValueChanged<GraphNodeData>? onSelectRelatedNode;
   final Future<void> Function()? onNodeChanged;
@@ -71,7 +75,9 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
     super.initState();
     _loadResources();
     _loadDomainLogs();
-    if (widget.isRecommended) _scheduleRecommendedPackGeneration();
+    if (widget.isRecommended && !widget.progress.isContainer) {
+      _scheduleRecommendedPackGeneration();
+    }
   }
 
   @override
@@ -83,6 +89,7 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
       _loadDomainLogs();
     }
     if (widget.isRecommended &&
+        !widget.progress.isContainer &&
         (oldWidget.node.id != widget.node.id || !oldWidget.isRecommended)) {
       _scheduleRecommendedPackGeneration();
     }
@@ -108,6 +115,18 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
               ..orderBy([(log) => OrderingTerm.desc(log.loggedAt)])
               ..limit(10))
             .watch();
+  }
+
+  void _continueStudyingWithGaps() {
+    final targetContext = _resourcesKey.currentContext;
+    if (targetContext == null) return;
+    unawaited(
+      Scrollable.ensureVisible(
+        targetContext,
+        alignment: 0.08,
+        duration: const Duration(milliseconds: 300),
+      ),
+    );
   }
 
   Future<void> _recommendResources() async {
@@ -212,7 +231,7 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const RuntimeLocalizedText(
+          title: RuntimeLocalizedText(
             'Materiais recomendados para este conceito',
           ),
           content: SizedBox(
@@ -221,7 +240,7 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const RuntimeLocalizedText(
+                RuntimeLocalizedText(
                   'Revise e selecione o que deseja adicionar.',
                 ),
                 const SizedBox(height: 8),
@@ -454,8 +473,10 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                         minLines: 2,
                         maxLines: 4,
                         maxLength: 240,
-                        decoration: const InputDecoration(
-                          labelText: 'Instruções adicionais',
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.textAdditionalInstructions,
                         ),
                       ),
                       if (error != null)
@@ -499,7 +520,7 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
   }
 
   Future<void> _createStudyPack() async {
-    if (_isGeneratingStudyPack) return;
+    if (_isGeneratingStudyPack || widget.progress.isContainer) return;
     final selection = await _askStudyPackRequest();
     if (selection == null || !mounted) return;
     final request = selection.request;
@@ -526,10 +547,14 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
         return;
       }
       final service = StudyPackService(ai: ai, database: database);
+      final studyResources = await LearningResourceDao(
+        database,
+      ).getLearningResourcesByNode(nodeId: widget.node.id);
       final draft = await service.generate(
         nodeTitle: widget.node.title,
         nodeDescription: widget.node.description,
         request: request,
+        studyMaterials: StudyPackService.studyMaterialContext(studyResources),
       );
       if (!mounted) {
         await service.save(
@@ -611,6 +636,17 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
     final node = widget.node;
     if (!_automaticPackNodes.add(node.id)) return;
     try {
+      final settings = await ref.read(
+        recommendedStudyContentSettingsProvider.future,
+      );
+      if (!mounted ||
+          !widget.isRecommended ||
+          widget.progress.isContainer ||
+          widget.node.id != node.id ||
+          !settings.enabled ||
+          settings.counts.total == 0) {
+        return;
+      }
       final database = ref.read(appDatabaseProvider);
       final runner = ref.read(aiBackgroundTaskRunnerProvider);
       final notifications = ref.read(aiTaskNotificationServiceProvider);
@@ -635,18 +671,65 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                     item.softDeleted.equals(false),
               ))
               .get();
-      final counts = StudyPackCounts(
-        multipleChoice: multipleChoices.isEmpty ? 1 : 0,
-        essay: openEnded.isEmpty ? 1 : 0,
-        flashcards: flashcards.isEmpty ? 2 : 0,
-      );
-      if (counts.total == 0) return;
-      if (mounted) setState(() => _isGeneratingStudyPack = true);
-      final request = StudyPackRequest(counts: counts);
-      await notifications.initialize(requestPermission: true);
-      final taskId = await AiBackgroundTaskDao(
+      final resources = await LearningResourceDao(
         database,
-      ).enqueueStudyPack(nodeId: node.id, payload: request.toJson());
+      ).getLearningResourcesByNode(nodeId: node.id);
+      final hasExistingStudyMaterial =
+          multipleChoices.isNotEmpty ||
+          openEnded.isNotEmpty ||
+          flashcards.isNotEmpty ||
+          resources.isNotEmpty;
+      if (hasExistingStudyMaterial) {
+        if (!mounted ||
+            !widget.isRecommended ||
+            widget.progress.isContainer ||
+            widget.node.id != node.id) {
+          return;
+        }
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: RuntimeLocalizedText('Este nó já tem material de estudo'),
+            content: Text(
+              'Encontramos ${multipleChoices.length} questões de múltipla '
+              'escolha, ${openEnded.length} questões dissertativas/Feynman, '
+              '${flashcards.length} flashcards e ${resources.length} materiais '
+              'vinculados. Quer acrescentar o pacote configurado com '
+              '${settings.counts.multipleChoice} questões de múltipla escolha, '
+              '${settings.counts.essay} dissertativas, '
+              '${settings.counts.feynman} Feynman e '
+              '${settings.counts.flashcards} flashcards?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const RuntimeLocalizedText('Agora não'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const RuntimeLocalizedText('Gerar conteúdo'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true ||
+            !mounted ||
+            !widget.isRecommended ||
+            widget.progress.isContainer ||
+            widget.node.id != node.id) {
+          return;
+        }
+      }
+      if (mounted) setState(() => _isGeneratingStudyPack = true);
+      final request = StudyPackRequest(counts: settings.counts);
+      await notifications.initialize(requestPermission: true);
+      final taskId = await AiBackgroundTaskDao(database).enqueueStudyPack(
+        nodeId: node.id,
+        payload: {
+          ...request.toJson(),
+          'deck_name': '${node.title} - estudo recomendado',
+        },
+      );
       await scheduleAiBackgroundQueue(taskId: taskId);
       runner.requestPump();
       if (mounted) {
@@ -689,7 +772,9 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                 children: [
                   DropdownButtonFormField<String>(
                     initialValue: type,
-                    decoration: const InputDecoration(labelText: 'Tipo'),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.type,
+                    ),
                     items: const [
                       DropdownMenuItem(
                         value: 'AREA',
@@ -722,8 +807,8 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                     enabled: !isSaving,
                     autofocus: true,
                     maxLength: 100,
-                    decoration: const InputDecoration(
-                      labelText: 'Título',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.textTitle,
                       prefixIcon: Icon(Icons.title),
                     ),
                   ),
@@ -732,8 +817,8 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                     enabled: !isSaving,
                     maxLines: 4,
                     maxLength: 1000,
-                    decoration: const InputDecoration(
-                      labelText: 'Resumo',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.summary,
                       alignLabelWithHint: true,
                     ),
                   ),
@@ -899,6 +984,13 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(recommendedStudyContentSettingsProvider, (previous, next) {
+      if (widget.isRecommended &&
+          previous?.asData?.value.enabled != true &&
+          next.asData?.value.enabled == true) {
+        _scheduleRecommendedPackGeneration();
+      }
+    });
     final node = widget.node;
     final colors = context.colors;
     final textTheme = context.textTheme;
@@ -942,12 +1034,12 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Editar conceito',
+                  tooltip: AppLocalizations.of(context)!.editConcept,
                   onPressed: _editNode,
                   icon: const Icon(Icons.edit_outlined),
                 ),
                 IconButton(
-                  tooltip: 'Fechar detalhes',
+                  tooltip: AppLocalizations.of(context)!.closeDetails,
                   onPressed:
                       widget.onClose ??
                       ref.read(selectedProvider.notifier).clear,
@@ -1063,26 +1155,29 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                       OutlinedButton.icon(
                         onPressed: _openAiExerciseCreation,
                         icon: const Icon(Icons.quiz_outlined),
-                        label: const RuntimeLocalizedText('Gerar questão'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _isGeneratingStudyPack
-                            ? null
-                            : _createStudyPack,
-                        icon: _isGeneratingStudyPack
-                            ? const SizedBox.square(
-                                dimension: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.library_add_check_outlined),
                         label: RuntimeLocalizedText(
-                          _isGeneratingStudyPack
-                              ? 'Gerando pacote...'
-                              : 'Gerar pacote misto',
+                          AppLocalizations.of(context)!.generateQuestionWithAi,
                         ),
                       ),
+                      if (!widget.progress.isContainer)
+                        OutlinedButton.icon(
+                          onPressed: _isGeneratingStudyPack
+                              ? null
+                              : _createStudyPack,
+                          icon: _isGeneratingStudyPack
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.library_add_check_outlined),
+                          label: RuntimeLocalizedText(
+                            _isGeneratingStudyPack
+                                ? 'Gerando pacote...'
+                                : 'Gerar pacote misto',
+                          ),
+                        ),
                       OutlinedButton.icon(
                         onPressed: _isRecommendingResources
                             ? null
@@ -1108,10 +1203,11 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
             ),
             const SizedBox(height: 12),
             _MasteryDetails(
-              score: node.masteryScore,
+              score: widget.progress.masteryScore,
               status: widget.progress.status,
               prerequisiteCount: widget.prerequisiteNodes.length,
               subtopicCount: widget.subtopics.length,
+              isContainer: widget.progress.isContainer,
             ),
             const SizedBox(height: 10),
             KeyedSubtree(
@@ -1120,8 +1216,10 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                 progress: widget.progress,
                 progressByNodeId: widget.progressByNodeId,
                 prerequisiteNodes: widget.prerequisiteNodes,
+                prerequisitePathNodes: widget.prerequisitePathNodes,
                 subtopics: widget.subtopics,
                 onSelectRelatedNode: widget.onSelectRelatedNode,
+                onStudyAnyway: _continueStudyingWithGaps,
               ),
             ),
             StreamBuilder<List<DomainLogData>>(
@@ -1265,7 +1363,9 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                 onPressed: () =>
                     context.push(RoutePaths.exercises(node.graphId, node.id)),
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: const RuntimeLocalizedText('Iniciar avaliação'),
+                label: RuntimeLocalizedText(
+                  AppLocalizations.of(context)!.startAssessment,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -1283,7 +1383,9 @@ class _NodeDetailsState extends ConsumerState<NodeDetails> {
                     RoutePaths.dashboardForNode(node.graphId, node.id),
                   ),
                   icon: const Icon(Icons.analytics_outlined),
-                  label: const RuntimeLocalizedText('Relatório'),
+                  label: RuntimeLocalizedText(
+                    AppLocalizations.of(context)!.report,
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => context.push(
@@ -1505,12 +1607,14 @@ class _MasteryDetails extends StatelessWidget {
     required this.status,
     required this.prerequisiteCount,
     required this.subtopicCount,
+    required this.isContainer,
   });
 
   final double? score;
   final LearningProgressStatus status;
   final int prerequisiteCount;
   final int subtopicCount;
+  final bool isContainer;
 
   @override
   Widget build(BuildContext context) {
@@ -1532,17 +1636,17 @@ class _MasteryDetails extends StatelessWidget {
     final statusLabel = switch (status) {
       LearningProgressStatus.mastered => 'Dominado',
       LearningProgressStatus.ready => 'Pronto',
-      LearningProgressStatus.blocked => 'Bloqueado',
+      LearningProgressStatus.availableWithGaps => 'Disponível com lacunas',
     };
     final statusBackground = switch (status) {
       LearningProgressStatus.mastered => colors.tertiaryContainer,
       LearningProgressStatus.ready => colors.primaryContainer,
-      LearningProgressStatus.blocked => colors.errorContainer,
+      LearningProgressStatus.availableWithGaps => colors.tertiaryContainer,
     };
     final statusForeground = switch (status) {
       LearningProgressStatus.mastered => colors.onTertiaryContainer,
       LearningProgressStatus.ready => colors.onPrimaryContainer,
-      LearningProgressStatus.blocked => colors.onErrorContainer,
+      LearningProgressStatus.availableWithGaps => colors.onTertiaryContainer,
     };
 
     return Semantics(
@@ -1594,6 +1698,8 @@ class _MasteryDetails extends StatelessWidget {
                   child: Text(
                     percentage == null
                         ? 'Sem avaliações'
+                        : isContainer
+                        ? 'média das folhas · $levelLabel'
                         : 'de domínio · $levelLabel',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
@@ -1681,15 +1787,19 @@ class _LearningGuidance extends StatelessWidget {
     required this.progress,
     required this.progressByNodeId,
     required this.prerequisiteNodes,
+    required this.prerequisitePathNodes,
     required this.subtopics,
     required this.onSelectRelatedNode,
+    required this.onStudyAnyway,
   });
 
   final LearningNodeProgress progress;
   final Map<String, LearningNodeProgress> progressByNodeId;
   final List<GraphNodeData> prerequisiteNodes;
+  final List<GraphNodeData> prerequisitePathNodes;
   final List<GraphNodeData> subtopics;
   final ValueChanged<GraphNodeData>? onSelectRelatedNode;
+  final VoidCallback onStudyAnyway;
 
   @override
   Widget build(BuildContext context) {
@@ -1699,34 +1809,45 @@ class _LearningGuidance extends StatelessWidget {
     final unmetNodes = prerequisiteNodes
         .where((prerequisite) => unmetIds.contains(prerequisite.id))
         .toList();
+    final routeNodes = prerequisitePathNodes.isNotEmpty
+        ? prerequisitePathNodes
+        : unmetNodes;
+    final suggestedIds = progress.suggestedPrerequisiteIds.toSet();
+    final suggestedNodes = prerequisiteNodes
+        .where((prerequisite) => suggestedIds.contains(prerequisite.id))
+        .toList();
     final isMastered = progress.status == LearningProgressStatus.mastered;
-    final isBlocked = progress.status == LearningProgressStatus.blocked;
-    final title = isBlocked
-        ? 'Antes de avançar'
+    final hasGaps = progress.status == LearningProgressStatus.availableWithGaps;
+    final title = hasGaps
+        ? 'Disponível com lacunas'
         : isMastered
         ? subtopics.isEmpty
               ? 'Tópico dominado'
               : 'Próximo passo: subtópicos'
+        : progress.isContainer
+        ? 'Progresso agregado'
         : 'Pronto para aprender';
-    final description = isBlocked
-        ? 'Domine os pré-requisitos para liberar este tópico.'
+    final description = hasGaps
+        ? 'Você pode estudar agora ou revisar os pré-requisitos sugeridos.'
         : isMastered
         ? subtopics.isEmpty
               ? 'Este tópico já está dominado.'
               : 'Muito bem! Agora explore os subtópicos deste tópico. '
-                    'Os que ainda estiverem bloqueados mostram o que falta.'
-        : 'Os pré-requisitos estão em dia. Estude este tópico e alcance '
+                    'Os que ainda tiverem lacunas mostram o que falta.'
+        : progress.isContainer
+        ? 'O domínio é a média das folhas descendentes. Você pode abrir qualquer subtópico.'
+        : 'Os pré-requisitos essenciais estão em dia. Estude este tópico e alcance '
               '80% de domínio para avançar.';
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isBlocked
+        color: hasGaps
             ? colors.tertiaryContainer
             : colors.primaryContainer.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isBlocked
+          color: hasGaps
               ? colors.tertiary
               : colors.primary.withValues(alpha: 0.35),
         ),
@@ -1738,12 +1859,12 @@ class _LearningGuidance extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                isBlocked
-                    ? Icons.lock_outline_rounded
+                hasGaps
+                    ? Icons.info_outline_rounded
                     : isMastered
                     ? Icons.verified_rounded
                     : Icons.play_circle_outline_rounded,
-                color: isBlocked ? colors.onTertiaryContainer : colors.primary,
+                color: hasGaps ? colors.onTertiaryContainer : colors.primary,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -1754,7 +1875,7 @@ class _LearningGuidance extends StatelessWidget {
                     Text(
                       title,
                       style: textTheme.titleSmall?.copyWith(
-                        color: isBlocked
+                        color: hasGaps
                             ? colors.onTertiaryContainer
                             : colors.onPrimaryContainer,
                         fontWeight: FontWeight.w700,
@@ -1764,7 +1885,7 @@ class _LearningGuidance extends StatelessWidget {
                     Text(
                       description,
                       style: textTheme.bodySmall?.copyWith(
-                        color: isBlocked
+                        color: hasGaps
                             ? colors.onTertiaryContainer
                             : colors.onPrimaryContainer,
                       ),
@@ -1774,43 +1895,80 @@ class _LearningGuidance extends StatelessWidget {
               ),
             ],
           ),
-          if (isBlocked && unmetNodes.isNotEmpty) ...[
+          if (hasGaps && routeNodes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            for (final prerequisite in unmetNodes)
+            if (prerequisitePathNodes.isNotEmpty)
+              Text(
+                'Caminho sugerido até este conceito:',
+                style: textTheme.labelMedium?.copyWith(
+                  color: colors.onTertiaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            for (var index = 0; index < routeNodes.length; index++)
+              _RelatedTopicTile(
+                node: routeNodes[index],
+                label: prerequisitePathNodes.isNotEmpty
+                    ? 'Etapa ${index + 1} · '
+                          '${_masteryLabel(progressByNodeId[routeNodes[index].id]?.masteryScore)}'
+                    : '${progress.parentTopicIds.contains(routeNodes[index].id) ? 'Tópico superior' : 'Pré-requisito'} pendente · '
+                          '${_masteryLabel(progressByNodeId[routeNodes[index].id]?.masteryScore)}',
+                onTap: onSelectRelatedNode == null
+                    ? null
+                    : () => onSelectRelatedNode!(routeNodes[index]),
+              ),
+          ],
+          if (suggestedNodes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            for (final prerequisite in suggestedNodes)
               _RelatedTopicTile(
                 node: prerequisite,
                 label:
-                    '${progress.parentTopicIds.contains(prerequisite.id) ? 'Tópico superior' : 'Pré-requisito'} pendente · '
-                    '${_masteryLabel(prerequisite.masteryScore)}',
+                    'Sugestão · revisar pré-requisito fraco · '
+                    '${_masteryLabel(progressByNodeId[prerequisite.id]?.masteryScore)}',
                 onTap: onSelectRelatedNode == null
                     ? null
                     : () => onSelectRelatedNode!(prerequisite),
               ),
           ],
-          if (isMastered && subtopics.isNotEmpty) ...[
+          if (hasGaps) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                FilledButton.tonal(
+                  onPressed: onStudyAnyway,
+                  child: const RuntimeLocalizedText('Estudar mesmo assim'),
+                ),
+                OutlinedButton(
+                  onPressed: onSelectRelatedNode == null || routeNodes.isEmpty
+                      ? null
+                      : () => onSelectRelatedNode!(routeNodes.first),
+                  child: const RuntimeLocalizedText(
+                    'Revisar pré-requisitos primeiro',
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (progress.isContainer && subtopics.isNotEmpty) ...[
             const SizedBox(height: 8),
             for (final subtopic in subtopics)
               _RelatedTopicTile(
                 node: subtopic,
-                label:
-                    progressByNodeId[subtopic.id]?.status ==
-                        LearningProgressStatus.ready
-                    ? 'Subtópico liberado · pronto para aprender'
-                    : 'Subtópico · domine os pré-requisitos primeiro',
+                label: switch (progressByNodeId[subtopic.id]?.status) {
+                  LearningProgressStatus.mastered => 'Subtópico dominado',
+                  LearningProgressStatus.ready =>
+                    'Subtópico pronto para aprender',
+                  LearningProgressStatus.availableWithGaps =>
+                    'Subtópico disponível com lacunas',
+                  null => 'Subtópico',
+                },
                 onTap: onSelectRelatedNode == null
                     ? null
                     : () => onSelectRelatedNode!(subtopic),
               ),
-          ],
-          if (isBlocked && unmetNodes.isEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Revise as relações do grafo: não há um próximo tópico '
-              'liberado neste percurso.',
-              style: textTheme.bodySmall?.copyWith(
-                color: colors.onTertiaryContainer,
-              ),
-            ),
           ],
         ],
       ),

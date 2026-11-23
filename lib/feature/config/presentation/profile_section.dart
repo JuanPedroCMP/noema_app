@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dicebear_core/dicebear_core.dart';
 import 'package:dicebear_styles/pixelbot.dart';
 import 'package:flutter/material.dart';
+import 'package:noema/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:noema/shared/localization/runtime_localization.dart';
@@ -293,7 +294,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.edit),
-                              RuntimeLocalizedText("Mudar senha"),
+                              const RuntimeLocalizedText("Mudar senha"),
                             ],
                           ),
                         )
@@ -317,7 +318,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
                                     enableSuggestions: false,
                                     validator: PasswordPolicy.validate,
                                     decoration: InputDecoration(
-                                      labelText: 'Nova senha',
+                                      labelText: AppLocalizations.of(context)!.newPassword,
                                       prefixIcon: const Icon(
                                         Icons.lock_outline,
                                       ),
@@ -356,7 +357,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
                                       return null;
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'Confirme a nova senha',
+                                      labelText: AppLocalizations.of(context)!.confirmNewPassword,
                                       prefixIcon: const Icon(Icons.lock_reset),
                                       suffixIcon: IconButton(
                                         tooltip: _passwordConfirmationVisible
@@ -395,7 +396,7 @@ class _ProfileSectionState extends ConsumerState<ProfileSection> {
                                                 ?.reset();
                                           },
                                     icon: const Icon(Icons.close),
-                                    label: const RuntimeLocalizedText(
+                                    label: RuntimeLocalizedText(
                                       'Cancelar',
                                     ),
                                   ),

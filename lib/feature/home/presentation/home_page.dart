@@ -312,7 +312,7 @@ class _HomeWelcomeCard extends StatelessWidget {
                                     icon: const Icon(
                                       Icons.account_tree_outlined,
                                     ),
-                                    label: const RuntimeLocalizedText(
+                                    label: RuntimeLocalizedText(
                                       'Explorar grafos',
                                     ),
                                   ),
@@ -322,7 +322,7 @@ class _HomeWelcomeCard extends StatelessWidget {
                                       foregroundColor: colors.onPrimary,
                                     ),
                                     icon: const Icon(Icons.insights_outlined),
-                                    label: const RuntimeLocalizedText(
+                                    label: RuntimeLocalizedText(
                                       'Ver progresso',
                                     ),
                                   ),

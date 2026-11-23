@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:noema/core/database/database.dart' hide GraphNode;
 import 'package:noema/feature/ai/data/ai_background_task_dao.dart';
@@ -31,10 +33,12 @@ Future<String> importGraphFromJson({
   required String jsonString,
   bool isAiGenerated = false,
   bool queueMissingAiDescriptions = false,
+  bool regenerateAiDescriptions = false,
 }) async {
   final rawGraph = ai.GraphResponse.fromJsonString(jsonString);
   final graph = isAiGenerated ? rawGraph.repair() : rawGraph;
-  final fatalProblems = graph.validate()
+  final fatalProblems = graph
+      .validate()
       .where((problem) => problem.fatal)
       .toList();
   if (fatalProblems.isNotEmpty) {
@@ -159,10 +163,13 @@ Future<String> importGraphFromJson({
         }
       }
 
-      if (isAiGenerated && queueMissingAiDescriptions) {
+      if (isAiGenerated &&
+          (queueMissingAiDescriptions || regenerateAiDescriptions)) {
         final now = DateTime.now().millisecondsSinceEpoch;
         for (final node in graph.nodes) {
-          if (node.description.trim().isNotEmpty) continue;
+          if (!regenerateAiDescriptions && node.description.trim().isNotEmpty) {
+            continue;
+          }
           final dbNodeId = nodeIdMap[node.nodeId];
           if (dbNodeId == null) continue;
           batch.insert(
@@ -171,6 +178,14 @@ Future<String> importGraphFromJson({
               id: const Uuid().v4(),
               nodeId: dbNodeId,
               taskType: aiNodeDescriptionTaskType,
+              payloadJson: Value(
+                regenerateAiDescriptions
+                    ? jsonEncode({
+                        'replace_existing_description': true,
+                        'expected_description': node.description,
+                      })
+                    : '{}',
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -183,12 +198,12 @@ Future<String> importGraphFromJson({
           continue;
         }
 
-        final databaseSourceNode = isAiGenerated &&
-                edge.type.toUpperCase() == 'SUBTOPIC'
+        final databaseSourceNode =
+            isAiGenerated && edge.type.toUpperCase() == 'SUBTOPIC'
             ? edge.targetNode
             : edge.sourceNode;
-        final databaseTargetNode = isAiGenerated &&
-                edge.type.toUpperCase() == 'SUBTOPIC'
+        final databaseTargetNode =
+            isAiGenerated && edge.type.toUpperCase() == 'SUBTOPIC'
             ? edge.sourceNode
             : edge.targetNode;
         final sourceId = nodeIdMap[databaseSourceNode];

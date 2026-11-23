@@ -10,9 +10,52 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  FlMethodChannel* icon_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
+
+static void set_window_icon(FlMethodChannel* channel,
+                            FlMethodCall* method_call,
+                            gpointer user_data) {
+  if (g_strcmp0(fl_method_call_get_name(method_call), "setIcon") != 0) {
+    fl_method_call_respond_not_implemented(method_call, nullptr);
+    return;
+  }
+
+  FlValue* arguments = fl_method_call_get_args(method_call);
+  if (arguments == nullptr ||
+      fl_value_get_type(arguments) != FL_VALUE_TYPE_UINT8_LIST) {
+    fl_method_call_respond_error(method_call, "invalid_icon",
+                                 "Expected PNG bytes for the window icon.",
+                                 nullptr, nullptr);
+    return;
+  }
+
+  const uint8_t* bytes = fl_value_get_uint8_list(arguments);
+  const gsize length = fl_value_get_length(arguments);
+  g_autoptr(GdkPixbufLoader) loader = gdk_pixbuf_loader_new();
+  g_autoptr(GError) error = nullptr;
+  if (!gdk_pixbuf_loader_write(loader, bytes, length, &error) ||
+      !gdk_pixbuf_loader_close(loader, &error)) {
+    fl_method_call_respond_error(
+        method_call, "invalid_icon",
+        error != nullptr ? error->message : "Invalid PNG icon.", nullptr,
+        nullptr);
+    return;
+  }
+
+  GdkPixbuf* icon = gdk_pixbuf_loader_get_pixbuf(loader);
+  if (icon == nullptr) {
+    fl_method_call_respond_error(method_call, "invalid_icon",
+                                 "The PNG icon could not be decoded.", nullptr,
+                                 nullptr);
+    return;
+  }
+
+  gtk_window_set_icon(GTK_WINDOW(user_data), icon);
+  fl_method_call_respond_success(method_call, nullptr, nullptr);
+}
 
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
@@ -30,6 +73,7 @@ static void my_application_activate(GApplication* application) {
 
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+  g_clear_object(&self->icon_channel);
 
   g_autofree gchar* executable_path =
       g_file_read_link("/proc/self/exe", nullptr);
@@ -95,6 +139,12 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  self->icon_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "noema/desktop_window_icon", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(
+      self->icon_channel, set_window_icon, window, nullptr);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
@@ -142,6 +192,7 @@ static void my_application_shutdown(GApplication* application) {
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
+  g_clear_object(&self->icon_channel);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 
@@ -154,7 +205,9 @@ static void my_application_class_init(MyApplicationClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = my_application_dispose;
 }
 
-static void my_application_init(MyApplication* self) {}
+static void my_application_init(MyApplication* self) {
+  self->icon_channel = nullptr;
+}
 
 MyApplication* my_application_new() {
   // Set the program name to the application ID, which helps various systems
